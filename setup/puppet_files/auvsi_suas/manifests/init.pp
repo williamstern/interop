@@ -1,42 +1,41 @@
-# AUVSI SUAS Puppet Setup Script
+# AUVSI SUAS Pet Setup Script
 # This file launches the install for the various required components
 # =============================================================================
 
+# Create the main AUVSI SUAS pet definition. Including this definition will
+# setup all system dependencies.
 class auvsi_suas {
     # System Dependencies
-    include auvsi_suas::apache.pp
-    include auvsi_suas::apt.pp
-    include auvsi_suas::boost.pp
-    include auvsi_suas::chrome.pp
-    include auvsi_suas::cmake.pp
-    include auvsi_suas::django.pp
-    include auvsi_suas::eclipse.pp
-    include auvsi_suas::ftp.pp
-    include auvsi_suas::gcc.pp
-    include auvsi_suas::git.pp
-    include auvsi_suas::gnuplot.pp
-    include auvsi_suas::graphicsmagick.pp
-    include auvsi_suas::imagemagick.pp
-    include auvsi_suas::init.pp
-    include auvsi_suas::java.pp
-    include auvsi_suas::jpeg-turbo.pp
-    include auvsi_suas::matplotlib.pp
-    include auvsi_suas::mysql.pp
-    include auvsi_suas::ntp.pp
-    include auvsi_suas::numpy.py
-    include auvsi_suas::opencv.pp
-    include auvsi_suas::openssh.pp 
-    include auvsi_suas::php.pp
-    include auvsi_suas::pprof.pp
-    include auvsi_suas::protobuf.pp
-    include auvsi_suas::pydev.pp
-    include auvsi_suas::python.pp
-    include auvsi_suas::qt.pp
-    include auvsi_suas::rsync.pp
-    include auvsi_suas::subversion.pp 
-    include auvsi_suas::sqlite.pp
-    include auvsi_suas::stdlib.pp
-    include auvsi_suas::texlive.pp 
-    include auvsi_suas::tftp.pp
-    include auvsi_suas::vim.pp
+    include auvsi_suas::apache
+    include auvsi_suas::boost
+    include auvsi_suas::chrome
+    include auvsi_suas::cmake
+    include auvsi_suas::dia
+    include auvsi_suas::django
+    include auvsi_suas::eclipse
+    include auvsi_suas::ftp
+    include auvsi_suas::gcc
+    include auvsi_suas::git
+    include auvsi_suas::gnuplot
+    include auvsi_suas::graphicsmagick
+    include auvsi_suas::imagemagick
+    include auvsi_suas::java
+    include auvsi_suas::jpeg-turbo
+    include auvsi_suas::matplotlib
+    include auvsi_suas::mysql
+    include auvsi_suas::ntp
+    include auvsi_suas::numpy
+    include auvsi_suas::opencv
+    include auvsi_suas::openssh 
+    include auvsi_suas::openssl
+    include auvsi_suas::php
+    include auvsi_suas::pprof
+    include auvsi_suas::protobuf
+    include auvsi_suas::python
+    include auvsi_suas::qt
+    include auvsi_suas::rsync
+    include auvsi_suas::subversion 
+    include auvsi_suas::sqlite
+    include auvsi_suas::texlive 
+    include auvsi_suas::vim
 }

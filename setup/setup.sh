@@ -3,4 +3,4 @@
 # ==============================================================================
 
 # Launch the Puppet process
-puppet apply --modulepath=${PWD}/puppet_files puppet_files/auvsi_suas.pp
+sudo puppet apply --modulepath=${PWD}/puppet_files puppet_files/auvsi_suas.pp
