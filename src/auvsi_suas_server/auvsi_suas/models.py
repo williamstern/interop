@@ -34,10 +34,26 @@ class ServerInfo(models.Model):
     team_msg = models.CharField(max_length=100)
 
 
+class ServoInfoAccessLog(models.Model):
+    """Log of access to the ServoInfo objects used to evaluate teams."""
+    # Timestamp of the access
+    timestamp = models.DateTimeField(auto_now_add=True)
+    # The user which accessed the data
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+
+
 class Obstacle(models.Model):
     """An obstacle that teams must avoid."""
     # Obstacle name
     name = models.CharField(max_length=100)
+
+
+class ObstacleAccessLog(models.Model):
+    """Log of access ot the Obstacle objects used to evaulate teams."""
+    # Timestamp of the access
+    timestamp = models.DateTimeField(auto_now_add=True)
+    # The user which accessed the data
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
 
 class StationaryObstacle(Obstacle):
