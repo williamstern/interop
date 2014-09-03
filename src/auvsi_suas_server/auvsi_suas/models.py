@@ -1,4 +1,6 @@
+from django.conf import settings
 from django.db import models
+
 
 class GpsPosition(models.Model):
     """GPS position consisting of a latitude and longitude degree value."""
@@ -8,20 +10,28 @@ class GpsPosition(models.Model):
     longitude = models.FloatField()
 
 
-class Waypoint(models.Model):
-    """Waypoint position which consists of a GPS position and an altitude."""
+class AerialPosition(models.Model):
+    """Aerial position which consists of a GPS position and an altitude."""
     # GPS position
     gps_position = models.ForeignKey(GpsPosition)
     # MSL altitude in feet
     msl_altitude = models.FloatField()
 
 
+class Waypoint(models.Model):
+    """A waypoint consists of an aerial position and a waypoint name."""
+    # The name of the waypoint
+    name = models.CharField(max_length=100)
+    # Aerial position
+    position = models.ForeignKey(AerialPosition)
+
+
 class ServerInfo(models.Model):
     """Static information stored on the server that teams must retrieve."""
     # Time information was stored
     timestamp = models.DateTimeField(auto_now_add=True)
-    # Message for users
-    user_msg = models.CharField(max_length=100)
+    # Message for teams
+    team_msg = models.CharField(max_length=100)
 
 
 class Obstacle(models.Model):
@@ -35,32 +45,28 @@ class StationaryObstacle(Obstacle):
     # The position of the obstacle center
     gps_position = models.ForeignKey(GpsPosition)
     # The radius of the cylinder in feet
-    radius = models.FloatField()
+    cylinder_radius = models.FloatField()
     # The height of the cylinder in feet
-    height = models.FloatField()
+    cylinder_height = models.FloatField()
 
 
 class MovingObstacle(Obstacle):
     """A moving obstacle that teams must avoid."""
-    # The position of the obstacle center
-    position = models.ForeignKey(Waypoint) 
+    # The waypoints the obstacle attempts to follow
+    waypoints = models.ManyToManyField(AerialPosition) 
+    # The max speed of the obstacle
+    speed_max = models.FloatField()
     # The radius of the sphere in feet
-    radius = models.FloatField()
-
-
-class Team(models.Model):
-    """A team at the AUVSI SUAS competition."""
-    # Human readable team name
-    team_name = models.CharField(max_length=100)
+    sphere_radius = models.FloatField()
 
 
 class AircraftTelemetry(models.Model):
     """Aircraft telemetry reported by teams."""
-    # The team which generated the telemetry
-    team = models.ForeignKey(Team)
+    # The user which generated the telemetry
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
     # The time at which the telemetry was received
     recv_timestamp = models.DateTimeField(auto_now_add=True)
-    # The position of the aircraft
-    position = models.ForeignKey(Waypoint)
-    # The heading of the aircraft in degrees (e.g. 0=north, 90=east)
-    heading = models.FloatField()
+    # The position of the UAS
+    uas_position = models.ForeignKey(AerialPosition)
+    # The heading of the UAS in degrees (e.g. 0=north, 90=east)
+    uas_heading = models.FloatField()
