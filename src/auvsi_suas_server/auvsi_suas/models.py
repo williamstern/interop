@@ -34,7 +34,7 @@ class ServerInfo(models.Model):
     team_msg = models.CharField(max_length=100)
 
 
-class ServoInfoAccessLog(models.Model):
+class ServerInfoAccessLog(models.Model):
     """Log of access to the ServoInfo objects used to evaluate teams."""
     # Timestamp of the access
     timestamp = models.DateTimeField(auto_now_add=True)
