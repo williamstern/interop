@@ -4,6 +4,8 @@ from django.db import models
 
 class GpsPosition(models.Model):
     """GPS position consisting of a latitude and longitude degree value."""
+    # The name of the position. Used to uniquely identify it.
+    position_name = models.CharField(max_length=100)
     # Latitude in degrees
     latitude = models.FloatField()
     # Longitude in degrees
@@ -76,8 +78,8 @@ class MovingObstacle(Obstacle):
     sphere_radius = models.FloatField()
 
 
-class AircraftTelemetry(models.Model):
-    """Aircraft telemetry reported by teams."""
+class UasTelemetry(models.Model):
+    """UAS telemetry reported by teams."""
     # The user which generated the telemetry
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     # The time at which the telemetry was received

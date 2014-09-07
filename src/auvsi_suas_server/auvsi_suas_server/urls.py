@@ -5,5 +5,5 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^$', include('auvsi_suas.urls', namespace="auvsi_suas"))
+    url(r'^', include('auvsi_suas.urls', namespace="auvsi_suas"))
 )
