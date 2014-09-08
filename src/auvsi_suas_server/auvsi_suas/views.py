@@ -1,11 +1,14 @@
-from auvsi_suas.models import ServoInfo
+import datetime
+import json
+import time
+from auvsi_suas.models import ServerInfo
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
-from django.http import JsonResponse
+from django.http import HttpResponseServerError
 from django.shortcuts import render
 
 
@@ -55,19 +58,22 @@ def getServerInfo(request):
         return HttpResponseBadRequest('User not logged in. Login required.')
     # Validate user made a GET request
     if request.method != 'GET':
-        return HttpResponseBadRequest('Servo info request must be GET request.')
+        return HttpResponseBadRequest('Server info request must be GET request.')
 
-    # Get the latest published servo info
-    server_info = ServoInfo.objects.latest('timestamp') 
-    if not servo_info:
+    try:
+        # Get the latest published server info
+        server_info = ServerInfo.objects.latest('timestamp') 
+    except ServerInfo.DoesNotExist:
+        # Failed to obtain server info 
         return HttpResponseServerError('No server information available.')
-
-    # Form JSON response
-    data = dict()
-    data['time'] = int(time.time() * 1000)
-    data['message'] = servo_info.team_msg
-    data['message_timestamp'] = servo_info.timestamp
-    return JsonResponse(data)
+    else:
+        # Form JSON response
+        data = dict()
+        data['server_time'] = str(datetime.datetime.now()) 
+        data['message'] = server_info.team_msg
+        data['message_timestamp'] = str(server_info.timestamp)
+        return HttpResponse(json.dumps(data),
+                            content_type="application/json")
 
 
 def getObstacles(request):
