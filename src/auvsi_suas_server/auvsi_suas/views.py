@@ -1,9 +1,11 @@
+from auvsi_suas.models import ServoInfo
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
+from django.http import JsonResponse
 from django.shortcuts import render
 
 
@@ -51,8 +53,21 @@ def getServerInfo(request):
     # Validate user is logged in to make request
     if not request.user.is_authenticated():
         return HttpResponseBadRequest('User not logged in. Login required.')
+    # Validate user made a GET request
+    if request.method != 'GET':
+        return HttpResponseBadRequest('Servo info request must be GET request.')
 
-    # TODO
+    # Get the latest published servo info
+    server_info = ServoInfo.objects.latest('timestamp') 
+    if not servo_info:
+        return HttpResponseServerError('No server information available.')
+
+    # Form JSON response
+    data = dict()
+    data['time'] = int(time.time() * 1000)
+    data['message'] = servo_info.team_msg
+    data['message_timestamp'] = servo_info.timestamp
+    return JsonResponse(data)
 
 
 def getObstacles(request):
