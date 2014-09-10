@@ -12,3 +12,12 @@ directory contains the following files:
   3. manage.py: A utility program provided by Django which can be used to manage
         the application. This includes creating databases, running the
         development server, etc.
+
+To start the development web server, execute:
+python manage.py runserver 8080
+
+This will start the server on the local address (localhost, 127.0.0.1) with port
+8080. This means the web server is providing a web page at:
+http://localhost:8080/
+
+To stop the web server, use Control-C.

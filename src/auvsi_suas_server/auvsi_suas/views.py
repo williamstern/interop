@@ -1,7 +1,13 @@
+"""Views which users interact with in AUVSI SUAS System."""
+
 import datetime
 import json
 import time
+from auvsi_suas.models import AerialPosition
+from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import ServerInfo
+from auvsi_suas.models import ServerInfoAccessLog
+from auvsi_suas.models import UasTelemetry
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -19,7 +25,7 @@ def index(request):
     user. If the user is a superuser, it shows the Judging view which is used
     to manage the competition and evaluate teams.
     """
-    return render(request, 'auvsi_suas/index.html') 
+    return render(request, 'auvsi_suas/index.html')
 
 
 def loginUser(request):
@@ -31,13 +37,18 @@ def loginUser(request):
     Users then send this cookie with each request to make requests as an
     authenticated user.
     """
+    # Validate user made a POST request
+    if request.method != 'POST':
+        return HttpResponseBadRequest('Login request must be POST request.')
+
+    # Attempt authentication
     try:
         # Obtain username and password from POST parameters
         username = request.POST['username']
         password = request.POST['password']
     except KeyError:
         # Failed to get POST parameters, invalid request
-        return HttpResponseBadRequest('Login must be POST request with ' 
+        return HttpResponseBadRequest('Login must be POST request with '
                 '"username" and "password" parameters.')
     else:
         # Use credentials to authenticate
@@ -52,24 +63,30 @@ def loginUser(request):
 
 
 def getServerInfo(request):
-    """Gets the server information with a GET request."""
+    """Gets the server information as JSON with a GET request."""
     # Validate user is logged in to make request
     if not request.user.is_authenticated():
         return HttpResponseBadRequest('User not logged in. Login required.')
     # Validate user made a GET request
     if request.method != 'GET':
-        return HttpResponseBadRequest('Server info request must be GET request.')
+        return HttpResponseBadRequest('Request must be GET request.')
 
+    # Log user access to server information
+    access_log = ServerInfoAccessLog()
+    access_log.user = request.user
+    access_log.save()
+
+    # Form response
     try:
         # Get the latest published server info
-        server_info = ServerInfo.objects.latest('timestamp') 
+        server_info = ServerInfo.objects.latest('timestamp')
     except ServerInfo.DoesNotExist:
-        # Failed to obtain server info 
-        return HttpResponseServerError('No server information available.')
+        # Failed to obtain server info
+        return HttpResponseServerError('No server info available.')
     else:
         # Form JSON response
         data = dict()
-        data['server_time'] = str(datetime.datetime.now()) 
+        data['server_time'] = str(datetime.datetime.now())
         data['message'] = server_info.team_msg
         data['message_timestamp'] = str(server_info.timestamp)
         return HttpResponse(json.dumps(data),
@@ -77,21 +94,76 @@ def getServerInfo(request):
 
 
 def getObstacles(request):
-    """Gets the obstacle information with a GET request."""
+    """Gets the obstacle information as JSON with a GET request."""
     # Validate user is logged in to make request
     if not request.user.is_authenticated():
         return HttpResponseBadRequest('User not logged in. Login required.')
+    # Validate user made a GET request
+    if request.method != 'GET':
+        return HttpResponseBadRequest('Request must be GET request.')
 
     # TODO
 
 
-def updateUasPosition(request):
-    """Posts the UAS position with a POST request containing JSON data."""
+def postUasPosition(request):
+    """Posts the UAS position with a POST request.
+
+    User must send a POST request with the following paramters:
+    latitude: A latitude in decimal degrees.
+    longitude: A logitude in decimal degrees.
+    msl_altitude: An MSL altitude in decimal feet.
+    uas_heading: The UAS heading in decimal degrees. (0=north, 90=east)
+    """
     # Validate user is logged in to make request
     if not request.user.is_authenticated():
         return HttpResponseBadRequest('User not logged in. Login required.')
+    # Validate user made a POST request
+    if request.method != 'POST':
+        return HttpResponseBadRequest('Request must be POST request.')
 
-    # TODO
+    try:
+        # Get the parameters
+        latitude = float(request.POST['latitude'])
+        longitude = float(request.POST['longitude'])
+        msl_altitude = float(request.POST['msl_altitude'])
+        uas_heading = float(request.POST['uas_heading'])
+    except KeyError:
+        # Failed to get POST parameters
+        return HttpResponseBadRequest(
+                'Posting UAS position must contain POST parameters "latitude", '
+                '"longitude", "msl_altitude", and "uas_heading".')
+    except ValueError:
+        # Failed to convert parameters
+        return HttpResponseBadRequest(
+                'Failed to convert provided POST parameters to correct form.')
+    else:
+        # Check the values make sense
+        if latitude < -90 or latitude > 90:
+            return HttpResponseBadRequest(
+                    'Must provide latitude between -90 and 90 degrees.')
+        if longitude < -180 or longitude > 180:
+            return HttpResponseBadRequest(
+                    'Must provide longitude between -180 and 180 degrees.')
+        if uas_heading < 0 or uas_heading > 360:
+            return HttpResponseBadRequest(
+                    'Must provide heading between 0 and 360 degrees.')
+
+        # Store telemetry
+        gps_position = GpsPosition()
+        gps_position.latitude = latitude
+        gps_position.longitude = longitude
+        gps_position.save()
+        aerial_position = AerialPosition()
+        aerial_position.gps_position = gps_position
+        aerial_position.msl_altitude = msl_altitude
+        aerial_position.save()
+        uas_telemetry = UasTelemetry()
+        uas_telemetry.user = request.user
+        uas_telemetry.uas_position = aerial_position
+        uas_telemetry.uas_heading = uas_heading
+        uas_telemetry.save()
+
+        return HttpResponse('UAS Telemetry Successfully Posted.')
 
 
 # login_required()

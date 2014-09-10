@@ -1,11 +1,12 @@
+"""Models for the AUVSI SUAS System."""
+
+import datetime
 from django.conf import settings
 from django.db import models
 
 
 class GpsPosition(models.Model):
     """GPS position consisting of a latitude and longitude degree value."""
-    # The name of the position. Used to uniquely identify it.
-    position_name = models.CharField(max_length=100)
     # Latitude in degrees
     latitude = models.FloatField()
     # Longitude in degrees
@@ -31,7 +32,7 @@ class Waypoint(models.Model):
 class ServerInfo(models.Model):
     """Static information stored on the server that teams must retrieve."""
     # Time information was stored
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(default=datetime.datetime.now)
     # Message for teams
     team_msg = models.CharField(max_length=100)
 
@@ -39,7 +40,7 @@ class ServerInfo(models.Model):
 class ServerInfoAccessLog(models.Model):
     """Log of access to the ServoInfo objects used to evaluate teams."""
     # Timestamp of the access
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(default=datetime.datetime.now)
     # The user which accessed the data
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
@@ -53,7 +54,7 @@ class Obstacle(models.Model):
 class ObstacleAccessLog(models.Model):
     """Log of access ot the Obstacle objects used to evaulate teams."""
     # Timestamp of the access
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(default=datetime.datetime.now)
     # The user which accessed the data
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
@@ -71,7 +72,7 @@ class StationaryObstacle(Obstacle):
 class MovingObstacle(Obstacle):
     """A moving obstacle that teams must avoid."""
     # The waypoints the obstacle attempts to follow
-    waypoints = models.ManyToManyField(AerialPosition) 
+    waypoints = models.ManyToManyField(AerialPosition)
     # The max speed of the obstacle
     speed_max = models.FloatField()
     # The radius of the sphere in feet
@@ -83,7 +84,7 @@ class UasTelemetry(models.Model):
     # The user which generated the telemetry
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     # The time at which the telemetry was received
-    recv_timestamp = models.DateTimeField(auto_now_add=True)
+    recv_timestamp = models.DateTimeField(default=datetime.datetime.now)
     # The position of the UAS
     uas_position = models.ForeignKey(AerialPosition)
     # The heading of the UAS in degrees (e.g. 0=north, 90=east)
