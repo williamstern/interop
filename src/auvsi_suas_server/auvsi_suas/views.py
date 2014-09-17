@@ -6,9 +6,14 @@ import time
 import numpy as np
 from auvsi_suas.models import AerialPosition
 from auvsi_suas.models import GpsPosition
+from auvsi_suas.models import MovingObstacle
+from auvsi_suas.models import Obstacle
+from auvsi_suas.models import ObstacleAccessLog
 from auvsi_suas.models import ServerInfo
 from auvsi_suas.models import ServerInfoAccessLog
+from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.models import UasTelemetry
+from auvsi_suas.models import Waypoint
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -87,10 +92,10 @@ def getServerInfo(request):
         return HttpResponseServerError('No server info available.')
     else:
         # Form JSON response
-        data = dict()
-        data['server_time'] = str(datetime.datetime.now())
-        data['message'] = server_info.team_msg
-        data['message_timestamp'] = str(server_info.timestamp)
+        data = {
+            'server_info': server_info.toJSON(),
+            'server_time': str(datetime.datetime.now())
+        }
         return HttpResponse(json.dumps(data),
                             content_type="application/json")
 
@@ -108,69 +113,23 @@ def getObstacles(request):
     stationary_obstacles = StationaryObstacles.objects.all()
     stationary_obstacles_json = list()
     for cur_obst in stationary_obstacles:
-        cur_obst_json = dict()
-        cur_gps = dict()
-        # Set obstacle position
-        cur_gps['latitude'] = cur_obst.gps_position.latitude
-        cur_gps['longitude'] = cur_obst.gps_position.longitude
-        cur_obst_json['gps_position'] = cur_gps
-        # Set obstacle size
-        cur_obst_json['cylinder_radius'] = cur_obst.cylinder_radius
-        cur_obst_json['cylinder_height'] = cur_obst.cylinder_height
         # Add current obstacle
+        cur_obst_json = cur_obst.toJSON()
         stationary_obstacles_json.append(cur_obst_json)
 
     # Form JSON response portion for moving obstacles
     moving_obstacles = MovingObstacle.objects.all()
     moving_obstacles_json = list()
     for cur_obst in moving_obstacles:
-        cur_obst_json = dict()
-        # Set obstacle size
-        cur_obst_json['sphere_radius'] = cur_obst.sphere_radius
-        # Get obstacle speed
-        speed_max = cur_obst.speed_max
-        if speed_max <= 0:
-            continue
-        # Obtain waypoint positions which define flight path
-        waypoints = cur_obst.waypoints.order_by('order')
-        num_waypoints = len(waypoints)
-        positions = np.zeros(num_waypoints + 1, 3)
-        for waypoint_id in range(num_waypoints):
-            cur_waypoint = waypoints[waypoint_id]
-            cur_position = cur_waypoint.position
-            cur_gps_pos = cur_position.gps_position
-            positions[waypoint_id, 0] = cur_gps_pos.latitude
-            positions[waypoint_id, 1] = cur_gps_pos.longitude
-            positions[waypoint_id, 2] = cur_position.msl_altitude
-        # Compute times of waypoint positions
-        pos_times = np.zeros(num_waypoints + 1)
-        for waypoint_id in range(1, num_waypoints):
-            waypoint_t = waypoints[waypoint_id]
-            waypoint_tm1 = waypoints[waypoint_id-1]
-            waypoint_dist = waypoint_tm1.distanceTo(waypoint_t)
-            waypoint_travel_time = waypoint_dist / speed_max
-            cur_time = pos_times[waypoint_id-1] + waypoint_travel_time
-            pos_times[waypoint_id] = cur_time
-        first_point = waypoints[0]
-        final_point = waypoints[num_waypoints-1]
-        final_dist = final_point.distanceTo(first_point)
-        final_travel_time = final_dist / speed_max
-        final_time = pos_times[num_waypoints-1] + final_travel_time
-        pos_times[num_waypoints] = final_time
-        # Use spline interpolation to find current position
-        tck = interpolate.splrep(pos_times, positions, per=1)
-        cur_time = np.mod(time.time(), pos_times[num_waypoints])
-        cur_pos = interpolate.splev(cur_time, tck)
-        cur_obst_json['latitude'] = cur_pos[0]
-        cur_obst_json['longitude'] = cur_pos[1]
-        cur_obst_json['altitude_msl'] = cur_pos[2]
         # Add current obstacle
+        cur_obst_json = cur_obst.toJSON()
         moving_obstacles_json.append(cur_obst_json)
 
     # Form final JSON response
-    data = dict()
-    data['stationary_obstacles'] = stationary_obstacles_json
-    data['moving_obstacles'] = moving_obstacles_json
+    data = {
+        'stationary_obstacles': stationary_obstacles_json,
+        'moving_obstacles': moving_obstacles_json
+    }
     return HttpResponse(json.dumps(data),
                         content_type="application/json")
 
