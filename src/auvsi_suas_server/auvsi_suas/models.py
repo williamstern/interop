@@ -45,6 +45,16 @@ class GpsPosition(models.Model):
     # Longitude in degrees
     longitude = models.FloatField()
 
+    def kilometersToFeet(self, kilometers):
+        """Converts kilometers to feet.
+
+        Args:
+            kilometers: A distance in kilometers.
+        Returns:
+            A distance in feet.
+        """
+        return kilometers * 3280.84
+
     def distanceTo(self, other):
         """Computes distance to another position.
         Args:
@@ -55,8 +65,7 @@ class GpsPosition(models.Model):
         dist = haversine(
                 self.longitude, self.latitude, other.longitude, other.latitude)
         # Convert km to feet
-        dist_ft = dist * 3280.84
-        return dist_ft
+        return kilometersToFeet(dist) 
 
 
 class AerialPosition(models.Model):
@@ -173,12 +182,22 @@ class MovingObstacle(Obstacle):
           id_tm1: The ID of the starting waypoint.
           id_t: The ID of the ending waypoint.
         Returns:
-          Time to travel between the two waypoints in seconds.
+          Time to travel between the two waypoints in seconds. Returns None on
+          error.
         """
+        # Validate inputs
+        if (not waypoints
+            or id_tm1 is None
+            or id_t is None
+            or self.speed_max <= 0):
+            # Invalid inputs
+            return None
+
         waypoint_t = waypoints[id_t]
         waypoint_tm1 = waypoints[id_tm1]
         waypoint_dist = waypoint_tm1.distanceTo(waypoint_t)
         waypoint_travel_time = waypoint_dist / self.speed_max
+
         return waypoint_travel_time
 
 

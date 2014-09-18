@@ -109,6 +109,11 @@ def getObstacles(request):
     if request.method != 'GET':
         return HttpResponseBadRequest('Request must be GET request.')
 
+    # Log user access to obstacle info
+    access_log = ObstacleAccessLog()
+    access_log.user = request.user
+    access_log.save()
+
     # Form JSON response portion for stationary obstacles
     stationary_obstacles = StationaryObstacles.objects.all()
     stationary_obstacles_json = list()
