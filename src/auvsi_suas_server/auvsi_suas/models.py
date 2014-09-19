@@ -34,8 +34,19 @@ def haversine(lon1, lat1, lon2, lat2):
     hav_c = 2 * math.asin(math.sqrt(hav_a))
 
     # 6367 km is the radius of the Earth
-    dist_km = 6367 * hav_c
+    dist_km = 6371 * hav_c
     return dist_km
+
+
+def kilometersToFeet(kilometers):
+    """Converts kilometers to feet.
+
+    Args:
+        kilometers: A distance in kilometers.
+    Returns:
+        A distance in feet.
+    """
+    return kilometers * 3280.84
 
 
 class GpsPosition(models.Model):
@@ -44,16 +55,6 @@ class GpsPosition(models.Model):
     latitude = models.FloatField()
     # Longitude in degrees
     longitude = models.FloatField()
-
-    def kilometersToFeet(self, kilometers):
-        """Converts kilometers to feet.
-
-        Args:
-            kilometers: A distance in kilometers.
-        Returns:
-            A distance in feet.
-        """
-        return kilometers * 3280.84
 
     def distanceTo(self, other):
         """Computes distance to another position.
@@ -65,7 +66,7 @@ class GpsPosition(models.Model):
         dist = haversine(
                 self.longitude, self.latitude, other.longitude, other.latitude)
         # Convert km to feet
-        return kilometersToFeet(dist) 
+        return kilometersToFeet(dist)
 
 
 class AerialPosition(models.Model):

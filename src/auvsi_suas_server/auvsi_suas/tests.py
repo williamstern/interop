@@ -1,5 +1,7 @@
 from auvsi_suas.models import AerialPosition
 from auvsi_suas.models import GpsPosition
+from auvsi_suas.models import haversine
+from auvsi_suas.models import kilometersToFeet
 from auvsi_suas.models import MovingObstacle
 from auvsi_suas.models import Obstacle
 from auvsi_suas.models import ObstacleAccessLog
@@ -13,90 +15,182 @@ from django.test import TestCase
 from django.test.client import Client
 
 
+# (lon1, lat1, lon2, lat2, dist_actual)
+TESTDATA_ZERO_DIST = [
+    (0, 0, 0, 0, 0),
+    (1, 1, 1, 1, 0),
+    (-1, -1, -1, -1, 0),
+    (1, -1, 1, -1, 0),
+    (-1, 1, -1, 1, 0),
+    (76, 42, 76, 42, 0),
+    (-76, 42, -76, 42, 0)
+]
+TESTDATA_HEMISPHERE_DIST = [
+    (-73, 40, -74, 41, 139.6886345468666),
+    (73, 40, 74, 41, 139.6886345468667),
+    (73, -40, 74, -41, 139.6886345468667),
+    (-73, -40, -74, -41, 139.68863454686704)
+]
+TESTDATA_COMPETITION_DIST = [
+    (-76.428709, 38.145306, -76.426375, 38.146146, 0.22446),
+    (-76.428537, 38.145399, -76.427818, 38.144686, 0.10045),
+    (-76.434261, 38.142471, -76.418876, 38.147838, 1.46914)
+]
+
+# (km, ft_actual)
+TESTDATA_KM_TO_FT = [
+    (0, 0),
+    (1, 3280.84),
+    (1.5, 4921.26),
+    (100, 328084)
+]
+
+# (lon1, lat1, alt1, lon2, lat2, alt2, dist_actual)
+TESTDATA_ZERO_3D_DIST = [
+    (0, 0, 0, 0, 0, 0, 0),
+    (1, 2, 3, 1, 2, 3, 0),
+    (-30, 30, 100, -30, 30, 100, 0)
+]
+TESTDATA_COMPETITION_3D_DIST = [
+    (-76.428709, 38.145306, 0, -76.426375, 38.146146, 0, 0.22446),
+    (-76.428537, 38.145399, 0, -76.427818, 38.144686, 100, 0.10497),
+    (-76.434261, 38.142471, 100, -76.418876, 38.147838, 800, 1.48455)
+]
+
+
 class TestHaversine(TestCase):
     """Tests the haversine code correctness."""
 
-    def distance_close_enough(self, self, distance_actual, distance_received):
-        """Determines whether the km distances given are close enough.
-
-        Args:
-            distance_actual: The actual distance.
-            distance_received: The distanced received from haversine code.
-        Returns:
-            True if the distances are close enoug, False otherwise.
-        """
-        # TODO
+    def distance_close_enough(self, distance_actual, distance_received):
+        """Determines whether the km distances given are close enough."""
+        distance_thresh = 0.003048  # 10 feet in km
+        return abs(distance_actual - distance_received) <= distance_thresh
 
     def evaluate_input(self, lon1, lat1, lon2, lat2, distance_actual):
-        """Evaluates the haversine code for the given input.
+        """Evaluates the haversine code for the given input."""
+        distance_received = haversine(lon1, lat1, lon2, lat2)
+        return self.distance_close_enough(distance_actual, distance_received)
 
-        Args:
-            lon1, lat1, lon2, lat2: Values for haversine code.
-            distance_actual: The actual distance which should be returned.
-        Returns:
-            True if the haversine code returned the correct value, False
-            otherwise.
-        """
-        # TODO
+    def evaluate_inputs(self, input_output_list):
+        """Evaluates a list of inputs and outputs."""
+        for (lon1, lat1, lon2, lat2, distance_actual) in input_output_list:
+            if not self.evaluate_input(lon1, lat1, lon2, lat2, distance_actual):
+                return False
+        return True
 
     def test_zero_distance(self):
         """Tests various latitudes and longitudes which have zero distance."""
-        # TODO
+        self.assertTrue(self.evaluate_inputs(
+            TESTDATA_ZERO_DIST))
 
     def test_hemisphere_distances(self):
         """Tests distances in each hemisphere."""
-        # TODO
+        self.assertTrue(self.evaluate_inputs(
+            TESTDATA_HEMISPHERE_DIST))
 
     def test_competition_distances(self):
         """Tests distances representative of competition amounts."""
-        # TODO
+        self.assertTrue(self.evaluate_inputs(
+            TESTDATA_COMPETITION_DIST))
 
 
-def TestGpsPositionModel(TestCase):
+class TestKilometersToFeet(TestCase):
+    """Tests the conversion from kilometers to feet."""
+
+    def evaluate_conversion(self, km, ft_actual):
+        """Tests the conversion of the given input to feet."""
+        convert_thresh = 10.0
+        return abs(kilometersToFeet(km) - ft_actual) < convert_thresh
+
+    def test_km_to_ft(self):
+        """Performs a data-driven test of the conversion."""
+        for (km, ft_actual) in TESTDATA_KM_TO_FT:
+            self.assertTrue(self.evaluate_conversion(km, ft_actual))
+
+
+class TestGpsPositionModel(TestCase):
     """Tests the GpsPosition model."""
 
-    def test_kilometersToFeet_zero(self):
-        """Tests a conversion with value zero."""
-        # TODO
+    def eval_distanceTo_input(self, lon1, lat1, lon2, lat2, distance_actual):
+        """Evaluates the distanceTo functionality for the given inputs."""
+        wpt1 = GpsPosition()
+        wpt1.latitude = lat1
+        wpt1.longitude = lon1
+        wpt2 = GpsPosition()
+        wpt2.latitude = lat2
+        wpt2.longitude = lon2
+        dist12 = wpt1.distanceTo(wpt2)
+        dist21 = wpt2.distanceTo(wpt1)
+        dist_actual_ft = kilometersToFeet(distance_actual)
+        diffdist12 = abs(dist12 - dist_actual_ft)
+        diffdist21 = abs(dist21 - dist_actual_ft)
+        dist_thresh = 10.0
+        return diffdist12 <= dist_thresh and diffdist21 <= dist_thresh
 
-    def test_kilometersToFeet_competition_amounts(self):
-        """Tests a conversion using amounts relative to the competition."""
-        # TODO
+    def eval_distanceTo_inputs(self, input_output_list):
+        """Evaluates the distanceTo function on various inputs."""
+        for (lon1, lat1, lon2, lat2, distance_actual) in input_output_list:
+            if not self.eval_distanceTo_input(lon1, lat1, lon2, lat2,
+                    distance_actual):
+                return False
+        return True
 
     def test_distanceTo_zero(self):
         """Tests distance calc for same position."""
-        # TODO
+        self.assertTrue(self.eval_distanceTo_inputs(
+            TESTDATA_ZERO_DIST))
 
     def test_distanceTo_competition_amounts(self):
         """Tests distance calc for competition amounts."""
-        # TODO
+        self.assertTrue(self.eval_distanceTo_inputs(
+            TESTDATA_COMPETITION_DIST))
 
 
-def TestAerialPositionModel(TestCase):
+class TestAerialPositionModel(TestCase):
     """Tests the AerialPosition model."""
 
+    def eval_distanceTo_input(self, lon1, lat1, alt1, lon2, lat2, alt2,
+            dist_actual):
+        """Evaluates the distanceTo calc with the given inputs."""
+        pos1 = AerialPosition()
+        pos1.gps_position = GpsPosition()
+        pos1.gps_position.latitude = lat1
+        pos1.gps_position.longitude = lon1
+        pos1.msl_altitude = alt1
+        pos2 = AerialPosition()
+        pos2.gps_position = GpsPosition()
+        pos2.gps_position.latitude = lat2
+        pos2.gps_position.longitude = lon2
+        pos2.msl_altitude = alt2
+        dist12 = pos1.distanceTo(pos2)
+        dist21 = pos2.distanceTo(pos1)
+        dist_actual_ft = kilometersToFeet(dist_actual)
+        diffdist12 = abs(dist12 - dist_actual_ft)
+        diffdist21 = abs(dist21 - dist_actual_ft)
+        dist_thresh = 10.0
+        return diffdist12 <= dist_thresh and diffdist21 <= dist_thresh
+
+    def eval_distanceTo_inputs(self, input_output_list):
+        """Evaluates the distanceTo calc with the given input list."""
+        for (lon1, lat1, alt1,
+                lon2, lat2, alt2, dist_actual) in input_output_list:
+            if not self.eval_distanceTo_input(lon1, lat1, alt1, lon2, lat2,
+                    alt2, dist_actual):
+                return False
+        return True
+
     def test_distanceTo_zero(self):
         """Tests distance calc for same position."""
-        # TODO
+        self.assertTrue(self.eval_distanceTo_inputs(
+            TESTDATA_ZERO_3D_DIST))
 
     def test_distanceTo_competition_amounts(self):
         """Tests distance calc for competition amounts."""
-        # TODO
+        self.assertTrue(self.eval_distanceTo_inputs(
+            TESTDATA_COMPETITION_3D_DIST))
 
 
-def TestWaypointModel(TestCase):
-    """Tests the Waypoint model."""
-
-    def test_distanceTo_zero(self):
-        """Tests distance calc for same positions."""
-        # TODO
-
-    def test_distanceTo_competition_amounts(self):
-        """Tests distance calc for competition amounts."""
-        # TODO
-
-
-def TestServerInfoModel(TestCase):
+class TestServerInfoModel(TestCase):
     """Tests the ServerInfo model."""
 
     def test_toJSON(self):
@@ -104,7 +198,7 @@ def TestServerInfoModel(TestCase):
         # TODO
 
 
-def TestStationaryObstacleModel(TestCase):
+class TestStationaryObstacleModel(TestCase):
     """Tests the StationaryObstacle model."""
 
     def test_toJSON(self):
@@ -112,7 +206,7 @@ def TestStationaryObstacleModel(TestCase):
         # TODO
 
 
-def TestMovingObstacle(TestCase):
+class TestMovingObstacle(TestCase):
     """Tests the MovingObstacle model."""
 
     def test_getWaypointTravelTime_invalid_inputs(self):
