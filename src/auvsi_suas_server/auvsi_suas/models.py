@@ -321,9 +321,9 @@ class MovingObstacle(Obstacle):
         cur_time_sec = (cur_time -
                 datetime.datetime.utcfromtimestamp(0)).total_seconds()
         cur_path_time = np.mod(cur_time_sec, total_travel_time)
-        latitude = splev(cur_path_time, spline_reps[0])
-        longitude = splev(cur_path_time, spline_reps[1])
-        altitude_msl = splev(cur_path_time, spline_reps[2])
+        latitude = float(splev(cur_path_time, spline_reps[0]))
+        longitude = float(splev(cur_path_time, spline_reps[1]))
+        altitude_msl = float(splev(cur_path_time, spline_reps[2]))
 
         return (latitude, longitude, altitude_msl)
 

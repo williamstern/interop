@@ -641,21 +641,110 @@ class TestGetServerInfoView(TestCase):
 class TestGetObstaclesView(TestCase):
     """Tests the getObstacles view."""
 
+    def setUp(self):
+        """Sets up the client, server info URL, and user."""
+        # Setup user
+        self.user = User.objects.create_user(
+                'testuser', 'testemail@x.com', 'testpass')
+        self.user.save()
+        # Setup the obstacles
+        for path in TESTDATA_MOVOBST_PATHS:
+            # Stationary obstacle
+            (stat_lat, stat_lon, _) = path[0]
+            stat_gps = GpsPosition()
+            stat_gps.latitude = stat_lat
+            stat_gps.longitude = stat_lon
+            stat_gps.save()
+            stat_obst = StationaryObstacle()
+            stat_obst.gps_position = stat_gps
+            stat_obst.cylinder_radius = 100
+            stat_obst.cylinder_height = 200
+            stat_obst.save()
+            # Moving obstacle
+            mov_obst = MovingObstacle()
+            mov_obst.speed_avg = 40
+            mov_obst.sphere_radius = 100
+            mov_obst.save()
+            for pt_id  in range(len(path)):
+                # Obstacle waypoints
+                (wpt_lat, wpt_lon, wpt_alt) = path[pt_id]
+                gpos = GpsPosition()
+                gpos.latitude = wpt_lat
+                gpos.longitude = wpt_lon
+                gpos.save()
+                apos = AerialPosition()
+                apos.altitude_msl = wpt_alt
+                apos.gps_position = gpos
+                apos.save()
+                wpt = Waypoint()
+                wpt.name = 'test waypoint'
+                wpt.order = pt_id
+                wpt.position = apos
+                wpt.save()
+                mov_obst.waypoints.add(wpt)
+            mov_obst.save()
+        # Setup test objs
+        self.client = Client()
+        self.loginUrl = reverse('auvsi_suas:login')
+        self.obstUrl = reverse('auvsi_suas:obstacle')
+
+    def tearDown(self):
+        """Destroys the user."""
+        self.user.delete()
+        ObstacleAccessLog.objects.all().delete()
+        StationaryObstacle.objects.all().delete()
+        MovingObstacle.objects.all().delete()
+
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
-        # TODO
+        client = self.client
+        obstUrl = self.obstUrl
+        response = client.get(obstUrl)
+        self.assertEqual(response.status_code, 400)
 
     def test_invalid_request(self):
         """Tests an invalid request by mis-specifying parameters."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        obstUrl = self.obstUrl
+
+        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        response = client.post(obstUrl)
+        self.assertEqual(response.status_code, 400)
 
     def test_correct_log_and_response(self):
         """Tests that access is logged and returns valid response."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        obstUrl = self.obstUrl
+        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+
+        response = client.get(obstUrl)
+        self.assertEqual(response.status_code, 200)
+        json_data = json.loads(response.content)
+        self.assertTrue('stationary_obstacles' in json_data)
+        self.assertTrue('moving_obstacles' in json_data)
+        self.assertEqual(len(ObstacleAccessLog.objects.all()), 1)
 
     def test_loadtest(self):
         """Tests the max load the view can handle."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        obstUrl = self.obstUrl
+        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+
+        total_ops = 0
+        min_time = 10.0
+        start_time = datetime.datetime.now()
+        while (datetime.datetime.now() - start_time).total_seconds() < min_time:
+            client.get(obstUrl)
+            total_ops += 1
+        end_time = datetime.datetime.now()
+        total_time = (end_time - start_time).total_seconds()
+        op_rate = total_ops / total_time
+
+        OP_RATE_THRESH = 10 * 3
+        self.assertTrue(op_rate >= OP_RATE_THRESH)
 
 
 class TestPostUasPosition(TestCase):

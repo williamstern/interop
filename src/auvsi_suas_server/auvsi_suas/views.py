@@ -115,7 +115,7 @@ def getObstacles(request):
     access_log.save()
 
     # Form JSON response portion for stationary obstacles
-    stationary_obstacles = StationaryObstacles.objects.all()
+    stationary_obstacles = StationaryObstacle.objects.all()
     stationary_obstacles_json = list()
     for cur_obst in stationary_obstacles:
         # Add current obstacle
