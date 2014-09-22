@@ -6,7 +6,7 @@ import math
 import time
 from django.conf import settings
 from django.db import models
-
+from scipy.interpolate import splrep, splev
 
 def haversine(lon1, lat1, lon2, lat2):
     """
@@ -46,7 +46,18 @@ def kilometersToFeet(kilometers):
     Returns:
         A distance in feet.
     """
-    return kilometers * 3280.84
+    return kilometers * 3280.8399
+
+
+def knotsToFeetPerSecond(knots):
+    """Converts knots to feet per second.
+
+    Args:
+        knots: A speed in knots.
+    Returns:
+        A speed in feet per second.
+    """
+    return knots * 1.6878098571011957
 
 
 class GpsPosition(models.Model):
@@ -74,7 +85,7 @@ class AerialPosition(models.Model):
     # GPS position
     gps_position = models.ForeignKey(GpsPosition)
     # MSL altitude in feet
-    msl_altitude = models.FloatField()
+    altitude_msl = models.FloatField()
 
     def distanceTo(self, other):
         """Computes distance to another position.
@@ -83,7 +94,7 @@ class AerialPosition(models.Model):
         Returns:
           Distance in feet.
         """
-        return math.hypot(abs(self.msl_altitude - other.msl_altitude),
+        return math.hypot(abs(self.altitude_msl - other.altitude_msl),
                           self.gps_position.distanceTo(other.gps_position))
 
 
@@ -109,7 +120,7 @@ class Waypoint(models.Model):
 class ServerInfo(models.Model):
     """Static information stored on the server that teams must retrieve."""
     # Time information was stored
-    timestamp = models.DateTimeField(default=datetime.datetime.now)
+    timestamp = models.DateTimeField(auto_now=True)
     # Message for teams
     team_msg = models.CharField(max_length=100)
 
@@ -125,7 +136,7 @@ class ServerInfo(models.Model):
 class ServerInfoAccessLog(models.Model):
     """Log of access to the ServerInfo objects used to evaluate teams."""
     # Timestamp of the access
-    timestamp = models.DateTimeField(default=datetime.datetime.now)
+    timestamp = models.DateTimeField(auto_now=True)
     # The user which accessed the data
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
@@ -139,7 +150,7 @@ class Obstacle(models.Model):
 class ObstacleAccessLog(models.Model):
     """Log of access ot the Obstacle objects used to evaulate teams."""
     # Timestamp of the access
-    timestamp = models.DateTimeField(default=datetime.datetime.now)
+    timestamp = models.DateTimeField(auto_now=True)
     # The user which accessed the data
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
@@ -169,9 +180,9 @@ class StationaryObstacle(Obstacle):
 class MovingObstacle(Obstacle):
     """A moving obstacle that teams must avoid."""
     # The waypoints the obstacle attempts to follow
-    waypoints = models.ManyToManyField(AerialPosition)
-    # The max speed of the obstacle in knots
-    speed_max = models.FloatField()
+    waypoints = models.ManyToManyField(Waypoint)
+    # The average speed of the obstacle in knots
+    speed_avg = models.FloatField()
     # The radius of the sphere in feet
     sphere_radius = models.FloatField()
 
@@ -188,19 +199,99 @@ class MovingObstacle(Obstacle):
         """
         # Validate inputs
         if (not waypoints
+            or len(waypoints) < 2
             or id_tm1 is None
             or id_t is None
-            or self.speed_max <= 0):
+            or id_tm1 < 0 or id_tm1 >= len(waypoints)
+            or id_t < 0 or id_t >= len(waypoints)
+            or self.speed_avg <= 0):
             # Invalid inputs
             return None
 
         waypoint_t = waypoints[id_t]
         waypoint_tm1 = waypoints[id_tm1]
         waypoint_dist = waypoint_tm1.distanceTo(waypoint_t)
-        waypoint_travel_time = waypoint_dist / self.speed_max
+        speed_avg_fps = knotsToFeetPerSecond(self.speed_avg)
+        waypoint_travel_time = waypoint_dist / speed_avg_fps
 
         return waypoint_travel_time
 
+    def getInterWaypointTravelTimes(self, waypoints):
+        """Computes the travel times for the waypoints.
+
+        Args:
+            waypoints: A list of waypoints defining a circular path.
+        Returns:
+            A numpy array of travel times between waypoints. The first value is
+            between waypoint 0 and 1, the last between N and 0.
+        """
+        num_waypoints = len(waypoints)
+        travel_times = np.zeros(num_waypoints + 1)
+        for waypoint_id in range(1, num_waypoints+1):
+            # Current intra waypoint travel time
+            id_tm1 = (waypoint_id - 1) % num_waypoints
+            id_t = waypoint_id % num_waypoints
+            cur_travel_time = self.getWaypointTravelTime(
+                waypoints, id_tm1, id_t)
+            travel_times[waypoint_id] = cur_travel_time
+
+        return travel_times
+
+
+    def getWaypointTimes(self, waypoint_travel_times):
+        """Computes the time at which the obstacle will be at each waypoint.
+
+        Args:
+            waypoint_travel_time: The inter-waypoint travel times generated by
+                getInterWaypiontTravelTimes() or equivalent.
+        Returns:
+            A numpy array of waypoint times.
+        """
+        total_time = 0
+        num_paths = len(waypoint_travel_times)
+        pos_times = np.zeros(num_paths)
+        for path_id in range(num_paths):
+            total_time += waypoint_travel_times[path_id]
+            pos_times[path_id] = total_time
+
+        return pos_times
+
+    def getSplineCurve(self, waypoints):
+        """Computes spline curve representation to match waypoints.
+
+        Args:
+            waypoints: The waypoints to calculate a spline curve from.
+        Returns:
+            A tuple (total_travel_time, spline_reps) where total_travel_time is
+            the total time to complete a circuit, and spline_reps is a list of
+            tck values generated from spline creation. The list is ordered
+            latitude, longitude, altitude.
+        """
+        num_waypoints = len(waypoints)
+
+        # Store waypoint data for interpolation
+        positions = np.zeros((num_waypoints + 1, 3))
+        for waypoint_id in range(num_waypoints):
+            cur_waypoint = waypoints[waypoint_id]
+            cur_position = cur_waypoint.position
+            cur_gps_pos = cur_position.gps_position
+            positions[waypoint_id, 0] = cur_gps_pos.latitude
+            positions[waypoint_id, 1] = cur_gps_pos.longitude
+            positions[waypoint_id, 2] = cur_position.altitude_msl
+
+        # Get the intra waypoint travel times
+        waypoint_travel_times = self.getInterWaypointTravelTimes(waypoints)
+        # Get the waypoint times
+        pos_times = self.getWaypointTimes(waypoint_travel_times)
+        total_travel_time = pos_times[len(pos_times)-1]
+
+        # Create spline representation
+        spline_reps = list()
+        for iter_dim in range(3):
+            tck = splrep(pos_times, positions[:,iter_dim], per=1)
+            spline_reps.append(tck)
+
+        return (total_travel_time, spline_reps)
 
     def getPosition(self, cur_time=datetime.datetime.now()):
         """Gets the current position for the obstacle.
@@ -211,39 +302,28 @@ class MovingObstacle(Obstacle):
           Returns a tuple (latitude, longitude, altitude_msl) for the obstacle
           at the given time. Returns None if could not compute.
         """
-        # Obtain waypoint positions which define flight path
         waypoints = self.waypoints.order_by('order')
         num_waypoints = len(waypoints)
-        positions = np.zeros(num_waypoints + 1, 3)
-        for waypoint_id in range(num_waypoints):
-            cur_waypoint = waypoints[waypoint_id]
-            cur_position = cur_waypoint.position
-            cur_gps_pos = cur_position.gps_position
-            positions[waypoint_id, 0] = cur_gps_pos.latitude
-            positions[waypoint_id, 1] = cur_gps_pos.longitude
-            positions[waypoint_id, 2] = cur_position.msl_altitude
 
-        # Compute times of waypoint positions
-        pos_times = np.zeros(num_waypoints + 1)
-        for waypoint_id in range(1, num_waypoints):
-            # Current intra waypoint travel time
-            cur_travel_time = self.getWaypointTravelTime(
-                waypoints, waypoint_id-1, waypoint_id)
-            cur_time = pos_times[waypoint_id-1] + cur_travel_time
-            pos_times[waypoint_id] = cur_time
-        # Final travel time that closes polygon
-        final_travel_time = self.getWaypointTravelTime(
-            waypoints, num_waypoints-1, 0)
-        final_time = pos_times[num_waypoints-1] + final_travel_time
-        pos_times[num_waypoints] = final_time
+        # Waypoint counts of 0 or 1 can skip calc
+        if num_waypoints == 0:
+            return None
+        elif num_waypoints == 1 or self.speed_avg <= 0:
+            wpt = waypoints[0]
+            return (wpt.position.gps_position.latitude,
+                    wpt.position.gps_position.longitude,
+                    wpt.position.altitude_msl)
 
-        # Use spline interpolation to find current position
-        tck = np.interpolate.splrep(pos_times, positions, per=1)
-        cur_time = np.mod(time.time(), pos_times[num_waypoints])
-        cur_pos = np.interpolate.splev(cur_time, tck)
-        latitude = cur_pos[0]
-        longitude = cur_pos[1]
-        altitude_msl = cur_pos[2]
+        # Get spline representation
+        (total_travel_time, spline_reps) = self.getSplineCurve(waypoints)
+
+        # Sample spline at current time
+        cur_time_sec = (cur_time -
+                datetime.datetime.utcfromtimestamp(0)).total_seconds()
+        cur_path_time = np.mod(cur_time_sec, total_travel_time)
+        latitude = splev(cur_path_time, spline_reps[0])
+        longitude = splev(cur_path_time, spline_reps[1])
+        altitude_msl = splev(cur_path_time, spline_reps[2])
 
         return (latitude, longitude, altitude_msl)
 
@@ -264,7 +344,7 @@ class UasTelemetry(models.Model):
     # The user which generated the telemetry
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     # The time at which the telemetry was received
-    recv_timestamp = models.DateTimeField(default=datetime.datetime.now)
+    recv_timestamp = models.DateTimeField(auto_now=True)
     # The position of the UAS
     uas_position = models.ForeignKey(AerialPosition)
     # The heading of the UAS in degrees (e.g. 0=north, 90=east)

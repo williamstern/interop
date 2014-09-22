@@ -1,7 +1,14 @@
+import datetime
+import json
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+import shutil
 from auvsi_suas.models import AerialPosition
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import haversine
 from auvsi_suas.models import kilometersToFeet
+from auvsi_suas.models import knotsToFeetPerSecond
 from auvsi_suas.models import MovingObstacle
 from auvsi_suas.models import Obstacle
 from auvsi_suas.models import ObstacleAccessLog
@@ -10,6 +17,7 @@ from auvsi_suas.models import ServerInfoAccessLog
 from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.models import UasTelemetry
 from auvsi_suas.models import Waypoint
+from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
@@ -45,6 +53,14 @@ TESTDATA_KM_TO_FT = [
     (100, 328084)
 ]
 
+# (knots, fps)
+TESTDATA_KNOTS_TO_FPS = [
+    (0.1, 0.168781),
+    (1, 1.68781),
+    (10, 16.8781),
+    (100, 168.781)
+]
+
 # (lon1, lat1, alt1, lon2, lat2, alt2, dist_actual)
 TESTDATA_ZERO_3D_DIST = [
     (0, 0, 0, 0, 0, 0, 0),
@@ -55,6 +71,22 @@ TESTDATA_COMPETITION_3D_DIST = [
     (-76.428709, 38.145306, 0, -76.426375, 38.146146, 0, 0.22446),
     (-76.428537, 38.145399, 0, -76.427818, 38.144686, 100, 0.10497),
     (-76.434261, 38.142471, 100, -76.418876, 38.147838, 800, 1.48455)
+]
+
+TESTDATA_MOVOBST_PATHS = [
+    [(38.142233, -76.434082, 300),
+     (38.141878, -76.425198, 700),
+     (38.144599, -76.428186, 100)],
+    [(38.145574, -76.428492, 100),
+     (38.149164, -76.427113, 750),
+     (38.148662, -76.431517, 300),
+     (38.146143, -76.426727, 500)],
+    [(38.145405, -76.428310, 100),
+     (38.146582, -76.424099, 200),
+     (38.144662, -76.427634, 300),
+     (38.147729, -76.419185, 200),
+     (38.147573, -76.420832, 100),
+     (38.148522, -76.419507, 750)]
 ]
 
 
@@ -99,13 +131,27 @@ class TestKilometersToFeet(TestCase):
 
     def evaluate_conversion(self, km, ft_actual):
         """Tests the conversion of the given input to feet."""
-        convert_thresh = 10.0
+        convert_thresh = 5
         return abs(kilometersToFeet(km) - ft_actual) < convert_thresh
 
     def test_km_to_ft(self):
         """Performs a data-driven test of the conversion."""
         for (km, ft_actual) in TESTDATA_KM_TO_FT:
             self.assertTrue(self.evaluate_conversion(km, ft_actual))
+
+
+class TestKnotsToFeetPerSecond(TestCase):
+    """Tests the conversion from knots to feet per second."""
+
+    def evaluate_conversion(self, knots, fps_actual):
+        """Tests the conversion of the given input/output pair."""
+        convert_thresh = 5
+        return abs(knotsToFeetPerSecond(knots) - fps_actual) < convert_thresh
+
+    def test_knots_to_fps(self):
+        """Performs a data-drive test of the conversion."""
+        for (knots, fps_actual) in TESTDATA_KNOTS_TO_FPS:
+            self.assertTrue(self.evaluate_conversion(knots, fps_actual))
 
 
 class TestGpsPositionModel(TestCase):
@@ -156,12 +202,12 @@ class TestAerialPositionModel(TestCase):
         pos1.gps_position = GpsPosition()
         pos1.gps_position.latitude = lat1
         pos1.gps_position.longitude = lon1
-        pos1.msl_altitude = alt1
+        pos1.altitude_msl = alt1
         pos2 = AerialPosition()
         pos2.gps_position = GpsPosition()
         pos2.gps_position.latitude = lat2
         pos2.gps_position.longitude = lon2
-        pos2.msl_altitude = alt2
+        pos2.altitude_msl = alt2
         dist12 = pos1.distanceTo(pos2)
         dist21 = pos2.distanceTo(pos1)
         dist_actual_ft = kilometersToFeet(dist_actual)
@@ -195,7 +241,18 @@ class TestServerInfoModel(TestCase):
 
     def test_toJSON(self):
         """Tests the JSON serialization method."""
-        # TODO
+        TEST_MSG = 'Hello, world.'
+        TEST_TIME = datetime.datetime.now()
+
+        server_info = ServerInfo()
+        server_info.timestamp = TEST_TIME
+        server_info.team_msg = TEST_MSG
+        json_data = server_info.toJSON()
+
+        self.assertTrue('message' in json_data)
+        self.assertEqual(json_data['message'], TEST_MSG)
+        self.assertTrue('message_timestamp' in json_data)
+        self.assertEqual(json_data['message_timestamp'], str(TEST_TIME))
 
 
 class TestStationaryObstacleModel(TestCase):
@@ -203,84 +260,382 @@ class TestStationaryObstacleModel(TestCase):
 
     def test_toJSON(self):
         """Tests the JSON serialization model."""
-        # TODO
+        TEST_LAT = 100.10
+        TEST_LONG = 200.20
+        TEST_RADIUS = 150.50
+        TEST_HEIGHT = 75.30
+
+        gps_position = GpsPosition()
+        gps_position.latitude = TEST_LAT
+        gps_position.longitude = TEST_LONG
+        obstacle = StationaryObstacle()
+        obstacle.gps_position = gps_position
+        obstacle.cylinder_radius = TEST_RADIUS
+        obstacle.cylinder_height = TEST_HEIGHT
+        json_data = obstacle.toJSON()
+
+        self.assertTrue('gps_position' in json_data)
+        self.assertTrue('latitude' in json_data['gps_position'])
+        self.assertEqual(json_data['gps_position']['latitude'], TEST_LAT)
+        self.assertTrue('longitude' in json_data['gps_position'])
+        self.assertEqual(json_data['gps_position']['longitude'], TEST_LONG)
+        self.assertTrue('cylinder_radius' in json_data)
+        self.assertEqual(json_data['cylinder_radius'], TEST_RADIUS)
+        self.assertTrue('cylinder_height' in json_data)
+        self.assertEqual(json_data['cylinder_height'], TEST_HEIGHT)
 
 
 class TestMovingObstacle(TestCase):
     """Tests the MovingObstacle model."""
 
+    def setUp(self):
+        """Create the obstacles for testing."""
+        # Obstacle with no waypoints
+        obst_no_wpt = MovingObstacle()
+        obst_no_wpt.speed_avg = 1
+        obst_no_wpt.sphere_radius = 1
+        obst_no_wpt.save()
+        self.obst_no_wpt = obst_no_wpt
+
+        # Obstacle with single waypoint
+        self.single_wpt_lat = 40
+        self.single_wpt_lon = 76
+        self.single_wpt_alt = 100
+        obst_single_wpt = MovingObstacle()
+        obst_single_wpt.speed_avg = 1
+        obst_single_wpt.sphere_radius = 1
+        obst_single_wpt.save()
+        single_gpos = GpsPosition()
+        single_gpos.latitude = self.single_wpt_lat
+        single_gpos.longitude = self.single_wpt_lon
+        single_gpos.save()
+        single_apos = AerialPosition()
+        single_apos.gps_position = single_gpos
+        single_apos.altitude_msl = self.single_wpt_alt
+        single_apos.save()
+        single_wpt = Waypoint()
+        single_wpt.position = single_apos
+        single_wpt.name = 'Waypoint'
+        single_wpt.order = 1
+        single_wpt.save()
+        obst_single_wpt.waypoints.add(single_wpt)
+        self.obst_single_wpt = obst_single_wpt
+
+        # Obstacles with predefined path
+        self.obstacles = list()
+        for path in TESTDATA_MOVOBST_PATHS:
+            cur_obst = MovingObstacle()
+            cur_obst.name = 'MovingObstacle'
+            cur_obst.speed_avg = 68
+            cur_obst.sphere_radius = 10
+            cur_obst.save()
+            for pt_id in range(len(path)):
+                (lat, lon, alt) = path[pt_id]
+                cur_gpos = GpsPosition()
+                cur_gpos.latitude = lat
+                cur_gpos.longitude = lon
+                cur_gpos.save()
+                cur_apos = AerialPosition()
+                cur_apos.gps_position = cur_gpos
+                cur_apos.altitude_msl = alt
+                cur_apos.save()
+                cur_wpt = Waypoint()
+                cur_wpt.position = cur_apos
+                cur_wpt.name = 'Waypoint'
+                cur_wpt.order = pt_id
+                cur_wpt.save()
+                cur_obst.waypoints.add(cur_wpt)
+            cur_obst.save()
+            self.obstacles.append(cur_obst)
+
+    def tearDown(self):
+        """Tear down the obstacles created."""
+        MovingObstacle.objects.all().delete()
+        Waypoint.objects.all().delete()
+        AerialPosition.objects.all().delete()
+        GpsPosition.objects.all().delete()
+
     def test_getWaypointTravelTime_invalid_inputs(self):
         """Tests proper invalid input handling."""
-        # TODO
+        obstacle = MovingObstacle()
+        obstacle.speed_avg = 1
 
-    def test_getWaypointTravelTime_competition_amounts(self):
-        """Tests travel time calc for competition amounts."""
-        # TODO
+        self.assertIsNone(obstacle.getWaypointTravelTime(None, 1, 1))
+        self.assertIsNone(obstacle.getWaypointTravelTime([], 1, 1))
+        self.assertIsNone(obstacle.getWaypointTravelTime([None], 1, 1))
+        self.assertIsNone(obstacle.getWaypointTravelTime(
+            [None, None], None, 1))
+        self.assertIsNone(obstacle.getWaypointTravelTime(
+            [None, None], 1, None))
+        self.assertIsNone(obstacle.getWaypointTravelTime(
+            [None, None], -1, 0))
+        self.assertIsNone(obstacle.getWaypointTravelTime(
+            [None, None], 0, -1))
+        self.assertIsNone(obstacle.getWaypointTravelTime(
+            [None, None], 2, 0))
+        self.assertIsNone(obstacle.getWaypointTravelTime(
+            [None, None], 0, 2))
+        obstacle.speed_avg = 0
+        self.assertIsNone(obstacle.getWaypointTravelTime(
+            [None, None], 0, 1))
+
+    def eval_travel_time(self, time_actual, time_received):
+        """Evaluates whether the travel times are close enough."""
+        EVAL_THRESH = time_actual * 0.1
+        return abs(time_actual - time_received) < EVAL_THRESH
+
+    def test_getWaypointTravelTime(self):
+        """Tests travel time calc."""
+        test_spds = [1, 10, 100, 500]
+        for (lon2, lat2, lon1, lat1, dist_km) in TESTDATA_COMPETITION_DIST:
+            dist_ft = kilometersToFeet(dist_km)
+            for speed in test_spds:
+                speed_fps = knotsToFeetPerSecond(speed)
+                time = dist_ft / speed_fps
+                wpt1 = Waypoint()
+                apos1 = AerialPosition()
+                gpos1 = GpsPosition()
+                gpos1.latitude = lat1
+                gpos1.longitude = lon1
+                apos1.gps_position = gpos1
+                apos1.altitude_msl = 0
+                wpt1.position = apos1
+                wpt2 = Waypoint()
+                apos2 = AerialPosition()
+                gpos2 = GpsPosition()
+                gpos2.latitude = lat2
+                gpos2.longitude = lon2
+                apos2.gps_position = gpos2
+                apos2.altitude_msl = 0
+                wpt2.position = apos2
+                waypoints = [wpt1, wpt2]
+                obstacle = MovingObstacle()
+                obstacle.speed_avg = speed
+                self.assertTrue(self.eval_travel_time(
+                    obstacle.getWaypointTravelTime(waypoints, 0, 1),
+                    time))
 
     def test_getPosition_no_waypoints(self):
         """Tests position calc on no-waypoint."""
-        # TODO
+        self.assertIsNone(self.obst_no_wpt.getPosition())
 
     def test_getPosition_one_waypoint(self):
         """Tests position calc on single waypoints."""
-        # TODO
-
-    def test_getPosition_within_bounds(self):
-        """Tests position calc staying within reasonable bounds."""
-        # TODO
-
-    def test_getPosition_waypoints_same_position(self):
-        """Tests position calc with waypoints on the same position."""
-        # TODO
+        (lat, lon, alt) = self.obst_single_wpt.getPosition()
+        self.assertEqual(lat, self.single_wpt_lat)
+        self.assertEqual(lon, self.single_wpt_lon)
+        self.assertEqual(alt, self.single_wpt_alt)
 
     def test_getPosition_waypoints_plot(self):
         """Tests position calculation by saving plots of calculation.
 
-        Saves plots to /tmp/auvsi_suas-MovingObstacle-getPosition/x.jpg. On
-        each run it first deletes the existing folder. This requires manual
+        Saves plots to testOutput/auvsi_suas-MovingObstacle-getPosition-x.jpg.
+        On each run it first deletes the existing folder. This requires manual
         inspection to validate correctness.
         """
-        # TODO
+        # Create directory for plot output
+        if os.path.exists('testOutput'):
+            shutil.rmtree('testOutput')
+        os.mkdir('testOutput')
+
+        # Create plot for each path
+        for obst_id in range(len(self.obstacles)):
+            cur_obst = self.obstacles[obst_id]
+
+            # Get waypoint positions as numpy array
+            waypoints = cur_obst.waypoints.order_by('order')
+            waypoint_travel_times = cur_obst.getInterWaypointTravelTimes(
+                    waypoints)
+            waypoint_times = cur_obst.getWaypointTimes(waypoint_travel_times)
+            total_time = waypoint_times[len(waypoint_times)-1]
+            num_waypoints = len(waypoints)
+            wpt_latitudes = np.zeros(num_waypoints+1)
+            wpt_longitudes = np.zeros(num_waypoints+1)
+            wpt_altitudes = np.zeros(num_waypoints+1)
+            for waypoint_id in range(num_waypoints+1):
+                cur_id = waypoint_id % num_waypoints
+                wpt_latitudes[waypoint_id] = (
+                    waypoints[cur_id].position.gps_position.latitude)
+                wpt_longitudes[waypoint_id] = (
+                    waypoints[cur_id].position.gps_position.longitude)
+                wpt_altitudes[waypoint_id] = (
+                    waypoints[cur_id].position.altitude_msl)
+
+            # Create time series to represent samples at 10 Hz for 1.5 trips
+            time_pos = np.arange(0, 1.5*total_time, 0.10)
+            # Sample position for the time series
+            latitudes = np.zeros(len(time_pos))
+            longitudes = np.zeros(len(time_pos))
+            altitudes = np.zeros(len(time_pos))
+            epoch = datetime.datetime.utcfromtimestamp(0)
+            for time_id in range(len(time_pos)):
+                cur_time_offset = time_pos[time_id]
+                cur_samp_time = (epoch +
+                        datetime.timedelta(seconds=cur_time_offset))
+                (lat, lon, alt) = cur_obst.getPosition(cur_samp_time)
+                latitudes[time_id] = lat
+                longitudes[time_id] = lon
+                altitudes[time_id] = alt
+
+            # Create plot
+            plt.figure()
+            plt.subplot(311)
+            plt.plot(time_pos, latitudes, 'b',
+                     waypoint_times, wpt_latitudes, 'rx')
+            plt.subplot(312)
+            plt.plot(time_pos, longitudes, 'b',
+                     waypoint_times, wpt_longitudes, 'rx')
+            plt.subplot(313)
+            plt.plot(time_pos, altitudes, 'b',
+                     waypoint_times, wpt_altitudes, 'rx')
+            plt.savefig(('testOutput/auvsi_suas-MovingObstacle-getPosition-%d.jpg' %
+                    obst_id))
+
 
     def test_toJSON(self):
         """Tests the JSON serialization model."""
-        # TODO
+        for cur_obst in self.obstacles:
+            json_data = cur_obst.toJSON()
+            self.assertTrue('sphere_radius' in json_data)
+            self.assertEqual(json_data['sphere_radius'], cur_obst.sphere_radius)
+            self.assertTrue('latitude' in json_data)
+            self.assertTrue('longitude' in json_data)
+            self.assertTrue('altitude_msl' in json_data)
+        obst = self.obst_single_wpt
+        json_data = obst.toJSON()
+        self.assertEqual(json_data['latitude'],
+                obst.waypoints.all()[0].position.gps_position.latitude)
+        self.assertEqual(json_data['longitude'],
+                obst.waypoints.all()[0].position.gps_position.longitude)
+        self.assertEqual(json_data['altitude_msl'],
+                obst.waypoints.all()[0].position.altitude_msl)
 
 
 class TestLoginUserView(TestCase):
     """Tests the loginUser view."""
 
+    def setUp(self):
+        """Sets up the test by creating a test user."""
+        self.user = User.objects.create_user(
+                'testuser', 'testemail@x.com', 'testpass')
+        self.user.save()
+        self.client = Client()
+        self.loginUrl = reverse('auvsi_suas:login')
+
+    def tearDown(self):
+        """Deletes users for the view."""
+        self.user.delete()
+
     def test_invalid_request(self):
         """Tests an invalid request by mis-specifying parameters."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+
+        # Test GET instead of POST
+        response = client.get(loginUrl)
+        self.assertEqual(response.status_code, 400)
+
+        # Test POST with no parameters
+        response = client.post(loginUrl)
+        self.assertEqual(response.status_code, 400)
+
+        # Test POST with a missing parameter
+        response = client.post(loginUrl, {'username': 'test'})
+        self.assertEqual(response.status_code, 400)
+        response = client.post(loginUrl, {'password': 'test'})
+        self.assertEqual(response.status_code, 400)
+
 
     def test_invalid_credentials(self):
         """Tests invalid credentials for login."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        response = client.post(loginUrl, {'username': 'a', 'password': 'b'})
+        self.assertEqual(response.status_code, 400)
 
     def test_correct_credentials(self):
         """Tests correct credentials for login."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        response = client.post(
+                loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        self.assertEqual(response.status_code, 200)
 
 
 class TestGetServerInfoView(TestCase):
     """Tests the getServerInfo view."""
 
+    def setUp(self):
+        """Sets up the client, server info URL, and user."""
+        self.user = User.objects.create_user(
+                'testuser', 'testemail@x.com', 'testpass')
+        self.user.save()
+        self.info = ServerInfo()
+        self.info.team_msg = 'test message'
+        self.info.save()
+        self.client = Client()
+        self.loginUrl = reverse('auvsi_suas:login')
+        self.infoUrl = reverse('auvsi_suas:server_info')
+
+    def tearDown(self):
+        """Destroys the user."""
+        self.user.delete()
+        ServerInfo.objects.all().delete()
+        ServerInfoAccessLog.objects.all().delete()
+
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
-        # TODO
+        client = self.client
+        infoUrl = self.infoUrl
+
+        response = client.get(infoUrl)
+        self.assertEqual(response.status_code, 400)
 
     def test_invalid_request(self):
         """Tests an invalid request by mis-specifying parameters."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        infoUrl = self.infoUrl
+
+        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        response = client.post(infoUrl)
+        self.assertEqual(response.status_code, 400)
 
     def test_correct_log_and_response(self):
         """Tests that access is logged and returns valid response."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        infoUrl = self.infoUrl
+        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+
+        response = client.get(infoUrl)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(len(ServerInfoAccessLog.objects.all()) == 1)
+        access_log = ServerInfoAccessLog.objects.all()[0]
+        self.assertEqual(access_log.user, self.user)
+        json_data = json.loads(response.content)
+        self.assertTrue('server_info' in json_data)
+        self.assertTrue('server_time' in json_data)
 
     def test_loadtest(self):
         """Tests the max load the view can handle."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        infoUrl = self.infoUrl
+        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+
+        total_ops = 0
+        min_time = 10.0
+        start_time = datetime.datetime.now()
+        while (datetime.datetime.now() - start_time).total_seconds() < min_time:
+            client.get(infoUrl)
+            total_ops += 1
+        end_time = datetime.datetime.now()
+        total_time = (end_time - start_time).total_seconds()
+        op_rate = total_ops / total_time
+
+        OP_RATE_THRESH = 10 * 3 * 2
+        self.assertTrue(op_rate >= OP_RATE_THRESH)
 
 
 class TestGetObstaclesView(TestCase):
