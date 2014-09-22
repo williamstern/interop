@@ -642,7 +642,7 @@ class TestGetObstaclesView(TestCase):
     """Tests the getObstacles view."""
 
     def setUp(self):
-        """Sets up the client, server info URL, and user."""
+        """Sets up the client, obstacle URL, obstacles, and user."""
         # Setup user
         self.user = User.objects.create_user(
                 'testuser', 'testemail@x.com', 'testpass')
@@ -743,29 +743,142 @@ class TestGetObstaclesView(TestCase):
         total_time = (end_time - start_time).total_seconds()
         op_rate = total_ops / total_time
 
-        OP_RATE_THRESH = 10 * 3
+        OP_RATE_THRESH = 10 * 3 * 1.5
         self.assertTrue(op_rate >= OP_RATE_THRESH)
 
 
 class TestPostUasPosition(TestCase):
     """Tests the postUasPosition view."""
 
+    def setUp(self):
+        """Sets up the client, server info URL, and user."""
+        self.user = User.objects.create_user(
+                'testuser', 'testemail@x.com', 'testpass')
+        self.user.save()
+        self.client = Client()
+        self.loginUrl = reverse('auvsi_suas:login')
+        self.uasUrl = reverse('auvsi_suas:uas_telemetry')
+
+    def tearDown(self):
+        """Destroys the user."""
+        self.user.delete()
+        UasTelemetry.objects.all().delete()
+        AerialPosition.objects.all().delete()
+        GpsPosition.objects.all().delete()
+
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
-        # TODO
+        client = self.client
+        uasUrl = self.uasUrl
+        response = client.get(uasUrl)
+        self.assertEqual(response.status_code, 400)
 
     def test_invalid_request(self):
         """Tests an invalid request by mis-specifying parameters."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        uasUrl = self.uasUrl
+
+        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        response = client.post(uasUrl)
+        self.assertEqual(response.status_code, 400)
+        response = client.post(uasUrl,
+                {'longitude': 0,
+                 'altitude_msl': 0,
+                 'uas_heading': 0})
+        self.assertEqual(response.status_code, 400)
+        response = client.post(uasUrl,
+                {'latitude': 0,
+                 'altitude_msl': 0,
+                 'uas_heading': 0})
+        self.assertEqual(response.status_code, 400)
+        response = client.post(uasUrl,
+                {'latitude': 0,
+                 'longitude': 0,
+                 'uas_heading': 0})
+        self.assertEqual(response.status_code, 400)
+        response = client.post(uasUrl,
+                {'latitude': 0,
+                 'longitude': 0,
+                 'altitude_msl': 0})
+        self.assertEqual(response.status_code, 400)
+
+    def eval_request_values(self, lat, lon, alt, heading):
+        client = self.client
+        uasUrl = self.uasUrl
+        response = client.post(uasUrl,
+                {'latitude': lat,
+                 'longitude': lon,
+                 'altitude_msl': alt,
+                 'uas_heading': heading})
+        return response.status_code
 
     def test_invalid_request_values(self):
         """Tests by specifying correct parameters with invalid values."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+
+        TEST_DATA = [
+            (-100, 0, 0, 0),
+            (100, 0, 0, 0),
+            (0, -190, 0, 0),
+            (0, 190, 0, 0),
+            (0, 0, 0, -10),
+            (0, 0, 0, 370)]
+        for (lat, lon, alt, heading) in TEST_DATA:
+            self.assertEqual(400,
+                self.eval_request_values(lat, lon, alt, heading))
 
     def test_upload_and_store(self):
         """Tests correct upload and storage of data."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        uasUrl = self.uasUrl
+
+        lat = 10
+        lon = 20
+        alt = 30
+        heading = 40
+        response = client.post(uasUrl,
+                {'latitude': lat,
+                 'longitude': lon,
+                 'altitude_msl': alt,
+                 'uas_heading': heading})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(UasTelemetry.objects.all()), 1)
+        obj = UasTelemetry.objects.all()[0]
+        self.assertEqual(obj.user, self.user)
+        self.assertEqual(obj.uas_heading, heading)
+        self.assertEqual(obj.uas_position.altitude_msl, alt)
+        self.assertEqual(obj.uas_position.gps_position.latitude, lat)
+        self.assertEqual(obj.uas_position.gps_position.longitude, lon)
 
     def test_loadtest(self):
         """Tests the max load the view can handle."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        uasUrl = self.uasUrl
+        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+
+        lat = 10
+        lon = 20
+        alt = 30
+        heading = 40
+        total_ops = 0
+        min_time = 10.0
+        start_time = datetime.datetime.now()
+        while (datetime.datetime.now() - start_time).total_seconds() < min_time:
+            client.post(uasUrl,
+                    {'latitude': lat,
+                     'longiutde': lon,
+                     'altitude_msl': alt,
+                     'uas_heading': heading})
+            total_ops += 1
+        end_time = datetime.datetime.now()
+        total_time = (end_time - start_time).total_seconds()
+        op_rate = total_ops / total_time
+
+        OP_RATE_THRESH = 10 * 3 * 1.5
+        self.assertTrue(op_rate >= OP_RATE_THRESH)

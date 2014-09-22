@@ -145,7 +145,7 @@ def postUasPosition(request):
     User must send a POST request with the following paramters:
     latitude: A latitude in decimal degrees.
     longitude: A logitude in decimal degrees.
-    msl_altitude: An MSL altitude in decimal feet.
+    altitude_msl: An MSL altitude in decimal feet.
     uas_heading: The UAS heading in decimal degrees. (0=north, 90=east)
     """
     # Validate user is logged in to make request
@@ -159,13 +159,13 @@ def postUasPosition(request):
         # Get the parameters
         latitude = float(request.POST['latitude'])
         longitude = float(request.POST['longitude'])
-        msl_altitude = float(request.POST['msl_altitude'])
+        altitude_msl = float(request.POST['altitude_msl'])
         uas_heading = float(request.POST['uas_heading'])
     except KeyError:
         # Failed to get POST parameters
         return HttpResponseBadRequest(
                 'Posting UAS position must contain POST parameters "latitude", '
-                '"longitude", "msl_altitude", and "uas_heading".')
+                '"longitude", "altitude_msl", and "uas_heading".')
     except ValueError:
         # Failed to convert parameters
         return HttpResponseBadRequest(
@@ -189,7 +189,7 @@ def postUasPosition(request):
         gps_position.save()
         aerial_position = AerialPosition()
         aerial_position.gps_position = gps_position
-        aerial_position.msl_altitude = msl_altitude
+        aerial_position.altitude_msl = altitude_msl
         aerial_position.save()
         uas_telemetry = UasTelemetry()
         uas_telemetry.user = request.user
