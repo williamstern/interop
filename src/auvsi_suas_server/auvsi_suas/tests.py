@@ -274,11 +274,10 @@ class TestStationaryObstacleModel(TestCase):
         obstacle.cylinder_height = TEST_HEIGHT
         json_data = obstacle.toJSON()
 
-        self.assertTrue('gps_position' in json_data)
-        self.assertTrue('latitude' in json_data['gps_position'])
-        self.assertEqual(json_data['gps_position']['latitude'], TEST_LAT)
-        self.assertTrue('longitude' in json_data['gps_position'])
-        self.assertEqual(json_data['gps_position']['longitude'], TEST_LONG)
+        self.assertTrue('latitude' in json_data)
+        self.assertEqual(json_data['latitude'], TEST_LAT)
+        self.assertTrue('longitude' in json_data)
+        self.assertEqual(json_data['longitude'], TEST_LONG)
         self.assertTrue('cylinder_radius' in json_data)
         self.assertEqual(json_data['cylinder_radius'], TEST_RADIUS)
         self.assertTrue('cylinder_height' in json_data)
@@ -496,11 +495,11 @@ class TestMovingObstacle(TestCase):
         """Tests the JSON serialization model."""
         for cur_obst in self.obstacles:
             json_data = cur_obst.toJSON()
-            self.assertTrue('sphere_radius' in json_data)
-            self.assertEqual(json_data['sphere_radius'], cur_obst.sphere_radius)
             self.assertTrue('latitude' in json_data)
             self.assertTrue('longitude' in json_data)
             self.assertTrue('altitude_msl' in json_data)
+            self.assertTrue('sphere_radius' in json_data)
+            self.assertEqual(json_data['sphere_radius'], cur_obst.sphere_radius)
         obst = self.obst_single_wpt
         json_data = obst.toJSON()
         self.assertEqual(json_data['latitude'],
@@ -686,7 +685,7 @@ class TestGetObstaclesView(TestCase):
         # Setup test objs
         self.client = Client()
         self.loginUrl = reverse('auvsi_suas:login')
-        self.obstUrl = reverse('auvsi_suas:obstacle')
+        self.obstUrl = reverse('auvsi_suas:obstacles')
 
     def tearDown(self):
         """Destroys the user."""

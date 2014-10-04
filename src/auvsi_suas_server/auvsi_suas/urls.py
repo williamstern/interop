@@ -5,7 +5,7 @@ urlpatterns = patterns('',
     url(r'^$', views.index, name='index'),
     url(r'^api/login$', views.loginUser, name='login'),
     url(r'^api/interop/server_info$', views.getServerInfo, name='server_info'),
-    url(r'^api/interop/obstacle$', views.getObstacles, name='obstacle'),
+    url(r'^api/interop/obstacles$', views.getObstacles, name='obstacles'),
     url(r'^api/interop/uas_telemetry', views.postUasPosition,
         name='uas_telemetry')
 )

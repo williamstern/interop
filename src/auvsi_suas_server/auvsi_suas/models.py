@@ -167,10 +167,8 @@ class StationaryObstacle(Obstacle):
     def toJSON(self):
         """Obtains a JSON style python representation for the data."""
         data = {
-            'gps_position': {
-              'latitude':  self.gps_position.latitude,
-              'longitude': self.gps_position.longitude
-            },
+            'latitude':  self.gps_position.latitude,
+            'longitude': self.gps_position.longitude,
             'cylinder_radius': self.cylinder_radius,
             'cylinder_height': self.cylinder_height
         }
@@ -331,10 +329,10 @@ class MovingObstacle(Obstacle):
         """Obtains a JSON style python representation for the data."""
         (latitude, longitude, altitude_msl) = self.getPosition()
         data = {
-            'sphere_radius': self.sphere_radius,
             'latitude': latitude,
             'longitude': longitude,
-            'altitude_msl': altitude_msl
+            'altitude_msl': altitude_msl,
+            'sphere_radius': self.sphere_radius
         }
         return data
 
