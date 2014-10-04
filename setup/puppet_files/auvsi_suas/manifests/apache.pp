@@ -5,6 +5,7 @@
 class auvsi_suas::apache {
 
     # Prerequisite modules
+    require auvsi_suas::apt_sources # libapache2-mod-fastcgi needs multiverse
     require auvsi_suas::gcc
     require auvsi_suas::java
     require auvsi_suas::mysql

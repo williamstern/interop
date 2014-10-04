@@ -7,6 +7,7 @@
 class auvsi_suas {
     # System Dependencies
     include auvsi_suas::apache
+    include auvsi_suas::apt_sources
     include auvsi_suas::boost
     include auvsi_suas::chrome
     include auvsi_suas::cmake

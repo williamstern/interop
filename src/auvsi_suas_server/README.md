@@ -14,9 +14,18 @@ directory contains the following files:
         development server, etc.
 
 To start the development web server, execute:
-python manage.py runserver 8080
 
-This will start the server on the local address (localhost, 127.0.0.1) with port
+``` sh
+python manage.py runserver 8080
+```
+
+To access the web server from external machines, execute:
+
+``` sh
+python manage.py runserver 0.0.0.0:8080
+```
+
+The server will start on the local address (localhost, 127.0.0.1) with port
 8080. This means the web server is providing a web page at:
 http://localhost:8080/
 

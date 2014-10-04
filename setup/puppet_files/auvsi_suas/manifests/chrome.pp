@@ -1,18 +1,27 @@
 # AUVSI SUAS Puppet Module: chrome
 # ==============================================================================
 
+include apt
+
 # chrome module definition
 class auvsi_suas::chrome {
 
-    # Place the Google Chrome deb file
-    file { "/tmp/google-chrome.deb":
-        ensure => present,
-        source => "puppet:///modules/auvsi_suas/google-chrome-stable_current_amd64.deb"
+    # Google Chrome repo
+    apt::source { "google-chrome":
+        location        => "http://dl.google.com/linux/chrome/deb/",
+        release         => "stable",
+        repos           => "main",
+        key             => "7FAC5991",
+        key_source      => "https://dl-ssl.google.com/linux/linux_signing_key.pub",
+        include_src     => false,
     }
 
-    # Run the deb installer
-    exec { "google-chrome-install":
-        require => File["/tmp/google-chrome.deb"],
-        command => "sudo dpkg -i /tmp/google-chrome.deb"
+    # Package list
+    $package_deps = ["google-chrome-stable"]
+
+    # Install packages
+    package { $package_deps:
+        ensure => "latest",
+        require => Apt::Source["google-chrome"],
     }
 }
