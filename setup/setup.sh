@@ -1,4 +1,4 @@
-# This script launches the Puppet automated dependency installer. The setup.sh
+# This script launches the Puppet automated dependency installer. The init.sh
 # script should be executed prior to running this script. 
 # ==============================================================================
 
