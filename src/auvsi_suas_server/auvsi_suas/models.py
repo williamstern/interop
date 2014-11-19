@@ -166,9 +166,15 @@ class StationaryObstacle(Obstacle):
 
     def toJSON(self):
         """Obtains a JSON style python representation for the data."""
+        if self.gps_position is None:
+            latitude = 0
+            longitude = 0
+        else:
+            latitude = self.gps_position.latitude
+            longitude = self.gps_position.longitude
         data = {
-            'latitude':  self.gps_position.latitude,
-            'longitude': self.gps_position.longitude,
+            'latitude':  latitude,
+            'longitude': longitude,
             'cylinder_radius': self.cylinder_radius,
             'cylinder_height': self.cylinder_height
         }
@@ -284,9 +290,10 @@ class MovingObstacle(Obstacle):
         total_travel_time = pos_times[len(pos_times)-1]
 
         # Create spline representation
+        spline_k = 3 if num_waypoints >= 3 else 2  # Cubic if enough points
         spline_reps = list()
         for iter_dim in range(3):
-            tck = splrep(pos_times, positions[:,iter_dim], per=1)
+            tck = splrep(pos_times, positions[:,iter_dim], k=spline_k, per=1)
             spline_reps.append(tck)
 
         return (total_travel_time, spline_reps)
@@ -298,14 +305,18 @@ class MovingObstacle(Obstacle):
           cur_time: The current time as datetime.
         Returns:
           Returns a tuple (latitude, longitude, altitude_msl) for the obstacle
-          at the given time. Returns None if could not compute.
+          at the given time.
         """
-        waypoints = self.waypoints.order_by('order')
-        num_waypoints = len(waypoints)
+        # Get list of waypoints for obstacle, filter for consecutive duplicates
+        all_wpts = self.waypoints.order_by('order')
+        waypoints = [all_wpts[i]
+                     for i in range(len(all_wpts))
+                     if i == 0 or all_wpts[i].distanceTo(all_wpts[i-1]) != 0]
 
-        # Waypoint counts of 0 or 1 can skip calc
+        # Waypoint counts of 0 or 1 can skip calc, so can no speed
+        num_waypoints = len(waypoints)
         if num_waypoints == 0:
-            return None
+            return (0, 0, 0)  # Undefined position
         elif num_waypoints == 1 or self.speed_avg <= 0:
             wpt = waypoints[0]
             return (wpt.position.gps_position.latitude,

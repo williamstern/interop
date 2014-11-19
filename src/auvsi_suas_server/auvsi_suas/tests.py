@@ -74,13 +74,24 @@ TESTDATA_COMPETITION_3D_DIST = [
 ]
 
 TESTDATA_MOVOBST_PATHS = [
+    # Test 2 points
+    [(38.142233, -76.434082, 300),
+     (38.141878, -76.425198, 700)],
+    # Test 3 points
     [(38.142233, -76.434082, 300),
      (38.141878, -76.425198, 700),
      (38.144599, -76.428186, 100)],
+    # Test 3 points with a consecutive duplicate
+    [(38.142233, -76.434082, 300),
+     (38.141878, -76.425198, 700),
+     (38.141878, -76.425198, 700),
+     (38.144599, -76.428186, 100)],
+    # Test 4 points
     [(38.145574, -76.428492, 100),
      (38.149164, -76.427113, 750),
      (38.148662, -76.431517, 300),
      (38.146143, -76.426727, 500)],
+    # Test 5 points
     [(38.145405, -76.428310, 100),
      (38.146582, -76.424099, 200),
      (38.144662, -76.427634, 300),
@@ -88,6 +99,9 @@ TESTDATA_MOVOBST_PATHS = [
      (38.147573, -76.420832, 100),
      (38.148522, -76.419507, 750)]
 ]
+
+OP_RATE_T = 5.0
+OP_RATE_THRESH = 10 * 3
 
 
 class TestHaversine(TestCase):
@@ -416,7 +430,7 @@ class TestMovingObstacle(TestCase):
 
     def test_getPosition_no_waypoints(self):
         """Tests position calc on no-waypoint."""
-        self.assertIsNone(self.obst_no_wpt.getPosition())
+        self.assertEqual(self.obst_no_wpt.getPosition(), (0, 0, 0))
 
     def test_getPosition_one_waypoint(self):
         """Tests position calc on single waypoints."""
@@ -624,16 +638,14 @@ class TestGetServerInfoView(TestCase):
         client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
 
         total_ops = 0
-        min_time = 10.0
-        start_time = datetime.datetime.now()
-        while (datetime.datetime.now() - start_time).total_seconds() < min_time:
+        start_t = datetime.datetime.now()
+        while (datetime.datetime.now() - start_t).total_seconds() < OP_RATE_T:
             client.get(infoUrl)
             total_ops += 1
-        end_time = datetime.datetime.now()
-        total_time = (end_time - start_time).total_seconds()
-        op_rate = total_ops / total_time
+        end_t = datetime.datetime.now()
+        total_t = (end_t - start_t).total_seconds()
+        op_rate = total_ops / total_t
 
-        OP_RATE_THRESH = 10 * 3 * 2
         self.assertTrue(op_rate >= OP_RATE_THRESH)
 
 
@@ -733,16 +745,14 @@ class TestGetObstaclesView(TestCase):
         client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
 
         total_ops = 0
-        min_time = 10.0
-        start_time = datetime.datetime.now()
-        while (datetime.datetime.now() - start_time).total_seconds() < min_time:
+        start_t = datetime.datetime.now()
+        while (datetime.datetime.now() - start_t).total_seconds() < OP_RATE_T:
             client.get(obstUrl)
             total_ops += 1
-        end_time = datetime.datetime.now()
-        total_time = (end_time - start_time).total_seconds()
-        op_rate = total_ops / total_time
+        end_t = datetime.datetime.now()
+        total_t = (end_t - start_t).total_seconds()
+        op_rate = total_ops / total_t
 
-        OP_RATE_THRESH = 10 * 3 * 1.5
         self.assertTrue(op_rate >= OP_RATE_THRESH)
 
 
@@ -866,18 +876,16 @@ class TestPostUasPosition(TestCase):
         alt = 30
         heading = 40
         total_ops = 0
-        min_time = 10.0
-        start_time = datetime.datetime.now()
-        while (datetime.datetime.now() - start_time).total_seconds() < min_time:
+        start_t = datetime.datetime.now()
+        while (datetime.datetime.now() - start_t).total_seconds() < OP_RATE_T:
             client.post(uasUrl,
                     {'latitude': lat,
                      'longiutde': lon,
                      'altitude_msl': alt,
                      'uas_heading': heading})
             total_ops += 1
-        end_time = datetime.datetime.now()
-        total_time = (end_time - start_time).total_seconds()
-        op_rate = total_ops / total_time
+        end_t = datetime.datetime.now()
+        total_t = (end_t - start_t).total_seconds()
+        op_rate = total_ops / total_t
 
-        OP_RATE_THRESH = 10 * 3 * 1.5
         self.assertTrue(op_rate >= OP_RATE_THRESH)
