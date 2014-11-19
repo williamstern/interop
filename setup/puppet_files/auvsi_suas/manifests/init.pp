@@ -8,10 +8,7 @@ class auvsi_suas {
     # System Dependencies
     include auvsi_suas::apache
     include auvsi_suas::apt_sources
-    include auvsi_suas::boost
     include auvsi_suas::chrome
-    include auvsi_suas::cmake
-    include auvsi_suas::dia
     include auvsi_suas::django
     include auvsi_suas::eclipse
     include auvsi_suas::ftp
@@ -27,16 +24,12 @@ class auvsi_suas {
     include auvsi_suas::ntp
     include auvsi_suas::numpy
     include auvsi_suas::opencv
-    include auvsi_suas::openssh 
+    include auvsi_suas::openssh
     include auvsi_suas::openssl
-    include auvsi_suas::php
     include auvsi_suas::pprof
     include auvsi_suas::protobuf
     include auvsi_suas::python
-    include auvsi_suas::qt
     include auvsi_suas::rsync
-    include auvsi_suas::subversion 
     include auvsi_suas::sqlite
-    include auvsi_suas::texlive 
     include auvsi_suas::vim
 }
