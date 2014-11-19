@@ -5,6 +5,7 @@ import numpy as np
 import math
 import time
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models
 from scipy.interpolate import splrep, splev
 
@@ -309,9 +310,10 @@ class MovingObstacle(Obstacle):
         """
         # Get list of waypoints for obstacle, filter for consecutive duplicates
         all_wpts = self.waypoints.order_by('order')
-        waypoints = [all_wpts[i]
-                     for i in range(len(all_wpts))
-                     if i == 0 or all_wpts[i].distanceTo(all_wpts[i-1]) != 0]
+        waypoints = [
+                all_wpts[i]
+                for i in range(len(all_wpts))
+                if i == 0 or all_wpts[i].distanceTo(all_wpts[i-1]) != 0]
 
         # Waypoint counts of 0 or 1 can skip calc, so can no speed
         num_waypoints = len(waypoints)
@@ -324,7 +326,12 @@ class MovingObstacle(Obstacle):
                     wpt.position.altitude_msl)
 
         # Get spline representation
-        (total_travel_time, spline_reps) = self.getSplineCurve(waypoints)
+        spline_curve_key = '/MovingObstacle/%d/spline_curve' % self.id
+        spline_curve = cache.get(spline_curve_key)
+        if spline_curve is None:
+            spline_curve = self.getSplineCurve(waypoints)
+            cache.set(spline_curve_key, spline_curve)
+        (total_travel_time, spline_reps) = spline_curve
 
         # Sample spline at current time
         cur_time_sec = (cur_time -

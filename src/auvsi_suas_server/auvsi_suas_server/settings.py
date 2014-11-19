@@ -65,6 +65,18 @@ DATABASES = {
     }
 }
 
+# Caches
+# https://docs.djangoproject.com/en/1.6/topics/cache
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'TIMEOUT': 30,
+        'OPTIONS': {
+            'MAX_ENTRIES': 20000
+        }
+    }
+}
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
 

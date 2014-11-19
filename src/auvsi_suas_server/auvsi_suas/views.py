@@ -18,6 +18,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
+from django.core.cache import cache
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseServerError
@@ -86,7 +87,11 @@ def getServerInfo(request):
     # Form response
     try:
         # Get the latest published server info
-        server_info = ServerInfo.objects.latest('timestamp')
+        server_info_key = '/ServerInfo/latest'
+        server_info = cache.get(server_info_key)
+        if server_info is None:
+            server_info = ServerInfo.objects.latest('timestamp')
+            cache.set(server_info_key, server_info)
     except ServerInfo.DoesNotExist:
         # Failed to obtain server info
         return HttpResponseServerError('No server info available.')
@@ -115,7 +120,11 @@ def getObstacles(request):
     access_log.save()
 
     # Form JSON response portion for stationary obstacles
-    stationary_obstacles = StationaryObstacle.objects.all()
+    stationary_obstacles_key = '/StationaryObstacle/all'
+    stationary_obstacles = cache.get(stationary_obstacles_key)
+    if stationary_obstacles is None:
+        stationary_obstacles = StationaryObstacle.objects.all()
+        cache.set(stationary_obstacles_key, stationary_obstacles)
     stationary_obstacles_json = list()
     for cur_obst in stationary_obstacles:
         # Add current obstacle
@@ -123,7 +132,11 @@ def getObstacles(request):
         stationary_obstacles_json.append(cur_obst_json)
 
     # Form JSON response portion for moving obstacles
-    moving_obstacles = MovingObstacle.objects.all()
+    moving_obstacles_key = '/MovingObstacle/all'
+    moving_obstacles = cache.get(moving_obstacles_key)
+    if moving_obstacles is None:
+        moving_obstacles = MovingObstacle.objects.all()
+        cache.set(moving_obstacles_key, moving_obstacles)
     moving_obstacles_json = list()
     for cur_obst in moving_obstacles:
         # Add current obstacle

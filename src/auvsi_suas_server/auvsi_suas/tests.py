@@ -1,4 +1,5 @@
 import datetime
+import time
 import json
 import matplotlib.pyplot as plt
 import numpy as np
@@ -100,8 +101,11 @@ TESTDATA_MOVOBST_PATHS = [
      (38.148522, -76.419507, 750)]
 ]
 
-OP_RATE_T = 5.0
-OP_RATE_THRESH = 10 * 3
+OP_RATE_T = 3.0
+OP_RATE_HZ = 10
+OP_RATE_PROCS = 3
+OP_RATE_SAFETY = 1
+OP_RATE_THRESH = OP_RATE_HZ * OP_RATE_PROCS * OP_RATE_SAFETY
 
 
 class TestHaversine(TestCase):
@@ -638,15 +642,16 @@ class TestGetServerInfoView(TestCase):
         client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
 
         total_ops = 0
-        start_t = datetime.datetime.now()
-        while (datetime.datetime.now() - start_t).total_seconds() < OP_RATE_T:
+        start_t = time.clock()
+        while time.clock() - start_t < OP_RATE_T:
             client.get(infoUrl)
             total_ops += 1
-        end_t = datetime.datetime.now()
-        total_t = (end_t - start_t).total_seconds()
+        end_t = time.clock()
+        total_t = end_t - start_t
         op_rate = total_ops / total_t
 
         self.assertTrue(op_rate >= OP_RATE_THRESH)
+        print 'Server Info Rate (%f)' % op_rate
 
 
 class TestGetObstaclesView(TestCase):
@@ -745,15 +750,16 @@ class TestGetObstaclesView(TestCase):
         client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
 
         total_ops = 0
-        start_t = datetime.datetime.now()
-        while (datetime.datetime.now() - start_t).total_seconds() < OP_RATE_T:
+        start_t = time.clock()
+        while time.clock() - start_t < OP_RATE_T:
             client.get(obstUrl)
             total_ops += 1
-        end_t = datetime.datetime.now()
-        total_t = (end_t - start_t).total_seconds()
+        end_t = time.clock()
+        total_t = end_t - start_t
         op_rate = total_ops / total_t
 
         self.assertTrue(op_rate >= OP_RATE_THRESH)
+        print 'Obstacle Info Rate (%f)' % op_rate
 
 
 class TestPostUasPosition(TestCase):
@@ -876,16 +882,17 @@ class TestPostUasPosition(TestCase):
         alt = 30
         heading = 40
         total_ops = 0
-        start_t = datetime.datetime.now()
-        while (datetime.datetime.now() - start_t).total_seconds() < OP_RATE_T:
+        start_t = time.clock()
+        while time.clock() - start_t < OP_RATE_T:
             client.post(uasUrl,
                     {'latitude': lat,
                      'longiutde': lon,
                      'altitude_msl': alt,
                      'uas_heading': heading})
             total_ops += 1
-        end_t = datetime.datetime.now()
-        total_t = (end_t - start_t).total_seconds()
+        end_t = time.clock()
+        total_t = end_t - start_t
         op_rate = total_ops / total_t
 
         self.assertTrue(op_rate >= OP_RATE_THRESH)
+        print 'UAS Post Rate (%f)' % op_rate
