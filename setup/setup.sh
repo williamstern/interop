@@ -6,7 +6,7 @@ set -e
 
 # Install puppet modules
 sudo mkdir -p /etc/puppet/modules/
-sudo puppet module install puppetlabs-apt
+sudo puppet module install -f puppetlabs-apt
 
 # Launch the Puppet process
 sudo puppet apply --modulepath=${PWD}/puppet_files:/etc/puppet/modules/:/usr/share/puppet/modules/ puppet_files/auvsi_suas.pp

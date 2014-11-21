@@ -10,7 +10,6 @@ class auvsi_suas {
     include auvsi_suas::apt_sources
     include auvsi_suas::chrome
     include auvsi_suas::django
-    include auvsi_suas::eclipse
     include auvsi_suas::ftp
     include auvsi_suas::gcc
     include auvsi_suas::git
