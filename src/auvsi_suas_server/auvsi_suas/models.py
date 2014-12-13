@@ -309,6 +309,14 @@ class MovingObstacle(Obstacle):
 
         return (total_travel_time, spline_reps)
 
+    def getWaypointsCacheKey(self):
+        """Gets the cache key for this objects deduped waypoints."""
+        return '/MovingObstacle/%d/waypoints' % self.id
+
+    def getSplineCurveCacheKey(self):
+        """Gets the cache key for this objects spline curve rep."""
+        return '/MovingObstacle/%d/spline_curve' % self.id
+
     def getPosition(self, cur_time=datetime.datetime.now()):
         """Gets the current position for the obstacle.
 
@@ -319,7 +327,7 @@ class MovingObstacle(Obstacle):
           at the given time.
         """
         # Get waypoints
-        waypoints_key = '/MovingObstacle/%d/waypoints' % self.id
+        waypoints_key = self.getWaypointsCacheKey()
         waypoints = cache.get(waypoints_key)
         if waypoints is None:
             # Load waypoints for obstacle, filter for consecutive duplicates
@@ -341,7 +349,7 @@ class MovingObstacle(Obstacle):
                     wpt.position.altitude_msl)
 
         # Get spline representation
-        spline_curve_key = '/MovingObstacle/%d/spline_curve' % self.id
+        spline_curve_key = self.getSplineCurveCacheKey()
         spline_curve = cache.get(spline_curve_key)
         if spline_curve is None:
             spline_curve = self.getSplineCurve(waypoints)
