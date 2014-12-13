@@ -80,6 +80,11 @@ class GpsPosition(models.Model):
         # Convert km to feet
         return kilometersToFeet(dist)
 
+    def toJSON(self):
+        """Obtain a JSON style representation of object."""
+        # TODO
+        pass
+
 
 class AerialPosition(models.Model):
     """Aerial position which consists of a GPS position and an altitude."""
@@ -97,6 +102,16 @@ class AerialPosition(models.Model):
         """
         return math.hypot(abs(self.altitude_msl - other.altitude_msl),
                           self.gps_position.distanceTo(other.gps_position))
+
+    def toJSON(self):
+        """Obtain a JSON style representation of object."""
+        # TODO
+        pass
+
+    def toJSONRaw(self):
+        """Obtain a JSON style representation of object in raw form."""
+        # TODO
+        pass
 
 
 class Waypoint(models.Model):
@@ -117,6 +132,16 @@ class Waypoint(models.Model):
         """
         return self.position.distanceTo(other.position)
 
+    def toJSON(self):
+        """Obtain a JSON style representation of object."""
+        # TODO
+        pass
+
+    def toJSONRaw(self):
+        """Obtain a JSON style representation of object in raw form."""
+        # TODO
+        pass
+
 
 class ServerInfo(models.Model):
     """Static information stored on the server that teams must retrieve."""
@@ -126,7 +151,7 @@ class ServerInfo(models.Model):
     team_msg = models.CharField(max_length=100)
 
     def toJSON(self):
-        """Obtains a JSON style python representation for the data."""
+        """Obtain a JSON style representation of object."""
         data = {
             'message': self.team_msg,
             'message_timestamp': str(self.timestamp)
@@ -140,6 +165,16 @@ class ServerInfoAccessLog(models.Model):
     timestamp = models.DateTimeField(auto_now=True)
     # The user which accessed the data
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
+
+    def toJSON(self):
+        """Obtain a JSON style representation of object."""
+        # TODO
+        pass
+
+    def toJSONRaw(self):
+        """Obtain a JSON style representation of object in raw form."""
+        # TODO
+        pass
 
 
 class Obstacle(models.Model):
@@ -155,6 +190,16 @@ class ObstacleAccessLog(models.Model):
     # The user which accessed the data
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
+    def toJSON(self):
+        """Obtain a JSON style representation of object."""
+        # TODO
+        pass
+
+    def toJSONRaw(self):
+        """Obtain a JSON style representation of object in raw form."""
+        # TODO
+        pass
+
 
 class StationaryObstacle(Obstacle):
     """A stationary obstacle that teams must avoid."""
@@ -166,7 +211,7 @@ class StationaryObstacle(Obstacle):
     cylinder_height = models.FloatField()
 
     def toJSON(self):
-        """Obtains a JSON style python representation for the data."""
+        """Obtain a JSON style representation of object."""
         if self.gps_position is None:
             latitude = 0
             longitude = 0
@@ -180,6 +225,11 @@ class StationaryObstacle(Obstacle):
             'cylinder_height': self.cylinder_height
         }
         return data
+
+    def toJSONRaw(self):
+        """Obtain a JSON style representation of object in raw form."""
+        # TODO. Also with name
+        pass
 
 
 class MovingObstacle(Obstacle):
@@ -308,12 +358,17 @@ class MovingObstacle(Obstacle):
           Returns a tuple (latitude, longitude, altitude_msl) for the obstacle
           at the given time.
         """
-        # Get list of waypoints for obstacle, filter for consecutive duplicates
-        all_wpts = self.waypoints.order_by('order')
-        waypoints = [
-                all_wpts[i]
-                for i in range(len(all_wpts))
-                if i == 0 or all_wpts[i].distanceTo(all_wpts[i-1]) != 0]
+        # Get waypoints
+        waypoints_key = '/MovingObstacle/%d/waypoints' % self.id
+        waypoints = cache.get(waypoints_key)
+        if waypoints is None:
+            # Load waypoints for obstacle, filter for consecutive duplicates
+            all_wpts = self.waypoints.order_by('order')
+            waypoints = [
+                    all_wpts[i]
+                    for i in range(len(all_wpts))
+                    if i == 0 or all_wpts[i].distanceTo(all_wpts[i-1]) != 0]
+            cache.set(waypoints_key, waypoints)
 
         # Waypoint counts of 0 or 1 can skip calc, so can no speed
         num_waypoints = len(waypoints)
@@ -344,7 +399,7 @@ class MovingObstacle(Obstacle):
         return (latitude, longitude, altitude_msl)
 
     def toJSON(self):
-        """Obtains a JSON style python representation for the data."""
+        """Obtain a JSON style representation of object."""
         (latitude, longitude, altitude_msl) = self.getPosition()
         data = {
             'latitude': latitude,
@@ -353,6 +408,10 @@ class MovingObstacle(Obstacle):
             'sphere_radius': self.sphere_radius
         }
         return data
+
+    def toJSONRaw(self):
+        """Obtain a JSON style representation of object in raw form."""
+        # TODO. Also with name
 
 
 class UasTelemetry(models.Model):
@@ -365,3 +424,14 @@ class UasTelemetry(models.Model):
     uas_position = models.ForeignKey(AerialPosition)
     # The heading of the UAS in degrees (e.g. 0=north, 90=east)
     uas_heading = models.FloatField()
+
+    def toJSON(self):
+        """Obtain a JSON style representation of object."""
+        # TODO
+        pass
+
+    def toJSONRaw(self):
+        """Obtain a JSON style representation of object in raw form."""
+        # TODO
+        pass
+

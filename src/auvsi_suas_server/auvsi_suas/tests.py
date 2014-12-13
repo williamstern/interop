@@ -19,6 +19,7 @@ from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.models import UasTelemetry
 from auvsi_suas.models import Waypoint
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
@@ -209,6 +210,11 @@ class TestGpsPositionModel(TestCase):
         self.assertTrue(self.eval_distanceTo_inputs(
             TESTDATA_COMPETITION_DIST))
 
+    def test_toJSON(self):
+        """Tests the toJSON method."""
+        # TODO
+        pass
+
 
 class TestAerialPositionModel(TestCase):
     """Tests the AerialPosition model."""
@@ -253,6 +259,11 @@ class TestAerialPositionModel(TestCase):
         self.assertTrue(self.eval_distanceTo_inputs(
             TESTDATA_COMPETITION_3D_DIST))
 
+    def test_toJSON(self):
+        """Tests the toJSON method."""
+        # TODO
+        pass
+
 
 class TestServerInfoModel(TestCase):
     """Tests the ServerInfo model."""
@@ -273,11 +284,29 @@ class TestServerInfoModel(TestCase):
         self.assertEqual(json_data['message_timestamp'], str(TEST_TIME))
 
 
+class TestServerInfoAccessLogModel(TestCase):
+    """Tests the ServerInfoAccessLog model."""
+
+    def test_toJSON(self):
+        """Tests the JSON serialization method."""
+        # TODO
+        pass
+
+
+class TestObstacleAccessLogModel(TestCase):
+    """Tests the ObstacleAccessLog model."""
+
+    def test_toJSON(self):
+        """Tests the JSON serialization method."""
+        # TODO
+        pass
+
+
 class TestStationaryObstacleModel(TestCase):
     """Tests the StationaryObstacle model."""
 
     def test_toJSON(self):
-        """Tests the JSON serialization model."""
+        """Tests the JSON serialization method."""
         TEST_LAT = 100.10
         TEST_LONG = 200.20
         TEST_RADIUS = 150.50
@@ -307,6 +336,8 @@ class TestMovingObstacle(TestCase):
 
     def setUp(self):
         """Create the obstacles for testing."""
+        cache.clear()
+
         # Obstacle with no waypoints
         obst_no_wpt = MovingObstacle()
         obst_no_wpt.speed_avg = 1
@@ -367,6 +398,7 @@ class TestMovingObstacle(TestCase):
 
     def tearDown(self):
         """Tear down the obstacles created."""
+        cache.clear()
         MovingObstacle.objects.all().delete()
         Waypoint.objects.all().delete()
         AerialPosition.objects.all().delete()
@@ -510,7 +542,7 @@ class TestMovingObstacle(TestCase):
 
 
     def test_toJSON(self):
-        """Tests the JSON serialization model."""
+        """Tests the JSON serialization method."""
         for cur_obst in self.obstacles:
             json_data = cur_obst.toJSON()
             self.assertTrue('latitude' in json_data)
@@ -528,6 +560,15 @@ class TestMovingObstacle(TestCase):
                 obst.waypoints.all()[0].position.altitude_msl)
 
 
+class TestUasTelemetryModel(TestCase):
+    """Tests the UasTelemetry model."""
+
+    def test_toJSON(self):
+        """Tests the JSON serialization method."""
+        # TODO
+        pass
+
+
 class TestLoginUserView(TestCase):
     """Tests the loginUser view."""
 
@@ -541,6 +582,7 @@ class TestLoginUserView(TestCase):
 
     def tearDown(self):
         """Deletes users for the view."""
+        cache.clear()
         self.user.delete()
 
     def test_invalid_request(self):
@@ -596,6 +638,7 @@ class TestGetServerInfoView(TestCase):
 
     def tearDown(self):
         """Destroys the user."""
+        cache.clear()
         self.user.delete()
         ServerInfo.objects.all().delete()
         ServerInfoAccessLog.objects.all().delete()
@@ -706,6 +749,7 @@ class TestGetObstaclesView(TestCase):
 
     def tearDown(self):
         """Destroys the user."""
+        cache.clear()
         self.user.delete()
         ObstacleAccessLog.objects.all().delete()
         StationaryObstacle.objects.all().delete()
@@ -776,6 +820,7 @@ class TestPostUasPosition(TestCase):
 
     def tearDown(self):
         """Destroys the user."""
+        cache.clear()
         self.user.delete()
         UasTelemetry.objects.all().delete()
         AerialPosition.objects.all().delete()
