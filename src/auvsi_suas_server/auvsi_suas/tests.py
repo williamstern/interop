@@ -210,11 +210,6 @@ class TestGpsPositionModel(TestCase):
         self.assertTrue(self.eval_distanceTo_inputs(
             TESTDATA_COMPETITION_DIST))
 
-    def test_toJSON(self):
-        """Tests the toJSON method."""
-        # TODO
-        pass
-
 
 class TestAerialPositionModel(TestCase):
     """Tests the AerialPosition model."""
@@ -259,11 +254,6 @@ class TestAerialPositionModel(TestCase):
         self.assertTrue(self.eval_distanceTo_inputs(
             TESTDATA_COMPETITION_3D_DIST))
 
-    def test_toJSON(self):
-        """Tests the toJSON method."""
-        # TODO
-        pass
-
 
 class TestServerInfoModel(TestCase):
     """Tests the ServerInfo model."""
@@ -284,26 +274,13 @@ class TestServerInfoModel(TestCase):
         self.assertEqual(json_data['message_timestamp'], str(TEST_TIME))
 
 
-class TestServerInfoAccessLogModel(TestCase):
-    """Tests the ServerInfoAccessLog model."""
-
-    def test_toJSON(self):
-        """Tests the JSON serialization method."""
-        # TODO
-        pass
-
-
-class TestObstacleAccessLogModel(TestCase):
-    """Tests the ObstacleAccessLog model."""
-
-    def test_toJSON(self):
-        """Tests the JSON serialization method."""
-        # TODO
-        pass
-
-
 class TestStationaryObstacleModel(TestCase):
     """Tests the StationaryObstacle model."""
+
+    def test_containsPos(self):
+        """Tests the inside obstacle method."""
+        # TODO
+        pass
 
     def test_toJSON(self):
         """Tests the JSON serialization method."""
@@ -403,6 +380,11 @@ class TestMovingObstacle(TestCase):
         Waypoint.objects.all().delete()
         AerialPosition.objects.all().delete()
         GpsPosition.objects.all().delete()
+
+    def test_containsPos(self):
+        """Tests the inside obstacle method."""
+        # TODO
+        pass
 
     def test_getWaypointTravelTime_invalid_inputs(self):
         """Tests proper invalid input handling."""
@@ -558,15 +540,6 @@ class TestMovingObstacle(TestCase):
                 obst.waypoints.all()[0].position.gps_position.longitude)
         self.assertEqual(json_data['altitude_msl'],
                 obst.waypoints.all()[0].position.altitude_msl)
-
-
-class TestUasTelemetryModel(TestCase):
-    """Tests the UasTelemetry model."""
-
-    def test_toJSON(self):
-        """Tests the JSON serialization method."""
-        # TODO
-        pass
 
 
 class TestLoginUserView(TestCase):

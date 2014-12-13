@@ -80,11 +80,6 @@ class GpsPosition(models.Model):
         # Convert km to feet
         return kilometersToFeet(dist)
 
-    def toJSON(self):
-        """Obtain a JSON style representation of object."""
-        # TODO
-        pass
-
 
 class AerialPosition(models.Model):
     """Aerial position which consists of a GPS position and an altitude."""
@@ -102,16 +97,6 @@ class AerialPosition(models.Model):
         """
         return math.hypot(abs(self.altitude_msl - other.altitude_msl),
                           self.gps_position.distanceTo(other.gps_position))
-
-    def toJSON(self):
-        """Obtain a JSON style representation of object."""
-        # TODO
-        pass
-
-    def toJSONRaw(self):
-        """Obtain a JSON style representation of object in raw form."""
-        # TODO
-        pass
 
 
 class Waypoint(models.Model):
@@ -131,16 +116,6 @@ class Waypoint(models.Model):
           Distance in feet.
         """
         return self.position.distanceTo(other.position)
-
-    def toJSON(self):
-        """Obtain a JSON style representation of object."""
-        # TODO
-        pass
-
-    def toJSONRaw(self):
-        """Obtain a JSON style representation of object in raw form."""
-        # TODO
-        pass
 
 
 class ServerInfo(models.Model):
@@ -166,16 +141,6 @@ class ServerInfoAccessLog(models.Model):
     # The user which accessed the data
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
-    def toJSON(self):
-        """Obtain a JSON style representation of object."""
-        # TODO
-        pass
-
-    def toJSONRaw(self):
-        """Obtain a JSON style representation of object in raw form."""
-        # TODO
-        pass
-
 
 class Obstacle(models.Model):
     """An obstacle that teams must avoid."""
@@ -190,16 +155,6 @@ class ObstacleAccessLog(models.Model):
     # The user which accessed the data
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
-    def toJSON(self):
-        """Obtain a JSON style representation of object."""
-        # TODO
-        pass
-
-    def toJSONRaw(self):
-        """Obtain a JSON style representation of object in raw form."""
-        # TODO
-        pass
-
 
 class StationaryObstacle(Obstacle):
     """A stationary obstacle that teams must avoid."""
@@ -209,6 +164,11 @@ class StationaryObstacle(Obstacle):
     cylinder_radius = models.FloatField()
     # The height of the cylinder in feet
     cylinder_height = models.FloatField()
+
+    def containsPos(self, aerial_pos):
+        """Whether the pos is contained within the obstacle."""
+        # TODO
+        pass
 
     def toJSON(self):
         """Obtain a JSON style representation of object."""
@@ -226,11 +186,6 @@ class StationaryObstacle(Obstacle):
         }
         return data
 
-    def toJSONRaw(self):
-        """Obtain a JSON style representation of object in raw form."""
-        # TODO. Also with name
-        pass
-
 
 class MovingObstacle(Obstacle):
     """A moving obstacle that teams must avoid."""
@@ -240,6 +195,11 @@ class MovingObstacle(Obstacle):
     speed_avg = models.FloatField()
     # The radius of the sphere in feet
     sphere_radius = models.FloatField()
+
+    def containsPos(self, aerial_pos):
+        """Whether the pos is contained within the obstacle."""
+        # TODO
+        pass
 
     def getWaypointTravelTime(self, waypoints, id_tm1, id_t):
         """Gets the travel time to the current waypoint from a previous.
@@ -409,10 +369,6 @@ class MovingObstacle(Obstacle):
         }
         return data
 
-    def toJSONRaw(self):
-        """Obtain a JSON style representation of object in raw form."""
-        # TODO. Also with name
-
 
 class UasTelemetry(models.Model):
     """UAS telemetry reported by teams."""
@@ -424,14 +380,3 @@ class UasTelemetry(models.Model):
     uas_position = models.ForeignKey(AerialPosition)
     # The heading of the UAS in degrees (e.g. 0=north, 90=east)
     uas_heading = models.FloatField()
-
-    def toJSON(self):
-        """Obtain a JSON style representation of object."""
-        # TODO
-        pass
-
-    def toJSONRaw(self):
-        """Obtain a JSON style representation of object in raw form."""
-        # TODO
-        pass
-
