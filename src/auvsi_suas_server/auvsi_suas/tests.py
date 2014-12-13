@@ -11,7 +11,6 @@ from auvsi_suas.models import haversine
 from auvsi_suas.models import kilometersToFeet
 from auvsi_suas.models import knotsToFeetPerSecond
 from auvsi_suas.models import MovingObstacle
-from auvsi_suas.models import Obstacle
 from auvsi_suas.models import ObstacleAccessLog
 from auvsi_suas.models import ServerInfo
 from auvsi_suas.models import ServerInfoAccessLog
@@ -75,6 +74,38 @@ TESTDATA_COMPETITION_3D_DIST = [
     (-76.434261, 38.142471, 100, -76.418876, 38.147838, 800, 1.48455)
 ]
 
+# (lat, lon, rad, height)
+TESTDATA_STATOBST_CONTAINSPOS_OBJ = (-76, 38, 100, 200)
+# (lat, lon, alt)
+TESTDATA_STATOBST_CONTAINSPOS_INSIDE = [
+    (-76, 38, 0),
+    (-76, 38, 200),
+    (-76.0002, 38, 100),
+    (-76, 38.0003, 100)
+]
+TESTDATA_STATOBST_CONTAINSPOS_OUTSIDE = [
+    (-76, 38, -1),
+    (-76, 38, 201),
+    (-76.0003, 38, 100),
+    (-76, 38.004, 100)
+]
+
+# (lat, lon, rad, alt)
+TESTDATA_MOVOBST_CONTAINSPOS_OBJ = (-76, 38, 100, 200)
+# (lat, lon, alt)
+TESTDATA_MOVOBST_CONTAINSPOS_INSIDE = [
+    (-76, 38, 100),
+    (-76, 38, 300),
+    (-76.0002, 38, 200),
+    (-76, 38.0003, 200)
+]
+TESTDATA_MOVOBST_CONTAINSPOS_OUTSIDE = [
+    (-76, 38, 99),
+    (-76, 38, 301),
+    (-76.0003, 38, 200),
+    (-76, 38.004, 200)
+]
+
 TESTDATA_MOVOBST_PATHS = [
     # Test 2 points
     [(38.142233, -76.434082, 300),
@@ -102,7 +133,7 @@ TESTDATA_MOVOBST_PATHS = [
      (38.148522, -76.419507, 750)]
 ]
 
-OP_RATE_T = 3.0
+OP_RATE_T = 0.5
 OP_RATE_HZ = 10
 OP_RATE_PROCS = 3
 OP_RATE_SAFETY = 1
@@ -221,12 +252,12 @@ class TestAerialPositionModel(TestCase):
         pos1.gps_position = GpsPosition()
         pos1.gps_position.latitude = lat1
         pos1.gps_position.longitude = lon1
-        pos1.altitude_msl = alt1
+        pos1.altitude_agl = alt1
         pos2 = AerialPosition()
         pos2.gps_position = GpsPosition()
         pos2.gps_position.latitude = lat2
         pos2.gps_position.longitude = lon2
-        pos2.altitude_msl = alt2
+        pos2.altitude_agl = alt2
         dist12 = pos1.distanceTo(pos2)
         dist21 = pos2.distanceTo(pos1)
         dist_actual_ft = kilometersToFeet(dist_actual)
@@ -279,8 +310,28 @@ class TestStationaryObstacleModel(TestCase):
 
     def test_containsPos(self):
         """Tests the inside obstacle method."""
-        # TODO
-        pass
+        # Form the test obstacle
+        gps_position = GpsPosition()
+        gps_position.latitude = TESTDATA_STATOBST_CONTAINSPOS_OBJ[0]
+        gps_position.longitude = TESTDATA_STATOBST_CONTAINSPOS_OBJ[1]
+        obst = StationaryObstacle()
+        obst.gps_position = gps_position
+        obst.cylinder_radius = TESTDATA_STATOBST_CONTAINSPOS_OBJ[2]
+        obst.cylinder_height = TESTDATA_STATOBST_CONTAINSPOS_OBJ[3]
+        # Run test points against obstacle
+        test_data = [
+            (TESTDATA_STATOBST_CONTAINSPOS_INSIDE, True),
+            (TESTDATA_STATOBST_CONTAINSPOS_OUTSIDE, False)
+        ]
+        for (cur_data, cur_contains) in test_data:
+            for (lat, lon, alt) in cur_data:
+                gps_position = GpsPosition()
+                gps_position.latitude = lat
+                gps_position.longitude = lon
+                aerial_pos = AerialPosition()
+                aerial_pos.gps_position = gps_position
+                aerial_pos.altitude_agl = alt
+                self.assertEqual(obst.containsPos(aerial_pos), cur_contains)
 
     def test_toJSON(self):
         """Tests the JSON serialization method."""
@@ -336,7 +387,7 @@ class TestMovingObstacle(TestCase):
         single_gpos.save()
         single_apos = AerialPosition()
         single_apos.gps_position = single_gpos
-        single_apos.altitude_msl = self.single_wpt_alt
+        single_apos.altitude_agl = self.single_wpt_alt
         single_apos.save()
         single_wpt = Waypoint()
         single_wpt.position = single_apos
@@ -362,7 +413,7 @@ class TestMovingObstacle(TestCase):
                 cur_gpos.save()
                 cur_apos = AerialPosition()
                 cur_apos.gps_position = cur_gpos
-                cur_apos.altitude_msl = alt
+                cur_apos.altitude_agl = alt
                 cur_apos.save()
                 cur_wpt = Waypoint()
                 cur_wpt.position = cur_apos
@@ -383,8 +434,30 @@ class TestMovingObstacle(TestCase):
 
     def test_containsPos(self):
         """Tests the inside obstacle method."""
-        # TODO
-        pass
+        # Form the test obstacle
+        gps_position = GpsPosition()
+        gps_position.latitude = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[0]
+        gps_position.longitude = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[1]
+        obst_pos = AerialPosition()
+        obst_pos.gps_position = gps_position
+        obst_pos.altitude_agl = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[3]
+        obst = MovingObstacle()
+        obst.sphere_radius = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[2]
+        # Run test points against obstacle
+        test_data = [
+            (TESTDATA_MOVOBST_CONTAINSPOS_INSIDE, True),
+            (TESTDATA_MOVOBST_CONTAINSPOS_OUTSIDE, False)
+        ]
+        for (cur_data, cur_contains) in test_data:
+            for (lat, lon, alt) in cur_data:
+                gps_position = GpsPosition()
+                gps_position.latitude = lat
+                gps_position.longitude = lon
+                aerial_pos = AerialPosition()
+                aerial_pos.gps_position = gps_position
+                aerial_pos.altitude_agl = alt
+                self.assertEqual(obst.containsPos(obst_pos, aerial_pos),
+                                 cur_contains)
 
     def test_getWaypointTravelTime_invalid_inputs(self):
         """Tests proper invalid input handling."""
@@ -429,7 +502,7 @@ class TestMovingObstacle(TestCase):
                 gpos1.latitude = lat1
                 gpos1.longitude = lon1
                 apos1.gps_position = gpos1
-                apos1.altitude_msl = 0
+                apos1.altitude_agl = 0
                 wpt1.position = apos1
                 wpt2 = Waypoint()
                 apos2 = AerialPosition()
@@ -437,7 +510,7 @@ class TestMovingObstacle(TestCase):
                 gpos2.latitude = lat2
                 gpos2.longitude = lon2
                 apos2.gps_position = gpos2
-                apos2.altitude_msl = 0
+                apos2.altitude_agl = 0
                 wpt2.position = apos2
                 waypoints = [wpt1, wpt2]
                 obstacle = MovingObstacle()
@@ -490,7 +563,7 @@ class TestMovingObstacle(TestCase):
                 wpt_longitudes[waypoint_id] = (
                     waypoints[cur_id].position.gps_position.longitude)
                 wpt_altitudes[waypoint_id] = (
-                    waypoints[cur_id].position.altitude_msl)
+                    waypoints[cur_id].position.altitude_agl)
 
             # Create time series to represent samples at 10 Hz for 1.5 trips
             time_pos = np.arange(0, 1.5*total_time, 0.10)
@@ -529,7 +602,7 @@ class TestMovingObstacle(TestCase):
             json_data = cur_obst.toJSON()
             self.assertTrue('latitude' in json_data)
             self.assertTrue('longitude' in json_data)
-            self.assertTrue('altitude_msl' in json_data)
+            self.assertTrue('altitude_agl' in json_data)
             self.assertTrue('sphere_radius' in json_data)
             self.assertEqual(json_data['sphere_radius'], cur_obst.sphere_radius)
         obst = self.obst_single_wpt
@@ -538,8 +611,8 @@ class TestMovingObstacle(TestCase):
                 obst.waypoints.all()[0].position.gps_position.latitude)
         self.assertEqual(json_data['longitude'],
                 obst.waypoints.all()[0].position.gps_position.longitude)
-        self.assertEqual(json_data['altitude_msl'],
-                obst.waypoints.all()[0].position.altitude_msl)
+        self.assertEqual(json_data['altitude_agl'],
+                obst.waypoints.all()[0].position.altitude_agl)
 
 
 class TestLoginUserView(TestCase):
@@ -705,7 +778,7 @@ class TestGetObstaclesView(TestCase):
                 gpos.longitude = wpt_lon
                 gpos.save()
                 apos = AerialPosition()
-                apos.altitude_msl = wpt_alt
+                apos.altitude_agl = wpt_alt
                 apos.gps_position = gpos
                 apos.save()
                 wpt = Waypoint()
@@ -817,23 +890,23 @@ class TestPostUasPosition(TestCase):
         self.assertEqual(response.status_code, 400)
         response = client.post(uasUrl,
                 {'longitude': 0,
-                 'altitude_msl': 0,
+                 'altitude_agl': 0,
                  'uas_heading': 0})
         self.assertEqual(response.status_code, 400)
         response = client.post(uasUrl,
                 {'latitude': 0,
-                 'altitude_msl': 0,
-                 'uas_heading': 0})
-        self.assertEqual(response.status_code, 400)
-        response = client.post(uasUrl,
-                {'latitude': 0,
-                 'longitude': 0,
+                 'altitude_agl': 0,
                  'uas_heading': 0})
         self.assertEqual(response.status_code, 400)
         response = client.post(uasUrl,
                 {'latitude': 0,
                  'longitude': 0,
-                 'altitude_msl': 0})
+                 'uas_heading': 0})
+        self.assertEqual(response.status_code, 400)
+        response = client.post(uasUrl,
+                {'latitude': 0,
+                 'longitude': 0,
+                 'altitude_agl': 0})
         self.assertEqual(response.status_code, 400)
 
     def eval_request_values(self, lat, lon, alt, heading):
@@ -842,7 +915,7 @@ class TestPostUasPosition(TestCase):
         response = client.post(uasUrl,
                 {'latitude': lat,
                  'longitude': lon,
-                 'altitude_msl': alt,
+                 'altitude_agl': alt,
                  'uas_heading': heading})
         return response.status_code
 
@@ -877,14 +950,14 @@ class TestPostUasPosition(TestCase):
         response = client.post(uasUrl,
                 {'latitude': lat,
                  'longitude': lon,
-                 'altitude_msl': alt,
+                 'altitude_agl': alt,
                  'uas_heading': heading})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(UasTelemetry.objects.all()), 1)
         obj = UasTelemetry.objects.all()[0]
         self.assertEqual(obj.user, self.user)
         self.assertEqual(obj.uas_heading, heading)
-        self.assertEqual(obj.uas_position.altitude_msl, alt)
+        self.assertEqual(obj.uas_position.altitude_agl, alt)
         self.assertEqual(obj.uas_position.gps_position.latitude, lat)
         self.assertEqual(obj.uas_position.gps_position.longitude, lon)
 
@@ -905,7 +978,7 @@ class TestPostUasPosition(TestCase):
             client.post(uasUrl,
                     {'latitude': lat,
                      'longiutde': lon,
-                     'altitude_msl': alt,
+                     'altitude_agl': alt,
                      'uas_heading': heading})
             total_ops += 1
         end_t = time.clock()

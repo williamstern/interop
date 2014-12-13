@@ -9,6 +9,7 @@ from django.core.cache import cache
 from django.db import models
 from scipy.interpolate import splrep, splev
 
+
 def haversine(lon1, lat1, lon2, lat2):
     """
     Calculate the great circle distance between two points
@@ -85,8 +86,8 @@ class AerialPosition(models.Model):
     """Aerial position which consists of a GPS position and an altitude."""
     # GPS position
     gps_position = models.ForeignKey(GpsPosition)
-    # MSL altitude in feet
-    altitude_msl = models.FloatField()
+    # Above ground level (AGL) altitude in feet
+    altitude_agl = models.FloatField()
 
     def distanceTo(self, other):
         """Computes distance to another position.
@@ -95,17 +96,15 @@ class AerialPosition(models.Model):
         Returns:
           Distance in feet.
         """
-        return math.hypot(abs(self.altitude_msl - other.altitude_msl),
+        return math.hypot(abs(self.altitude_agl - other.altitude_agl),
                           self.gps_position.distanceTo(other.gps_position))
 
 
 class Waypoint(models.Model):
-    """A waypoint consists of an aerial position and a waypoint name."""
+    """A waypoint consists of an aerial position and its order in a set."""
     # Aerial position
     position = models.ForeignKey(AerialPosition)
-    # The name of the waypoint (optional)
-    name = models.CharField(max_length=100)
-    # Waypoint relative order number (optional)
+    # Waypoint relative order number. Should be unique per waypoint set.
     order = models.IntegerField()
 
     def distanceTo(self, other):
@@ -142,12 +141,6 @@ class ServerInfoAccessLog(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
 
-class Obstacle(models.Model):
-    """An obstacle that teams must avoid."""
-    # Obstacle name
-    name = models.CharField(max_length=100)
-
-
 class ObstacleAccessLog(models.Model):
     """Log of access ot the Obstacle objects used to evaulate teams."""
     # Timestamp of the access
@@ -156,7 +149,7 @@ class ObstacleAccessLog(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
 
-class StationaryObstacle(Obstacle):
+class StationaryObstacle(models.Model):
     """A stationary obstacle that teams must avoid."""
     # The position of the obstacle center
     gps_position = models.ForeignKey(GpsPosition)
@@ -167,8 +160,16 @@ class StationaryObstacle(Obstacle):
 
     def containsPos(self, aerial_pos):
         """Whether the pos is contained within the obstacle."""
-        # TODO
-        pass
+        # Check altitude of position
+        aerial_alt = aerial_pos.altitude_agl
+        if aerial_alt < 0 or aerial_alt > self.cylinder_height:
+            return False
+        # Check lat/lon of position
+        dist_to_center = self.gps_position.distanceTo(aerial_pos.gps_position)
+        if dist_to_center > self.cylinder_radius:
+            return False
+        # Both within altitude and radius bounds, inside cylinder
+        return True
 
     def toJSON(self):
         """Obtain a JSON style representation of object."""
@@ -187,7 +188,7 @@ class StationaryObstacle(Obstacle):
         return data
 
 
-class MovingObstacle(Obstacle):
+class MovingObstacle(models.Model):
     """A moving obstacle that teams must avoid."""
     # The waypoints the obstacle attempts to follow
     waypoints = models.ManyToManyField(Waypoint)
@@ -196,10 +197,10 @@ class MovingObstacle(Obstacle):
     # The radius of the sphere in feet
     sphere_radius = models.FloatField()
 
-    def containsPos(self, aerial_pos):
-        """Whether the pos is contained within the obstacle."""
-        # TODO
-        pass
+    def containsPos(self, obst_pos, aerial_pos):
+        """Whether the pos is contained within the obstacle's pos."""
+        dist_to_center = obst_pos.distanceTo(aerial_pos)
+        return dist_to_center <= self.sphere_radius
 
     def getWaypointTravelTime(self, waypoints, id_tm1, id_t):
         """Gets the travel time to the current waypoint from a previous.
@@ -292,7 +293,7 @@ class MovingObstacle(Obstacle):
             cur_gps_pos = cur_position.gps_position
             positions[waypoint_id, 0] = cur_gps_pos.latitude
             positions[waypoint_id, 1] = cur_gps_pos.longitude
-            positions[waypoint_id, 2] = cur_position.altitude_msl
+            positions[waypoint_id, 2] = cur_position.altitude_agl
 
         # Get the intra waypoint travel times
         waypoint_travel_times = self.getInterWaypointTravelTimes(waypoints)
@@ -323,7 +324,7 @@ class MovingObstacle(Obstacle):
         Args:
           cur_time: The current time as datetime.
         Returns:
-          Returns a tuple (latitude, longitude, altitude_msl) for the obstacle
+          Returns a tuple (latitude, longitude, altitude_agl) for the obstacle
           at the given time.
         """
         # Get waypoints
@@ -346,7 +347,7 @@ class MovingObstacle(Obstacle):
             wpt = waypoints[0]
             return (wpt.position.gps_position.latitude,
                     wpt.position.gps_position.longitude,
-                    wpt.position.altitude_msl)
+                    wpt.position.altitude_agl)
 
         # Get spline representation
         spline_curve_key = self.getSplineCurveCacheKey()
@@ -362,17 +363,17 @@ class MovingObstacle(Obstacle):
         cur_path_time = np.mod(cur_time_sec, total_travel_time)
         latitude = float(splev(cur_path_time, spline_reps[0]))
         longitude = float(splev(cur_path_time, spline_reps[1]))
-        altitude_msl = float(splev(cur_path_time, spline_reps[2]))
+        altitude_agl = float(splev(cur_path_time, spline_reps[2]))
 
-        return (latitude, longitude, altitude_msl)
+        return (latitude, longitude, altitude_agl)
 
     def toJSON(self):
         """Obtain a JSON style representation of object."""
-        (latitude, longitude, altitude_msl) = self.getPosition()
+        (latitude, longitude, altitude_agl) = self.getPosition()
         data = {
             'latitude': latitude,
             'longitude': longitude,
-            'altitude_msl': altitude_msl,
+            'altitude_agl': altitude_agl,
             'sphere_radius': self.sphere_radius
         }
         return data
