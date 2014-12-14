@@ -389,3 +389,52 @@ class UasTelemetry(models.Model):
     uas_position = models.ForeignKey(AerialPosition)
     # The heading of the UAS in degrees (e.g. 0=north, 90=east)
     uas_heading = models.FloatField()
+
+
+class FlyZone(models.Model):
+    """An approved area for UAS flight. UAS shall be in at least one zone."""
+    # The polygon defining the boundary of the zone.
+    boundary_pts = models.ManyToManyField(Waypoint)
+    # The minimum altitude of the zone (AGL) in feet
+    altitude_agl_min = models.FloatField()
+    # The maximum altitude of the zone (AGL) in feet
+    altitude_agl_max = models.FloatField()
+
+
+class TakeoffOrLandingEvent(models.Model):
+    """Marker for a UAS takeoff/landing. UAS must interop during that time."""
+    # The user for which the event applies
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    # Whether the UAS is now in the air
+    uas_in_air = models.BooleanField()
+
+
+class MissionConfig(models.Model):
+    """The details for the active mission. There should only be one."""
+    # The home position for use as a reference point. Should be the tents.
+    home_pos = models.ForeignKey(
+            GpsPosition, related_name="missionconfig_home_pos")
+    # The waypoints that define the mission waypoint path
+    mission_waypoints = models.ManyToManyField(
+            Waypoint, related_name="missionconfig_mission_waypoints")
+    # The polygon that defines the search grid
+    search_grid_points = models.ManyToManyField(
+            Waypoint, related_name="missionconfig_search_grid_points")
+    # The polygon that defines the emergent target search grid
+    emergent_grid_points = models.ManyToManyField(
+            Waypoint, related_name="missionconfig_emergent_grid_points")
+    # The last known position of the emergent target
+    emergent_last_known_pos = models.ForeignKey(
+            GpsPosition, related_name="missionconfig_emergent_last_known_pos")
+    # Off-axis target position
+    off_axis_target_pos = models.ForeignKey(
+            GpsPosition, related_name="missionconfig_off_axis_target_pos")
+    # The SRIC position
+    sric_pos = models.ForeignKey(
+            GpsPosition, related_name="missionconfig_sric_pos")
+    # The IR target position
+    ir_target_pos = models.ForeignKey(
+            GpsPosition, related_name="missionconfig_ir_target_pos")
+    # The air drop position
+    air_drop_pos = models.ForeignKey(
+            GpsPosition, related_name="missionconfig_air_drop_pos")
