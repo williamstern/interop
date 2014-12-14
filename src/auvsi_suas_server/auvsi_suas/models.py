@@ -69,6 +69,11 @@ class GpsPosition(models.Model):
     # Longitude in degrees
     longitude = models.FloatField()
 
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        return unicode("GpsPosition (pk:%d, lat:%f, lon:%f)" %
+                       (self.pk, self.latitude, self.longitude))
+
     def distanceTo(self, other):
         """Computes distance to another position.
         Args:
@@ -89,6 +94,12 @@ class AerialPosition(models.Model):
     # Above ground level (AGL) altitude in feet
     altitude_agl = models.FloatField()
 
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        return unicode("AerialPosition (pk:%d, alt:%f, gps:%s)" %
+                       (self.pk, self.altitude_agl,
+                        self.gps_position.__unicode__()))
+
     def distanceTo(self, other):
         """Computes distance to another position.
         Args:
@@ -107,6 +118,11 @@ class Waypoint(models.Model):
     # Waypoint relative order number. Should be unique per waypoint set.
     order = models.IntegerField()
 
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        return unicode("Waypoint (pk:%d, order:%d, pos:%s)" %
+                       (self.pk, self.order, self.position.__unicode__()))
+
     def distanceTo(self, other):
         """Computes distance to another waypoint.
         Args:
@@ -124,6 +140,11 @@ class ServerInfo(models.Model):
     # Message for teams
     team_msg = models.CharField(max_length=100)
 
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        return unicode("ServerInfo (pk:%d, msg:%s, timestamp:%s)" %
+                       (self.pk, self.team_msg, str(self.timestamp)))
+
     def toJSON(self):
         """Obtain a JSON style representation of object."""
         data = {
@@ -140,6 +161,11 @@ class ServerInfoAccessLog(models.Model):
     # The user which accessed the data
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        return unicode("ServerInfoAccessLog (pk:%d, user:%s, timestamp:%s)" %
+                       (self.pk, self.user.__unicode__(), str(self.timestamp)))
+
 
 class ObstacleAccessLog(models.Model):
     """Log of access ot the Obstacle objects used to evaulate teams."""
@@ -147,6 +173,11 @@ class ObstacleAccessLog(models.Model):
     timestamp = models.DateTimeField(auto_now=True)
     # The user which accessed the data
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
+
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        return unicode("ObstacleAccessLog (pk:%d, user:%s, timestamp:%s)" %
+                       (self.pk, self.user.__unicode__(), str(self.timestamp)))
 
 
 class StationaryObstacle(models.Model):
@@ -157,6 +188,14 @@ class StationaryObstacle(models.Model):
     cylinder_radius = models.FloatField()
     # The height of the cylinder in feet
     cylinder_height = models.FloatField()
+
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        return unicode("StationaryObstacle (pk:%d, radius:%f, height:%f, "
+                       "gps:%s)" %
+                       (self.pk, self.cylinder_radius, self.cylinder_height,
+                        self.gps_position.__unicode__()))
+
 
     def containsPos(self, aerial_pos):
         """Whether the pos is contained within the obstacle."""
@@ -196,6 +235,16 @@ class MovingObstacle(models.Model):
     speed_avg = models.FloatField()
     # The radius of the sphere in feet
     sphere_radius = models.FloatField()
+
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        waypoints_strs = ["%s" % wpt.__unicode__()
+                          for wpt in self.waypoints.all()]
+        waypoints_str = ", ".join(waypoints_strs)
+        return unicode("MovingObstacle (pk:%d, speed:%f, radius:%f, "
+                       "waypoints:[%s])" %
+                       (self.pk, self.speed_avg, self.sphere_radius,
+                        waypoints_str))
 
     def containsPos(self, obst_pos, aerial_pos):
         """Whether the pos is contained within the obstacle's pos."""
@@ -390,6 +439,13 @@ class UasTelemetry(models.Model):
     # The heading of the UAS in degrees (e.g. 0=north, 90=east)
     uas_heading = models.FloatField()
 
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        return unicode("UasTelemetry (pk:%d, user:%s, timestamp:%s, "
+                       "heading:%f, pos:%s)" %
+                       (self.pk, self.user.__unicode__(),
+                        str(self.recv_timestamp), self.uas_heading,
+                        self.uas_position.__unicode__()))
 
 class FlyZone(models.Model):
     """An approved area for UAS flight. UAS shall be in at least one zone."""
@@ -400,6 +456,15 @@ class FlyZone(models.Model):
     # The maximum altitude of the zone (AGL) in feet
     altitude_agl_max = models.FloatField()
 
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        boundary_strs = ["%s" % wpt.__unicode__()
+                          for wpt in self.boundary_pts.all()]
+        boundary_str = ", ".join(boundary_strs)
+        return unicode("FlyZone (pk:%d, alt_min:%f, alt_max:%f, "
+                       "boundary_pts:[%s])" %
+                       (self.pk, self.altitude_agl_min, self.altitude_agl_max,
+                        boundary_str))
 
 class TakeoffOrLandingEvent(models.Model):
     """Marker for a UAS takeoff/landing. UAS must interop during that time."""
@@ -407,6 +472,11 @@ class TakeoffOrLandingEvent(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
     # Whether the UAS is now in the air
     uas_in_air = models.BooleanField()
+
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        return unicode("TakeoffOrLandingEvent (pk%d, user:%s, uas_in_air:%s)" %
+                       (self.pk, self.user.__unicode__(), str(self.uas_in_air)))
 
 
 class MissionConfig(models.Model):
@@ -438,3 +508,28 @@ class MissionConfig(models.Model):
     # The air drop position
     air_drop_pos = models.ForeignKey(
             GpsPosition, related_name="missionconfig_air_drop_pos")
+
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        mission_waypoints_str = ", ".join(
+                ["%s" % wpt.__unicode__()
+                 for wpt in self.mission_waypoints.all()])
+        search_grid_str = ", ".join(
+                ["%s" % wpt.__unicode__()
+                 for wpt in self.search_grid_points.all()])
+        emergent_grid_str = ", ".join(
+                ["%s" % wpt.__unicode__()
+                 for wpt in self.emergent_grid_points.all()])
+
+        return unicode("MissionConfig (pk:%d, home_pos:%s, "
+                       "mission_waypoints:[%s], search_grid:[%s], "
+                       "emergent_grid:[%s], emergent_lkp:%s, off_axis:%s, "
+                       "sric_pos:%s, ir_pos:%s, air_drop_pos:%s)" %
+                       (self.pk, self.home_pos.__unicode__(),
+                        mission_waypoints_str, search_grid_str,
+                        emergent_grid_str,
+                        self.emergent_last_known_pos.__unicode__(),
+                        self.off_axis_target_pos.__unicode__(),
+                        self.sric_pos.__unicode__(),
+                        self.ir_target_pos.__unicode__(),
+                        self.air_drop_pos.__unicode__()))
