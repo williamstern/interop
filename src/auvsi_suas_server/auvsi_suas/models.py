@@ -92,12 +92,12 @@ class AerialPosition(models.Model):
     # GPS position
     gps_position = models.ForeignKey(GpsPosition)
     # Above ground level (AGL) altitude in feet
-    altitude_agl = models.FloatField()
+    altitude_msl = models.FloatField()
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
         return unicode("AerialPosition (pk:%d, alt:%f, gps:%s)" %
-                       (self.pk, self.altitude_agl,
+                       (self.pk, self.altitude_msl,
                         self.gps_position.__unicode__()))
 
     def distanceTo(self, other):
@@ -107,7 +107,7 @@ class AerialPosition(models.Model):
         Returns:
           Distance in feet.
         """
-        return math.hypot(abs(self.altitude_agl - other.altitude_agl),
+        return math.hypot(abs(self.altitude_msl - other.altitude_msl),
                           self.gps_position.distanceTo(other.gps_position))
 
 
@@ -200,7 +200,7 @@ class StationaryObstacle(models.Model):
     def containsPos(self, aerial_pos):
         """Whether the pos is contained within the obstacle."""
         # Check altitude of position
-        aerial_alt = aerial_pos.altitude_agl
+        aerial_alt = aerial_pos.altitude_msl
         if aerial_alt < 0 or aerial_alt > self.cylinder_height:
             return False
         # Check lat/lon of position
@@ -342,7 +342,7 @@ class MovingObstacle(models.Model):
             cur_gps_pos = cur_position.gps_position
             positions[waypoint_id, 0] = cur_gps_pos.latitude
             positions[waypoint_id, 1] = cur_gps_pos.longitude
-            positions[waypoint_id, 2] = cur_position.altitude_agl
+            positions[waypoint_id, 2] = cur_position.altitude_msl
 
         # Get the intra waypoint travel times
         waypoint_travel_times = self.getInterWaypointTravelTimes(waypoints)
@@ -373,7 +373,7 @@ class MovingObstacle(models.Model):
         Args:
           cur_time: The current time as datetime.
         Returns:
-          Returns a tuple (latitude, longitude, altitude_agl) for the obstacle
+          Returns a tuple (latitude, longitude, altitude_msl) for the obstacle
           at the given time.
         """
         # Get waypoints
@@ -396,7 +396,7 @@ class MovingObstacle(models.Model):
             wpt = waypoints[0]
             return (wpt.position.gps_position.latitude,
                     wpt.position.gps_position.longitude,
-                    wpt.position.altitude_agl)
+                    wpt.position.altitude_msl)
 
         # Get spline representation
         spline_curve_key = self.getSplineCurveCacheKey()
@@ -412,17 +412,17 @@ class MovingObstacle(models.Model):
         cur_path_time = np.mod(cur_time_sec, total_travel_time)
         latitude = float(splev(cur_path_time, spline_reps[0]))
         longitude = float(splev(cur_path_time, spline_reps[1]))
-        altitude_agl = float(splev(cur_path_time, spline_reps[2]))
+        altitude_msl = float(splev(cur_path_time, spline_reps[2]))
 
-        return (latitude, longitude, altitude_agl)
+        return (latitude, longitude, altitude_msl)
 
     def toJSON(self):
         """Obtain a JSON style representation of object."""
-        (latitude, longitude, altitude_agl) = self.getPosition()
+        (latitude, longitude, altitude_msl) = self.getPosition()
         data = {
             'latitude': latitude,
             'longitude': longitude,
-            'altitude_agl': altitude_agl,
+            'altitude_msl': altitude_msl,
             'sphere_radius': self.sphere_radius
         }
         return data
@@ -452,9 +452,9 @@ class FlyZone(models.Model):
     # The polygon defining the boundary of the zone.
     boundary_pts = models.ManyToManyField(Waypoint)
     # The minimum altitude of the zone (AGL) in feet
-    altitude_agl_min = models.FloatField()
+    altitude_msl_min = models.FloatField()
     # The maximum altitude of the zone (AGL) in feet
-    altitude_agl_max = models.FloatField()
+    altitude_msl_max = models.FloatField()
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
@@ -463,7 +463,7 @@ class FlyZone(models.Model):
         boundary_str = ", ".join(boundary_strs)
         return unicode("FlyZone (pk:%d, alt_min:%f, alt_max:%f, "
                        "boundary_pts:[%s])" %
-                       (self.pk, self.altitude_agl_min, self.altitude_agl_max,
+                       (self.pk, self.altitude_msl_min, self.altitude_msl_max,
                         boundary_str))
 
 class TakeoffOrLandingEvent(models.Model):
