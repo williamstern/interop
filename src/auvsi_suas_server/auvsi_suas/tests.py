@@ -136,10 +136,117 @@ TESTDATA_MOVOBST_PATHS = [
      (38.148522, -76.419507, 750)]
 ]
 
-OP_RATE_T = 0.5
+TESTDATA_FLYZONE_CONTAINSPOS = [
+    # Check can't be inside polygon defined by 1 point
+    {
+        'min_alt': 0,
+        'max_alt': 100,
+        'waypoints': [
+            (0, 0)
+        ],
+        'inside_pos': [],
+        'outside_pos': [
+            (0, 0, 0),
+            (0, 0, 100),
+            (100, 100, 0),
+        ]
+    },
+    # Check can't be inside polygon defined by 2 points
+    {
+        'min_alt': 0,
+        'max_alt':  100,
+        'waypoints': [
+            (0, 0),
+            (100, 0),
+        ],
+        'inside_pos': [],
+        'outside_pos': [
+            (0, 0, 0),
+            (0, 0, 100),
+            (100, 0, 0),
+            (100, 0, 100),
+        ]
+    },
+    # Check polygon of 4 points
+    {
+        'min_alt': 0,
+        'max_alt': 100,
+        'waypoints': [
+            (0, 0),
+            (100, 0),
+            (100, 100),
+            (0, 100),
+        ],
+        'inside_pos': [
+            (0.1, 0.1, 0),
+            (0.1, 0.1, 100),
+            (99.9, 0.1, 0),
+            (99.9, 0.1, 100),
+            (99.9, 99.9, 0),
+            (99.9, 99.9, 100),
+            (0.1, 99.9, 0),
+            (0.1, 99.9, 100),
+            (50, 50, 0),
+            (50, 50, 50),
+            (50, 50, 100),
+        ],
+        'outside_pos': [
+            (0, 0, -1),
+            (0, 0, 101),
+            (50, 50, -1),
+            (50, 50, 101),
+            (100, 100, -1),
+            (100, 100, 101),
+            (-1, 0, 50),
+            (0, -1, 50),
+            (-1, -1, 50),
+            (101, 0, 50),
+            (0, 101, 50),
+            (101, 101, 50),
+        ]
+    },
+    # Check polygon of 3 points
+    {
+        'min_alt': 100,
+        'max_alt': 750,
+        'waypoints': [
+            (0, 0),
+            (100, 0),
+            (50, 100),
+        ],
+        'inside_pos': [
+            (0.1, 0.1, 100),
+            (0.1, 0.1, 750),
+            (99.9, 0.1, 100),
+            (99.9, 0.1, 750),
+            (50, 99.9, 100),
+            (50, 99.9, 750),
+            (25, 25, 100),
+            (25, 25, 750),
+            (1, 0.1, 100),
+            (1, 0.1, 750),
+            (99, 0.1, 100),
+            (99, 0.1, 750),
+            (50, 99, 100),
+            (50, 99, 750),
+        ],
+        'outside_pos': [
+            (25, 25, 99),
+            (25, 25, 751),
+            (-1, 0, 200),
+            (0, -1, 200),
+            (101, 0, 200),
+            (51, 100, 200),
+            (50, 101, 200),
+        ]
+    }
+]
+
+
+OP_RATE_T = 1.0
 OP_RATE_HZ = 10
-OP_RATE_PROCS = 3
-OP_RATE_SAFETY = 1
+OP_RATE_PROCS = 4
+OP_RATE_SAFETY = 1.5
 OP_RATE_THRESH = OP_RATE_HZ * OP_RATE_PROCS * OP_RATE_SAFETY
 
 
@@ -616,6 +723,59 @@ class TestMovingObstacle(TestCase):
                 obst.waypoints.all()[0].position.gps_position.longitude)
         self.assertEqual(json_data['altitude_msl'],
                 obst.waypoints.all()[0].position.altitude_msl)
+
+
+class TestFlyZone(TestCase):
+    """Tests the FlyZone class."""
+
+    def tearDown(self):
+        """Destroys test data."""
+        Waypoint.objects.all().delete()
+        AerialPosition.objects.all().delete()
+        GpsPosition.objects.all().delete()
+        FlyZone.objects.all().delete()
+
+    def test_containsPos(self):
+        """Tests the containsPos method with inside points."""
+        # Test each data set
+        for test_data in TESTDATA_FLYZONE_CONTAINSPOS:
+            # Create the FlyZone
+            fly_zone = FlyZone()
+            fly_zone.altitude_msl_min = test_data['min_alt']
+            fly_zone.altitude_msl_max = test_data['max_alt']
+            fly_zone.save()
+            for waypoint_id in range(len(test_data['waypoints'])):
+                (lat, lon) = test_data['waypoints'][waypoint_id]
+                gpos = GpsPosition()
+                gpos.latitude = lat
+                gpos.longitude = lon
+                gpos.save()
+                apos = AerialPosition()
+                apos.gps_position = gpos
+                apos.altitude_msl = 0
+                apos.save()
+                wpt = Waypoint()
+                wpt.order = waypoint_id
+                wpt.position = apos
+                wpt.save()
+                fly_zone.boundary_pts.add(wpt)
+
+            # Form test set
+            test_pos = []
+            for pos in test_data['inside_pos']:
+                test_pos.append((pos, True))
+            for pos in test_data['outside_pos']:
+                test_pos.append((pos, False))
+
+            # Test the positions
+            for ((lat, lon, alt), inside) in test_pos:
+                gpos = GpsPosition()
+                gpos.latitude = lat
+                gpos.longitude = lon
+                apos = AerialPosition()
+                apos.altitude_msl = alt
+                apos.gps_position = gpos
+                self.assertEqual(fly_zone.containsPos(apos), inside)
 
 
 class TestLoginUserView(TestCase):

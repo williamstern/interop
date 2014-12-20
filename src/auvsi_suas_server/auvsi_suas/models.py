@@ -7,6 +7,7 @@ import time
 from django.conf import settings
 from django.core.cache import cache
 from django.db import models
+from matplotlib import path as mplpath
 from scipy.interpolate import splrep, splev
 
 
@@ -447,6 +448,7 @@ class UasTelemetry(models.Model):
                         str(self.recv_timestamp), self.uas_heading,
                         self.uas_position.__unicode__()))
 
+
 class FlyZone(models.Model):
     """An approved area for UAS flight. UAS shall be in at least one zone."""
     # The polygon defining the boundary of the zone.
@@ -455,6 +457,28 @@ class FlyZone(models.Model):
     altitude_msl_min = models.FloatField()
     # The maximum altitude of the zone (AGL) in feet
     altitude_msl_max = models.FloatField()
+
+    def containsPos(self, aerial_pos):
+        """Whether the given pos is inside the zone."""
+        # Check altitude bounds
+        alt = aerial_pos.altitude_msl
+        if alt > self.altitude_msl_max or alt < self.altitude_msl_min:
+            return False
+
+        # Check boundary bounds via inside polygon check
+        ordered_pts = self.boundary_pts.order_by('order')
+        path_pts = [[wpt.position.gps_position.latitude,
+                     wpt.position.gps_position.longitude]
+                    for wpt in ordered_pts]
+        # First check enough points to define a polygon
+        if len(path_pts) < 3:
+            return False
+        # Evaluate inside position
+        path_pts.append(path_pts[0])
+        path = mplpath.Path(np.array(path_pts))
+        eval_pt = (aerial_pos.gps_position.latitude,
+                   aerial_pos.gps_position.longitude)
+        return path.contains_point(eval_pt) == True
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
@@ -465,6 +489,7 @@ class FlyZone(models.Model):
                        "boundary_pts:[%s])" %
                        (self.pk, self.altitude_msl_min, self.altitude_msl_max,
                         boundary_str))
+
 
 class TakeoffOrLandingEvent(models.Model):
     """Marker for a UAS takeoff/landing. UAS must interop during that time."""
