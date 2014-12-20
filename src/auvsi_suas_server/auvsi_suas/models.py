@@ -509,6 +509,8 @@ class MissionConfig(models.Model):
     # The home position for use as a reference point. Should be the tents.
     home_pos = models.ForeignKey(
             GpsPosition, related_name="missionconfig_home_pos")
+    # The max distance to a waypoint to consider it satisfied/hit in feet.
+    mission_waypoints_dist_max = models.FloatField()
     # The waypoints that define the mission waypoint path
     mission_waypoints = models.ManyToManyField(
             Waypoint, related_name="missionconfig_mission_waypoints")
@@ -547,10 +549,12 @@ class MissionConfig(models.Model):
                  for wpt in self.emergent_grid_points.all()])
 
         return unicode("MissionConfig (pk:%d, home_pos:%s, "
+                       "mission_waypoints_dist_max:%f, "
                        "mission_waypoints:[%s], search_grid:[%s], "
                        "emergent_grid:[%s], emergent_lkp:%s, off_axis:%s, "
                        "sric_pos:%s, ir_pos:%s, air_drop_pos:%s)" %
                        (self.pk, self.home_pos.__unicode__(),
+                        self.mission_waypoints_dist_max,
                         mission_waypoints_str, search_grid_str,
                         emergent_grid_str,
                         self.emergent_last_known_pos.__unicode__(),
