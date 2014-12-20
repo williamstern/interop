@@ -155,30 +155,42 @@ class ServerInfo(models.Model):
         return data
 
 
-class ServerInfoAccessLog(models.Model):
+class AccessLog(models.Model):
+    """Base class which logs access of information."""
+    # Timestamp of the access
+    timestamp = models.DateTimeField(auto_now=True)
+    # The user which accessed the data
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        return unicode("%s (pk:%d, user:%s, timestamp:%s)" %
+                       (self.__class__.__name__, self.pk,
+                        self.user.__unicode__(), str(self.timestamp)))
+
+
+class ServerInfoAccessLog(AccessLog):
     """Log of access to the ServerInfo objects used to evaluate teams."""
-    # Timestamp of the access
-    timestamp = models.DateTimeField(auto_now=True)
-    # The user which accessed the data
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+
+
+class ObstacleAccessLog(AccessLog):
+    """Log of access to the Obstacle objects used to evaulate teams."""
+
+
+class UasTelemetry(AccessLog):
+    """UAS telemetry reported by teams."""
+    # The position of the UAS
+    uas_position = models.ForeignKey(AerialPosition)
+    # The heading of the UAS in degrees (e.g. 0=north, 90=east)
+    uas_heading = models.FloatField()
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        return unicode("ServerInfoAccessLog (pk:%d, user:%s, timestamp:%s)" %
-                       (self.pk, self.user.__unicode__(), str(self.timestamp)))
-
-
-class ObstacleAccessLog(models.Model):
-    """Log of access ot the Obstacle objects used to evaulate teams."""
-    # Timestamp of the access
-    timestamp = models.DateTimeField(auto_now=True)
-    # The user which accessed the data
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-
-    def __unicode__(self):
-        """Descriptive text for use in displays."""
-        return unicode("ObstacleAccessLog (pk:%d, user:%s, timestamp:%s)" %
-                       (self.pk, self.user.__unicode__(), str(self.timestamp)))
+        return unicode("UasTelemetry (pk:%d, user:%s, timestamp:%s, "
+                       "heading:%f, pos:%s)" %
+                       (self.pk, self.user.__unicode__(),
+                        str(self.timestamp), self.uas_heading,
+                        self.uas_position.__unicode__()))
 
 
 class StationaryObstacle(models.Model):
@@ -427,26 +439,6 @@ class MovingObstacle(models.Model):
             'sphere_radius': self.sphere_radius
         }
         return data
-
-
-class UasTelemetry(models.Model):
-    """UAS telemetry reported by teams."""
-    # The user which generated the telemetry
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    # The time at which the telemetry was received
-    recv_timestamp = models.DateTimeField(auto_now=True)
-    # The position of the UAS
-    uas_position = models.ForeignKey(AerialPosition)
-    # The heading of the UAS in degrees (e.g. 0=north, 90=east)
-    uas_heading = models.FloatField()
-
-    def __unicode__(self):
-        """Descriptive text for use in displays."""
-        return unicode("UasTelemetry (pk:%d, user:%s, timestamp:%s, "
-                       "heading:%f, pos:%s)" %
-                       (self.pk, self.user.__unicode__(),
-                        str(self.recv_timestamp), self.uas_heading,
-                        self.uas_position.__unicode__()))
 
 
 class FlyZone(models.Model):
