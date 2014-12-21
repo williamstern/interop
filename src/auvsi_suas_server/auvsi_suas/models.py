@@ -211,7 +211,13 @@ class StationaryObstacle(models.Model):
 
 
     def containsPos(self, aerial_pos):
-        """Whether the pos is contained within the obstacle."""
+        """Whether the pos is contained within the obstacle.
+
+        Args:
+            aerial_pos: The AerialPosition to test.
+        Returns:
+            Whether the given position is inside the obstacle.
+        """
         # Check altitude of position
         aerial_alt = aerial_pos.altitude_msl
         if aerial_alt < 0 or aerial_alt > self.cylinder_height:
@@ -260,7 +266,14 @@ class MovingObstacle(models.Model):
                         waypoints_str))
 
     def containsPos(self, obst_pos, aerial_pos):
-        """Whether the pos is contained within the obstacle's pos."""
+        """Whether the pos is contained within the obstacle's pos.
+
+        Args:
+            obst_pos: The position of the obstacle. Use getPosition().
+            aerial_pos: The position to test.
+        Returns:
+            Whether the given position is inside the obstacle.
+        """
         dist_to_center = obst_pos.distanceTo(aerial_pos)
         return dist_to_center <= self.sphere_radius
 
@@ -451,7 +464,13 @@ class FlyZone(models.Model):
     altitude_msl_max = models.FloatField()
 
     def containsPos(self, aerial_pos):
-        """Whether the given pos is inside the zone."""
+        """Whether the given pos is inside the zone.
+
+        Args:
+            aerial_pos: The AerialPosition to test.
+        Returns:
+            Whether the given position is inside the flight boundary.
+        """
         # Check altitude bounds
         alt = aerial_pos.altitude_msl
         if alt > self.altitude_msl_max or alt < self.altitude_msl_min:
