@@ -28,7 +28,7 @@ from django.shortcuts import render
 from scipy import interpolate
 
 
-def index(request):
+def indexView(request):
     """Main view for users connecting via web browsers.
 
     This view downloads and displays a JS view. This view first logs in the
