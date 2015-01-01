@@ -1300,3 +1300,11 @@ class TestEvaluateTeams(TestCase):
     def test_evaluateTeams(self):
         """Tests the CSV method."""
         # TODO
+
+
+class TestEvaluateSystemConfiguration(TestCase):
+    """Tests the evaluation of system configuration."""
+
+    def test_evaluateSystemConfiguration(self):
+        """Tests the system configuration."""
+        # TODO

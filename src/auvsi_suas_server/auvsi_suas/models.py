@@ -759,3 +759,15 @@ class MissionConfig(models.Model):
             }
         """
         # TODO
+
+
+def evaluateSystemConfiguration():
+    """Evaluates whether the system is correctly configured.
+
+    Returns:
+        A tuple (info_list, warning_list, error_list) where each is a list of
+        info, warnings, and errors respectively. Errors must be fixed to run a
+        competition. Warnings likely indicate the user has done something
+        undesirable. Info is just santify check information.
+    """
+    # TODO

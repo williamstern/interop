@@ -220,6 +220,18 @@ def evaluateTeams(request):
     # TODO
 
 
+def evaluateSystemConfiguration(request):
+    """Evaluates system configuration and returns status via JSON.
+
+    JSON is of form:
+    {
+        'info_list': List of strings containing info messages.
+        'warning_list': List of strings containing warning messages.
+        'error_list': List of strings containing error messages.
+    }
+    """
+    # TODO
+
 
 # login_required()
 # @user_passes_test(lambda u: u.is_superuser)
