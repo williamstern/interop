@@ -215,5 +215,11 @@ def postUasPosition(request):
         return HttpResponse('UAS Telemetry Successfully Posted.')
 
 
+def evaluateTeams(request):
+    """Evaluates the teams by forming a CSV containing useful stats."""
+    # TODO
+
+
+
 # login_required()
 # @user_passes_test(lambda u: u.is_superuser)

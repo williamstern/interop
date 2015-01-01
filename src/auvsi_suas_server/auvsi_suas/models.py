@@ -169,6 +169,56 @@ class AccessLog(models.Model):
                         self.user.__unicode__(), str(self.timestamp)))
 
 
+    @classmethod
+    def getAccessLogForUser(cls, user):
+        """Gets the time-sorted list of access log for the given user.
+
+        Args:
+            user: The user to get the access log for.
+        Returns:
+            A list of access log objects for the given user sorted by timestamp.
+        """
+        # TODO
+
+    @classmethod
+    def getAccessLogForUserByTimePeriod(cls, access_logs, time_periods):
+        """Gets a list of time-sorted lists of access logs for each time period.
+
+        Args:
+            access_logs: A list of access logs for a given user sorted by
+                timestamp.
+            time_periods: A sorted list of (time_start, time_end) tuples which
+                indicate the start and end time of a time period. A value of
+                None indicates infinity. The list must be sorted by time_start
+                and be non-intersecting.
+        Returns:
+            A list where each entry is a list of access logs sorted by timestamp
+            such that each log is for the given user and in the time period
+            given in the time_periods list.
+        """
+        # TODO
+
+    @classmethod
+    def getAccessLogRates(
+            cls, time_periods, time_period_access_logs, histogram_midpts):
+        """Gets the access log rates.
+
+        Args:
+            time_periods: A list of (time_start, time_end) tuples sorted by
+                time_start indicating time periods of interest where None
+                indicates infinity.
+            time_period_access_logs: A list of access log lists for each time
+                period.
+            histogram_midpts: The midpoints for the histogram to generate.
+        Returns:
+            A (min, max, avg, histogram) tuple. The min is the min Hz between
+            logs, max is the max Hz between logs, avg is the avg time between
+            logs, and histogram is the histogram list. The histogram map is a
+            list contains the frequency count for each midpt in the given list.
+        """
+        # TODO
+
+
 class ServerInfoAccessLog(AccessLog):
     """Log of access to the ServerInfo objects used to evaluate teams."""
 
@@ -191,6 +241,35 @@ class UasTelemetry(AccessLog):
                        (self.pk, self.user.__unicode__(),
                         str(self.timestamp), self.uas_heading,
                         self.uas_position.__unicode__()))
+
+
+class TakeoffOrLandingEvent(AccessLog):
+    """Marker for a UAS takeoff/landing. UAS must interop during that time."""
+    # Whether the UAS is now in the air
+    uas_in_air = models.BooleanField()
+
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        return unicode('TakeoffOrLandingEvent (pk%d, user:%s, timestamp:%s, '
+                       'uas_in_air:%s)' %
+                       (self.pk, self.user.__unicode__(), self.timestamp,
+                        str(self.uas_in_air)))
+
+    @classmethod
+    def getFlightPeriodsForUser(cls, user):
+        """Gets the time period for which the given user was in flight.
+
+        Args:
+            user: The user for which to get flight periods for.
+        Returns:
+            A list of (flight_start, flight_end) tuples where flight_start is
+            the time the flight started and flight_end is the time the flight
+            ended.  This is based off the takeoff and landing events stored. A
+            flight_X of None indicates since the beginning or until the end of
+            time. The list will be sorted by flight_start and the periods will
+            be non-intersecting.
+        """
+        # TODO
 
 
 class StationaryObstacle(models.Model):
@@ -229,6 +308,27 @@ class StationaryObstacle(models.Model):
         # Both within altitude and radius bounds, inside cylinder
         return True
 
+    def evaluateCollisionWithUas(self, uas_telemetry_logs, max_move_speed):
+        """Evaluates whether the Uas logs indicate a collision.
+
+        Args:
+            uas_telemetry_logs: A list of UasTelemetry logs sorted by timestamp
+                for which to evaluate.
+            max_move_speed: The max movement speed a UAS could move at between
+                logged time positions.
+        Returns:
+            A (reported_collision, potential_collision) tuple where
+            reported_collision is whether a UAS telemetry log reported indicates
+            a position within the obstacle, and potential_collision means the
+            time between reported UAS positions could contain a collision if the
+            UAS diverted at max_move_speed. The reported_collision means the UAS
+            definitely collided, whereas potential_collision means the UAS may
+            have collided but the UAS upload rate were not sufficient to
+            determine either way, which by the rules is equivalent to a
+            collision.
+        """
+        # TODO
+
     def toJSON(self):
         """Obtain a JSON style representation of object."""
         if self.gps_position is None:
@@ -264,18 +364,6 @@ class MovingObstacle(models.Model):
                        "waypoints:[%s])" %
                        (self.pk, self.speed_avg, self.sphere_radius,
                         waypoints_str))
-
-    def containsPos(self, obst_pos, aerial_pos):
-        """Whether the pos is contained within the obstacle's pos.
-
-        Args:
-            obst_pos: The position of the obstacle. Use getPosition().
-            aerial_pos: The position to test.
-        Returns:
-            Whether the given position is inside the obstacle.
-        """
-        dist_to_center = obst_pos.distanceTo(aerial_pos)
-        return dist_to_center <= self.sphere_radius
 
     def getWaypointTravelTime(self, waypoints, id_tm1, id_t):
         """Gets the travel time to the current waypoint from a previous.
@@ -337,8 +425,7 @@ class MovingObstacle(models.Model):
                 getInterWaypiontTravelTimes() or equivalent.
         Returns:
             A numpy array of waypoint times.
-        """
-        total_time = 0
+        """ total_time = 0
         num_paths = len(waypoint_travel_times)
         pos_times = np.zeros(num_paths)
         for path_id in range(num_paths):
@@ -442,6 +529,39 @@ class MovingObstacle(models.Model):
 
         return (latitude, longitude, altitude_msl)
 
+    def containsPos(self, obst_pos, aerial_pos):
+        """Whether the pos is contained within the obstacle's pos.
+
+        Args:
+            obst_pos: The position of the obstacle. Use getPosition().
+            aerial_pos: The position to test.
+        Returns:
+            Whether the given position is inside the obstacle.
+        """
+        dist_to_center = obst_pos.distanceTo(aerial_pos)
+        return dist_to_center <= self.sphere_radius
+
+    def evaluateCollisionWithUas(self, uas_telemetry_logs, max_move_speed):
+        """Evaluates whether the Uas logs indicate a collision.
+
+        Args:
+            uas_telemetry_logs: A list of UasTelemetry logs sorted by timestamp
+                for which to evaluate.
+            max_move_speed: The max movement speed a UAS could move at between
+                logged time positions.
+        Returns:
+            A (reported_collision, potential_collision) tuple where
+            reported_collision is whether a UAS telemetry log reported indicates
+            a position within the obstacle, and potential_collision means the
+            time between reported UAS positions could contain a collision if the
+            UAS diverted at max_move_speed. The reported_collision means the UAS
+            definitely collided, whereas potential_collision means the UAS may
+            have collided but the UAS upload rate were not sufficient to
+            determine either way, which by the rules is equivalent to a
+            collision.
+        """
+        # TODO
+
     def toJSON(self):
         """Obtain a JSON style representation of object."""
         (latitude, longitude, altitude_msl) = self.getPosition()
@@ -463,34 +583,6 @@ class FlyZone(models.Model):
     # The maximum altitude of the zone (AGL) in feet
     altitude_msl_max = models.FloatField()
 
-    def containsPos(self, aerial_pos):
-        """Whether the given pos is inside the zone.
-
-        Args:
-            aerial_pos: The AerialPosition to test.
-        Returns:
-            Whether the given position is inside the flight boundary.
-        """
-        # Check altitude bounds
-        alt = aerial_pos.altitude_msl
-        if alt > self.altitude_msl_max or alt < self.altitude_msl_min:
-            return False
-
-        # Check boundary bounds via inside polygon check
-        ordered_pts = self.boundary_pts.order_by('order')
-        path_pts = [[wpt.position.gps_position.latitude,
-                     wpt.position.gps_position.longitude]
-                    for wpt in ordered_pts]
-        # First check enough points to define a polygon
-        if len(path_pts) < 3:
-            return False
-        # Evaluate inside position
-        path_pts.append(path_pts[0])
-        path = mplpath.Path(np.array(path_pts))
-        eval_pt = (aerial_pos.gps_position.latitude,
-                   aerial_pos.gps_position.longitude)
-        return path.contains_point(eval_pt) == True
-
     def __unicode__(self):
         """Descriptive text for use in displays."""
         boundary_strs = ["%s" % wpt.__unicode__()
@@ -501,18 +593,77 @@ class FlyZone(models.Model):
                        (self.pk, self.altitude_msl_min, self.altitude_msl_max,
                         boundary_str))
 
+    def containsPos(self, aerial_pos):
+        """Whether the given pos is inside the zone.
 
-class TakeoffOrLandingEvent(models.Model):
-    """Marker for a UAS takeoff/landing. UAS must interop during that time."""
-    # The user for which the event applies
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    # Whether the UAS is now in the air
-    uas_in_air = models.BooleanField()
+        Args:
+            aerial_pos: The AerialPosition to test.
+        Returns:
+            Whether the given position is inside the flight boundary.
+        """
+        return self.containsManyPos([aerial_pos])[0]
 
-    def __unicode__(self):
-        """Descriptive text for use in displays."""
-        return unicode("TakeoffOrLandingEvent (pk%d, user:%s, uas_in_air:%s)" %
-                       (self.pk, self.user.__unicode__(), str(self.uas_in_air)))
+    def containsManyPos(self, aerial_pos_list):
+        """Evaluates a list of positions more efficiently than inidividually.
+
+        Args:
+            aerial_pos_list: A list of AerialPositions to test.
+        Returns:
+            A list storing whether each position is inside the boundary.
+        """
+        # Get boundary points
+        ordered_pts = self.boundary_pts.order_by('order')
+        path_pts = [[wpt.position.gps_position.latitude,
+                     wpt.position.gps_position.longitude]
+                    for wpt in ordered_pts]
+        # First check enough points to define a polygon
+        if len(path_pts) < 3:
+            return [False] * len(aerial_pos_list)
+
+        # Create path to use for testing polygon inclusion
+        path_pts.append(path_pts[0])
+        path = mplpath.Path(np.array(path_pts))
+
+        # Test each aerial position for altitude
+        results = list()
+        for aerial_pos in aerial_pos_list:
+            # Check altitude bounds
+            alt = aerial_pos.altitude_msl
+            altitude_check = (alt <= self.altitude_msl_max
+                              and alt >= self.altitude_msl_min)
+            results.append(altitude_check)
+
+        # Create a list of positions to test whether inside polygon
+        polygon_test_point_ids = [cur_id
+                                  for cur_id in range(len(aerial_pos_list))
+                                  if results[cur_id]]
+        if len(polygon_test_point_ids) == 0:
+            return results
+        polygon_test_points = [[aerial_pos_list[cur_id].gps_position.latitude,
+                                aerial_pos_list[cur_id].gps_position.longitude]
+                               for cur_id in polygon_test_point_ids]
+
+        # Test each point for inside polygon
+        polygon_test_results = path.contains_points(
+                np.array(polygon_test_points))
+        for test_id in range(len(polygon_test_point_ids)):
+            cur_id = polygon_test_point_ids[test_id]
+            results[cur_id] = (polygon_test_results[test_id] == True)
+
+        return results
+
+    def evaluateUasOutOfBounds(cls, fly_zones, uas_telemetry_logs):
+        """Determines amount of time spent out of bounds.
+
+        Args:
+            fly_zones: The list of FlyZone that the UAS must be in.
+            uas_telemetry_logs: A list of UasTelemetry logs sorted by timestamp
+                which demonstrate the flight of the UAS.
+        Returns:
+            The floating point total time in seconds spent out of bounds as
+            indicated by the telemetry logs.
+        """
+        # TODO
 
 
 class MissionConfig(models.Model):
@@ -573,3 +724,38 @@ class MissionConfig(models.Model):
                         self.sric_pos.__unicode__(),
                         self.ir_target_pos.__unicode__(),
                         self.air_drop_pos.__unicode__()))
+
+    def evaluateUasSatisfiedWaypoints(self, uas_telemetry_logs):
+        """Determines whether the UAS satisfied the waypoints.
+
+        Args:
+            uas_telemetry_logs: A list of UAS Telemetry logs.
+        Returns:
+            A list of booleans where each value indicates whether the UAS
+            satisfied the waypoint for that index.
+        """
+        # TODO
+
+    def evaluateTeams(self):
+        """Evaluates the teams (non admin users) of the competition.
+
+        Returns:
+            A map from user to evaluate data. The evaluation data has the
+            following map structure:
+            {
+                'waypoints': List of booleans indicating whether satisfied,
+                'out_of_bounds_time': Seconds spent out of bounds,
+                'interop_rates': {
+                    'server_info': (min, max, avg, histogram_map),
+                    'obst_info': (min, max, avg, histogram_map),
+                    'uas_telem': (min, max, avg, histogram_map),
+                },
+                'stationary_obst': {
+                    obstacle_id: (reported_collision, potential_collision)
+                },
+                'moving_obst': {
+                    obstacle_id: (reported_collision, potential_collision)
+                }
+            }
+        """
+        # TODO

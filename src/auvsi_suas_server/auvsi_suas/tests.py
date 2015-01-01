@@ -27,6 +27,19 @@ from django.test import TestCase
 from django.test.client import Client
 
 
+# Whether to perform tests which require plotting (window access)
+TEST_ENABLE_PLOTTING = True
+
+# Whether to perform load tests
+TEST_ENABLE_LOADTEST = True
+
+# The loadtest parameters
+OP_RATE_T = 1.0
+OP_RATE_HZ = 10
+OP_RATE_PROCS = 4
+OP_RATE_SAFETY = 1.5
+OP_RATE_THRESH = OP_RATE_HZ * OP_RATE_PROCS * OP_RATE_SAFETY
+
 # (lon1, lat1, lon2, lat2, dist_actual)
 TESTDATA_ZERO_DIST = [
     (0, 0, 0, 0, 0),
@@ -243,13 +256,6 @@ TESTDATA_FLYZONE_CONTAINSPOS = [
 ]
 
 
-OP_RATE_T = 1.0
-OP_RATE_HZ = 10
-OP_RATE_PROCS = 4
-OP_RATE_SAFETY = 1.5
-OP_RATE_THRESH = OP_RATE_HZ * OP_RATE_PROCS * OP_RATE_SAFETY
-
-
 class TestHaversine(TestCase):
     """Tests the haversine code correctness."""
 
@@ -317,6 +323,10 @@ class TestKnotsToFeetPerSecond(TestCase):
 class TestGpsPositionModel(TestCase):
     """Tests the GpsPosition model."""
 
+    def test_unicode(self):
+        """Tests the unicode method executes."""
+        # TODO
+
     def eval_distanceTo_input(self, lon1, lat1, lon2, lat2, distance_actual):
         """Evaluates the distanceTo functionality for the given inputs."""
         wpt1 = GpsPosition()
@@ -354,6 +364,10 @@ class TestGpsPositionModel(TestCase):
 
 class TestAerialPositionModel(TestCase):
     """Tests the AerialPosition model."""
+
+    def test_unicode(self):
+        """Tests the unicode method executes."""
+        # TODO
 
     def eval_distanceTo_input(self, lon1, lat1, alt1, lon2, lat2, alt2,
             dist_actual):
@@ -396,8 +410,24 @@ class TestAerialPositionModel(TestCase):
             TESTDATA_COMPETITION_3D_DIST))
 
 
+class TestWaypointModel(TestCase):
+    """Tests the Waypoint model."""
+
+    def test_unicode(self):
+        """Tests the unicode method executes."""
+        # TODO
+
+    def test_distanceTo(self):
+        """Tests the distance calculation executes correctly."""
+        # TODO
+
+
 class TestServerInfoModel(TestCase):
     """Tests the ServerInfo model."""
+
+    def test_unicode(self):
+        """Tests the unicode method executes."""
+        # TODO
 
     def test_toJSON(self):
         """Tests the JSON serialization method."""
@@ -415,8 +445,52 @@ class TestServerInfoModel(TestCase):
         self.assertEqual(json_data['message_timestamp'], str(TEST_TIME))
 
 
+class TestAccessLogModel(TestCase):
+    """Tests the AccessLog model."""
+
+    def test_unicode(self):
+        """Tests the unicode method executes."""
+        # TODO
+
+    def test_getAccessLogForUser(self):
+        """Tests getting the access log for each user."""
+        # TODO
+
+    def test_getAccessLogForUserByTimePeriod(self):
+        """Tests getting the access log by time period."""
+        # TODO
+
+    def test_getAccessLogRates(self):
+        """Tests getting the access log rates."""
+        # TODO
+
+
+class TestUasTelemetry(TestCase):
+    """Tests the UasTelemetry model."""
+
+    def test_unicode(self):
+        """Tests the unicode method executes."""
+        # TODO
+
+
+class TestTakeoffOrLandingEventModel(TestCase):
+    """Tests the TakeoffOrLandingEvent model."""
+
+    def test_unicode(self):
+        """Tests the unicode method executes."""
+        # TODO
+
+    def test_getFlightPeriodsForUser(self):
+        """Tests the flight period list class method."""
+        # TODO
+
+
 class TestStationaryObstacleModel(TestCase):
     """Tests the StationaryObstacle model."""
+
+    def test_unicode(self):
+        """Tests the unicode method executes."""
+        # TODO
 
     def test_containsPos(self):
         """Tests the inside obstacle method."""
@@ -442,6 +516,10 @@ class TestStationaryObstacleModel(TestCase):
                 aerial_pos.gps_position = gps_position
                 aerial_pos.altitude_msl = alt
                 self.assertEqual(obst.containsPos(aerial_pos), cur_contains)
+
+    def test_evaluateCollisionWithUas(self):
+        """Tests the collision with UAS method."""
+        # TODO
 
     def test_toJSON(self):
         """Tests the JSON serialization method."""
@@ -542,32 +620,9 @@ class TestMovingObstacle(TestCase):
         AerialPosition.objects.all().delete()
         GpsPosition.objects.all().delete()
 
-    def test_containsPos(self):
-        """Tests the inside obstacle method."""
-        # Form the test obstacle
-        gps_position = GpsPosition()
-        gps_position.latitude = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[0]
-        gps_position.longitude = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[1]
-        obst_pos = AerialPosition()
-        obst_pos.gps_position = gps_position
-        obst_pos.altitude_msl = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[3]
-        obst = MovingObstacle()
-        obst.sphere_radius = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[2]
-        # Run test points against obstacle
-        test_data = [
-            (TESTDATA_MOVOBST_CONTAINSPOS_INSIDE, True),
-            (TESTDATA_MOVOBST_CONTAINSPOS_OUTSIDE, False)
-        ]
-        for (cur_data, cur_contains) in test_data:
-            for (lat, lon, alt) in cur_data:
-                gps_position = GpsPosition()
-                gps_position.latitude = lat
-                gps_position.longitude = lon
-                aerial_pos = AerialPosition()
-                aerial_pos.gps_position = gps_position
-                aerial_pos.altitude_msl = alt
-                self.assertEqual(obst.containsPos(obst_pos, aerial_pos),
-                                 cur_contains)
+    def test_unicode(self):
+        """Tests the unicode method executes."""
+        # TODO
 
     def test_getWaypointTravelTime_invalid_inputs(self):
         """Tests proper invalid input handling."""
@@ -647,6 +702,9 @@ class TestMovingObstacle(TestCase):
         On each run it first deletes the existing folder. This requires manual
         inspection to validate correctness.
         """
+        if not TEST_ENABLE_PLOTTING:
+            return
+
         # Create directory for plot output
         if os.path.exists('testOutput'):
             shutil.rmtree('testOutput')
@@ -705,6 +763,36 @@ class TestMovingObstacle(TestCase):
             plt.savefig(('testOutput/auvsi_suas-MovingObstacle-getPosition-%d.jpg' %
                     obst_id))
 
+    def test_containsPos(self):
+        """Tests the inside obstacle method."""
+        # Form the test obstacle
+        gps_position = GpsPosition()
+        gps_position.latitude = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[0]
+        gps_position.longitude = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[1]
+        obst_pos = AerialPosition()
+        obst_pos.gps_position = gps_position
+        obst_pos.altitude_msl = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[3]
+        obst = MovingObstacle()
+        obst.sphere_radius = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[2]
+        # Run test points against obstacle
+        test_data = [
+            (TESTDATA_MOVOBST_CONTAINSPOS_INSIDE, True),
+            (TESTDATA_MOVOBST_CONTAINSPOS_OUTSIDE, False)
+        ]
+        for (cur_data, cur_contains) in test_data:
+            for (lat, lon, alt) in cur_data:
+                gps_position = GpsPosition()
+                gps_position.latitude = lat
+                gps_position.longitude = lon
+                aerial_pos = AerialPosition()
+                aerial_pos.gps_position = gps_position
+                aerial_pos.altitude_msl = alt
+                self.assertEqual(obst.containsPos(obst_pos, aerial_pos),
+                                 cur_contains)
+
+    def test_evaluateCollisionWithUas(self):
+        """Tests the collision with UAS method."""
+        # TODO
 
     def test_toJSON(self):
         """Tests the JSON serialization method."""
@@ -728,16 +816,10 @@ class TestMovingObstacle(TestCase):
 class TestFlyZone(TestCase):
     """Tests the FlyZone class."""
 
-    def tearDown(self):
-        """Destroys test data."""
-        Waypoint.objects.all().delete()
-        AerialPosition.objects.all().delete()
-        GpsPosition.objects.all().delete()
-        FlyZone.objects.all().delete()
-
-    def test_containsPos(self):
-        """Tests the containsPos method with inside points."""
-        # Test each data set
+    def setUp(self):
+        """Creates test data."""
+        self.test_data_list = list()
+        # Form test set
         for test_data in TESTDATA_FLYZONE_CONTAINSPOS:
             # Create the FlyZone
             fly_zone = FlyZone()
@@ -759,15 +841,29 @@ class TestFlyZone(TestCase):
                 wpt.position = apos
                 wpt.save()
                 fly_zone.boundary_pts.add(wpt)
-
             # Form test set
             test_pos = []
             for pos in test_data['inside_pos']:
                 test_pos.append((pos, True))
             for pos in test_data['outside_pos']:
                 test_pos.append((pos, False))
+            # Store
+            self.test_data_list.append((fly_zone, test_pos))
 
-            # Test the positions
+    def tearDown(self):
+        """Destroys test data."""
+        Waypoint.objects.all().delete()
+        AerialPosition.objects.all().delete()
+        GpsPosition.objects.all().delete()
+        FlyZone.objects.all().delete()
+
+    def test_unicode(self):
+        """Tests the unicode method executes."""
+        # TODO
+
+    def test_containsPos(self):
+        """Tests the containsPos method."""
+        for (fly_zone, test_pos) in self.test_data_list:        
             for ((lat, lon, alt), inside) in test_pos:
                 gpos = GpsPosition()
                 gpos.latitude = lat
@@ -776,6 +872,43 @@ class TestFlyZone(TestCase):
                 apos.altitude_msl = alt
                 apos.gps_position = gpos
                 self.assertEqual(fly_zone.containsPos(apos), inside)
+
+    def test_containsManyPos(self):
+        """Tests the containsManyPos method."""
+        for (fly_zone, test_pos) in self.test_data_list:
+            aerial_pos_list = list()
+            expected_results = list()
+            for ((lat, lon, alt), inside) in test_pos:
+                gpos = GpsPosition()
+                gpos.latitude = lat
+                gpos.longitude = lon
+                apos = AerialPosition()
+                apos.altitude_msl = alt
+                apos.gps_position = gpos
+                aerial_pos_list.append(apos)
+                expected_results.append(inside)
+            self.assertEqual(
+                    fly_zone.containsManyPos(aerial_pos_list), expected_results)
+
+    def test_evaluateUasOutOfBounds(self):
+        """Tests the UAS out of bounds method."""
+        # TODO
+
+
+class TestMissionConfigModel(TestCase):
+    """Tests the MissionConfig model."""
+
+    def test_unicode(self):
+        """Tests the unicode method executes."""
+        # TODO
+
+    def test_evaluateUasSatisfiedWaypoints(self):
+        """Tests the evaluation of waypoints method."""
+        # TODO
+
+    def test_evaluateTeams(self):
+        """Tests the evaluation of teams method."""
+        # TODO
 
 
 class TestLoginUserView(TestCase):
@@ -888,6 +1021,9 @@ class TestGetServerInfoView(TestCase):
 
     def test_loadtest(self):
         """Tests the max load the view can handle."""
+        if not TEST_ENABLE_LOADTEST:
+            return
+
         client = self.client
         loginUrl = self.loginUrl
         infoUrl = self.infoUrl
@@ -997,6 +1133,9 @@ class TestGetObstaclesView(TestCase):
 
     def test_loadtest(self):
         """Tests the max load the view can handle."""
+        if not TEST_ENABLE_LOADTEST:
+            return
+
         client = self.client
         loginUrl = self.loginUrl
         obstUrl = self.obstUrl
@@ -1126,6 +1265,9 @@ class TestPostUasPosition(TestCase):
 
     def test_loadtest(self):
         """Tests the max load the view can handle."""
+        if not TEST_ENABLE_LOADTEST:
+            return
+
         client = self.client
         loginUrl = self.loginUrl
         uasUrl = self.uasUrl
@@ -1150,3 +1292,11 @@ class TestPostUasPosition(TestCase):
 
         self.assertTrue(op_rate >= OP_RATE_THRESH)
         print 'UAS Post Rate (%f)' % op_rate
+
+
+class TestEvaluateTeams(TestCase):
+    """Tests the evaluateTeams view."""
+
+    def test_evaluateTeams(self):
+        """Tests the CSV method."""
+        # TODO
