@@ -374,47 +374,39 @@ class StationaryObstacle(models.Model):
                         self.gps_position.__unicode__()))
 
 
-    def containsPos(self, aerial_pos, pos_padding=0.0):
+    def containsPos(self, aerial_pos):
         """Whether the pos is contained within the obstacle.
 
         Args:
             aerial_pos: The AerialPosition to test.
-            pos_padding: The spherical padding in ft to use for pos.
         Returns:
             Whether the given position is inside the obstacle.
         """
         # Check altitude of position
         aerial_alt = aerial_pos.altitude_msl
-        if (aerial_alt - pos_padding < 0 or
-                aerial_alt + pos_padding > self.cylinder_height):
+        if (aerial_alt < 0 or aerial_alt > self.cylinder_height):
             return False
         # Check lat/lon of position
         dist_to_center = self.gps_position.distanceTo(aerial_pos.gps_position)
-        if dist_to_center > self.cylinder_radius + pos_padding:
+        if dist_to_center > self.cylinder_radius:
             return False
         # Both within altitude and radius bounds, inside cylinder
         return True
 
-    def evaluateCollisionWithUas(self, uas_telemetry_logs, max_move_speed):
+    def evaluateCollisionWithUas(self, uas_telemetry_logs):
         """Evaluates whether the Uas logs indicate a collision.
 
         Args:
             uas_telemetry_logs: A list of UasTelemetry logs sorted by timestamp
                 for which to evaluate.
-            max_move_speed: The max movement speed a UAS could move at between
-                logged time positions.
         Returns:
-            A (reported_collision, potential_collision) tuple where
-            reported_collision is whether a UAS telemetry log reported indicates
-            a position within the obstacle, and potential_collision means the
-            time between reported UAS positions could contain a collision if the
-            UAS diverted at max_move_speed. The reported_collision means the UAS
-            definitely collided, whereas potential_collision means the UAS may
-            have collided but the UAS upload rate were not sufficient to
-            determine either way, which by the rules is equivalent to a
-            collision.
+            Whether a UAS telemetry log reported indicates a collision with the
+            obstacle.
         """
-        # TODO
+        for cur_log in uas_telemetry_logs:
+            if self.containsPos(cur_log.uas_position):
+                return True
+        return False
 
     def toJSON(self):
         """Obtain a JSON style representation of object."""
@@ -555,7 +547,7 @@ class MovingObstacle(models.Model):
         spline_k = 3 if num_waypoints >= 3 else 2  # Cubic if enough points
         spline_reps = list()
         for iter_dim in range(3):
-            tck = splrep(pos_times, positions[:,iter_dim], k=spline_k, per=1)
+            tck = splrep(pos_times, positions[:, iter_dim], k=spline_k, per=1)
             spline_reps.append(tck)
 
         return (total_travel_time, spline_reps)
@@ -617,39 +609,33 @@ class MovingObstacle(models.Model):
 
         return (latitude, longitude, altitude_msl)
 
-    def containsPos(self, obst_pos, aerial_pos, pos_padding=0.0):
+    def containsPos(self, obst_pos, aerial_pos):
         """Whether the pos is contained within the obstacle's pos.
 
         Args:
             obst_pos: The position of the obstacle. Use getPosition().
             aerial_pos: The position to test.
-            pos_padding: The spherical padding in ft to use for pos.
         Returns:
             Whether the given position is inside the obstacle.
         """
         dist_to_center = obst_pos.distanceTo(aerial_pos)
-        return dist_to_center <= self.sphere_radius + pos_padding
+        return dist_to_center <= self.sphere_radius
 
-    def evaluateCollisionWithUas(self, uas_telemetry_logs, max_move_speed):
+    def evaluateCollisionWithUas(self, uas_telemetry_logs):
         """Evaluates whether the Uas logs indicate a collision.
 
         Args:
             uas_telemetry_logs: A list of UasTelemetry logs sorted by timestamp
                 for which to evaluate.
-            max_move_speed: The max movement speed a UAS could move at between
-                logged time positions.
         Returns:
-            A (reported_collision, potential_collision) tuple where
-            reported_collision is whether a UAS telemetry log reported indicates
-            a position within the obstacle, and potential_collision means the
-            time between reported UAS positions could contain a collision if the
-            UAS diverted at max_move_speed. The reported_collision means the UAS
-            definitely collided, whereas potential_collision means the UAS may
-            have collided but the UAS upload rate were not sufficient to
-            determine either way, which by the rules is equivalent to a
-            collision.
+            Whether a UAS telemetry log reported indicates a collision with the
+            obstacle.
         """
-        # TODO
+        for cur_log in uas_telemetry_logs:
+            obst_pos = self.getPosition(cur_log.timestamp)
+            if self.containsPos(obst_pos, cur_log.uas_position):
+                return True
+        return False
 
     def toJSON(self):
         """Obtain a JSON style representation of object."""
@@ -857,7 +843,17 @@ class MissionConfig(models.Model):
             A list of booleans where each value indicates whether the UAS
             satisfied the waypoint for that index.
         """
-        # TODO
+        waypoints_satisfied = list()
+        waypoints = self.mission_waypoints.order_by('order')
+        for waypoint in waypoints:
+            satisfied = False
+            for uas_log in uas_telemetry_logs:
+                distance = uas_log.uas_position.distanceTo(waypoint.position)
+                if distance < self.mission_waypoints_dist_max:
+                    satisfied = True
+                    break
+            waypoints_satisfied.append(satisfied)
+        return waypoints_satisfied
 
     def evaluateTeams(self):
         """Evaluates the teams (non admin users) of the competition.
@@ -874,23 +870,11 @@ class MissionConfig(models.Model):
                     'uas_telem': (min, max, avg, histogram_map),
                 },
                 'stationary_obst': {
-                    obstacle_id: (reported_collision, potential_collision)
+                    obstacle_id: Whether there was a reported collision
                 },
                 'moving_obst': {
-                    obstacle_id: (reported_collision, potential_collision)
+                    obstacle_id: Whether there was a reported collision
                 }
             }
         """
         # TODO
-
-
-def evaluateSystemConfiguration():
-    """Evaluates whether the system is correctly configured.
-
-    Returns:
-        A tuple (info_list, warning_list, error_list) where each is a list of
-        info, warnings, and errors respectively. Errors must be fixed to run a
-        competition. Warnings likely indicate the user has done something
-        undesirable. Info is just santify check information.
-    """
-    # TODO

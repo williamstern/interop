@@ -13,9 +13,5 @@ urlpatterns = patterns('',
     url(r'^$', views.indexView, name='index'),
     url(r'^auvsi_admin/evaluate_teams.csv$', views.evaluateTeams,
         name='evaluate_teams'),
-    # Admin access interfaces
-    url(r'^auvsi_admin/api/evaluate_system_config$',
-        views.evaluateSystemConfiguration,
-        name='evaluate_system_config$')
 )
 
