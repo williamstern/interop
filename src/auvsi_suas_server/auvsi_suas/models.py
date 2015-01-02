@@ -178,7 +178,7 @@ class AccessLog(models.Model):
         Returns:
             A list of access log objects for the given user sorted by timestamp.
         """
-        # TODO
+        return cls.objects.filter(user_id=user.pk).order_by('timestamp')
 
     @classmethod
     def getAccessLogForUserByTimePeriod(cls, access_logs, time_periods):
@@ -196,11 +196,34 @@ class AccessLog(models.Model):
             such that each log is for the given user and in the time period
             given in the time_periods list.
         """
-        # TODO
+        cur_access_id = 0
+        cur_time_id = 0
+        time_period_access_logs = list()
+        while (cur_access_id < len(access_logs) and
+               cur_time_id < len(time_periods)):
+            # Add new period access list if not yet added for current period
+            if cur_time_id <= len(time_period_access_logs):
+                time_period_access_logs.append(list())
+            # Get the current time period and access log
+            cur_time = time_periods[cur_time_id]
+            (time_start, time_end) = cur_time
+            cur_access = access_logs[cur_access_id]
+            # Check if access log before the period, indicates not in a period
+            if time_start is not None and cur_access.timestamp < time_start:
+                cur_access_id += 1
+                continue
+            # Check if access log after the period
+            if time_end is not None and cur_access.timestamp > time_end:
+                cur_time_id += 1
+                continue
+            # Access log not before and not after, so its during. Add the log
+            time_period_access_logs[cur_time_id].append(cur_access)
+
+        return time_period_access_logs
 
     @classmethod
     def getAccessLogRates(
-            cls, time_periods, time_period_access_logs, histogram_midpts):
+            cls, time_periods, time_period_access_logs):
         """Gets the access log rates.
 
         Args:
@@ -209,14 +232,48 @@ class AccessLog(models.Model):
                 indicates infinity.
             time_period_access_logs: A list of access log lists for each time
                 period.
-            histogram_midpts: The midpoints for the histogram to generate.
         Returns:
-            A (min, max, avg, histogram) tuple. The min is the min Hz between
-            logs, max is the max Hz between logs, avg is the avg time between
-            logs, and histogram is the histogram list. The histogram map is a
-            list contains the frequency count for each midpt in the given list.
-        """
-        # TODO
+            A (min, max, avg) tuple. The min is the min Hz between logs, max is
+            the max Hz between logs, and avg is the avg time between logs.
+            """
+        times_between_logs = list()
+        for time_period_id in range(len(time_periods)):
+            # Get the times and logs for this period
+            (time_start, time_end) = time_periods[time_period_id]
+            cur_access_logs = time_period_access_logs[time_period_id]
+
+            # Account for a time period with no logs
+            if len(cur_access_logs) == 0:
+                if time_start is not None and time_end is not None:
+                    time_diff = (time_end - time_start).total_seconds
+                    times_between_logs.append(time_diff)
+                continue
+
+            # Account for time between takeoff and first log
+            if time_start is not None:
+                first_log = cur_access_logs[0]
+                time_diff = (first_log.timestamp - time_start).total_seconds
+                times_between_logs.append(time_diff)
+            # Account for time between logs
+            for access_log_id in range(len(cur_access_logs)-1):
+                log_t = cur_access_logs[access_log_id]
+                log_tp1 = cur_access_logs[access_log_id+1]
+                time_diff = (log_tp1.timestamp - log_t.timestamp).total_seconds
+                times_between_logs.append(time_diff)
+            # Account for time between last log and landing
+            if time_end is not None:
+                last_log = cur_access_logs[len(cur_access_logs)-1]
+                time_diff = (time_end - last_log.timestamp).total_seconds
+                times_between_logs.append(time_diff)
+
+        # Compute log rates
+        times_between_logs = np.array(times_between_logs)
+        times_between_min = np.min(times_between_logs)
+        times_between_max = np.max(times_between_logs)
+        times_between_avg = np.mean(times_between_logs)
+        return (1.0 / times_between_min,
+                1.0 / times_between_max,
+                1.0 / times_between_avg)
 
 
 class ServerInfoAccessLog(AccessLog):
@@ -269,7 +326,35 @@ class TakeoffOrLandingEvent(AccessLog):
             time. The list will be sorted by flight_start and the periods will
             be non-intersecting.
         """
-        # TODO
+        time_periods = list()
+        # Get the access logs for the user
+        access_logs = TakeoffOrLandingEvent.getAccessLogForUser(user)
+
+        # If UAS in air at start, assume forgot to log takeoff, assign infinity
+        if len(access_logs) > 0 and not access_logs[0].uas_in_air:
+            time_periods.append((None, access_logs[0].timestamp))
+
+        # Use transition from ground to air and air to ground for flight periods
+        takeoff_time = None
+        landing_time = None
+        uas_in_air = False
+        for cur_log in access_logs:
+            # Check for transition from ground to air
+            if not uas_in_air and cur_log.uas_in_air:
+                takeoff_time = cur_log.timestamp
+                uas_in_air = cur_log.uas_in_air
+            # Check for transition from air to ground
+            if uas_in_air and not cur_log.uas_in_air:
+                landing_time = cur_log.timestamp
+                uas_in_air = cur_log.uas_in_air
+                time_periods.append((takeoff_time, landing_time))
+
+        # If UAS in air at end, assume forgot to log landing, assign infinity
+        if uas_in_air:
+            time_periods.append((access_logs[len(access_logs)-1].timestamp,
+                                 None))
+
+        return time_periods
 
 
 class StationaryObstacle(models.Model):
@@ -289,21 +374,23 @@ class StationaryObstacle(models.Model):
                         self.gps_position.__unicode__()))
 
 
-    def containsPos(self, aerial_pos):
+    def containsPos(self, aerial_pos, pos_padding=0.0):
         """Whether the pos is contained within the obstacle.
 
         Args:
             aerial_pos: The AerialPosition to test.
+            pos_padding: The spherical padding in ft to use for pos.
         Returns:
             Whether the given position is inside the obstacle.
         """
         # Check altitude of position
         aerial_alt = aerial_pos.altitude_msl
-        if aerial_alt < 0 or aerial_alt > self.cylinder_height:
+        if (aerial_alt - pos_padding < 0 or
+                aerial_alt + pos_padding > self.cylinder_height):
             return False
         # Check lat/lon of position
         dist_to_center = self.gps_position.distanceTo(aerial_pos.gps_position)
-        if dist_to_center > self.cylinder_radius:
+        if dist_to_center > self.cylinder_radius + pos_padding:
             return False
         # Both within altitude and radius bounds, inside cylinder
         return True
@@ -425,7 +512,8 @@ class MovingObstacle(models.Model):
                 getInterWaypiontTravelTimes() or equivalent.
         Returns:
             A numpy array of waypoint times.
-        """ total_time = 0
+        """
+        total_time = 0
         num_paths = len(waypoint_travel_times)
         pos_times = np.zeros(num_paths)
         for path_id in range(num_paths):
@@ -529,17 +617,18 @@ class MovingObstacle(models.Model):
 
         return (latitude, longitude, altitude_msl)
 
-    def containsPos(self, obst_pos, aerial_pos):
+    def containsPos(self, obst_pos, aerial_pos, pos_padding=0.0):
         """Whether the pos is contained within the obstacle's pos.
 
         Args:
             obst_pos: The position of the obstacle. Use getPosition().
             aerial_pos: The position to test.
+            pos_padding: The spherical padding in ft to use for pos.
         Returns:
             Whether the given position is inside the obstacle.
         """
         dist_to_center = obst_pos.distanceTo(aerial_pos)
-        return dist_to_center <= self.sphere_radius
+        return dist_to_center <= self.sphere_radius + pos_padding
 
     def evaluateCollisionWithUas(self, uas_telemetry_logs, max_move_speed):
         """Evaluates whether the Uas logs indicate a collision.
@@ -652,6 +741,7 @@ class FlyZone(models.Model):
 
         return results
 
+    @classmethod
     def evaluateUasOutOfBounds(cls, fly_zones, uas_telemetry_logs):
         """Determines amount of time spent out of bounds.
 
@@ -663,7 +753,40 @@ class FlyZone(models.Model):
             The floating point total time in seconds spent out of bounds as
             indicated by the telemetry logs.
         """
-        # TODO
+        # Get the aerial positions for the logs
+        aerial_pos_list = [cur_log.uas_position
+                           for cur_log in uas_telemetry_logs]
+        log_ids_to_process = range(len(aerial_pos_list))
+
+        # Evaluate zones against the logs, eliminating satisfied ones, until
+        # only the out of boundary ids remain
+        for zone in fly_zones:
+            # Stop processing if no ids
+            if len(log_ids_to_process) == 0:
+                break
+            # Evaluate the positions still not satisfied
+            cur_positions = [aerial_pos_list[cur_id]
+                             for cur_id in log_ids_to_process]
+            satisfied_positions = zone.containsManyPos(cur_positions)
+            # Retain those which were not satisfied in this pass
+            log_ids_to_process = [log_ids_to_process[cur_id]
+                                  for cur_id in range(len(log_ids_to_process))
+                                  if not satisfied_positions[cur_id]]
+
+        # Positions that remain are out of bound positions, compute total time
+        total_time = 0
+        for cur_id in log_ids_to_process:
+            # Ignore first ID position as no start time for comparison
+            if cur_id == 0:
+                continue
+            # Track time between previous and current out of bounds. This is a
+            # simplification of time spent out of bounds.
+            cur_log = uas_telemetry_logs[cur_id]
+            prev_log = uas_telemetry_logs[cur_id-1]
+            time_diff = (cur_log.timestamp - prev_log.timestamp).total_seconds
+            total_time += time_diff
+
+        return total_time
 
 
 class MissionConfig(models.Model):

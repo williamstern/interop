@@ -28,10 +28,10 @@ from django.test.client import Client
 
 
 # Whether to perform tests which require plotting (window access)
-TEST_ENABLE_PLOTTING = True
+TEST_ENABLE_PLOTTING = False
 
 # Whether to perform load tests
-TEST_ENABLE_LOADTEST = True
+TEST_ENABLE_LOADTEST = False
 
 # The loadtest parameters
 OP_RATE_T = 1.0
@@ -495,6 +495,7 @@ class TestStationaryObstacleModel(TestCase):
     def test_containsPos(self):
         """Tests the inside obstacle method."""
         # Form the test obstacle
+        # TODO: Test pos_padding
         gps_position = GpsPosition()
         gps_position.latitude = TESTDATA_STATOBST_CONTAINSPOS_OBJ[0]
         gps_position.longitude = TESTDATA_STATOBST_CONTAINSPOS_OBJ[1]
@@ -766,6 +767,7 @@ class TestMovingObstacle(TestCase):
     def test_containsPos(self):
         """Tests the inside obstacle method."""
         # Form the test obstacle
+        # TODO: Test pos_padding
         gps_position = GpsPosition()
         gps_position.latitude = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[0]
         gps_position.longitude = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[1]
