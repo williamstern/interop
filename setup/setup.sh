@@ -15,6 +15,7 @@ sudo apt-get -y install puppet
 
 # Install puppet modules
 sudo mkdir -p /etc/puppet/modules/
+sudo puppet module install -f puppetlabs/stdlib
 sudo puppet module install -f puppetlabs-apt
 
 # Launch the Puppet process
