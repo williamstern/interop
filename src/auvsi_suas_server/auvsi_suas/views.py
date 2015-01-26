@@ -4,6 +4,7 @@ import cStringIO
 import csv
 import datetime
 import json
+import logging
 import time
 import numpy as np
 from auvsi_suas.models import AerialPosition
@@ -30,6 +31,10 @@ from django.shortcuts import render
 from scipy import interpolate
 
 
+# Logging for the module
+logger = logging.getLogger(__name__)
+
+
 def indexView(request):
     """Main view for users connecting via web browsers.
 
@@ -51,6 +56,7 @@ def loginUser(request):
     """
     # Validate user made a POST request
     if request.method != 'POST':
+        logger.warning('Invalid request method for login attempt.')
         return HttpResponseBadRequest('Login request must be POST request.')
 
     # Attempt authentication
@@ -60,6 +66,7 @@ def loginUser(request):
         password = request.POST['password']
     except KeyError:
         # Failed to get POST parameters, invalid request
+        logger.warning('Did not specify username & password in login request.')
         return HttpResponseBadRequest('Login must be POST request with '
                 '"username" and "password" parameters.')
     else:
@@ -68,22 +75,27 @@ def loginUser(request):
         if user is not None and user.is_active:
             # Successful authentication with active user, login
             login(request, user)
+            logger.info('User logged in: %s.' % user.username)
             return HttpResponse('Login Successful.')
         else:
             # Invalid user credentials, invalid request
+            logger.warning('Invalid credentials in login request.')
             return HttpResponseBadRequest('Invalid Credentials.')
 
 
 def getServerInfo(request):
     """Gets the server information as JSON with a GET request."""
-    # Validate user is logged in to make request
-    if not request.user.is_authenticated():
-        return HttpResponseBadRequest('User not logged in. Login required.')
     # Validate user made a GET request
     if request.method != 'GET':
+        logger.warning('Invalid request method for server info request.')
         return HttpResponseBadRequest('Request must be GET request.')
+    # Validate user is logged in to make request
+    if not request.user.is_authenticated():
+        logger.warning('User not authenticated for server info request.')
+        return HttpResponseBadRequest('User not logged in. Login required.')
 
     # Log user access to server information
+    logger.info('User downloaded server info: %s.' % request.user.username)
     access_log = ServerInfoAccessLog()
     access_log.user = request.user
     access_log.save()
@@ -111,14 +123,17 @@ def getServerInfo(request):
 
 def getObstacles(request):
     """Gets the obstacle information as JSON with a GET request."""
-    # Validate user is logged in to make request
-    if not request.user.is_authenticated():
-        return HttpResponseBadRequest('User not logged in. Login required.')
     # Validate user made a GET request
     if request.method != 'GET':
+        logger.warning('Invalid request method for obstacle info request.')
         return HttpResponseBadRequest('Request must be GET request.')
+    # Validate user is logged in to make request
+    if not request.user.is_authenticated():
+        logger.warning('User not authenticated for obstacle info request.')
+        return HttpResponseBadRequest('User not logged in. Login required.')
 
     # Log user access to obstacle info
+    logger.info('User downloaded obstacle info: %s.' % request.user.username)
     access_log = ObstacleAccessLog()
     access_log.user = request.user
     access_log.save()
@@ -165,12 +180,14 @@ def postUasPosition(request):
     altitude_msl: An MSL altitude in decimal feet.
     uas_heading: The UAS heading in decimal degrees. (0=north, 90=east)
     """
-    # Validate user is logged in to make request
-    if not request.user.is_authenticated():
-        return HttpResponseBadRequest('User not logged in. Login required.')
     # Validate user made a POST request
     if request.method != 'POST':
+        logger.warning('Invalid request method for uas telemetry request.')
         return HttpResponseBadRequest('Request must be POST request.')
+    # Validate user is logged in to make request
+    if not request.user.is_authenticated():
+        logger.warning('User not authenticated for uas telemetry request.')
+        return HttpResponseBadRequest('User not logged in. Login required.')
 
     try:
         # Get the parameters
@@ -180,26 +197,35 @@ def postUasPosition(request):
         uas_heading = float(request.POST['uas_heading'])
     except KeyError:
         # Failed to get POST parameters
+        logger.warning(
+                'User did not specify all params for uas telemetry request.')
         return HttpResponseBadRequest(
                 'Posting UAS position must contain POST parameters "latitude", '
                 '"longitude", "altitude_msl", and "uas_heading".')
     except ValueError:
         # Failed to convert parameters
+        logger.warning(
+                'User specified a param which could not converted to an ' + 
+                'appropriate type.')
         return HttpResponseBadRequest(
                 'Failed to convert provided POST parameters to correct form.')
     else:
         # Check the values make sense
         if latitude < -90 or latitude > 90:
+            logger.warning('User specified latitude out of valid range.')
             return HttpResponseBadRequest(
                     'Must provide latitude between -90 and 90 degrees.')
         if longitude < -180 or longitude > 180:
+            logger.warning('User specified longitude out of valid range.')
             return HttpResponseBadRequest(
                     'Must provide longitude between -180 and 180 degrees.')
         if uas_heading < 0 or uas_heading > 360:
+            logger.warning('User specified altitude out of valid range.')
             return HttpResponseBadRequest(
                     'Must provide heading between 0 and 360 degrees.')
 
         # Store telemetry
+        logging.info('User uploaded telemetry: %s' % request.user.username)
         gps_position = GpsPosition()
         gps_position.latitude = latitude
         gps_position.longitude = longitude
@@ -220,15 +246,19 @@ def postUasPosition(request):
 @user_passes_test(lambda u: u.is_superuser)
 def evaluateTeams(request):
     """Evaluates the teams by forming a CSV containing useful stats."""
+    logger.info(
+            'Admin downloaded team evaluation: %s.' % request.user.username)
     # Require admin access
     # Get the mission for evaluation
     missions = MissionConfig.all()
     if not missions or not missions[0]:
+        logger.error('No mission defined for which to evaluate teams.')
         return HttpResponseServerError('No mission defined.')
     mission = missions[0]
     # Get the eval data for the teams
     user_eval_data = mission.evaluateTeams()
     if not user_eval_data:
+        logger.warning('No data for team evaluation.')
         return HttpResponseServerError('Could not get user evaluation data.')
     # Write output
     csv_output = cStringIO.StringIO()
