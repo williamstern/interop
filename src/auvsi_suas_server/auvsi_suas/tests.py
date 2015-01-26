@@ -6,6 +6,7 @@ import numpy as np
 import os
 import shutil
 from auvsi_suas.models import AerialPosition
+from auvsi_suas.models import AccessLog
 from auvsi_suas.models import FlyZone
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import haversine
@@ -323,9 +324,17 @@ class TestKnotsToFeetPerSecond(TestCase):
 class TestGpsPositionModel(TestCase):
     """Tests the GpsPosition model."""
 
+    def tearDown(self):
+        """Tears down the test."""
+        GpsPosition.objects.all().delete()
+
     def test_unicode(self):
         """Tests the unicode method executes."""
-        # TODO
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 100
+        pos.save()
+        self.assertTrue(pos.__unicode__())
 
     def eval_distanceTo_input(self, lon1, lat1, lon2, lat2, distance_actual):
         """Evaluates the distanceTo functionality for the given inputs."""
@@ -365,9 +374,22 @@ class TestGpsPositionModel(TestCase):
 class TestAerialPositionModel(TestCase):
     """Tests the AerialPosition model."""
 
+    def tearDown(self):
+        """Tears down the test."""
+        AerialPosition.objects.all().delete()
+        GpsPosition.objects.all().delete()
+
     def test_unicode(self):
         """Tests the unicode method executes."""
-        # TODO
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 100
+        pos.save()
+        apos = AerialPosition()
+        apos.gps_position = pos
+        apos.altitude_msl = 100
+        apos.save()
+        self.assertTrue(apos.__unicode__())
 
     def eval_distanceTo_input(self, lon1, lat1, alt1, lon2, lat2, alt2,
             dist_actual):
@@ -413,21 +435,63 @@ class TestAerialPositionModel(TestCase):
 class TestWaypointModel(TestCase):
     """Tests the Waypoint model."""
 
+    def tearDown(self):
+        """Tears down the test."""
+        Waypoint.objects.all().delete()
+        AerialPosition.objects.all().delete()
+        GpsPosition.objects.all().delete()
+
     def test_unicode(self):
         """Tests the unicode method executes."""
-        # TODO
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 100
+        pos.save()
+        apos = AerialPosition()
+        apos.altitude_msl = 1000
+        apos.gps_position = pos
+        apos.save()
+        wpt = Waypoint()
+        wpt.position = apos
+        wpt.order = 10
+        wpt.save()
+        self.assertTrue(wpt.__unicode__())
 
     def test_distanceTo(self):
         """Tests the distance calculation executes correctly."""
-        # TODO
+        for (lon1, lat1, alt1,
+                lon2, lat2, alt2, dist_actual) in TESTDATA_COMPETITION_3D_DIST:
+            pos1 = AerialPosition()
+            pos1.gps_position = GpsPosition()
+            pos1.gps_position.latitude = lat1
+            pos1.gps_position.longitude = lon1
+            pos1.altitude_msl = alt1
+            wpt1 = Waypoint()
+            wpt1.position = pos1
+            pos2 = AerialPosition()
+            pos2.gps_position = GpsPosition()
+            pos2.gps_position.latitude = lat2
+            pos2.gps_position.longitude = lon2
+            pos2.altitude_msl = alt2
+            wpt2 = Waypoint()
+            wpt2.position = pos2
+            self.assertEqual(pos1.distanceTo(pos2), wpt1.distanceTo(wpt2))
 
 
 class TestServerInfoModel(TestCase):
     """Tests the ServerInfo model."""
 
+    def tearDown(self):
+        """Tears down the test."""
+        ServerInfo.objects.all().delete()
+
     def test_unicode(self):
         """Tests the unicode method executes."""
-        # TODO
+        info = ServerInfo()
+        info.timestamp = datetime.datetime.now()
+        info.team_msg = 'Test message.'
+        info.save()
+        self.assertTrue(info.__unicode__())
 
     def test_toJSON(self):
         """Tests the JSON serialization method."""
@@ -448,9 +512,19 @@ class TestServerInfoModel(TestCase):
 class TestAccessLogModel(TestCase):
     """Tests the AccessLog model."""
 
+    def tearDown(self):
+        """Tears down the tests."""
+        AccessLog.objects.all().delete()
+        User.objects.all().delete()
+
     def test_unicode(self):
         """Tests the unicode method executes."""
-        # TODO
+        log = AccessLog()
+        log.timestamp = datetime.datetime.now()
+        log.user = User.objects.create_user(
+                'testuser', 'testemail@x.com', 'testpass')
+        log.save()
+        self.assertTrue(log.__unicode__())
 
     def test_getAccessLogForUser(self):
         """Tests getting the access log for each user."""
@@ -468,17 +542,50 @@ class TestAccessLogModel(TestCase):
 class TestUasTelemetry(TestCase):
     """Tests the UasTelemetry model."""
 
+    def tearDown(self):
+        """Tears down the tests."""
+        UasTelemetry.objects.all().delete()
+        User.objects.all().delete()
+        AerialPosition.objects.all().delete()
+        GpsPosition.objects.all().delete()
+
     def test_unicode(self):
         """Tests the unicode method executes."""
-        # TODO
+        pos = GpsPosition()
+        pos.latitude = 100
+        pos.longitude = 200
+        pos.save()
+        apos = AerialPosition()
+        apos.gps_position = pos
+        apos.altitude_msl = 200
+        apos.save()
+        log = UasTelemetry()
+        log.timestamp = datetime.datetime.now()
+        log.user = User.objects.create_user(
+                'testuser', 'testemail@x.com', 'testpass')
+        log.uas_position = apos
+        log.uas_heading = 100
+        log.save()
+        self.assertTrue(log.__unicode__())
 
 
 class TestTakeoffOrLandingEventModel(TestCase):
     """Tests the TakeoffOrLandingEvent model."""
 
+    def tearDown(self):
+        """Tears down the tests."""
+        TakeoffOrLandingEvent.objects.all().delete()
+        User.objects.all().delete()
+
     def test_unicode(self):
         """Tests the unicode method executes."""
-        # TODO
+        log = TakeoffOrLandingEvent()
+        log.timestamp = datetime.datetime.now()
+        log.user = User.objects.create_user(
+                'testuser', 'testemail@x.com', 'testpass')
+        log.uas_in_air = True
+        log.save()
+        self.assertTrue(log.__unicode__())
 
     def test_getFlightPeriodsForUser(self):
         """Tests the flight period list class method."""
@@ -488,9 +595,23 @@ class TestTakeoffOrLandingEventModel(TestCase):
 class TestStationaryObstacleModel(TestCase):
     """Tests the StationaryObstacle model."""
 
+    def tearDown(self):
+        """Tears down the tests."""
+        StationaryObstacle.objects.all().delete()
+        GpsPosition.objects.all().delete()
+
     def test_unicode(self):
         """Tests the unicode method executes."""
-        # TODO
+        pos = GpsPosition()
+        pos.latitude = 100
+        pos.longitude = 200
+        pos.save()
+        obst = StationaryObstacle()
+        obst.gps_position = pos
+        obst.cylinder_radius = 10
+        obst.cylinder_height = 100
+        obst.save()
+        self.assertTrue(obst.__unicode__())
 
     def test_containsPos(self):
         """Tests the inside obstacle method."""
@@ -622,7 +743,25 @@ class TestMovingObstacle(TestCase):
 
     def test_unicode(self):
         """Tests the unicode method executes."""
-        # TODO
+        obst = MovingObstacle()
+        obst.speed_avg = 10
+        obst.sphere_radius = 100
+        obst.save()
+        for _ in range(3):
+          pos = GpsPosition()
+          pos.latitude = 10
+          pos.longitude = 100
+          pos.save()
+          apos = AerialPosition()
+          apos.altitude_msl = 1000
+          apos.gps_position = pos
+          apos.save()
+          wpt = Waypoint()
+          wpt.position = apos
+          wpt.order = 10
+          wpt.save()
+          obst.waypoints.add(wpt)
+        self.assertTrue(obst.__unicode__())
 
     def test_getWaypointTravelTime_invalid_inputs(self):
         """Tests proper invalid input handling."""
@@ -842,7 +981,7 @@ class TestFlyZone(TestCase):
                 wpt.save()
                 fly_zone.boundary_pts.add(wpt)
             # Form test set
-            test_pos = []
+            test_pos = list()
             for pos in test_data['inside_pos']:
                 test_pos.append((pos, True))
             for pos in test_data['outside_pos']:
@@ -859,7 +998,25 @@ class TestFlyZone(TestCase):
 
     def test_unicode(self):
         """Tests the unicode method executes."""
-        # TODO
+        zone = FlyZone()
+        zone.altitude_msl_min = 1
+        zone.altitude_msl_max = 2
+        zone.save()
+        for _ in range(3):
+            pos = GpsPosition()
+            pos.latitude = 10
+            pos.longitude = 100
+            pos.save()
+            apos = AerialPosition()
+            apos.altitude_msl = 1000
+            apos.gps_position = pos
+            apos.save()
+            wpt = Waypoint()
+            wpt.position = apos
+            wpt.order = 10
+            wpt.save()
+            zone.boundary_pts.add(wpt)
+        self.assertTrue(zone.__unicode__()) 
 
     def test_containsPos(self):
         """Tests the containsPos method."""
@@ -898,9 +1055,41 @@ class TestFlyZone(TestCase):
 class TestMissionConfigModel(TestCase):
     """Tests the MissionConfig model."""
 
+    def tearDown(self):
+        """Destroys test data."""
+        MissionConfig.objects.all().delete()
+        Waypoint.objects.all().delete()
+        AerialPosition.objects.all().delete()
+        GpsPosition.objects.all().delete()
+
     def test_unicode(self):
         """Tests the unicode method executes."""
-        # TODO
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 100
+        pos.save()
+        apos = AerialPosition()
+        apos.altitude_msl = 1000
+        apos.gps_position = pos
+        apos.save()
+        wpt = Waypoint()
+        wpt.position = apos
+        wpt.order = 10
+        wpt.save()
+        config = MissionConfig()
+        config.mission_waypoints_dist_max = 1
+        config.home_pos = pos
+        config.emergent_last_known_pos = pos
+        config.off_axis_target_pos = pos
+        config.sric_pos = pos
+        config.ir_target_pos = pos
+        config.air_drop_pos = pos
+        config.save()
+        config.mission_waypoints.add(wpt)
+        config.search_grid_points.add(wpt)
+        config.emergent_grid_points.add(wpt)
+        config.save()
+        self.assertTrue(config.__unicode__())
 
     def test_evaluateUasSatisfiedWaypoints(self):
         """Tests the evaluation of waypoints method."""
