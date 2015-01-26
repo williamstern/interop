@@ -495,7 +495,6 @@ class TestStationaryObstacleModel(TestCase):
     def test_containsPos(self):
         """Tests the inside obstacle method."""
         # Form the test obstacle
-        # TODO:test padding
         gps_position = GpsPosition()
         gps_position.latitude = TESTDATA_STATOBST_CONTAINSPOS_OBJ[0]
         gps_position.longitude = TESTDATA_STATOBST_CONTAINSPOS_OBJ[1]
@@ -767,7 +766,6 @@ class TestMovingObstacle(TestCase):
     def test_containsPos(self):
         """Tests the inside obstacle method."""
         # Form the test obstacle
-        # TODO:Test padding
         gps_position = GpsPosition()
         gps_position.latitude = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[0]
         gps_position.longitude = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[1]

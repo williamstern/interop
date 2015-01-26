@@ -865,9 +865,9 @@ class MissionConfig(models.Model):
                 'waypoints': List of booleans indicating whether satisfied,
                 'out_of_bounds_time': Seconds spent out of bounds,
                 'interop_rates': {
-                    'server_info': (min, max, avg, histogram_map),
-                    'obst_info': (min, max, avg, histogram_map),
-                    'uas_telem': (min, max, avg, histogram_map),
+                    'server_info': (min, max, avg),
+                    'obst_info': (min, max, avg),
+                    'uas_telem': (min, max, avg),
                 },
                 'stationary_obst': {
                     obstacle_id: Whether there was a reported collision
@@ -877,4 +877,63 @@ class MissionConfig(models.Model):
                 }
             }
         """
-        # TODO
+        # Get base data for mission
+        fly_zones = FlyZone.all()
+        stationary_obstacles = StationaryObstacle.all()
+        moving_obstacles = MovingObstacle.all()
+        # Start a results map from user to evaluation data
+        results = dict()
+        # Fill in evaluation data for each user except admins
+        users = settings.AUTH_USER_MODEL.all()
+        for user in users:
+            # Ignore admins
+            if user.is_superuser:
+                continue
+            # Start the evaluation data structure
+            eval_data = results.setdefault(user, dict())
+            # Get the relevant logs for the user
+            server_info_logs = ServerInfoAccessLog.getAccessLogForUser(user)
+            obstacle_logs = ObstacleAccessLog.getAccessLogForUser(user)
+            uas_telemetry_logs = UasTelemetry.getAccessLogForUser(user)
+            flight_periods = TakeoffOrLandingevent.getFlightPeriodsForUser(
+                    user)
+            # Determine if the uas hit the waypoints
+            waypoints = self.evaluateUasSatisfiedWaypoints(uas_telemetry_logs)
+            eval_data['waypoints'] = waypoints
+            # Determine if the uas went out of bounds 
+            out_of_bounds_time = evaluateUasOutOfBounds(
+                    fly_zones, uas_telemetry_logs)
+            eval_data['out_of_bounds_time'] = out_of_bounds_time
+            # Determine interop rates
+            interop_rates = eval_data.setdefault('interop_rates', dict())
+            server_info_rates = ServerInfoAccessLog.getAccessLogRates(
+                    flight_periods,
+                    ServerInfoAccessLog.getAccessLogForUserByTimePeriod(
+                        server_info_logs, flight_periods)
+                    )
+            obstacle_rates = ObstacleAccessLog.getAccessLogRates(
+                    flight_periods,
+                    ObstacleAccessLog.getAccessLogForUserByTimePeriod(
+                        server_info_logs, flight_periods)
+                    )
+            uas_telemetry_rates = UasTelemetry.getAccessLogRates(
+                    flight_periods,
+                    UasTelemetry.getAccessLogForUserByTimePeriod(
+                        server_info_logs, flight_periods)
+                    )
+            interop_rates['server_info'] = server_info_rates
+            interop_rates['obst_info'] = server_info_rates
+            interop_rates['uas_telem'] = server_info_rates
+            # Determine collisions with stationary and moving obstacles
+            stationary_collisions = eval_data.setdefault(
+                    'stationary_obst', dict())
+            for obst in stationary_obstacles:
+                collision = obst.evaluateCollisionWithUas(uas_telemetry_logs)
+                stationary_collisions[obst.pk] = collision
+            moving_collisions = eval_data.setdefault(
+                    'moving_obst', dict())
+            for obst in moving_obstacles:
+                collision = obst.evaluateCollisionWithUas(uas_telemetry_logs)
+                moving_collisions[obst.pk] = collision
+        return results
+

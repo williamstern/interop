@@ -1,5 +1,7 @@
 """Views which users interact with in AUVSI SUAS System."""
 
+import cStringIO
+import csv
 import datetime
 import json
 import time
@@ -215,11 +217,31 @@ def postUasPosition(request):
         return HttpResponse('UAS Telemetry Successfully Posted.')
 
 
+@user_passes_test(lambda u: u.is_superuser)
 def evaluateTeams(request):
     """Evaluates the teams by forming a CSV containing useful stats."""
-    # TODO
+    # Require admin access
+    # Get the mission for evaluation
+    missions = MissionConfig.all()
+    if not missions or not missions[0]:
+        return HttpResponseServerError('No mission defined.')
+    mission = missions[0]
+    # Get the eval data for the teams
+    user_eval_data = mission.evaluateTeams()
+    if not user_eval_data:
+        return HttpResponseServerError('Could not get user evaluation data.')
+    # Write output
+    csv_output = cStringIO.StringIO()
+    writer = csv.DictWriter(csv_output, fieldnames=[
+        'userpk', 'username', 'waypoints', 'out_of_bounds_time',
+        'interop_rates', 'stationary_obst', 'moving_obst'])
+    writer.writeheader()
+    for eval_data in user_eval_data.values():
+        writer.writerow(eval_data)
+    output = csv_output.getvalue()
+    csv_output.close()
+    return HttpResponse(output)
 
 
-
-# login_required()
+# @login_required()
 # @user_passes_test(lambda u: u.is_superuser)
