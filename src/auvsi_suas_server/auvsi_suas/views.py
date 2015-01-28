@@ -264,7 +264,7 @@ def evaluateTeams(request):
     csv_output = cStringIO.StringIO()
     writer = csv.DictWriter(csv_output, fieldnames=[
         'userpk', 'username', 'waypoints', 'out_of_bounds_time',
-        'interop_rates', 'stationary_obst', 'moving_obst'])
+        'interop_times', 'stationary_obst', 'moving_obst'])
     writer.writeheader()
     for eval_data in user_eval_data.values():
         writer.writerow(eval_data)

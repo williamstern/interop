@@ -26,6 +26,7 @@ from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
+from django.utils import timezone
 
 
 # Whether to perform tests which require plotting (window access)
@@ -89,6 +90,41 @@ TESTDATA_COMPETITION_3D_DIST = [
     (-76.428709, 38.145306, 0, -76.426375, 38.146146, 0, 0.22446),
     (-76.428537, 38.145399, 0, -76.427818, 38.144686, 100, 0.10497),
     (-76.434261, 38.142471, 100, -76.418876, 38.147838, 800, 1.48455)
+]
+
+# [(user, (time_min, time_max, time_avg),
+#   [(period_start, period_end, [timestamp])])]
+TESTDATA_ACCESSLOG = [
+    ('no_data', (None, None, None), []),
+    ('no_periods', (None, None, None), [
+        (None, None,
+            [0.0, 1.0]),
+    ]),
+    ('no_logs', (1.0, 1.0, 1.0), [
+        (0.0, 1.0, [])
+    ]),
+    ('log_diff_only', (0.0, 0.1, 0.05), [
+        (0.0, 0.2,
+            [0.0, 0.1, 0.2]),
+    ]),
+    ('period_diff_only', (0.2, 0.3, 0.25), [
+        (0.0, 0.5,
+            [0.2]),
+    ]),
+    ('multi_period', (0, 0.1, 0.05714285714), [
+        (0.0, 0.2,
+            [0.0, 0.1, 0.2]),
+        (None, None,
+            [0.3]),
+        (0.4, 0.6,
+            [0.4, 0.5]),
+    ]),
+    ('infinity_bounds', (0.0, 0.6, 0.18), [
+        (None, 0.1,
+            [0.0, 0.1]),
+        (0.2, None,
+            [0.2, 0.4, 1.0]),
+    ]),
 ]
 
 # (lat, lon, rad, height)
@@ -512,6 +548,51 @@ class TestServerInfoModel(TestCase):
 class TestAccessLogModel(TestCase):
     """Tests the AccessLog model."""
 
+    def setUp(self):
+        """Sets up the tests."""
+        self.users = dict()
+        self.access_logs = dict()
+        self.periods = dict()
+        self.period_access_logs = dict()
+        self.interop_times = dict()
+        self.base_time = timezone.now().replace(
+                hour=0, minute=0, second=0, microsecond=0)
+        for (username, rates, period_access_logs) in TESTDATA_ACCESSLOG:
+            # Create user
+            user = User.objects.create_user(
+                username, 'testemail@x.com', 'testpass')
+            user.save()
+            self.users[username] = user
+            # Set rates as already built
+            self.interop_times[username] = rates
+            # Create structures for user
+            user_logs = self.access_logs.setdefault(username, list())
+            user_periods = self.periods.setdefault(username, list())
+            user_period_logs = self.period_access_logs.setdefault(
+                    username, list())
+            # Fill logs with data
+            for (period_start, period_end, timestamps) in period_access_logs:
+                cur_period_log = list()
+                for timestamp in timestamps:
+                    # Create log for current timestamp and add
+                    log = AccessLog()
+                    log.user = user
+                    log.save()
+                    log.timestamp = self.base_time + datetime.timedelta(
+                            seconds=timestamp)
+                    log.save()
+                    user_logs.append(log)
+                    cur_period_log.append(log)
+                if period_start is not None or period_end is not None:
+                    if period_start is not None:
+                        period_start = self.base_time + datetime.timedelta(
+                            seconds=period_start)
+                    if period_end is not None:
+                        period_end = self.base_time + datetime.timedelta(
+                            seconds=period_end)
+                    user_periods.append((period_start, period_end))
+                    user_period_logs.append(cur_period_log)
+
     def tearDown(self):
         """Tears down the tests."""
         AccessLog.objects.all().delete()
@@ -528,15 +609,40 @@ class TestAccessLogModel(TestCase):
 
     def test_getAccessLogForUser(self):
         """Tests getting the access log for each user."""
-        # TODO
+        for user in self.users.values():
+            # Validate access log for user
+            access_log = AccessLog.getAccessLogForUser(user)
+            self.assertEqual(
+                    set(access_log),
+                    set(self.access_logs[user.username]))
 
     def test_getAccessLogForUserByTimePeriod(self):
         """Tests getting the access log by time period."""
-        # TODO
+        for username in self.users.keys():
+            # Validate time period access log for user
+            user_logs = self.access_logs[username]
+            time_periods = self.periods[username]
+            time_period_access_log = AccessLog.getAccessLogForUserByTimePeriod(
+                    user_logs, time_periods)
+            self.assertEqual(
+                    set([frozenset(x) for x in time_period_access_log]),
+                    set([frozenset(x) for x in self.period_access_logs[username]]))
 
     def test_getAccessLogRates(self):
         """Tests getting the access log rates."""
-        # TODO
+        for username in self.users.keys():
+            # Validate interop rates
+            user_logs = self.access_logs[username]
+            time_periods = self.periods[username]
+            time_period_access_log = AccessLog.getAccessLogForUserByTimePeriod(
+                    user_logs, time_periods)
+            access_rates = AccessLog.getAccessLogRates(
+                    time_periods, time_period_access_log)
+            (time_min, time_max, time_avg) = access_rates
+            (exp_min, exp_max, exp_avg) = self.interop_times[username]
+            self.assertAlmostEqual(time_min, exp_min)
+            self.assertAlmostEqual(time_max, exp_max)
+            self.assertAlmostEqual(time_avg, exp_avg)
 
 
 class TestUasTelemetry(TestCase):

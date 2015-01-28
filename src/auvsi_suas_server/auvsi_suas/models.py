@@ -137,7 +137,7 @@ class Waypoint(models.Model):
 class ServerInfo(models.Model):
     """Static information stored on the server that teams must retrieve."""
     # Time information was stored
-    timestamp = models.DateTimeField(auto_now=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
     # Message for teams
     team_msg = models.CharField(max_length=100)
 
@@ -158,7 +158,7 @@ class ServerInfo(models.Model):
 class AccessLog(models.Model):
     """Base class which logs access of information."""
     # Timestamp of the access
-    timestamp = models.DateTimeField(auto_now=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
     # The user which accessed the data
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
@@ -202,7 +202,7 @@ class AccessLog(models.Model):
         while (cur_access_id < len(access_logs) and
                cur_time_id < len(time_periods)):
             # Add new period access list if not yet added for current period
-            if cur_time_id <= len(time_period_access_logs):
+            if cur_time_id == len(time_period_access_logs):
                 time_period_access_logs.append(list())
             # Get the current time period and access log
             cur_time = time_periods[cur_time_id]
@@ -218,6 +218,11 @@ class AccessLog(models.Model):
                 continue
             # Access log not before and not after, so its during. Add the log
             time_period_access_logs[cur_time_id].append(cur_access)
+            cur_access_id += 1
+
+        # Add empty lists for all remaining time periods
+        while len(time_period_access_logs) < len(time_periods):
+            time_period_access_logs.append(list())
 
         return time_period_access_logs
 
@@ -233,8 +238,8 @@ class AccessLog(models.Model):
             time_period_access_logs: A list of access log lists for each time
                 period.
         Returns:
-            A (min, max, avg) tuple. The min is the min Hz between logs, max is
-            the max Hz between logs, and avg is the avg time between logs.
+            A (min, max, avg) tuple. The min is the min time between logs, max
+            is the max time between logs, and avg is the avg time between logs.
             """
         times_between_logs = list()
         for time_period_id in range(len(time_periods)):
@@ -245,35 +250,39 @@ class AccessLog(models.Model):
             # Account for a time period with no logs
             if len(cur_access_logs) == 0:
                 if time_start is not None and time_end is not None:
-                    time_diff = (time_end - time_start).total_seconds
+                    time_diff = (time_end - time_start).total_seconds()
                     times_between_logs.append(time_diff)
                 continue
 
             # Account for time between takeoff and first log
             if time_start is not None:
                 first_log = cur_access_logs[0]
-                time_diff = (first_log.timestamp - time_start).total_seconds
+                time_diff = (first_log.timestamp - time_start).total_seconds()
                 times_between_logs.append(time_diff)
             # Account for time between logs
             for access_log_id in range(len(cur_access_logs)-1):
                 log_t = cur_access_logs[access_log_id]
                 log_tp1 = cur_access_logs[access_log_id+1]
-                time_diff = (log_tp1.timestamp - log_t.timestamp).total_seconds
+                time_diff = (log_tp1.timestamp -
+                        log_t.timestamp).total_seconds()
                 times_between_logs.append(time_diff)
             # Account for time between last log and landing
             if time_end is not None:
                 last_log = cur_access_logs[len(cur_access_logs)-1]
-                time_diff = (time_end - last_log.timestamp).total_seconds
+                time_diff = (time_end - last_log.timestamp).total_seconds()
                 times_between_logs.append(time_diff)
 
         # Compute log rates
-        times_between_logs = np.array(times_between_logs)
-        times_between_min = np.min(times_between_logs)
-        times_between_max = np.max(times_between_logs)
-        times_between_avg = np.mean(times_between_logs)
-        return (1.0 / times_between_min,
-                1.0 / times_between_max,
-                1.0 / times_between_avg)
+        if times_between_logs:
+            times_between_logs = np.array(times_between_logs)
+            times_between_min = np.min(times_between_logs)
+            times_between_max = np.max(times_between_logs)
+            times_between_avg = np.mean(times_between_logs)
+            return (times_between_min,
+                    times_between_max,
+                    times_between_avg)
+        else:
+            return (None, None, None)
 
 
 class ServerInfoAccessLog(AccessLog):
@@ -864,7 +873,7 @@ class MissionConfig(models.Model):
             {
                 'waypoints': List of booleans indicating whether satisfied,
                 'out_of_bounds_time': Seconds spent out of bounds,
-                'interop_rates': {
+                'interop_times': {
                     'server_info': (min, max, avg),
                     'obst_info': (min, max, avg),
                     'uas_telem': (min, max, avg),
@@ -905,25 +914,25 @@ class MissionConfig(models.Model):
                     fly_zones, uas_telemetry_logs)
             eval_data['out_of_bounds_time'] = out_of_bounds_time
             # Determine interop rates
-            interop_rates = eval_data.setdefault('interop_rates', dict())
-            server_info_rates = ServerInfoAccessLog.getAccessLogRates(
+            interop_times = eval_data.setdefault('interop_times', dict())
+            server_info_times = ServerInfoAccessLog.getAccessLogRates(
                     flight_periods,
                     ServerInfoAccessLog.getAccessLogForUserByTimePeriod(
                         server_info_logs, flight_periods)
                     )
-            obstacle_rates = ObstacleAccessLog.getAccessLogRates(
+            obstacle_times = ObstacleAccessLog.getAccessLogRates(
                     flight_periods,
                     ObstacleAccessLog.getAccessLogForUserByTimePeriod(
                         server_info_logs, flight_periods)
                     )
-            uas_telemetry_rates = UasTelemetry.getAccessLogRates(
+            uas_telemetry_times = UasTelemetry.getAccessLogRates(
                     flight_periods,
                     UasTelemetry.getAccessLogForUserByTimePeriod(
                         server_info_logs, flight_periods)
                     )
-            interop_rates['server_info'] = server_info_rates
-            interop_rates['obst_info'] = server_info_rates
-            interop_rates['uas_telem'] = server_info_rates
+            interop_times['server_info'] = server_info_times
+            interop_times['obst_info'] = server_info_times
+            interop_times['uas_telem'] = server_info_times
             # Determine collisions with stationary and moving obstacles
             stationary_collisions = eval_data.setdefault(
                     'stationary_obst', dict())
