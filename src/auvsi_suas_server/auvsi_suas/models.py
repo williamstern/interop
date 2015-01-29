@@ -871,18 +871,20 @@ class MissionConfig(models.Model):
             A map from user to evaluate data. The evaluation data has the
             following map structure:
             {
-                'waypoints': List of booleans indicating whether satisfied,
+                'waypoints_satisfied': {
+                    id: Boolean,
+                }
                 'out_of_bounds_time': Seconds spent out of bounds,
                 'interop_times': {
-                    'server_info': (min, max, avg),
-                    'obst_info': (min, max, avg),
-                    'uas_telem': (min, max, avg),
+                    'server_info': {'min': Value, 'max': Value, 'avg': Value},
+                    'obst_info': {'min': Value, 'max': Value, 'avg': Value},
+                    'uas_telem': {'min': Value, 'max': Value, 'avg': Value},
                 },
-                'stationary_obst': {
-                    obstacle_id: Whether there was a reported collision
+                'stationary_obst_collision': {
+                    id: Boolean
                 },
-                'moving_obst': {
-                    obstacle_id: Whether there was a reported collision
+                'moving_obst_collision': {
+                    id: Boolean
                 }
             }
         """
@@ -908,7 +910,7 @@ class MissionConfig(models.Model):
                     user)
             # Determine if the uas hit the waypoints
             waypoints = self.evaluateUasSatisfiedWaypoints(uas_telemetry_logs)
-            eval_data['waypoints'] = waypoints
+            eval_data['waypoints_satisfied'] = waypoints
             # Determine if the uas went out of bounds 
             out_of_bounds_time = evaluateUasOutOfBounds(
                     fly_zones, uas_telemetry_logs)
@@ -930,17 +932,29 @@ class MissionConfig(models.Model):
                     UasTelemetry.getAccessLogForUserByTimePeriod(
                         server_info_logs, flight_periods)
                     )
-            interop_times['server_info'] = server_info_times
-            interop_times['obst_info'] = server_info_times
-            interop_times['uas_telem'] = server_info_times
+            interop_times['server_info'] = {
+                    'min': server_info_times[0],
+                    'max': server_info_times[1],
+                    'avg': server_info_times[2]
+            }
+            interop_times['obst_info'] = {
+                    'min': obstacle_times[0],
+                    'max': obstacle_times[1],
+                    'avg': obstacle_times[2]
+            }
+            interop_times['uas_telem'] = {
+                    'min': uas_telemetry_times[0],
+                    'max': uas_telemetry_times[1],
+                    'avg': uas_telemetry_times[2]
+            }
             # Determine collisions with stationary and moving obstacles
             stationary_collisions = eval_data.setdefault(
-                    'stationary_obst', dict())
+                    'stationary_obst_collision', dict())
             for obst in stationary_obstacles:
                 collision = obst.evaluateCollisionWithUas(uas_telemetry_logs)
                 stationary_collisions[obst.pk] = collision
             moving_collisions = eval_data.setdefault(
-                    'moving_obst', dict())
+                    'moving_obst_collision', dict())
             for obst in moving_obstacles:
                 collision = obst.evaluateCollisionWithUas(uas_telemetry_logs)
                 moving_collisions[obst.pk] = collision

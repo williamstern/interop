@@ -1,5 +1,6 @@
 """Views which users interact with in AUVSI SUAS System."""
 
+import copy
 import cStringIO
 import csv
 import datetime
@@ -260,14 +261,34 @@ def evaluateTeams(request):
     if not user_eval_data:
         logger.warning('No data for team evaluation.')
         return HttpResponseServerError('Could not get user evaluation data.')
+    # Reformat to column oriented
+    user_col_data = dict()
+    for (user, eval_data) in user_eval_data:
+        col_data = user_col_data.setdefault(user, dict())
+        col_data['username'] = user.username
+        work_queue = [([], eval_data)]
+        while len(work_queue) > 0:
+            (cur_prefixes, cur_map) = work_queue.pop()
+            for (key, val) in cur_map:
+                new_prefixes = copy.copy(cur_prefixes)
+                new_prefixes.append(key)
+                if isinstance(val, dict):
+                    work_queue.append((new_prefixes, val))
+                else:
+                    column_key = '.'.join(new_prefixes)
+                    col_data[column_key] = val
+    # Get column headers
+    col_headers = set()
+    for col_data in user_col_data.values():
+        for header in col_data.keys():
+            col_headers.add(header)
+    col_headers = sorted(col_headers)
     # Write output
     csv_output = cStringIO.StringIO()
-    writer = csv.DictWriter(csv_output, fieldnames=[
-        'userpk', 'username', 'waypoints', 'out_of_bounds_time',
-        'interop_times', 'stationary_obst', 'moving_obst'])
+    writer = csv.DictWriter(csv_output, fieldnames=col_headers)
     writer.writeheader()
-    for eval_data in user_eval_data.values():
-        writer.writerow(eval_data)
+    for col_data in user_col_data.values():
+        writer.writerow(col_data)
     output = csv_output.getvalue()
     csv_output.close()
     return HttpResponse(output)
