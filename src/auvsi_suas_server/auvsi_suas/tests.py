@@ -4,6 +4,7 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import random
 import shutil
 from auvsi_suas.models import AerialPosition
 from auvsi_suas.models import AccessLog
@@ -34,6 +35,12 @@ TEST_ENABLE_PLOTTING = False
 
 # Whether to perform load tests
 TEST_ENABLE_LOADTEST = False
+
+# Whether to perform the competition simulation
+TEST_ENABLE_COMPETITION_SIMULATION = False
+TEST_COMPETITION_SIMULATION_USERS = 50
+TEST_COMPETITION_SIMULATION_SPEEDUP = 3.0
+TEST_COMPETITION_SIMULATION_RESPONSE_TIME_MAX = 0.1 / 3.0
 
 # The loadtest parameters
 OP_RATE_T = 1.0
@@ -1651,8 +1658,8 @@ class TestEvaluateTeams(TestCase):
         # TODO
 
 
-class TestCompetitionSimulation(TestCase):
-    """Simulates a competition as best as possible."""
+class TestCompetitionSimulationLoad(TestCase):
+    """Simulates a competition load to ensure no scaling limitations."""
 
     def setUp(self):
         """Sets up the test by performing pre-mission work."""
@@ -1664,6 +1671,61 @@ class TestCompetitionSimulation(TestCase):
 
     def tearDown(self):
         """Tears down the test by deleting all data."""
+        # Make sure data can be exported
+        # TODO
+        # Clear table
         clearTestDatabase()
 
-    # TODO
+    def _getRandomInteropLagFun(self):
+        """Gets a function which will return a lag for a random user type."""
+        # Define interop lag functions
+        interop_lag_funs = [
+                # Slow user
+                lambda: 1.0,
+                # Perfect user
+                lambda: 0.1,
+                # Fast user
+                lambda: 0.05,
+                # Random drop user
+                lambda: 3.0 if random.random() <= 0.1 else 0.1,
+                # Random time user
+                lambda: random.random(),
+                # Guassian user
+                lambda: random.gauss(0.1, 0.05),
+        ]
+        # Select random function for user
+        return random.choice(interop_lag_funs)
+
+    def _simulateTeam(self, user):
+        """Performs a mission simulation for the user."""
+        # Determine takeoff time
+        takeoff_time = random.random() * 1.0 * 60.0
+        # Determine the amount of time the user will fly
+        flight_time = 10.0 * 60.0 + random.random() * 30.0 * 60.0
+        # Determine landing time
+        landing_time = flight_time - random.random() * 1.0 * 60.0
+        # Determine the type of user
+        interop_lag_fun = self._getRandomInteropLagFun()
+
+        # Create client and log user in
+        # TODO
+
+        # Start mission simulation
+        uas_in_air = False
+        time_elapsed = 0.0
+        while time_elapsed < flight_time:
+            # Determine how long this cycle should take
+            cycle_time = interop_lag_fun()
+            # Get cycle start time
+            # TODO
+            # Perform one phase of interop, ensure server fast enough
+            # TODO
+            # Get cycle end time, calculate sleep & exec
+            # TODO
+            # Get current time, mark elapsed
+            # TODO
+
+    def testSimulatedCompetitionLoad(self):
+        """Executes simulated competition load."""
+        for user in self.users:
+            self._simulateTeam(user)
