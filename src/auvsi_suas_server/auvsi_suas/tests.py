@@ -318,6 +318,28 @@ TESTDATA_FLYZONE_CONTAINSPOS = [
 ]
 
 
+def clearTestDatabase():
+    """Clears all objects from the test database."""
+    classes = [
+            AerialPosition,
+            AccessLog,
+            FlyZone,
+            GpsPosition,
+            MissionConfig,
+            MovingObstacle,
+            ObstacleAccessLog,
+            ServerInfo,
+            ServerInfoAccessLog,
+            StationaryObstacle,
+            TakeoffOrLandingEvent,
+            UasTelemetry,
+            Waypoint,
+    ]
+    for cur_class in classes:
+        cur_class.objects.all().delete()
+    cache.clear()
+
+
 class TestHaversine(TestCase):
     """Tests the haversine code correctness."""
 
@@ -387,7 +409,7 @@ class TestGpsPositionModel(TestCase):
 
     def tearDown(self):
         """Tears down the test."""
-        GpsPosition.objects.all().delete()
+        clearTestDatabase()
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -437,8 +459,7 @@ class TestAerialPositionModel(TestCase):
 
     def tearDown(self):
         """Tears down the test."""
-        AerialPosition.objects.all().delete()
-        GpsPosition.objects.all().delete()
+        clearTestDatabase()
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -498,9 +519,7 @@ class TestWaypointModel(TestCase):
 
     def tearDown(self):
         """Tears down the test."""
-        Waypoint.objects.all().delete()
-        AerialPosition.objects.all().delete()
-        GpsPosition.objects.all().delete()
+        clearTestDatabase()
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -544,7 +563,7 @@ class TestServerInfoModel(TestCase):
 
     def tearDown(self):
         """Tears down the test."""
-        ServerInfo.objects.all().delete()
+        clearTestDatabase()
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -620,8 +639,7 @@ class TestAccessLogModel(TestCase):
 
     def tearDown(self):
         """Tears down the tests."""
-        AccessLog.objects.all().delete()
-        User.objects.all().delete()
+        clearTestDatabase()
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -675,10 +693,7 @@ class TestUasTelemetry(TestCase):
 
     def tearDown(self):
         """Tears down the tests."""
-        UasTelemetry.objects.all().delete()
-        User.objects.all().delete()
-        AerialPosition.objects.all().delete()
-        GpsPosition.objects.all().delete()
+        clearTestDatabase()
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -735,8 +750,7 @@ class TestTakeoffOrLandingEventModel(TestCase):
 
     def tearDown(self):
         """Tears down the tests."""
-        TakeoffOrLandingEvent.objects.all().delete()
-        User.objects.all().delete()
+        clearTestDatabase()
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -766,8 +780,7 @@ class TestStationaryObstacleModel(TestCase):
 
     def tearDown(self):
         """Tears down the tests."""
-        StationaryObstacle.objects.all().delete()
-        GpsPosition.objects.all().delete()
+        clearTestDatabase()
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -904,11 +917,7 @@ class TestMovingObstacle(TestCase):
 
     def tearDown(self):
         """Tear down the obstacles created."""
-        cache.clear()
-        MovingObstacle.objects.all().delete()
-        Waypoint.objects.all().delete()
-        AerialPosition.objects.all().delete()
-        GpsPosition.objects.all().delete()
+        clearTestDatabase()
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -1160,10 +1169,7 @@ class TestFlyZone(TestCase):
 
     def tearDown(self):
         """Destroys test data."""
-        Waypoint.objects.all().delete()
-        AerialPosition.objects.all().delete()
-        GpsPosition.objects.all().delete()
-        FlyZone.objects.all().delete()
+        clearTestDatabase()
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -1226,10 +1232,7 @@ class TestMissionConfigModel(TestCase):
 
     def tearDown(self):
         """Destroys test data."""
-        MissionConfig.objects.all().delete()
-        Waypoint.objects.all().delete()
-        AerialPosition.objects.all().delete()
-        GpsPosition.objects.all().delete()
+        clearTestDatabase()
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -1282,8 +1285,7 @@ class TestLoginUserView(TestCase):
 
     def tearDown(self):
         """Deletes users for the view."""
-        cache.clear()
-        self.user.delete()
+        clearTestDatabase()
 
     def test_invalid_request(self):
         """Tests an invalid request by mis-specifying parameters."""
@@ -1338,10 +1340,7 @@ class TestGetServerInfoView(TestCase):
 
     def tearDown(self):
         """Destroys the user."""
-        cache.clear()
-        self.user.delete()
-        ServerInfo.objects.all().delete()
-        ServerInfoAccessLog.objects.all().delete()
+        clearTestDatabase()
 
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
@@ -1452,11 +1451,7 @@ class TestGetObstaclesView(TestCase):
 
     def tearDown(self):
         """Destroys the user."""
-        cache.clear()
-        self.user.delete()
-        ObstacleAccessLog.objects.all().delete()
-        StationaryObstacle.objects.all().delete()
-        MovingObstacle.objects.all().delete()
+        clearTestDatabase()
 
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
@@ -1526,11 +1521,7 @@ class TestPostUasPosition(TestCase):
 
     def tearDown(self):
         """Destroys the user."""
-        cache.clear()
-        self.user.delete()
-        UasTelemetry.objects.all().delete()
-        AerialPosition.objects.all().delete()
-        GpsPosition.objects.all().delete()
+        clearTestDatabase()
 
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
@@ -1658,3 +1649,21 @@ class TestEvaluateTeams(TestCase):
     def test_evaluateTeams(self):
         """Tests the CSV method."""
         # TODO
+
+
+class TestCompetitionSimulation(TestCase):
+    """Simulates a competition as best as possible."""
+
+    def setUp(self):
+        """Sets up the test by performing pre-mission work."""
+        # Create users for teams
+        # TODO
+
+        # Create a simulated mission configuration
+        # TODO
+
+    def tearDown(self):
+        """Tears down the test by deleting all data."""
+        clearTestDatabase()
+
+    # TODO
