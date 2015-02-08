@@ -31,10 +31,10 @@ from django.utils import timezone
 
 
 # Whether to perform tests which require plotting (window access)
-TEST_ENABLE_PLOTTING = True
+TEST_ENABLE_PLOTTING = False
 
 # Whether to perform load tests
-TEST_ENABLE_LOADTEST = True
+TEST_ENABLE_LOADTEST = False
 
 # The loadtest parameters
 OP_RATE_T = 10.0
@@ -1671,7 +1671,7 @@ class TestGetServerInfoView(TestCase):
 
         response = client.get(infoUrl)
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(len(ServerInfoAccessLog.objects.all()) == 1)
+        self.assertEqual(len(ServerInfoAccessLog.objects.all()), 1)
         access_log = ServerInfoAccessLog.objects.all()[0]
         self.assertEqual(access_log.user, self.user)
         json_data = json.loads(response.content)
@@ -1697,7 +1697,7 @@ class TestGetServerInfoView(TestCase):
         total_t = end_t - start_t
         op_rate = total_ops / total_t
 
-        self.assertTrue(op_rate >= OP_RATE_INDIV_THRESH)
+        self.assertGreaterEqual(op_rate, OP_RATE_INDIV_THRESH)
         print 'Server Info Rate (%f)' % op_rate
 
 
@@ -1805,7 +1805,7 @@ class TestGetObstaclesView(TestCase):
         total_t = end_t - start_t
         op_rate = total_ops / total_t
 
-        self.assertTrue(op_rate >= OP_RATE_INDIV_THRESH)
+        self.assertGreaterEqual(op_rate, OP_RATE_INDIV_THRESH)
         print 'Obstacle Info Rate (%f)' % op_rate
 
 
@@ -1941,7 +1941,7 @@ class TestPostUasPosition(TestCase):
         total_t = end_t - start_t
         op_rate = total_ops / total_t
 
-        self.assertTrue(op_rate >= OP_RATE_INDIV_THRESH)
+        self.assertGreaterEqual(op_rate, OP_RATE_INDIV_THRESH)
         print 'UAS Post Rate (%f)' % op_rate
 
 
