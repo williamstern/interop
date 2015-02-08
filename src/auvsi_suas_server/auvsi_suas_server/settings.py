@@ -72,7 +72,8 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'TIMEOUT': 30,
         'OPTIONS': {
-            'MAX_ENTRIES': 20000
+            # At 1kB an object, 200MB
+            'MAX_ENTRIES': 200000
         }
     }
 }
