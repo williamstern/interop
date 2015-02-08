@@ -81,6 +81,7 @@ def loginUser(request):
         else:
             # Invalid user credentials, invalid request
             logger.warning('Invalid credentials in login request.')
+            logger.debug(request)
             return HttpResponseBadRequest('Invalid Credentials.')
 
 
@@ -89,10 +90,12 @@ def getServerInfo(request):
     # Validate user made a GET request
     if request.method != 'GET':
         logger.warning('Invalid request method for server info request.')
+        logger.debug(request)
         return HttpResponseBadRequest('Request must be GET request.')
     # Validate user is logged in to make request
     if not request.user.is_authenticated():
         logger.warning('User not authenticated for server info request.')
+        logger.debug(request)
         return HttpResponseBadRequest('User not logged in. Login required.')
 
     # Log user access to server information
@@ -127,10 +130,12 @@ def getObstacles(request):
     # Validate user made a GET request
     if request.method != 'GET':
         logger.warning('Invalid request method for obstacle info request.')
+        logger.debug(request)
         return HttpResponseBadRequest('Request must be GET request.')
     # Validate user is logged in to make request
     if not request.user.is_authenticated():
         logger.warning('User not authenticated for obstacle info request.')
+        logger.debug(request)
         return HttpResponseBadRequest('User not logged in. Login required.')
 
     # Log user access to obstacle info
@@ -184,10 +189,12 @@ def postUasPosition(request):
     # Validate user made a POST request
     if request.method != 'POST':
         logger.warning('Invalid request method for uas telemetry request.')
+        logger.debug(request)
         return HttpResponseBadRequest('Request must be POST request.')
     # Validate user is logged in to make request
     if not request.user.is_authenticated():
         logger.warning('User not authenticated for uas telemetry request.')
+        logger.debug(request)
         return HttpResponseBadRequest('User not logged in. Login required.')
 
     try:
@@ -200,6 +207,7 @@ def postUasPosition(request):
         # Failed to get POST parameters
         logger.warning(
                 'User did not specify all params for uas telemetry request.')
+        logger.debug(request)
         return HttpResponseBadRequest(
                 'Posting UAS position must contain POST parameters "latitude", '
                 '"longitude", "altitude_msl", and "uas_heading".')
@@ -208,20 +216,24 @@ def postUasPosition(request):
         logger.warning(
                 'User specified a param which could not converted to an ' + 
                 'appropriate type.')
+        logger.debug(request)
         return HttpResponseBadRequest(
                 'Failed to convert provided POST parameters to correct form.')
     else:
         # Check the values make sense
         if latitude < -90 or latitude > 90:
             logger.warning('User specified latitude out of valid range.')
+            logger.debug(request)
             return HttpResponseBadRequest(
                     'Must provide latitude between -90 and 90 degrees.')
         if longitude < -180 or longitude > 180:
             logger.warning('User specified longitude out of valid range.')
+            logger.debug(request)
             return HttpResponseBadRequest(
                     'Must provide longitude between -180 and 180 degrees.')
         if uas_heading < 0 or uas_heading > 360:
             logger.warning('User specified altitude out of valid range.')
+            logger.debug(request)
             return HttpResponseBadRequest(
                     'Must provide heading between 0 and 360 degrees.')
 
@@ -247,8 +259,7 @@ def postUasPosition(request):
 @user_passes_test(lambda u: u.is_superuser)
 def evaluateTeams(request):
     """Evaluates the teams by forming a CSV containing useful stats."""
-    logger.info(
-            'Admin downloaded team evaluation: %s.' % request.user.username)
+    logger.info('Admin downloaded team evaluation.')
     # Require admin access
     # Get the mission for evaluation
     missions = MissionConfig.all()
