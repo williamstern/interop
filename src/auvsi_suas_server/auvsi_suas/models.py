@@ -896,10 +896,12 @@ class MissionConfig(models.Model):
         results = dict()
         # Fill in evaluation data for each user except admins
         users = settings.AUTH_USER_MODEL.all()
+        logging.info('Starting team evaluations.')
         for user in users:
             # Ignore admins
             if user.is_superuser:
                 continue
+            logging.info('Evaluation starting for user: %s.' % user.username)
             # Start the evaluation data structure
             eval_data = results.setdefault(user, dict())
             # Get the relevant logs for the user

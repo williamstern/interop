@@ -175,6 +175,22 @@ TESTDATA_STATOBST_CONTAINSPOS_OUTSIDE = [
     (-76, 38.004, 100)
 ]
 
+TESTDATA_STATOBST_EVALCOLLISION = (
+    # Cylinder position
+    (-76, 38, 100, 100),
+    # Inside positions
+    [(-76, 38, 50),
+     (-76, 38, 0),
+     (-76, 38, 100),
+     (-76.0001, 38.0001, 0),
+     (-76.0001, 38.0001, 100)],
+    # Outside positions
+    [(-76.001, 38, 50),
+     (-76, 38.002, 50),
+     (-76, 38, -1),
+     (-76, 38, 101)]
+)
+
 # (lat, lon, rad, alt)
 TESTDATA_MOVOBST_CONTAINSPOS_OBJ = (-76, 38, 100, 200)
 # (lat, lon, alt)
@@ -829,7 +845,53 @@ class TestStationaryObstacleModel(TestCase):
 
     def test_evaluateCollisionWithUas(self):
         """Tests the collision with UAS method."""
-        # TODO
+        # Create testing data
+        user = User.objects.create_user(
+                'testuser', 'testemail@x.com', 'testpass')
+        user.save()
+        (cyl_details, inside_pos, outside_pos) = TESTDATA_STATOBST_EVALCOLLISION
+        (cyl_lat, cyl_lon, cyl_height, cyl_rad) = cyl_details
+        gpos = GpsPosition()
+        gpos.latitude = cyl_lat
+        gpos.longitude = cyl_lon
+        gpos.save()
+        obst = StationaryObstacle()
+        obst.gps_position = gpos
+        obst.cylinder_radius = cyl_rad
+        obst.cylinder_height = cyl_height
+        obst.save()
+        inside_logs = list()
+        outside_logs = list()
+        logs_to_create = [
+                (inside_pos, inside_logs),
+                (outside_pos, outside_logs)
+        ]
+        for (positions, log_list) in logs_to_create:
+            for (lat, lon, alt) in positions:
+                gpos = GpsPosition()
+                gpos.latitude = lat
+                gpos.longitude = lon
+                gpos.save()
+                apos = AerialPosition()
+                apos.gps_position = gpos
+                apos.altitude_msl = alt
+                apos.save()
+                log = UasTelemetry()
+                log.user = user
+                log.uas_position = apos
+                log.uas_heading = 0
+                log.save()
+                log_list.append(log)
+        # Assert collisions correctly evaluated
+        collisions = [(inside_logs, True), (outside_logs, False)]
+        for (log_list, inside) in collisions:
+            self.assertEqual(
+                    obst.evaluateCollisionWithUas(log_list),
+                    inside)
+            for log in log_list:
+                self.assertEqual(
+                        obst.evaluateCollisionWithUas([log]),
+                        inside)
 
     def test_toJSON(self):
         """Tests the JSON serialization method."""
@@ -1664,6 +1726,7 @@ class TestCompetitionSimulationLoad(TestCase):
     def setUp(self):
         """Sets up the test by performing pre-mission work."""
         # Create users for teams
+        self.users = list()
         # TODO
 
         # Create a simulated mission configuration
@@ -1671,9 +1734,6 @@ class TestCompetitionSimulationLoad(TestCase):
 
     def tearDown(self):
         """Tears down the test by deleting all data."""
-        # Make sure data can be exported
-        # TODO
-        # Clear table
         clearTestDatabase()
 
     def _getRandomInteropLagFun(self):
@@ -1727,5 +1787,8 @@ class TestCompetitionSimulationLoad(TestCase):
 
     def testSimulatedCompetitionLoad(self):
         """Executes simulated competition load."""
+        # Simulate teams
         for user in self.users:
             self._simulateTeam(user)
+
+        # Validate export
