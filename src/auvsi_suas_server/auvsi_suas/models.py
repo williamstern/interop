@@ -7,6 +7,7 @@ import time
 from django.conf import settings
 from django.core.cache import cache
 from django.db import models
+from django.utils import timezone
 from matplotlib import path as mplpath
 from scipy.interpolate import splrep, splev
 
@@ -569,11 +570,11 @@ class MovingObstacle(models.Model):
         """Gets the cache key for this objects spline curve rep."""
         return '/MovingObstacle/%d/spline_curve' % self.id
 
-    def getPosition(self, cur_time=datetime.datetime.now()):
+    def getPosition(self, cur_time=timezone.now()):
         """Gets the current position for the obstacle.
 
         Args:
-          cur_time: The current time as datetime.
+          cur_time: The current time as datetime with time zone.
         Returns:
           Returns a tuple (latitude, longitude, altitude_msl) for the obstacle
           at the given time.
@@ -609,8 +610,10 @@ class MovingObstacle(models.Model):
         (total_travel_time, spline_reps) = spline_curve
 
         # Sample spline at current time
-        cur_time_sec = (cur_time -
-                datetime.datetime.utcfromtimestamp(0)).total_seconds()
+        epoch_time = timezone.now().replace(
+                year=1970, month=1, day=1, hour=0, minute=0, second=0,
+                microsecond=0)
+        cur_time_sec = (cur_time - epoch_time).total_seconds()
         cur_path_time = np.mod(cur_time_sec, total_travel_time)
         latitude = float(splev(cur_path_time, spline_reps[0]))
         longitude = float(splev(cur_path_time, spline_reps[1]))
@@ -641,8 +644,14 @@ class MovingObstacle(models.Model):
             obstacle.
         """
         for cur_log in uas_telemetry_logs:
-            obst_pos = self.getPosition(cur_log.timestamp)
-            if self.containsPos(obst_pos, cur_log.uas_position):
+            (lat, lon, alt) = self.getPosition(cur_log.timestamp)
+            gpos = GpsPosition()
+            gpos.latitude = lat
+            gpos.longitude = lon
+            apos = AerialPosition()
+            apos.gps_position = gpos
+            apos.altitude_msl = alt
+            if self.containsPos(apos, cur_log.uas_position):
                 return True
         return False
 

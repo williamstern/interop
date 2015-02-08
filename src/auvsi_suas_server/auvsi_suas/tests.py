@@ -234,6 +234,35 @@ TESTDATA_MOVOBST_PATHS = [
      (38.148522, -76.419507, 750)]
 ]
 
+TESTDATA_MOVOBST_EVALCOLLISION = (
+    # Obst radius and speed
+    100, 200,
+    # Positions (lat, lon, alt)
+    [(38, -76, 100),
+     (38.1, -76.1, 200)],
+    # Time, Inside pos, outside pos
+    [(0.0,
+      [(38, -76, 100),
+       (38, -76, 0),
+       (38, -76, 200),
+       (38.0001, -76, 100),
+       (38, -76.0001, 100)],
+      [(38.1, -76.1, 200),
+       (38.1, -76.1, 100),
+       (38.1, -76.1, 300),
+       (38.002, -76.002, 100),
+       (38, -76, 201),
+       (38, -76, -1)]),
+     (137.526986,
+      [(38.1, -76.1, 200),
+       (38.1, -76.1, 225),
+       (38.1, -76.1, 175)],
+      [(38, -76, 100),
+       (38.1, -76.1, 350),
+       (38.1, -76.1, 50)])
+    ]
+)
+
 TESTDATA_FLYZONE_CONTAINSPOS = [
     # Check can't be inside polygon defined by 1 point
     {
@@ -591,7 +620,7 @@ class TestServerInfoModel(TestCase):
     def test_unicode(self):
         """Tests the unicode method executes."""
         info = ServerInfo()
-        info.timestamp = datetime.datetime.now()
+        info.timestamp = timezone.now()
         info.team_msg = 'Test message.'
         info.save()
         self.assertTrue(info.__unicode__())
@@ -599,7 +628,7 @@ class TestServerInfoModel(TestCase):
     def test_toJSON(self):
         """Tests the JSON serialization method."""
         TEST_MSG = 'Hello, world.'
-        TEST_TIME = datetime.datetime.now()
+        TEST_TIME = timezone.now()
 
         server_info = ServerInfo()
         server_info.timestamp = TEST_TIME
@@ -667,7 +696,7 @@ class TestAccessLogModel(TestCase):
     def test_unicode(self):
         """Tests the unicode method executes."""
         log = AccessLog()
-        log.timestamp = datetime.datetime.now()
+        log.timestamp = timezone.now()
         log.user = User.objects.create_user(
                 'testuser', 'testemail@x.com', 'testpass')
         log.save()
@@ -729,7 +758,7 @@ class TestUasTelemetry(TestCase):
         apos.altitude_msl = 200
         apos.save()
         log = UasTelemetry()
-        log.timestamp = datetime.datetime.now()
+        log.timestamp = timezone.now()
         log.user = User.objects.create_user(
                 'testuser', 'testemail@x.com', 'testpass')
         log.uas_position = apos
@@ -778,7 +807,7 @@ class TestTakeoffOrLandingEventModel(TestCase):
     def test_unicode(self):
         """Tests the unicode method executes."""
         log = TakeoffOrLandingEvent()
-        log.timestamp = datetime.datetime.now()
+        log.timestamp = timezone.now()
         log.user = User.objects.create_user(
                 'testuser', 'testemail@x.com', 'testpass')
         log.uas_in_air = True
@@ -1178,7 +1207,71 @@ class TestMovingObstacle(TestCase):
 
     def test_evaluateCollisionWithUas(self):
         """Tests the collision with UAS method."""
-        # TODO
+        # Get test data
+        user = User.objects.create_user(
+                'testuser', 'testemail@x.com', 'testpass')
+        user.save()
+        testdata = TESTDATA_MOVOBST_EVALCOLLISION
+        (obst_rad, obst_speed, obst_pos, log_details) = testdata
+        # Create the obstacle
+        obst = MovingObstacle()
+        obst.speed_avg = obst_speed
+        obst.sphere_radius = obst_rad
+        obst.save()
+        for pos_id in xrange(len(obst_pos)):
+            (lat, lon, alt) = obst_pos[pos_id]
+            gpos = GpsPosition()
+            gpos.latitude = lat
+            gpos.longitude = lon
+            gpos.save()
+            apos = AerialPosition()
+            apos.gps_position = gpos
+            apos.altitude_msl = alt
+            apos.save()
+            wpt = Waypoint()
+            wpt.order = pos_id
+            wpt.position = apos
+            wpt.save()
+            obst.waypoints.add(wpt)
+        obst.save()
+        # Create sets of logs
+        cur_time = timezone.now().replace(
+                year=1970, month=1, day=1, hour=0, minute=0, second=0,
+                microsecond=0)
+        inside_logs = list()
+        outside_logs = list()
+        for (time_sec, inside_pos, outside_pos) in log_details:
+            log_time = cur_time + datetime.timedelta(seconds=time_sec)
+            logs_pos = [(inside_pos, inside_logs), (outside_pos, outside_logs)]
+            for (positions, log_list) in logs_pos:
+                for (lat, lon, alt) in positions:
+                    gpos = GpsPosition()
+                    gpos.latitude = lat
+                    gpos.longitude = lon
+                    gpos.save()
+                    apos = AerialPosition()
+                    apos.gps_position = gpos
+                    apos.altitude_msl = alt
+                    apos.save()
+                    log = UasTelemetry()
+                    log.user = user
+                    log.uas_position = apos
+                    log.uas_heading = 0
+                    log.save()
+                    log.timestamp = log_time
+                    log.save()
+                    log_list.append(log)
+
+        # Assert the obstacle correctly computes collisions
+        log_collisions = [(True, inside_logs), (False, outside_logs)]
+        for (inside, logs) in log_collisions:
+            self.assertEqual(
+                    obst.evaluateCollisionWithUas(logs),
+                    inside)
+            for log in logs:
+                self.assertEqual(
+                        obst.evaluateCollisionWithUas([log]),
+                        inside)
 
     def test_toJSON(self):
         """Tests the JSON serialization method."""
