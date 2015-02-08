@@ -5,7 +5,6 @@ import numpy as np
 import math
 import time
 from django.conf import settings
-from django.core.cache import cache
 from django.db import models
 from django.utils import timezone
 from matplotlib import path as mplpath
@@ -562,14 +561,6 @@ class MovingObstacle(models.Model):
 
         return (total_travel_time, spline_reps)
 
-    def getWaypointsCacheKey(self):
-        """Gets the cache key for this objects deduped waypoints."""
-        return '/MovingObstacle/%d/waypoints' % self.id
-
-    def getSplineCurveCacheKey(self):
-        """Gets the cache key for this objects spline curve rep."""
-        return '/MovingObstacle/%d/spline_curve' % self.id
-
     def getPosition(self, cur_time=timezone.now()):
         """Gets the current position for the obstacle.
 
@@ -580,16 +571,16 @@ class MovingObstacle(models.Model):
           at the given time.
         """
         # Get waypoints
-        waypoints_key = self.getWaypointsCacheKey()
-        waypoints = cache.get(waypoints_key)
-        if waypoints is None:
+        if hasattr(self, 'preprocessed_waypoints'):
+            waypoints = self.preprocessed_waypoints
+        else:
             # Load waypoints for obstacle, filter for consecutive duplicates
             all_wpts = self.waypoints.order_by('order')
             waypoints = [
                     all_wpts[i]
                     for i in range(len(all_wpts))
                     if i == 0 or all_wpts[i].distanceTo(all_wpts[i-1]) != 0]
-            cache.set(waypoints_key, waypoints)
+            self.preprocessed_waypoints = waypoints
 
         # Waypoint counts of 0 or 1 can skip calc, so can no speed
         num_waypoints = len(waypoints)
@@ -602,11 +593,11 @@ class MovingObstacle(models.Model):
                     wpt.position.altitude_msl)
 
         # Get spline representation
-        spline_curve_key = self.getSplineCurveCacheKey()
-        spline_curve = cache.get(spline_curve_key)
-        if spline_curve is None:
+        if hasattr(self, 'preprocessed_spline_curve'):
+            spline_curve = self.preprocessed_spline_curve
+        else:
             spline_curve = self.getSplineCurve(waypoints)
-            cache.set(spline_curve_key, spline_curve)
+            self.preprocessed_spline_curve = spline_curve
         (total_travel_time, spline_reps) = spline_curve
 
         # Sample spline at current time

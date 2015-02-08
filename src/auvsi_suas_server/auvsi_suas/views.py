@@ -145,11 +145,12 @@ def getObstacles(request):
     access_log.save()
 
     # Form JSON response portion for stationary obstacles
+    stationary_obstacles_cached = True
     stationary_obstacles_key = '/StationaryObstacle/all'
     stationary_obstacles = cache.get(stationary_obstacles_key)
     if stationary_obstacles is None:
         stationary_obstacles = StationaryObstacle.objects.all()
-        cache.set(stationary_obstacles_key, stationary_obstacles)
+        stationary_obstacles_cached = False
     stationary_obstacles_json = list()
     for cur_obst in stationary_obstacles:
         # Add current obstacle
@@ -157,11 +158,12 @@ def getObstacles(request):
         stationary_obstacles_json.append(cur_obst_json)
 
     # Form JSON response portion for moving obstacles
+    moving_obstacles_cached = True
     moving_obstacles_key = '/MovingObstacle/all'
     moving_obstacles = cache.get(moving_obstacles_key)
     if moving_obstacles is None:
         moving_obstacles = MovingObstacle.objects.all()
-        cache.set(moving_obstacles_key, moving_obstacles)
+        moving_obstacles_cached = False
     moving_obstacles_json = list()
     for cur_obst in moving_obstacles:
         # Add current obstacle
@@ -173,6 +175,14 @@ def getObstacles(request):
         'stationary_obstacles': stationary_obstacles_json,
         'moving_obstacles': moving_obstacles_json
     }
+
+    # Cache obstacles for next request
+    if not stationary_obstacles_cached:
+        cache.set(stationary_obstacles_key, stationary_obstacles)
+    if not moving_obstacles_cached:
+        cache.set(moving_obstacles_key, moving_obstacles)
+
+    # Return JSON data
     return HttpResponse(json.dumps(data),
                         content_type="application/json")
 

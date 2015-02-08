@@ -31,10 +31,10 @@ from django.utils import timezone
 
 
 # Whether to perform tests which require plotting (window access)
-TEST_ENABLE_PLOTTING = False
+TEST_ENABLE_PLOTTING = True
 
 # Whether to perform load tests
-TEST_ENABLE_LOADTEST = False
+TEST_ENABLE_LOADTEST = True
 
 # The loadtest parameters
 OP_RATE_T = 10.0
@@ -384,6 +384,14 @@ TESTDATA_FLYZONE_EVALBOUNDS = (
        (38.5, -76.5, 600, 4.0),
        (38.5, -78, 100, 5.0)])
      ]
+)
+
+# [satisfy_dist, waypoints, uas_logs, satisfied_list]
+TESTDATA_MISSIONCONFIG_EVALWAYPOINTS = (
+    100.0,
+    [(38, -76, 100), (39, -77, 200), (37, -75, 0)],
+    [(38, -76, 150), (40, -78, 600), (37, -75, 50), (38, 100, 0)],
+    [True, False, True]
 )
 
 
@@ -1171,7 +1179,9 @@ class TestMovingObstacle(TestCase):
             latitudes = np.zeros(len(time_pos))
             longitudes = np.zeros(len(time_pos))
             altitudes = np.zeros(len(time_pos))
-            epoch = datetime.datetime.utcfromtimestamp(0)
+            epoch = timezone.now().replace(
+                year=1970, month=1, day=1, hour=0, minute=0, second=0,
+                microsecond=0)
             for time_id in range(len(time_pos)):
                 cur_time_offset = time_pos[time_id]
                 cur_samp_time = (epoch +
@@ -1252,13 +1262,13 @@ class TestMovingObstacle(TestCase):
             obst.waypoints.add(wpt)
         obst.save()
         # Create sets of logs
-        cur_time = timezone.now().replace(
+        epoch = timezone.now().replace(
                 year=1970, month=1, day=1, hour=0, minute=0, second=0,
                 microsecond=0)
         inside_logs = list()
         outside_logs = list()
         for (time_sec, inside_pos, outside_pos) in log_details:
-            log_time = cur_time + datetime.timedelta(seconds=time_sec)
+            log_time = epoch + datetime.timedelta(seconds=time_sec)
             logs_pos = [(inside_pos, inside_logs), (outside_pos, outside_logs)]
             for (positions, log_list) in logs_pos:
                 for (lat, lon, alt) in positions:
@@ -1431,7 +1441,7 @@ class TestFlyZone(TestCase):
 
         # For each user, validate time out of bounds
         user_id = 0
-        cur_time = cur_time = timezone.now().replace(
+        epoch = timezone.now().replace(
                 year=1970, month=1, day=1, hour=0, minute=0, second=0,
                 microsecond=0)
         for exp_out_of_bounds_time, uas_log_details in uas_details:
@@ -1454,7 +1464,7 @@ class TestFlyZone(TestCase):
                 log.uas_position = apos
                 log.uas_heading = 0
                 log.save()
-                log.timestamp = cur_time + datetime.timedelta(
+                log.timestamp = epoch + datetime.timedelta(
                         seconds=timestamp)
                 log.save()
                 uas_logs.append(log)
@@ -1502,7 +1512,62 @@ class TestMissionConfigModel(TestCase):
 
     def test_evaluateUasSatisfiedWaypoints(self):
         """Tests the evaluation of waypoints method."""
-        # TODO
+        (satisfy_dist, waypoint_details, uas_log_details, exp_satisfied) = TESTDATA_MISSIONCONFIG_EVALWAYPOINTS
+        # Create mission config
+        gpos = GpsPosition()
+        gpos.latitude = 10
+        gpos.longitude = 10
+        gpos.save()
+        config = MissionConfig()
+        config.home_pos = gpos
+        config.mission_waypoints_dist_max = satisfy_dist
+        config.emergent_last_known_pos = gpos
+        config.off_axis_target_pos = gpos
+        config.sric_pos = gpos
+        config.ir_target_pos = gpos
+        config.air_drop_pos = gpos
+        config.save()
+        # Create waypoints for config
+        for wpt_id in xrange(len(waypoint_details)):
+            (lat, lon, alt) = waypoint_details[wpt_id]
+            pos = GpsPosition()
+            pos.latitude = lat
+            pos.longitude = lon
+            pos.save()
+            apos = AerialPosition()
+            apos.altitude_msl = alt
+            apos.gps_position = pos
+            apos.save()
+            wpt = Waypoint()
+            wpt.position = apos
+            wpt.order = wpt_id
+            wpt.save()
+            config.mission_waypoints.add(wpt)
+        config.save()
+
+        # Create UAS telemetry logs
+        uas_logs = list()
+        user = User.objects.create_user(
+                'testuser', 'testemail@x.com', 'testpass')
+        for (lat, lon, alt) in uas_log_details:
+            pos = GpsPosition()
+            pos.latitude = lat
+            pos.longitude = lon
+            pos.save()
+            apos = AerialPosition()
+            apos.altitude_msl = alt
+            apos.gps_position = pos
+            apos.save()
+            log = UasTelemetry()
+            log.user = user
+            log.uas_position = apos
+            log.uas_heading = 0
+            log.save()
+            uas_logs.append(log)
+
+        # Assert correct satisfied waypoints
+        wpts_satisfied = config.evaluateUasSatisfiedWaypoints(uas_logs)
+        self.assertEqual(wpts_satisfied, exp_satisfied)
 
     def test_evaluateTeams(self):
         """Tests the evaluation of teams method."""
