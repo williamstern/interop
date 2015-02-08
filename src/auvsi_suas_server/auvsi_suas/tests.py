@@ -36,18 +36,13 @@ TEST_ENABLE_PLOTTING = False
 # Whether to perform load tests
 TEST_ENABLE_LOADTEST = False
 
-# Whether to perform the competition simulation
-TEST_ENABLE_COMPETITION_SIMULATION = False
-TEST_COMPETITION_SIMULATION_USERS = 50
-TEST_COMPETITION_SIMULATION_SPEEDUP = 3.0
-TEST_COMPETITION_SIMULATION_RESPONSE_TIME_MAX = 0.1 / 3.0
-
 # The loadtest parameters
-OP_RATE_T = 1.0
+OP_RATE_T = 10.0
 OP_RATE_HZ = 10.0
 OP_RATE_PROCS = 4.0
 OP_RATE_SAFETY = 1.5
-OP_RATE_THRESH = OP_RATE_HZ * OP_RATE_PROCS * OP_RATE_SAFETY
+OP_RATE_THRESH = OP_RATE_HZ * OP_RATE_SAFETY
+OP_RATE_INDIV_THRESH = OP_RATE_THRESH * OP_RATE_PROCS
 
 # (lon1, lat1, lon2, lat2, dist_actual)
 TESTDATA_ZERO_DIST = [
@@ -368,6 +363,28 @@ TESTDATA_FLYZONE_CONTAINSPOS = [
         ]
     }
 ]
+
+# ((alt_min, alt_max, [fly_zone_waypoints]),
+#  [(uas_out_bounds_time, [uas_logs])])
+TESTDATA_FLYZONE_EVALBOUNDS = (
+    [(0, 100, [(38, -76), (39, -76), (39, -77), (38, -77)]),
+     (100, 700, [(38, -76), (39, -76), (39, -77), (38, -77)])
+    ],
+    [(0.0,
+      [(38.5, -76.5, 50, 0), (38.5, -76.5, 50, 1.0)]),
+     (1.0,
+      [(38.5, -76.5, 50, 0), (40, -76.5, 50, 1.0)]),
+     (2.0,
+      [(38.5, -76.5, 50, 0), (40, -76.5, 50, 1.0), (41, -76.5, 50, 2.0)]),
+     (3.0,
+      [(38.5, -76.5, 50, 0),
+       (40, -76, 50, 1.0),
+       (38.5, -76.5, 100, 2.0),
+       (38.5, -76.5, 800, 3.0),
+       (38.5, -76.5, 600, 4.0),
+       (38.5, -78, 100, 5.0)])
+     ]
+)
 
 
 def clearTestDatabase():
@@ -1297,8 +1314,8 @@ class TestFlyZone(TestCase):
 
     def setUp(self):
         """Creates test data."""
-        self.test_data_list = list()
-        # Form test set
+        # Form test set for contains position
+        self.testdata_containspos = list()
         for test_data in TESTDATA_FLYZONE_CONTAINSPOS:
             # Create the FlyZone
             fly_zone = FlyZone()
@@ -1327,8 +1344,8 @@ class TestFlyZone(TestCase):
             for pos in test_data['outside_pos']:
                 test_pos.append((pos, False))
             # Store
-            self.test_data_list.append((fly_zone, test_pos))
-
+            self.testdata_containspos.append((fly_zone, test_pos))
+        
     def tearDown(self):
         """Destroys test data."""
         clearTestDatabase()
@@ -1357,7 +1374,7 @@ class TestFlyZone(TestCase):
 
     def test_containsPos(self):
         """Tests the containsPos method."""
-        for (fly_zone, test_pos) in self.test_data_list:        
+        for (fly_zone, test_pos) in self.testdata_containspos:        
             for ((lat, lon, alt), inside) in test_pos:
                 gpos = GpsPosition()
                 gpos.latitude = lat
@@ -1369,7 +1386,7 @@ class TestFlyZone(TestCase):
 
     def test_containsManyPos(self):
         """Tests the containsManyPos method."""
-        for (fly_zone, test_pos) in self.test_data_list:
+        for (fly_zone, test_pos) in self.testdata_containspos:
             aerial_pos_list = list()
             expected_results = list()
             for ((lat, lon, alt), inside) in test_pos:
@@ -1386,7 +1403,65 @@ class TestFlyZone(TestCase):
 
     def test_evaluateUasOutOfBounds(self):
         """Tests the UAS out of bounds method."""
-        # TODO
+        (fly_zone_details, uas_details) = TESTDATA_FLYZONE_EVALBOUNDS
+        # Create FlyZone objects
+        fly_zones = list()
+        for (alt_min, alt_max, wpts) in fly_zone_details:
+            zone = FlyZone()
+            zone.altitude_msl_min = alt_min
+            zone.altitude_msl_max = alt_max
+            zone.save()
+            for wpt_id in xrange(len(wpts)):
+                (lat, lon) = wpts[wpt_id]
+                gpos = GpsPosition()
+                gpos.latitude = lat
+                gpos.longitude = lon
+                gpos.save()
+                apos = AerialPosition()
+                apos.gps_position = gpos
+                apos.altitude_msl = 0
+                apos.save()
+                wpt = Waypoint()
+                wpt.order = wpt_id
+                wpt.position = apos
+                wpt.save()
+                zone.boundary_pts.add(wpt)
+            zone.save()
+            fly_zones.append(zone)
+
+        # For each user, validate time out of bounds
+        user_id = 0
+        cur_time = cur_time = timezone.now().replace(
+                year=1970, month=1, day=1, hour=0, minute=0, second=0,
+                microsecond=0)
+        for exp_out_of_bounds_time, uas_log_details in uas_details:
+            # Create the logs
+            user = User.objects.create_user(
+                'testuser%d' % user_id, 'testemail@x.com', 'testpass')
+            user_id += 1
+            uas_logs = list()
+            for (lat, lon, alt, timestamp) in uas_log_details:
+                gpos = GpsPosition()
+                gpos.latitude = lat
+                gpos.longitude = lon
+                gpos.save()
+                apos = AerialPosition()
+                apos.gps_position = gpos
+                apos.altitude_msl = alt
+                apos.save()
+                log = UasTelemetry()
+                log.user = user
+                log.uas_position = apos
+                log.uas_heading = 0
+                log.save()
+                log.timestamp = cur_time + datetime.timedelta(
+                        seconds=timestamp)
+                log.save()
+                uas_logs.append(log)
+            # Assert out of bounds time matches expected
+            out_of_bounds_time = FlyZone.evaluateUasOutOfBounds(
+                    fly_zones, uas_logs)
+            self.assertAlmostEqual(out_of_bounds_time, exp_out_of_bounds_time)
 
 
 class TestMissionConfigModel(TestCase):
@@ -1557,7 +1632,7 @@ class TestGetServerInfoView(TestCase):
         total_t = end_t - start_t
         op_rate = total_ops / total_t
 
-        self.assertTrue(op_rate >= OP_RATE_THRESH)
+        self.assertTrue(op_rate >= OP_RATE_INDIV_THRESH)
         print 'Server Info Rate (%f)' % op_rate
 
 
@@ -1665,7 +1740,7 @@ class TestGetObstaclesView(TestCase):
         total_t = end_t - start_t
         op_rate = total_ops / total_t
 
-        self.assertTrue(op_rate >= OP_RATE_THRESH)
+        self.assertTrue(op_rate >= OP_RATE_INDIV_THRESH)
         print 'Obstacle Info Rate (%f)' % op_rate
 
 
@@ -1801,87 +1876,33 @@ class TestPostUasPosition(TestCase):
         total_t = end_t - start_t
         op_rate = total_ops / total_t
 
-        self.assertTrue(op_rate >= OP_RATE_THRESH)
+        self.assertTrue(op_rate >= OP_RATE_INDIV_THRESH)
         print 'UAS Post Rate (%f)' % op_rate
 
 
 class TestEvaluateTeams(TestCase):
     """Tests the evaluateTeams view."""
 
-    def test_evaluateTeams(self):
-        """Tests the CSV method."""
-        # TODO
-
-
-class TestCompetitionSimulationLoad(TestCase):
-    """Simulates a competition load to ensure no scaling limitations."""
-
     def setUp(self):
-        """Sets up the test by performing pre-mission work."""
-        # Create users for teams
-        self.users = list()
-        # TODO
-
-        # Create a simulated mission configuration
+        """Sets up the tests."""
+        # Create the admin and non-admin users
+        # Store random data for each user
+        # Create a random mission configuration
         # TODO
 
     def tearDown(self):
-        """Tears down the test by deleting all data."""
+        """Tears down the tests."""
         clearTestDatabase()
 
-    def _getRandomInteropLagFun(self):
-        """Gets a function which will return a lag for a random user type."""
-        # Define interop lag functions
-        interop_lag_funs = [
-                # Slow user
-                lambda: 1.0,
-                # Perfect user
-                lambda: 0.1,
-                # Fast user
-                lambda: 0.05,
-                # Random drop user
-                lambda: 3.0 if random.random() <= 0.1 else 0.1,
-                # Random time user
-                lambda: random.random(),
-                # Guassian user
-                lambda: random.gauss(0.1, 0.05),
-        ]
-        # Select random function for user
-        return random.choice(interop_lag_funs)
-
-    def _simulateTeam(self, user):
-        """Performs a mission simulation for the user."""
-        # Determine takeoff time
-        takeoff_time = random.random() * 1.0 * 60.0
-        # Determine the amount of time the user will fly
-        flight_time = 10.0 * 60.0 + random.random() * 30.0 * 60.0
-        # Determine landing time
-        landing_time = flight_time - random.random() * 1.0 * 60.0
-        # Determine the type of user
-        interop_lag_fun = self._getRandomInteropLagFun()
-
-        # Create client and log user in
+    def test_evaluateTeams_nonadmin(self):
+        """Tests that you can only access data as admin."""
         # TODO
 
-        # Start mission simulation
-        uas_in_air = False
-        time_elapsed = 0.0
-        while time_elapsed < flight_time:
-            # Determine how long this cycle should take
-            cycle_time = interop_lag_fun()
-            # Get cycle start time
-            # TODO
-            # Perform one phase of interop, ensure server fast enough
-            # TODO
-            # Get cycle end time, calculate sleep & exec
-            # TODO
-            # Get current time, mark elapsed
-            # TODO
-
-    def testSimulatedCompetitionLoad(self):
-        """Executes simulated competition load."""
-        # Simulate teams
-        for user in self.users:
-            self._simulateTeam(user)
-
-        # Validate export
+    def test_evaluateTeams(self):
+        """Tests the CSV method."""
+        # Login as admin
+        # Get the eval CSV
+        # Validate the heading line
+        # Validate the number of lines & usernames
+        # Validate the number of columns
+        # TODO

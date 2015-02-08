@@ -787,7 +787,7 @@ class FlyZone(models.Model):
             # simplification of time spent out of bounds.
             cur_log = uas_telemetry_logs[cur_id]
             prev_log = uas_telemetry_logs[cur_id-1]
-            time_diff = (cur_log.timestamp - prev_log.timestamp).total_seconds
+            time_diff = (cur_log.timestamp - prev_log.timestamp).total_seconds()
             total_time += time_diff
 
         return total_time
