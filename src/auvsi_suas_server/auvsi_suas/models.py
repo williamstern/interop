@@ -1,10 +1,12 @@
 """Models for the AUVSI SUAS System."""
 
 import datetime
+import logging
 import numpy as np
 import math
 import time
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 from matplotlib import path as mplpath
@@ -889,13 +891,13 @@ class MissionConfig(models.Model):
             }
         """
         # Get base data for mission
-        fly_zones = FlyZone.all()
-        stationary_obstacles = StationaryObstacle.all()
-        moving_obstacles = MovingObstacle.all()
+        fly_zones = FlyZone.objects.all()
+        stationary_obstacles = StationaryObstacle.objects.all()
+        moving_obstacles = MovingObstacle.objects.all()
         # Start a results map from user to evaluation data
         results = dict()
         # Fill in evaluation data for each user except admins
-        users = settings.AUTH_USER_MODEL.all()
+        users = User.objects.all()
         logging.info('Starting team evaluations.')
         for user in users:
             # Ignore admins
@@ -908,13 +910,16 @@ class MissionConfig(models.Model):
             server_info_logs = ServerInfoAccessLog.getAccessLogForUser(user)
             obstacle_logs = ObstacleAccessLog.getAccessLogForUser(user)
             uas_telemetry_logs = UasTelemetry.getAccessLogForUser(user)
-            flight_periods = TakeoffOrLandingevent.getFlightPeriodsForUser(
+            flight_periods = TakeoffOrLandingEvent.getFlightPeriodsForUser(
                     user)
             # Determine if the uas hit the waypoints
             waypoints = self.evaluateUasSatisfiedWaypoints(uas_telemetry_logs)
-            eval_data['waypoints_satisfied'] = waypoints
+            waypoints_keyed = dict()
+            for wpt_id in xrange(len(waypoints)):
+                waypoints_keyed[wpt_id+1] = waypoints[wpt_id]
+            eval_data['waypoints_satisfied'] = waypoints_keyed
             # Determine if the uas went out of bounds 
-            out_of_bounds_time = evaluateUasOutOfBounds(
+            out_of_bounds_time = FlyZone.evaluateUasOutOfBounds(
                     fly_zones, uas_telemetry_logs)
             eval_data['out_of_bounds_time'] = out_of_bounds_time
             # Determine interop rates
@@ -927,12 +932,12 @@ class MissionConfig(models.Model):
             obstacle_times = ObstacleAccessLog.getAccessLogRates(
                     flight_periods,
                     ObstacleAccessLog.getAccessLogForUserByTimePeriod(
-                        server_info_logs, flight_periods)
+                        obstacle_logs, flight_periods)
                     )
             uas_telemetry_times = UasTelemetry.getAccessLogRates(
                     flight_periods,
                     UasTelemetry.getAccessLogForUserByTimePeriod(
-                        server_info_logs, flight_periods)
+                        uas_telemetry_logs, flight_periods)
                     )
             interop_times['server_info'] = {
                     'min': server_info_times[0],

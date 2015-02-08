@@ -1,6 +1,7 @@
 import datetime
 import time
 import json
+import logging
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -393,6 +394,265 @@ TESTDATA_MISSIONCONFIG_EVALWAYPOINTS = (
     [(38, -76, 150), (40, -78, 600), (37, -75, 50), (38, 100, 0)],
     [True, False, True]
 )
+
+TESTDATA_SAMPLE_MISSION = (
+    # Waypoint satisfy dist
+    10,
+    # Boundaries
+    [(0, 20,
+      [(37, -75), (39, -75), (39, -77), (37, -77)])
+    ],
+    # Waypoints
+    [(38, -76, 30),
+     (38, -76, 60)],
+    # Stationary obstacles
+    [(38, -76, 10, 10),
+     (39, -76, 10, 10)],
+    # Moving obstacles
+    [(15, 1,
+      [(38, -76, 0),
+       (38, -76, 10)]),
+     (20, 1,
+      [(39, -76, 0),
+       (39, -76, 10)])
+    ],
+    # Users (takeoffs, infos, obsts, telemetry)
+    {
+        'user0': (
+            [(0, True), (1, False)],
+            [0.0, 0.2, 0.3, 0.4, 0.8],
+            [0.0, 0.1, 0.6, 0.7],
+            [(38, -76, 0, 0.0),
+             (38, -76, 10, 0.1),
+             (38, -76, 20, 0.2),
+             (38, -76, 30, 0.3),
+             (38, -76, 100, 0.8)]
+        ),
+        'user1': (
+            [(1, True), (2, False)],
+            [0.0, 1.1, 1.5],
+            [1.1, 1.2, 1.6],
+            [(38, -76, 30, 1.0),
+             (38, -76, 60, 2.0)]
+        )
+    },
+)
+
+TESTDATA_MISSIONCONFIG_EVALTEAMS = {
+    'user0': {
+        'waypoints_satisfied': {
+            1: True,
+            2: False
+        },
+        'out_of_bounds_time': 0.6,
+        'interop_times': {
+            'server_info': {
+                'min': 0.0,
+                'max': 0.4,
+                'avg': 1.0/6,
+            },
+            'obst_info': {
+                'min': 0.0,
+                'max': 0.5,
+                'avg': 1.0/5,
+            },
+            'uas_telem': {
+                'min': 0.0,
+                'max': 0.5,
+                'avg': 1.0/6,
+            },
+        },
+        'stationary_obst_collision': {
+            1: True,
+            2: False
+        },
+        'moving_obst_collision': {
+            1: True,
+            2: False
+        }
+    },
+    'user1': {
+        'waypoints_satisfied': {
+            1: True,
+            2: True
+        },
+        'out_of_bounds_time': 1.0,
+        'interop_times': {
+            'server_info': {
+                'min': 0.1,
+                'max': 0.5,
+                'avg': 1.0/3,
+            },
+            'obst_info': {
+                'min': 0.1,
+                'max': 0.4,
+                'avg': 1.0/4,
+            },
+            'uas_telem': {
+                'min': 0.0,
+                'max': 1.0,
+                'avg': 1.0/3,
+            },
+        },
+        'stationary_obst_collision': {
+            1: False,
+            2: False
+        },
+        'moving_obst_collision': {
+            1: False,
+            2: False
+        }
+    },
+}
+
+def TESTDATA_createSampleMission():
+    """Stores a sample mission in the database."""
+    (satisfy_dist, boundary_details, wpt_details, stationary_details,
+            moving_details, user_details) = TESTDATA_SAMPLE_MISSION
+    epoch = timezone.now().replace(
+            year=1970, month=1, day=1, hour=0, minute=0, second=0,
+            microsecond=0)
+    # Create user data
+    for (username, details) in user_details.iteritems():
+        (takeoff_details, info_details, obst_details, telem_details) = details
+        # Create user
+        user = User.objects.create_user(
+                username, 'testemail@x.com', 'testpass')
+        user.save()
+        # Create takeoff and landing events
+        for (timestamp, uas_in_air) in takeoff_details:
+            log = TakeoffOrLandingEvent()
+            log.user = user
+            log.uas_in_air = uas_in_air
+            log.save()
+            log.timestamp = epoch + datetime.timedelta(seconds=timestamp)
+            log.save()
+        # Create access log events
+        log_tuples = [(ServerInfoAccessLog, info_details),
+                      (ObstacleAccessLog, obst_details)]
+        for (Cls, times) in log_tuples:
+            for timestamp in times:
+                log = Cls()
+                log.user = user
+                log.save()
+                log.timestamp = epoch + datetime.timedelta(seconds=timestamp)
+                log.save()
+        # Create telemetry logs
+        for (lat, lon, alt, timestamp) in telem_details:
+            pos = GpsPosition()
+            pos.latitude = lat
+            pos.longitude = lon
+            pos.save()
+            apos = AerialPosition()
+            apos.gps_position = pos
+            apos.altitude_msl = alt
+            apos.save()
+            log = UasTelemetry()
+            log.user = user
+            log.uas_position = apos
+            log.uas_heading = 0
+            log.save()
+            log.timestamp = epoch + datetime.timedelta(seconds=timestamp)
+            log.save()
+
+    # Create dummy position
+    pos = GpsPosition()
+    pos.latitude = 10
+    pos.longitude = 100
+    pos.save()
+    apos = AerialPosition()
+    apos.altitude_msl = 1000
+    apos.gps_position = pos
+    apos.save()
+    wpt = Waypoint()
+    wpt.position = apos
+    wpt.order = 10
+    wpt.save()
+    # Create mission configuration
+    config = MissionConfig()
+    config.mission_waypoints_dist_max = satisfy_dist
+    config.home_pos = pos
+    config.emergent_last_known_pos = pos
+    config.off_axis_target_pos = pos
+    config.sric_pos = pos
+    config.ir_target_pos = pos
+    config.air_drop_pos = pos
+    config.save()
+    config.search_grid_points.add(wpt)
+    config.emergent_grid_points.add(wpt)
+    config.save()
+    # Add bounary positions
+    for (alt_min, alt_max, wpts) in boundary_details:
+        zone = FlyZone()
+        zone.altitude_msl_min = alt_min
+        zone.altitude_msl_max = alt_max
+        zone.save()
+        for wpt_id in xrange(len(wpts)):
+            (lat, lon) = wpts[wpt_id]
+            gpos = GpsPosition()
+            gpos.latitude = lat
+            gpos.longitude = lon
+            gpos.save()
+            apos = AerialPosition()
+            apos.gps_position = gpos
+            apos.altitude_msl = 0
+            apos.save()
+            wpt = Waypoint()
+            wpt.order = wpt_id
+            wpt.position = apos
+            wpt.save()
+            zone.boundary_pts.add(wpt)
+        zone.save()
+    # Create waypoints
+    for wpt_id in xrange(len(wpt_details)):
+        (lat, lon, alt) = wpt_details[wpt_id]
+        gpos = GpsPosition()
+        gpos.latitude = lat
+        gpos.longitude = lon
+        gpos.save()
+        apos = AerialPosition()
+        apos.gps_position = gpos
+        apos.altitude_msl = alt
+        apos.save()
+        wpt = Waypoint()
+        wpt.order = wpt_id
+        wpt.position = apos
+        wpt.save()
+        config.mission_waypoints.add(wpt)
+    config.save()
+    # Create stationary obstacles
+    for (lat, lon, radius, height) in stationary_details:
+        gpos = GpsPosition()
+        gpos.latitude = lat
+        gpos.longitude = lon
+        gpos.save()
+        obst = StationaryObstacle()
+        obst.gps_position = gpos
+        obst.cylinder_radius = radius
+        obst.cylinder_height = height
+        obst.save()
+    # Create moving obstacles
+    for (radius, speed, wpt_details) in moving_details:
+        obst = MovingObstacle()
+        obst.speed_avg = speed
+        obst.sphere_radius = radius
+        obst.save()
+        for wpt_id in xrange(len(wpt_details)):
+            (lat, lon, alt) = wpt_details[wpt_id]
+            gpos = GpsPosition()
+            gpos.latitude = lat
+            gpos.longitude = lon
+            gpos.save()
+            apos = AerialPosition()
+            apos.gps_position = gpos
+            apos.altitude_msl = alt
+            apos.save()
+            wpt = Waypoint()
+            wpt.order = wpt_id
+            wpt.position = apos
+            wpt.save()
+            obst.waypoints.add(wpt)
+        obst.save()
 
 
 def clearTestDatabase():
@@ -1571,7 +1831,28 @@ class TestMissionConfigModel(TestCase):
 
     def test_evaluateTeams(self):
         """Tests the evaluation of teams method."""
-        # TODO
+        # Create test data and perform eval
+        TESTDATA_createSampleMission()
+        config = MissionConfig.objects.all()[0]
+        eval_data = config.evaluateTeams()
+        # Convert output to username keyed
+        username_eval_data = dict()
+        for (user, data) in eval_data.iteritems():
+            username_eval_data[user.username] = data
+        # Assert equal to expected
+        dicts_to_process = [
+                (username_eval_data, TESTDATA_MISSIONCONFIG_EVALTEAMS)]
+        while dicts_to_process:
+            (dictA, dictB) = dicts_to_process.pop()
+            self.assertEqual(dictA.keys(), dictB.keys())
+            for (key, valA) in dictA.iteritems():
+                valB = dictB[key]
+                if type(valA) is dict:
+                    dicts_to_process.append((valA, valB))
+                elif type(valA) is float:
+                    self.assertAlmostEqual(valA, valB)
+                else:
+                    self.assertEqual(valA, valB)
 
 
 class TestLoginUserView(TestCase):
@@ -1639,6 +1920,7 @@ class TestGetServerInfoView(TestCase):
         self.client = Client()
         self.loginUrl = reverse('auvsi_suas:login')
         self.infoUrl = reverse('auvsi_suas:server_info')
+        logging.disable(logging.CRITICAL)
 
     def tearDown(self):
         """Destroys the user."""
@@ -1750,6 +2032,7 @@ class TestGetObstaclesView(TestCase):
         self.client = Client()
         self.loginUrl = reverse('auvsi_suas:login')
         self.obstUrl = reverse('auvsi_suas:obstacles')
+        logging.disable(logging.CRITICAL)
 
     def tearDown(self):
         """Destroys the user."""
@@ -1820,6 +2103,7 @@ class TestPostUasPosition(TestCase):
         self.client = Client()
         self.loginUrl = reverse('auvsi_suas:login')
         self.uasUrl = reverse('auvsi_suas:uas_telemetry')
+        logging.disable(logging.CRITICAL)
 
     def tearDown(self):
         """Destroys the user."""
@@ -1950,10 +2234,23 @@ class TestEvaluateTeams(TestCase):
 
     def setUp(self):
         """Sets up the tests."""
-        # Create the admin and non-admin users
-        # Store random data for each user
-        # Create a random mission configuration
-        # TODO
+        # Create mission data
+        TESTDATA_createSampleMission()
+        # Create nonadmin user
+        self.nonadmin_user = User.objects.create_user(
+                'testuser', 'testemail@x.com', 'testpass')
+        self.nonadmin_user.save()
+        self.nonadmin_client = Client()
+        # Create admin user
+        self.admin_user = User.objects.create_superuser(
+                'testuser2', 'testemail@x.com', 'testpass')
+        self.admin_user.save()
+        self.admin_client = Client()
+        # Create URLs for testing
+        self.loginUrl = reverse('auvsi_suas:login')
+        self.evalUrl = reverse('auvsi_suas:evaluate_teams')
+        logging.disable(logging.CRITICAL)
+
 
     def tearDown(self):
         """Tears down the tests."""
@@ -1961,13 +2258,28 @@ class TestEvaluateTeams(TestCase):
 
     def test_evaluateTeams_nonadmin(self):
         """Tests that you can only access data as admin."""
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        evalUrl = self.evalUrl
+        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        response = client.get(evalUrl)
+        self.assertGreaterEqual(response.status_code, 300)
 
     def test_evaluateTeams(self):
         """Tests the CSV method."""
-        # Login as admin
-        # Get the eval CSV
-        # Validate the heading line
-        # Validate the number of lines & usernames
-        # Validate the number of columns
-        # TODO
+        client = self.client
+        loginUrl = self.loginUrl
+        evalUrl = self.evalUrl
+        client.post(loginUrl, {'username': 'testuser2', 'password': 'testpass'})
+        response = client.get(evalUrl)
+        self.assertEqual(response.status_code, 200)
+        csv_data = response.content
+        # Check correct number of rows
+        self.assertEqual(len(csv_data.split('\n')), 4)
+        # Check some headers
+        self.assertTrue('username' in csv_data)
+        self.assertTrue('interop_times.server_info.min' in csv_data)
+        # Check username fields
+        self.assertTrue('user0' in csv_data)
+        self.assertTrue('user1' in csv_data)
+

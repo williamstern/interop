@@ -272,7 +272,7 @@ def evaluateTeams(request):
     logger.info('Admin downloaded team evaluation.')
     # Require admin access
     # Get the mission for evaluation
-    missions = MissionConfig.all()
+    missions = MissionConfig.objects.all()
     if not missions or not missions[0]:
         logger.error('No mission defined for which to evaluate teams.')
         return HttpResponseServerError('No mission defined.')
@@ -284,15 +284,15 @@ def evaluateTeams(request):
         return HttpResponseServerError('Could not get user evaluation data.')
     # Reformat to column oriented
     user_col_data = dict()
-    for (user, eval_data) in user_eval_data:
+    for (user, eval_data) in user_eval_data.iteritems():
         col_data = user_col_data.setdefault(user, dict())
         col_data['username'] = user.username
         work_queue = [([], eval_data)]
         while len(work_queue) > 0:
             (cur_prefixes, cur_map) = work_queue.pop()
-            for (key, val) in cur_map:
+            for (key, val) in cur_map.iteritems():
                 new_prefixes = copy.copy(cur_prefixes)
-                new_prefixes.append(key)
+                new_prefixes.append(str(key))
                 if isinstance(val, dict):
                     work_queue.append((new_prefixes, val))
                 else:
