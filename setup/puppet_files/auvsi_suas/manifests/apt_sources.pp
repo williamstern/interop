@@ -1,11 +1,12 @@
 # AUVSI SUAS Puppet Module: apt_sources
-# ==============================================================================
 # Enable all standard Ubuntu repos: main restricted universe multiverse
+# ==============================================================================
 
 include apt
 
 # apt_sources module definition
 class auvsi_suas::apt_sources {
+
     apt::source { "ubuntu_trusty":
         location        => "http://archive.ubuntu.com/ubuntu/",
         release         => "trusty",

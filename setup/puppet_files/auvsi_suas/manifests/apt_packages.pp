@@ -6,7 +6,7 @@
 class auvsi_suas::apt_packages {
 
     # Require aptitude sources
-    include auvsi_suas::apt_sources
+    require auvsi_suas::apt_sources
 
     # Package list
     $package_deps = [
@@ -48,7 +48,6 @@ class auvsi_suas::apt_packages {
         "libapache2-mod-php5",
         "libapache2-mod-python",
         "libapache2-mod-wsgi",
-        "libapache2-mod-fastcgi",
         "puppet-module-puppetlabs-apache",
         # General Python packages
         "python-numpy",

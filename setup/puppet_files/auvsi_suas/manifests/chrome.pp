@@ -1,4 +1,5 @@
 # AUVSI SUAS Puppet Module: chrome
+# Installs the latest Chrome web browser.
 # ==============================================================================
 
 include apt

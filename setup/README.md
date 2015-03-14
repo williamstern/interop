@@ -12,8 +12,8 @@ vagrant up
 ```
 
 This will download an Ubuntu base image, boot it and execute the Puppet
-manifest.  Port 8080 will be forwarded from the guest to the host to allow
-access to the SUAS server.
+manifest. Port 80 and 8080 will be forwarded from the guest to the host to
+allow access to the SUAS server.
 
 To setup a physical or prebuilt virtual machine, change the working directory
 to this directory, and execute script:
@@ -27,4 +27,7 @@ The automated setup script performs the following actions:
   2. Ugrades old packages to latest
   3. Installs the puppet package
   4. Downloads puppet modules (e.g. aptitude module)
-  5. Launches automated setup via puppet scripts
+  5. Launches automated dependency setup via puppet scripts
+  6. Backups any existing database
+  7. Creates new database with initial test admin
+     (username: testadmin, password: testpass)
