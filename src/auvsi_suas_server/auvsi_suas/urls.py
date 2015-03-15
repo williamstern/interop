@@ -1,4 +1,6 @@
 from django.conf.urls import patterns, url
+from django.conf import settings
+from django.conf.urls.static import static
 from auvsi_suas import views
 
 urlpatterns = patterns('',
@@ -13,5 +15,4 @@ urlpatterns = patterns('',
     url(r'^$', views.indexView, name='index'),
     url(r'^auvsi_admin/evaluate_teams.csv$', views.evaluateTeams,
         name='evaluate_teams'),
-)
-
+) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

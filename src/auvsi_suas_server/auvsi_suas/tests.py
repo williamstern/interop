@@ -1406,9 +1406,11 @@ class TestMovingObstacle(TestCase):
             return
 
         # Create directory for plot output
-        if os.path.exists('testOutput'):
-            shutil.rmtree('testOutput')
-        os.mkdir('testOutput')
+        if not os.path.exists('data'):
+            os.mkdir('data')
+        if os.path.exists('data/testOutput'):
+            shutil.rmtree('data/testOutput')
+        os.mkdir('data/testOutput')
 
         # Create plot for each path
         for obst_id in range(len(self.obstacles)):
@@ -1462,7 +1464,7 @@ class TestMovingObstacle(TestCase):
             plt.subplot(313)
             plt.plot(time_pos, altitudes, 'b',
                      waypoint_times, wpt_altitudes, 'rx')
-            plt.savefig(('testOutput/auvsi_suas-MovingObstacle-getPosition-%d.jpg' %
+            plt.savefig(('data/testOutput/auvsi_suas-MovingObstacle-getPosition-%d.jpg' %
                     obst_id))
 
     def test_containsPos(self):

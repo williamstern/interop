@@ -39,7 +39,6 @@ class auvsi_suas::apt_packages {
         "google-perftools",
         # Apache
         "php5",
-        "apache2",
         "apache2-utils",
         "libapache2-mod-apparmor",
         "libapache2-mod-auth-mysql",
@@ -48,7 +47,6 @@ class auvsi_suas::apt_packages {
         "libapache2-mod-php5",
         "libapache2-mod-python",
         "libapache2-mod-wsgi",
-        "puppet-module-puppetlabs-apache",
         # General Python packages
         "python-numpy",
         "python3-numpy",
