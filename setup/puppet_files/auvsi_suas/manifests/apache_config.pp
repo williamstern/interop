@@ -25,8 +25,8 @@ class auvsi_suas::apache_config {
       wsgi_application_group => '%{GLOBAL}',
       wsgi_daemon_process => 'wsgi',
       wsgi_daemon_process_options => {
-        processes => '2',
-        threads => '15',
+        processes => '1',
+        threads => '1',
         display-name => '%{GROUP}',
       },
       wsgi_import_script => '/auvsi_suas_competition/src/auvsi_suas_server/auvsi_suas_server/wsgi.py',

@@ -160,7 +160,7 @@ InteropRequest.register(UasTelemetryRequest)
 class InteroperabilityClient(threading.Thread):
     """Interoperability client which can make requests async."""
 
-    def __init__(self, host, max_queued=1000):
+    def __init__(self, host, max_queued=30):
         """Creates a client with the given host.
 
         Args:
