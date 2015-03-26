@@ -23,9 +23,8 @@ class auvsi_suas::apt_packages {
         "python",
         "python3",
         # Database
-        "mysql-client",
-        "mysql-server",
         "sqlite3",
+        "python-mysqldb",
         # Source control
         "git",
         # Plotting

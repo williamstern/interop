@@ -6,9 +6,6 @@
 class auvsi_suas::apache_config {
     # Need apache installed
     require auvsi_suas::apt_packages
-    # Need apache class
-#    include apache
-#    include apache::mod::wsgi
 
     # Configure apache defaults
     class { 'apache':
@@ -25,8 +22,8 @@ class auvsi_suas::apache_config {
       wsgi_application_group => '%{GLOBAL}',
       wsgi_daemon_process => 'wsgi',
       wsgi_daemon_process_options => {
-        processes => '1',
-        threads => '1',
+        processes => '2',
+        threads => '6',
         display-name => '%{GROUP}',
       },
       wsgi_import_script => '/auvsi_suas_competition/src/auvsi_suas_server/auvsi_suas_server/wsgi.py',

@@ -60,8 +60,12 @@ WSGI_APPLICATION = 'auvsi_suas_server.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'data/db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'auvsi_suas_db',
+        'USER': 'mysql_user',
+        'PASSWORD': 'mysql_pass',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 

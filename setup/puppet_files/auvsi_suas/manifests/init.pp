@@ -6,6 +6,6 @@
 # setup all system dependencies.
 class auvsi_suas {
     include auvsi_suas::apt_packages
-    include auvsi_suas::chrome
     include auvsi_suas::apache_config
+    include auvsi_suas::mysql_config
 }

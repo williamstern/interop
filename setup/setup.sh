@@ -40,11 +40,5 @@ if [ ! -d data ]
 then
     mkdir data;
 fi
-if [ -f data/db.sqlite3 ]
-then 
-    sudo mv data/db.sqlite3 "data/db.sqlite3.`date`";
-fi
 sudo python manage.py syncdb --noinput;
-sudo chown www-data:www-data data;
-sudo chown www-data:www-data data/db.sqlite3;
 )
