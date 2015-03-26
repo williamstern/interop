@@ -463,12 +463,12 @@ TESTDATA_MISSIONCONFIG_EVALTEAMS = {
             },
         },
         'stationary_obst_collision': {
-            1: True,
-            2: False
+            25: True,
+            26: False
         },
         'moving_obst_collision': {
-            1: True,
-            2: False
+            25: True,
+            26: False
         }
     },
     'user1': {
@@ -495,12 +495,12 @@ TESTDATA_MISSIONCONFIG_EVALTEAMS = {
             },
         },
         'stationary_obst_collision': {
-            1: False,
-            2: False
+            25: False,
+            26: False
         },
         'moving_obst_collision': {
-            1: False,
-            2: False
+            25: False,
+            26: False
         }
     },
 }

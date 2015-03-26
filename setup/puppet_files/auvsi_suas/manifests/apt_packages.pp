@@ -25,6 +25,7 @@ class auvsi_suas::apt_packages {
         # Database
         "sqlite3",
         "python-mysqldb",
+        "python-psycopg2",
         # Source control
         "git",
         # Plotting

@@ -60,12 +60,14 @@ WSGI_APPLICATION = 'auvsi_suas_server.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'auvsi_suas_db',
-        'USER': 'mysql_user',
-        'PASSWORD': 'mysql_pass',
+        'USER': 'postgresql_user',
+        'PASSWORD': 'postgresql_pass',
         'HOST': 'localhost',
-        'PORT': '3306',
+        'TEST': {
+            'NAME': 'test_auvsi_suas_db',
+        },
     }
 }
 

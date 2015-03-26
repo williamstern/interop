@@ -7,5 +7,5 @@
 class auvsi_suas {
     include auvsi_suas::apt_packages
     include auvsi_suas::apache_config
-    include auvsi_suas::mysql_config
+    include auvsi_suas::postgresql_config
 }

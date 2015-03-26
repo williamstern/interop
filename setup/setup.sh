@@ -28,6 +28,7 @@ sudo puppet module install -f puppetlabs-apache
 sudo puppet module install -f puppetlabs-concat
 sudo puppet module install -f puppetlabs-mysql
 sudo puppet module install -f puppetlabs-ntp
+sudo puppet module install -f puppetlabs-postgresql
 
 # Launch the Puppet process. Installs dependencies and configures Apache.
 sudo puppet apply --modulepath=${PWD}/puppet_files:/etc/puppet/modules/:/usr/share/puppet/modules/ puppet_files/auvsi_suas.pp
