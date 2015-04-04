@@ -119,7 +119,7 @@ class Waypoint(models.Model):
     # Aerial position
     position = models.ForeignKey(AerialPosition)
     # Waypoint relative order number. Should be unique per waypoint set.
-    order = models.IntegerField()
+    order = models.IntegerField(db_index=True)
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
@@ -160,9 +160,9 @@ class ServerInfo(models.Model):
 class AccessLog(models.Model):
     """Base class which logs access of information."""
     # Timestamp of the access
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
     # The user which accessed the data
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, db_index=True)
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
