@@ -1981,8 +1981,8 @@ class TestGetServerInfoView(TestCase):
         total_t = end_t - start_t
         op_rate = total_ops / total_t
 
-        self.assertGreaterEqual(op_rate, OP_RATE_INDIV_THRESH)
         print 'Server Info Rate (%f)' % op_rate
+        self.assertGreaterEqual(op_rate, OP_RATE_INDIV_THRESH)
 
 
 class TestGetObstaclesView(TestCase):
@@ -2090,8 +2090,8 @@ class TestGetObstaclesView(TestCase):
         total_t = end_t - start_t
         op_rate = total_ops / total_t
 
-        self.assertGreaterEqual(op_rate, OP_RATE_INDIV_THRESH)
         print 'Obstacle Info Rate (%f)' % op_rate
+        self.assertGreaterEqual(op_rate, OP_RATE_INDIV_THRESH)
 
 
 class TestPostUasPosition(TestCase):
@@ -2227,8 +2227,8 @@ class TestPostUasPosition(TestCase):
         total_t = end_t - start_t
         op_rate = total_ops / total_t
 
-        self.assertGreaterEqual(op_rate, OP_RATE_INDIV_THRESH)
         print 'UAS Post Rate (%f)' % op_rate
+        self.assertGreaterEqual(op_rate, OP_RATE_INDIV_THRESH)
 
 
 class TestEvaluateTeams(TestCase):
