@@ -13,12 +13,5 @@ Exec {
     logoutput => true,
 }
 
-# Run apt update before anything else
-exec { "apt-update":
-    command => "/usr/bin/apt-get update"
-}
-
-Exec["apt-update"] -> Package <| |>
-
 # Execute puppet setup for AUVSI SUAS
 include auvsi_suas
