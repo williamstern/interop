@@ -2,11 +2,8 @@
 # Enable all standard Ubuntu repos: main restricted universe multiverse
 # ==============================================================================
 
-
 # apt_sources module definition
 class auvsi_suas::apt_sources {
-
-    include apt
 
     apt::source { "ubuntu_trusty":
         location        => "http://archive.ubuntu.com/ubuntu/",

@@ -48,6 +48,7 @@ class auvsi_suas::apt_packages {
         "libapache2-mod-python",
         "libapache2-mod-wsgi",
         # General Python packages
+        "python-pip",
         "python-numpy",
         "python3-numpy",
         "python-scipy",

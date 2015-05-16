@@ -12,16 +12,20 @@ from auvsi_suas.models import TakeoffOrLandingEvent
 from auvsi_suas.models import UasTelemetry
 from auvsi_suas.models import Waypoint
 
+# Define model admin which has better defaults for large amounts of data.
+class LargeDataModelAdmin(admin.ModelAdmin):
+    show_full_result_count = False
+
 # Register models for admin page
-admin.site.register(AerialPosition)
+admin.site.register(AerialPosition, LargeDataModelAdmin)
 admin.site.register(FlyZone)
-admin.site.register(GpsPosition)
+admin.site.register(GpsPosition, LargeDataModelAdmin)
 admin.site.register(MissionConfig)
 admin.site.register(MovingObstacle)
-admin.site.register(ObstacleAccessLog)
+admin.site.register(ObstacleAccessLog, LargeDataModelAdmin)
 admin.site.register(ServerInfo)
-admin.site.register(ServerInfoAccessLog)
+admin.site.register(ServerInfoAccessLog, LargeDataModelAdmin)
 admin.site.register(StationaryObstacle)
-admin.site.register(UasTelemetry)
+admin.site.register(UasTelemetry, LargeDataModelAdmin)
 admin.site.register(TakeoffOrLandingEvent)
 admin.site.register(Waypoint)
