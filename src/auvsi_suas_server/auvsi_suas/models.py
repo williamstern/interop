@@ -65,6 +65,25 @@ def knotsToFeetPerSecond(knots):
     return knots * 1.6878098571011957
 
 
+def distanceTo(
+        latitude_1, longitude_1, altitude_1,
+        latitude_2, longitude_2, altitude_2):
+    """Get the distance in feet between the two positions.
+    Args:
+        latitude_1: The latitude of the first position.
+        longitude_1: The longitude of the first position.
+        altitude_1: The altitude in feet of the first position.
+        latitude_2: The latitude of the second position.
+        longitude_2: The longitude of the second position.
+        altitude_2: The altitude in feet of the second position.
+    """
+    gps_dist_km = haversine(
+            longitude_1, latitude_1, longitude_2, latitude_2)
+    gps_dist_ft = kilometersToFeet(gps_dist_km)
+    alt_dist_ft = abs(altitude_1 - altitude_2)
+    return math.hypot(gps_dist_ft, alt_dist_ft)
+
+
 class GpsPosition(models.Model):
     """GPS position consisting of a latitude and longitude degree value."""
     # Latitude in degrees
@@ -74,8 +93,8 @@ class GpsPosition(models.Model):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        return unicode("GpsPosition (pk:%d, lat:%f, lon:%f)" %
-                       (self.pk, self.latitude, self.longitude))
+        return unicode("GpsPosition (pk:%s, lat:%s, lon:%s)" %
+                       (str(self.pk), str(self.latitude), str(self.longitude)))
 
     def distanceTo(self, other):
         """Computes distance to another position.
@@ -84,23 +103,22 @@ class GpsPosition(models.Model):
         Returns:
           Distance in feet.
         """
-        dist = haversine(
-                self.longitude, self.latitude, other.longitude, other.latitude)
-        # Convert km to feet
-        return kilometersToFeet(dist)
+        return distanceTo(
+                self.latitude, self.longitude, 0,
+                other.latitude, other.longitude, 0)
 
 
 class AerialPosition(models.Model):
     """Aerial position which consists of a GPS position and an altitude."""
     # GPS position
     gps_position = models.ForeignKey(GpsPosition)
-    # Above ground level (AGL) altitude in feet
+    # Altitude (MSL) in feet
     altitude_msl = models.FloatField()
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        return unicode("AerialPosition (pk:%d, alt:%f, gps:%s)" %
-                       (self.pk, self.altitude_msl,
+        return unicode("AerialPosition (pk:%s, alt:%s, gps:%s)" %
+                       (str(self.pk), str(self.altitude_msl),
                         self.gps_position.__unicode__()))
 
     def distanceTo(self, other):
@@ -110,8 +128,11 @@ class AerialPosition(models.Model):
         Returns:
           Distance in feet.
         """
-        return math.hypot(abs(self.altitude_msl - other.altitude_msl),
-                          self.gps_position.distanceTo(other.gps_position))
+        return distanceTo(
+                self.gps_position.latitude, self.gps_position.longitude,
+                self.altitude_msl,
+                other.gps_position.latitude, other.gps_position.longitude,
+                other.altitude_msl)
 
 
 class Waypoint(models.Model):
@@ -123,8 +144,9 @@ class Waypoint(models.Model):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        return unicode("Waypoint (pk:%d, order:%d, pos:%s)" %
-                       (self.pk, self.order, self.position.__unicode__()))
+        return unicode("Waypoint (pk:%s, order:%s, pos:%s)" %
+                       (str(self.pk), str(self.order),
+                        self.position.__unicode__()))
 
     def distanceTo(self, other):
         """Computes distance to another waypoint.
@@ -145,8 +167,8 @@ class ServerInfo(models.Model):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        return unicode("ServerInfo (pk:%d, msg:%s, timestamp:%s)" %
-                       (self.pk, self.team_msg, str(self.timestamp)))
+        return unicode("ServerInfo (pk:%s, msg:%s, timestamp:%s)" %
+                       (str(self.pk), str(self.team_msg), str(self.timestamp)))
 
     def toJSON(self):
         """Obtain a JSON style representation of object."""
@@ -166,8 +188,8 @@ class AccessLog(models.Model):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        return unicode("%s (pk:%d, user:%s, timestamp:%s)" %
-                       (self.__class__.__name__, self.pk,
+        return unicode("%s (pk:%s, user:%s, timestamp:%s)" %
+                       (self.__class__.__name__, str(self.pk),
                         self.user.__unicode__(), str(self.timestamp)))
 
 
@@ -304,10 +326,10 @@ class UasTelemetry(AccessLog):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        return unicode("UasTelemetry (pk:%d, user:%s, timestamp:%s, "
-                       "heading:%f, pos:%s)" %
-                       (self.pk, self.user.__unicode__(),
-                        str(self.timestamp), self.uas_heading,
+        return unicode("UasTelemetry (pk:%s, user:%s, timestamp:%s, "
+                       "heading:%s, pos:%s)" %
+                       (str(self.pk), self.user.__unicode__(),
+                        str(self.timestamp), str(self.uas_heading),
                         self.uas_position.__unicode__()))
 
 
@@ -318,10 +340,10 @@ class TakeoffOrLandingEvent(AccessLog):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        return unicode('TakeoffOrLandingEvent (pk%d, user:%s, timestamp:%s, '
+        return unicode('TakeoffOrLandingEvent (pk%s, user:%s, timestamp:%s, '
                        'uas_in_air:%s)' %
-                       (self.pk, self.user.__unicode__(), self.timestamp,
-                        str(self.uas_in_air)))
+                       (str(self.pk), self.user.__unicode__(),
+                        str(self.timestamp), str(self.uas_in_air)))
 
     @classmethod
     def getFlightPeriodsForUser(cls, user):
@@ -379,9 +401,10 @@ class StationaryObstacle(models.Model):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        return unicode("StationaryObstacle (pk:%d, radius:%f, height:%f, "
+        return unicode("StationaryObstacle (pk:%s, radius:%s, height:%s, "
                        "gps:%s)" %
-                       (self.pk, self.cylinder_radius, self.cylinder_height,
+                       (str(self.pk), str(self.cylinder_radius),
+                        str(self.cylinder_height),
                         self.gps_position.__unicode__()))
 
 
@@ -450,10 +473,10 @@ class MovingObstacle(models.Model):
         waypoints_strs = ["%s" % wpt.__unicode__()
                           for wpt in self.waypoints.all()]
         waypoints_str = ", ".join(waypoints_strs)
-        return unicode("MovingObstacle (pk:%d, speed:%f, radius:%f, "
+        return unicode("MovingObstacle (pk:%s, speed:%s, radius:%s, "
                        "waypoints:[%s])" %
-                       (self.pk, self.speed_avg, self.sphere_radius,
-                        waypoints_str))
+                       (str(self.pk), str(self.speed_avg),
+                        str(self.sphere_radius), waypoints_str))
 
     def getWaypointTravelTime(self, waypoints, id_tm1, id_t):
         """Gets the travel time to the current waypoint from a previous.
@@ -614,16 +637,22 @@ class MovingObstacle(models.Model):
 
         return (latitude, longitude, altitude_msl)
 
-    def containsPos(self, obst_pos, aerial_pos):
+    def containsPos(self, obst_lat, obst_lon, obst_alt, aerial_pos):
         """Whether the pos is contained within the obstacle's pos.
 
         Args:
-            obst_pos: The position of the obstacle. Use getPosition().
+            obst_lat: The latitude of the obstacle.
+            obst_lon: The longitude of the obstacle.
+            obst_alt: The altitude of the obstacle.
             aerial_pos: The position to test.
         Returns:
             Whether the given position is inside the obstacle.
         """
-        dist_to_center = obst_pos.distanceTo(aerial_pos)
+        dist_to_center = distanceTo(
+                obst_lat, obst_lon, obst_alt,
+                aerial_pos.gps_position.latitude,
+                aerial_pos.gps_position.longitude,
+                aerial_pos.altitude_msl)
         return dist_to_center <= self.sphere_radius
 
     def evaluateCollisionWithUas(self, uas_telemetry_logs):
@@ -638,13 +667,7 @@ class MovingObstacle(models.Model):
         """
         for cur_log in uas_telemetry_logs:
             (lat, lon, alt) = self.getPosition(cur_log.timestamp)
-            gpos = GpsPosition()
-            gpos.latitude = lat
-            gpos.longitude = lon
-            apos = AerialPosition()
-            apos.gps_position = gpos
-            apos.altitude_msl = alt
-            if self.containsPos(apos, cur_log.uas_position):
+            if self.containsPos(lat, lon, alt, cur_log.uas_position):
                 return True
         return False
 
@@ -664,9 +687,9 @@ class FlyZone(models.Model):
     """An approved area for UAS flight. UAS shall be in at least one zone."""
     # The polygon defining the boundary of the zone.
     boundary_pts = models.ManyToManyField(Waypoint)
-    # The minimum altitude of the zone (AGL) in feet
+    # The minimum altitude of the zone (MSL) in feet
     altitude_msl_min = models.FloatField()
-    # The maximum altitude of the zone (AGL) in feet
+    # The maximum altitude of the zone (MSL) in feet
     altitude_msl_max = models.FloatField()
 
     def __unicode__(self):
@@ -674,10 +697,10 @@ class FlyZone(models.Model):
         boundary_strs = ["%s" % wpt.__unicode__()
                           for wpt in self.boundary_pts.all()]
         boundary_str = ", ".join(boundary_strs)
-        return unicode("FlyZone (pk:%d, alt_min:%f, alt_max:%f, "
+        return unicode("FlyZone (pk:%s, alt_min:%s, alt_max:%s, "
                        "boundary_pts:[%s])" %
-                       (self.pk, self.altitude_msl_min, self.altitude_msl_max,
-                        boundary_str))
+                       (str(self.pk), str(self.altitude_msl_min),
+                        str(self.altitude_msl_max), boundary_str))
 
     def containsPos(self, aerial_pos):
         """Whether the given pos is inside the zone.
@@ -830,13 +853,13 @@ class MissionConfig(models.Model):
                 ["%s" % wpt.__unicode__()
                  for wpt in self.emergent_grid_points.all()])
 
-        return unicode("MissionConfig (pk:%d, home_pos:%s, "
-                       "mission_waypoints_dist_max:%f, "
+        return unicode("MissionConfig (pk:%s, home_pos:%s, "
+                       "mission_waypoints_dist_max:%s, "
                        "mission_waypoints:[%s], search_grid:[%s], "
                        "emergent_grid:[%s], emergent_lkp:%s, off_axis:%s, "
                        "sric_pos:%s, ir_pos:%s, air_drop_pos:%s)" %
-                       (self.pk, self.home_pos.__unicode__(),
-                        self.mission_waypoints_dist_max,
+                       (str(self.pk), self.home_pos.__unicode__(),
+                        str(self.mission_waypoints_dist_max),
                         mission_waypoints_str, search_grid_str,
                         emergent_grid_str,
                         self.emergent_last_known_pos.__unicode__(),

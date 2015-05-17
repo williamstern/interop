@@ -813,15 +813,19 @@ class TestAerialPositionModel(TestCase):
     def eval_distanceTo_input(self, lon1, lat1, alt1, lon2, lat2, alt2,
             dist_actual):
         """Evaluates the distanceTo calc with the given inputs."""
+        gpos1 = GpsPosition()
+        gpos1.latitude = lat1
+        gpos1.longitude = lon1
+        gpos1.save()
         pos1 = AerialPosition()
-        pos1.gps_position = GpsPosition()
-        pos1.gps_position.latitude = lat1
-        pos1.gps_position.longitude = lon1
+        pos1.gps_position = gpos1
         pos1.altitude_msl = alt1
+        gpos2 = GpsPosition()
+        gpos2.latitude = lat2
+        gpos2.longitude = lon2
+        gpos2.save()
         pos2 = AerialPosition()
-        pos2.gps_position = GpsPosition()
-        pos2.gps_position.latitude = lat2
-        pos2.gps_position.longitude = lon2
+        pos2.gps_position = gpos2
         pos2.altitude_msl = alt2
         dist12 = pos1.distanceTo(pos2)
         dist21 = pos2.distanceTo(pos1)
@@ -878,18 +882,24 @@ class TestWaypointModel(TestCase):
         """Tests the distance calculation executes correctly."""
         for (lon1, lat1, alt1,
                 lon2, lat2, alt2, dist_actual) in TESTDATA_COMPETITION_3D_DIST:
+            gpos1 = GpsPosition()
+            gpos1.latitude = lat1
+            gpos1.longitude = lon1
+            gpos1.save()
             pos1 = AerialPosition()
-            pos1.gps_position = GpsPosition()
-            pos1.gps_position.latitude = lat1
-            pos1.gps_position.longitude = lon1
+            pos1.gps_position = gpos1
             pos1.altitude_msl = alt1
+            pos1.save()
             wpt1 = Waypoint()
             wpt1.position = pos1
+            gpos2 = GpsPosition()
+            gpos2.latitude = lat2
+            gpos2.longitude = lon2
+            gpos2.save()
             pos2 = AerialPosition()
-            pos2.gps_position = GpsPosition()
-            pos2.gps_position.latitude = lat2
-            pos2.gps_position.longitude = lon2
+            pos2.gps_position = gpos2
             pos2.altitude_msl = alt2
+            pos2.save()
             wpt2 = Waypoint()
             wpt2.position = pos2
             self.assertEqual(pos1.distanceTo(pos2), wpt1.distanceTo(wpt2))
@@ -1138,6 +1148,7 @@ class TestStationaryObstacleModel(TestCase):
         gps_position = GpsPosition()
         gps_position.latitude = TESTDATA_STATOBST_CONTAINSPOS_OBJ[0]
         gps_position.longitude = TESTDATA_STATOBST_CONTAINSPOS_OBJ[1]
+        gps_position.save()
         obst = StationaryObstacle()
         obst.gps_position = gps_position
         obst.cylinder_radius = TESTDATA_STATOBST_CONTAINSPOS_OBJ[2]
@@ -1152,6 +1163,7 @@ class TestStationaryObstacleModel(TestCase):
                 gps_position = GpsPosition()
                 gps_position.latitude = lat
                 gps_position.longitude = lon
+                gps_position.save()
                 aerial_pos = AerialPosition()
                 aerial_pos.gps_position = gps_position
                 aerial_pos.altitude_msl = alt
@@ -1217,6 +1229,7 @@ class TestStationaryObstacleModel(TestCase):
         gps_position = GpsPosition()
         gps_position.latitude = TEST_LAT
         gps_position.longitude = TEST_LONG
+        gps_position.save()
         obstacle = StationaryObstacle()
         obstacle.gps_position = gps_position
         obstacle.cylinder_radius = TEST_RADIUS
@@ -1361,21 +1374,25 @@ class TestMovingObstacle(TestCase):
             for speed in test_spds:
                 speed_fps = knotsToFeetPerSecond(speed)
                 time = dist_ft / speed_fps
-                wpt1 = Waypoint()
-                apos1 = AerialPosition()
                 gpos1 = GpsPosition()
                 gpos1.latitude = lat1
                 gpos1.longitude = lon1
+                gpos1.save()
+                apos1 = AerialPosition()
                 apos1.gps_position = gpos1
                 apos1.altitude_msl = 0
+                apos1.save()
+                wpt1 = Waypoint()
                 wpt1.position = apos1
-                wpt2 = Waypoint()
-                apos2 = AerialPosition()
                 gpos2 = GpsPosition()
                 gpos2.latitude = lat2
                 gpos2.longitude = lon2
+                gpos2.save()
+                apos2 = AerialPosition()
                 apos2.gps_position = gpos2
                 apos2.altitude_msl = 0
+                apos2.save()
+                wpt2 = Waypoint()
                 wpt2.position = apos2
                 waypoints = [wpt1, wpt2]
                 obstacle = MovingObstacle()
@@ -1470,12 +1487,6 @@ class TestMovingObstacle(TestCase):
     def test_containsPos(self):
         """Tests the inside obstacle method."""
         # Form the test obstacle
-        gps_position = GpsPosition()
-        gps_position.latitude = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[0]
-        gps_position.longitude = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[1]
-        obst_pos = AerialPosition()
-        obst_pos.gps_position = gps_position
-        obst_pos.altitude_msl = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[3]
         obst = MovingObstacle()
         obst.sphere_radius = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[2]
         # Run test points against obstacle
@@ -1485,14 +1496,20 @@ class TestMovingObstacle(TestCase):
         ]
         for (cur_data, cur_contains) in test_data:
             for (lat, lon, alt) in cur_data:
-                gps_position = GpsPosition()
-                gps_position.latitude = lat
-                gps_position.longitude = lon
-                aerial_pos = AerialPosition()
-                aerial_pos.gps_position = gps_position
-                aerial_pos.altitude_msl = alt
-                self.assertEqual(obst.containsPos(obst_pos, aerial_pos),
-                                 cur_contains)
+                gpos = GpsPosition()
+                gpos.latitude = lat
+                gpos.longitude = lon
+                gpos.save()
+                apos = AerialPosition()
+                apos.gps_position = gpos
+                apos.altitude_msl = alt
+                self.assertEqual(
+                        obst.containsPos(
+                            TESTDATA_MOVOBST_CONTAINSPOS_OBJ[0],
+                            TESTDATA_MOVOBST_CONTAINSPOS_OBJ[1],
+                            TESTDATA_MOVOBST_CONTAINSPOS_OBJ[3],
+                            apos),
+                        cur_contains)
 
     def test_evaluateCollisionWithUas(self):
         """Tests the collision with UAS method."""
@@ -1651,6 +1668,7 @@ class TestFlyZone(TestCase):
                 gpos = GpsPosition()
                 gpos.latitude = lat
                 gpos.longitude = lon
+                gpos.save()
                 apos = AerialPosition()
                 apos.altitude_msl = alt
                 apos.gps_position = gpos
@@ -1665,6 +1683,7 @@ class TestFlyZone(TestCase):
                 gpos = GpsPosition()
                 gpos.latitude = lat
                 gpos.longitude = lon
+                gpos.save()
                 apos = AerialPosition()
                 apos.altitude_msl = alt
                 apos.gps_position = gpos
