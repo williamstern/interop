@@ -40,7 +40,7 @@ sudo puppet apply --modulepath=${PWD}/puppet_files:/etc/puppet/modules/:/usr/sha
 
 # Setup Django through pip to get latest official version.
 printf "${C}Installing Django...${NC}\n"
-sudo pip install Django --upgrade
+sudo pip install --upgrade Django==1.8.1
 
 # Create the database with a test admin
 # (username: testadmin, password: testpass)
