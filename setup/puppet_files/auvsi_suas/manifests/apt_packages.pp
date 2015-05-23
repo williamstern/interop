@@ -19,12 +19,9 @@ class auvsi_suas::apt_packages {
         "openssl",
         "rsync",
         "vim",
-        # Languages
-        "python",
         # Database
         "sqlite3",
         "python-mysqldb",
-        "python-psycopg2",
         # Source control
         "git",
         # Apache
@@ -34,12 +31,6 @@ class auvsi_suas::apt_packages {
         "libapache2-mod-auth-plain",
         "libapache2-mod-python",
         "libapache2-mod-wsgi",
-        # General Python packages
-        "python-pip",
-        "python-numpy",
-        "python-scipy",
-        "python-openssl",
-        "python-matplotlib",
     ]
 
     # Install packages

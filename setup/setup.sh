@@ -33,14 +33,11 @@ sudo puppet module install -f puppetlabs-concat
 sudo puppet module install -f puppetlabs-mysql
 sudo puppet module install -f puppetlabs-ntp
 sudo puppet module install -f puppetlabs-postgresql
+sudo puppet module install -f stankevich-python
 
 # Launch the Puppet process. Installs dependencies and configures Apache.
 printf "${C}Executing Puppet setup...${NC}\n"
 sudo puppet apply --modulepath=${PWD}/puppet_files:/etc/puppet/modules/:/usr/share/puppet/modules/ puppet_files/auvsi_suas.pp
-
-# Setup Django through pip to get latest official version.
-printf "${C}Installing Django...${NC}\n"
-sudo pip install --upgrade Django==1.8.1
 
 # Create the database with a test admin
 # (username: testadmin, password: testpass)
