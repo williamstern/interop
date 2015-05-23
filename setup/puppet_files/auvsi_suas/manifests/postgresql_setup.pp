@@ -1,12 +1,8 @@
-# AUVSI SUAS Puppet Module: postgresql_config
+# AUVSI SUAS Puppet Module: postgresql_setup
 # Configures the Postgres server.
 # ==============================================================================
 
-# postgresql_config module definition
-class auvsi_suas::postgresql_config {
-    # Need postgres installed
-    require auvsi_suas::apt_packages
-
+class auvsi_suas::postgresql_setup {
     # Setup postgresql server
     class { 'postgresql::server':
         postgres_password => 'postgresql_pass',
@@ -46,7 +42,7 @@ class auvsi_suas::postgresql_config {
     }
     # Fsync guarantees consistency of database. Synchronous commit waits for
     # flush to disk before responding to client. In this application, it is
-    # safe to respond success and lose the write if server crashes. 
+    # safe to respond success and lose the write if server crashes.
     # Turn off for faster responses to client.
     postgresql::server::config_entry { 'synchronous_commit':
         value => 'off',

@@ -8,4 +8,17 @@ class auvsi_suas::base {
         version => 'system',
         pip     => true,
     }
+
+    # Some core programs
+    $package_deps = [
+        "ntp",
+        "openssh-client",
+        "openssh-server",
+        "rsync",
+        "vim",
+        "git",
+    ]
+    package { $package_deps:
+        ensure => "latest",
+    }
 }
