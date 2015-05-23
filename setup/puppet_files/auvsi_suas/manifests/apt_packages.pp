@@ -40,26 +40,6 @@ class auvsi_suas::apt_packages {
         "python-scipy",
         "python-openssl",
         "python-matplotlib",
-        # Django
-        "python-django",
-        "python-django-auth-ldap",
-        "python-django-auth-openid",
-        "python-django-debug-toolbar",
-        "python-django-extensions",
-        "python-django-extra-views",
-        "python-django-filter",
-        "python-django-filters",
-        "python-django-lint",
-        "python-django-model-utils",
-        "python-django-notification",
-        "python-django-oauth-plus",
-        "python-django-openid-auth",
-        "python-django-pagination",
-        "python-django-pipeline",
-        "python-django-ratelimit",
-        "python-django-shorturls",
-        "python-django-shortuuidfield",
-        "python-django-websocket",
     ]
 
     # Install packages
