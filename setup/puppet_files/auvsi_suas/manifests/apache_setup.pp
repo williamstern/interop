@@ -43,8 +43,8 @@ class auvsi_suas::apache_setup {
       },
       error_log_file => 'auvsi_suas_server.debug.log',
       aliases => [
-        { alias => '/static/admin',
-          path => '/usr/lib/python2.7/dist-packages/django/contrib/admin/static/admin/',
+        { alias => '/static',
+          path => '/auvsi_suas_competition/src/auvsi_suas_server/auvsi_suas/static',
         },
       ],
     }

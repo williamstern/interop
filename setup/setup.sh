@@ -64,11 +64,12 @@ sudo puppet apply --modulepath=${SETUP}/puppet_files:/etc/puppet/modules/ \
 
 # Create the database with a test admin
 # (username: testadmin, password: testpass)
-log "Creating data folder & setting up database..."
+log "Preparing server..."
 (cd ${REPO}/src/auvsi_suas_server;
     mkdir -p data;
     python manage.py migrate auth;
     python manage.py migrate sessions;
     python manage.py migrate admin;
     python manage.py migrate;
-    python manage.py syncdb --noinput;)
+    python manage.py syncdb --noinput;
+    python manage.py collectstatic --noinput;)
