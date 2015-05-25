@@ -141,3 +141,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'auvsi_suas/static')
 # Login URL
 
 LOGIN_URL='/login'
+
+# Migrations
+MIGRATION_MODULES = {
+    'auvsi_suas': 'auvsi_suas.migrations.auvsi_suas',
+}
