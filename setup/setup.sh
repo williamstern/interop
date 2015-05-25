@@ -1,59 +1,63 @@
+#!/bin/bash
+
 # This script launches the Puppet automated dependency installer.
 # ==============================================================================
-
-C='\033[0;32m'
-NC='\033[0m'
 
 # Quit immediately on any error
 set -e
 
+SETUP=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+REPO=$(readlink -f ${SETUP}/..)
+
+# $1 = log message
+function log() {
+    local C='\033[0;32m'
+    local NC='\033[0m'
+    printf "${C}$1${NC}\n"
+}
+
+# $1 = module name
+function ensure_puppet_module() {
+    local module="$1"
+    local installed=0
+
+    if sudo puppet module list | grep -q ${module}; then
+        installed=1
+    fi
+
+    if [[ ${installed} == 0 ]]; then
+        sudo puppet module install ${version_arg} ${module}
+    else
+        log "Puppet module \"${module}\" already installed"
+    fi
+}
+
 # Create soft link from repo to standardize scripts
-printf "${C}Creating softlinks...${NC}\n"
-if [ -h /auvsi_suas_competition ]
-then
-    sudo rm /auvsi_suas_competition;
-fi
-sudo ln -s ${PWD}/.. /auvsi_suas_competition
+log "Creating softlinks..."
+sudo ln -snf ${REPO} /auvsi_suas_competition
 
 # Update the package list
-printf "${C}Updating package list and upgrading packages...${NC}\n"
+log "Updating package list and upgrading packages..."
 sudo apt-get -y update
 # Upgrade old packages
 sudo apt-get -y upgrade
 
 # Install Puppet
-printf "${C}Installing Puppet and modules...${NC}\n"
+log "Installing Puppet and modules..."
 sudo apt-get -y install puppet
 # Install puppet modules
 sudo mkdir -p /etc/puppet/modules/
-sudo puppet module install -f puppetlabs/stdlib
-sudo puppet module install -f puppetlabs-apt
-sudo puppet module install -f puppetlabs-apache
-sudo puppet module install -f puppetlabs-concat
-sudo puppet module install -f puppetlabs-mysql
-sudo puppet module install -f puppetlabs-ntp
-sudo puppet module install -f puppetlabs-postgresql
+ensure_puppet_module puppetlabs-postgresql
+ensure_puppet_module puppetlabs-apache
+# We explicitly use the apt module, so it is listed here.  However, the
+# postgresql module currently also depends on it, so it will be automatically
+# installed along with the postgresql module.  The postgresql module is not
+# compatible with the latest version of the apt module, so if we install the
+# apt module manually first, the postgresql module will fail to install.
+ensure_puppet_module puppetlabs-apt
+ensure_puppet_module stankevich-python
 
-# Launch the Puppet process. Installs dependencies and configures Apache.
-printf "${C}Executing Puppet setup...${NC}\n"
-sudo puppet apply --modulepath=${PWD}/puppet_files:/etc/puppet/modules/:/usr/share/puppet/modules/ puppet_files/auvsi_suas.pp
-
-# Setup Django through pip to get latest official version.
-printf "${C}Installing Django...${NC}\n"
-sudo pip install --upgrade Django==1.8.1
-
-# Create the database with a test admin
-# (username: testadmin, password: testpass)
-printf "${C}Creating data folder & setting up database...${NC}\n"
-(
-cd ../src/auvsi_suas_server;
-if [ ! -d data ]
-then
-    mkdir data;
-fi
-python manage.py migrate auth;
-python manage.py migrate sessions;
-python manage.py migrate admin;
-python manage.py migrate;
-python manage.py syncdb --noinput;
-)
+# Launch the Puppet process. Prepares machine.
+log "Executing Puppet setup..."
+sudo puppet apply --modulepath=${SETUP}/puppet_files:/etc/puppet/modules/ \
+    puppet_files/auvsi_suas.pp

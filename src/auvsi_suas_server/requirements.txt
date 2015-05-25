@@ -1,0 +1,5 @@
+Django==1.8.1
+numpy
+scipy
+matplotlib
+psycopg2

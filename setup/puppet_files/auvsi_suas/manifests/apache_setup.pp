@@ -1,15 +1,26 @@
-# AUVSI SUAS Puppet Module: apache_config
+# AUVSI SUAS Puppet Module: apache_setup
 # Configures Apache server to use WSGI and point at auvsi_suas server.
 # ==============================================================================
 
-# apache_config module definition
-class auvsi_suas::apache_config {
-    # Need apache installed
-    require auvsi_suas::apt_packages
+class auvsi_suas::apache_setup {
+    require auvsi_suas::base
+
+    # Install additional utils and modules
+    $package_deps = [
+        "apache2-utils",
+        "libapache2-mod-auth-pgsql",
+        "libapache2-mod-auth-plain",
+        "libapache2-mod-python",
+        "libapache2-mod-wsgi",
+    ]
+    package { $package_deps:
+        ensure => "latest",
+    }
 
     # Configure apache defaults
     class { 'apache':
       default_vhost => false,
+      service_ensure => running,
     }
     # Configure the python path
     class { 'apache::mod::wsgi':
@@ -30,13 +41,13 @@ class auvsi_suas::apache_config {
       wsgi_import_script_options  =>
         { process-group => 'wsgi', application-group => '%{GLOBAL}' },
       wsgi_process_group => 'wsgi',
-      wsgi_script_aliases => { 
+      wsgi_script_aliases => {
         '/' => '/auvsi_suas_competition/src/auvsi_suas_server/auvsi_suas_server/wsgi.py'
       },
       error_log_file => 'auvsi_suas_server.debug.log',
       aliases => [
-        { alias => '/static/admin',
-          path => '/usr/lib/python2.7/dist-packages/django/contrib/admin/static/admin/',
+        { alias => '/static',
+          path => '/auvsi_suas_competition/src/auvsi_suas_server/auvsi_suas/static',
         },
       ],
     }
