@@ -31,4 +31,10 @@ class auvsi_suas::server_setup {
         command => "python manage.py collectstatic --noinput",
         cwd => "/auvsi_suas_competition/src/auvsi_suas_server/",
     }
+
+    # Load initial testadmin superuser
+    exec { 'testadmin superuser':
+        command => "python manage.py loaddata fixtures/testadmin_superuser.yaml",
+        cwd => "/auvsi_suas_competition/src/auvsi_suas_server/",
+    }
 }
