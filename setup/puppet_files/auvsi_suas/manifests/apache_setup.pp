@@ -3,6 +3,8 @@
 # ==============================================================================
 
 class auvsi_suas::apache_setup {
+    require auvsi_suas::base
+
     # Install additional utils and modules
     $package_deps = [
         "apache2-utils",
@@ -18,6 +20,7 @@ class auvsi_suas::apache_setup {
     # Configure apache defaults
     class { 'apache':
       default_vhost => false,
+      service_ensure => running,
     }
     # Configure the python path
     class { 'apache::mod::wsgi':

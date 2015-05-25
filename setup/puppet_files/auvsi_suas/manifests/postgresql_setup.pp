@@ -3,6 +3,8 @@
 # ==============================================================================
 
 class auvsi_suas::postgresql_setup {
+    require auvsi_suas::base
+
     # Setup postgresql server
     class { 'postgresql::server':
         postgres_password => 'postgresql_pass',
