@@ -100,9 +100,7 @@ def getServerInfo(request):
 
     # Log user access to server information
     logger.info('User downloaded server info: %s.' % request.user.username)
-    access_log = ServerInfoAccessLog()
-    access_log.user = request.user
-    access_log.save()
+    ServerInfoAccessLog(user=request.user).save()
 
     # Form response
     try:
@@ -140,9 +138,7 @@ def getObstacles(request):
 
     # Log user access to obstacle info
     logger.info('User downloaded obstacle info: %s.' % request.user.username)
-    access_log = ObstacleAccessLog()
-    access_log.user = request.user
-    access_log.save()
+    ObstacleAccessLog(user=request.user).save()
 
     # Form JSON response portion for stationary obstacles
     stationary_obstacles_cached = True
@@ -249,18 +245,17 @@ def postUasPosition(request):
 
         # Store telemetry
         logging.info('User uploaded telemetry: %s' % request.user.username)
-        gps_position = GpsPosition()
-        gps_position.latitude = latitude
-        gps_position.longitude = longitude
+
+        gps_position = GpsPosition(latitude=latitude, longitude=longitude)
         gps_position.save()
-        aerial_position = AerialPosition()
-        aerial_position.gps_position = gps_position
-        aerial_position.altitude_msl = altitude_msl
+
+        aerial_position = AerialPosition(gps_position=gps_position,
+                                         altitude_msl=altitude_msl)
         aerial_position.save()
-        uas_telemetry = UasTelemetry()
-        uas_telemetry.user = request.user
-        uas_telemetry.uas_position = aerial_position
-        uas_telemetry.uas_heading = uas_heading
+
+        uas_telemetry = UasTelemetry(user=request.user,
+                                     uas_position=aerial_position,
+                                     uas_heading=uas_heading)
         uas_telemetry.save()
 
         return HttpResponse('UAS Telemetry Successfully Posted.')
