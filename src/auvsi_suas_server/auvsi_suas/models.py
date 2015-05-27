@@ -214,7 +214,7 @@ class AccessLog(models.Model):
             time_periods: A sorted list of (time_start, time_end) tuples which
                 indicate the start and end time of a time period. A value of
                 None indicates infinity. The list must be sorted by time_start
-                and be non-intersecting.
+                and be non-intersecting.  Both start and end are inclusive.
         Returns:
             A list where each entry is a list of access logs sorted by timestamp
             such that each log is for the given user and in the time period
