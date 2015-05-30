@@ -45,89 +45,10 @@ OP_RATE_SAFETY = 1.5
 OP_RATE_THRESH = OP_RATE_HZ * OP_RATE_SAFETY
 OP_RATE_INDIV_THRESH = OP_RATE_THRESH * OP_RATE_PROCS
 
-# (lon1, lat1, lon2, lat2, dist_actual)
-TESTDATA_ZERO_DIST = [
-    (0, 0, 0, 0, 0),
-    (1, 1, 1, 1, 0),
-    (-1, -1, -1, -1, 0),
-    (1, -1, 1, -1, 0),
-    (-1, 1, -1, 1, 0),
-    (76, 42, 76, 42, 0),
-    (-76, 42, -76, 42, 0)
-]
-TESTDATA_HEMISPHERE_DIST = [
-    (-73, 40, -74, 41, 139.6886345468666),
-    (73, 40, 74, 41, 139.6886345468667),
-    (73, -40, 74, -41, 139.6886345468667),
-    (-73, -40, -74, -41, 139.68863454686704)
-]
 TESTDATA_COMPETITION_DIST = [
     (-76.428709, 38.145306, -76.426375, 38.146146, 0.22446),
     (-76.428537, 38.145399, -76.427818, 38.144686, 0.10045),
     (-76.434261, 38.142471, -76.418876, 38.147838, 1.46914)
-]
-
-# (km, ft_actual)
-TESTDATA_KM_TO_FT = [
-    (0, 0),
-    (1, 3280.84),
-    (1.5, 4921.26),
-    (100, 328084)
-]
-
-# (knots, fps)
-TESTDATA_KNOTS_TO_FPS = [
-    (0.1, 0.168781),
-    (1, 1.68781),
-    (10, 16.8781),
-    (100, 168.781)
-]
-
-# (lon1, lat1, alt1, lon2, lat2, alt2, dist_actual)
-TESTDATA_ZERO_3D_DIST = [
-    (0, 0, 0, 0, 0, 0, 0),
-    (1, 2, 3, 1, 2, 3, 0),
-    (-30, 30, 100, -30, 30, 100, 0)
-]
-TESTDATA_COMPETITION_3D_DIST = [
-    (-76.428709, 38.145306, 0, -76.426375, 38.146146, 0, 0.22446),
-    (-76.428537, 38.145399, 0, -76.427818, 38.144686, 100, 0.10497),
-    (-76.434261, 38.142471, 100, -76.418876, 38.147838, 800, 1.48455)
-]
-
-# [(user, (time_min, time_max, time_avg),
-#   [(period_start, period_end, [timestamp])])]
-TESTDATA_ACCESSLOG = [
-    ('no_data', (None, None, None), []),
-    ('no_periods', (None, None, None), [
-        (None, None,
-            [0.0, 1.0]),
-    ]),
-    ('no_logs', (1.0, 1.0, 1.0), [
-        (0.0, 1.0, [])
-    ]),
-    ('log_diff_only', (0.0, 0.1, 0.05), [
-        (0.0, 0.2,
-            [0.0, 0.1, 0.2]),
-    ]),
-    ('period_diff_only', (0.2, 0.3, 0.25), [
-        (0.0, 0.5,
-            [0.2]),
-    ]),
-    ('multi_period', (0, 0.1, 0.05714285714), [
-        (0.0, 0.2,
-            [0.0, 0.1, 0.2]),
-        (None, None,
-            [0.3]),
-        (0.4, 0.6,
-            [0.4, 0.5]),
-    ]),
-    ('infinity_bounds', (0.0, 0.6, 0.18), [
-        (None, 0.1,
-            [0.0, 0.1]),
-        (0.2, None,
-            [0.2, 0.4, 1.0]),
-    ]),
 ]
 
 # [(user, [(timestamp, in_air)], [(time_start, time_end)]]
@@ -395,266 +316,6 @@ TESTDATA_MISSIONCONFIG_EVALWAYPOINTS = (
     [True, False, True]
 )
 
-TESTDATA_SAMPLE_MISSION = (
-    # Waypoint satisfy dist
-    10,
-    # Boundaries
-    [(0, 20,
-      [(37, -75), (39, -75), (39, -77), (37, -77)])
-    ],
-    # Waypoints
-    [(38, -76, 30),
-     (38, -76, 60)],
-    # Stationary obstacles
-    [(38, -76, 10, 10),
-     (39, -76, 10, 10)],
-    # Moving obstacles
-    [(15, 1,
-      [(38, -76, 0),
-       (38, -76, 10)]),
-     (20, 1,
-      [(39, -76, 0),
-       (39, -76, 10)])
-    ],
-    # Users (takeoffs, infos, obsts, telemetry)
-    {
-        'user0': (
-            [(0, True), (1, False)],
-            [0.0, 0.2, 0.3, 0.4, 0.8],
-            [0.0, 0.1, 0.6, 0.7],
-            [(38, -76, 0, 0.0),
-             (38, -76, 10, 0.1),
-             (38, -76, 20, 0.2),
-             (38, -76, 30, 0.3),
-             (38, -76, 100, 0.8)]
-        ),
-        'user1': (
-            [(1, True), (2, False)],
-            [0.0, 1.1, 1.5],
-            [1.1, 1.2, 1.6],
-            [(38, -76, 30, 1.0),
-             (38, -76, 60, 2.0)]
-        )
-    },
-)
-
-TESTDATA_MISSIONCONFIG_EVALTEAMS = {
-    'user0': {
-        'waypoints_satisfied': {
-            1: True,
-            2: False
-        },
-        'out_of_bounds_time': 0.6,
-        'interop_times': {
-            'server_info': {
-                'min': 0.0,
-                'max': 0.4,
-                'avg': 1.0/6,
-            },
-            'obst_info': {
-                'min': 0.0,
-                'max': 0.5,
-                'avg': 1.0/5,
-            },
-            'uas_telem': {
-                'min': 0.0,
-                'max': 0.5,
-                'avg': 1.0/6,
-            },
-        },
-        'stationary_obst_collision': {
-            25: True,
-            26: False
-        },
-        'moving_obst_collision': {
-            25: True,
-            26: False
-        }
-    },
-    'user1': {
-        'waypoints_satisfied': {
-            1: True,
-            2: True
-        },
-        'out_of_bounds_time': 1.0,
-        'interop_times': {
-            'server_info': {
-                'min': 0.1,
-                'max': 0.5,
-                'avg': 1.0/3,
-            },
-            'obst_info': {
-                'min': 0.1,
-                'max': 0.4,
-                'avg': 1.0/4,
-            },
-            'uas_telem': {
-                'min': 0.0,
-                'max': 1.0,
-                'avg': 1.0/3,
-            },
-        },
-        'stationary_obst_collision': {
-            25: False,
-            26: False
-        },
-        'moving_obst_collision': {
-            25: False,
-            26: False
-        }
-    },
-}
-
-def TESTDATA_createSampleMission():
-    """Stores a sample mission in the database."""
-    (satisfy_dist, boundary_details, wpt_details, stationary_details,
-            moving_details, user_details) = TESTDATA_SAMPLE_MISSION
-    epoch = timezone.now().replace(
-            year=1970, month=1, day=1, hour=0, minute=0, second=0,
-            microsecond=0)
-    # Create user data
-    for (username, details) in user_details.iteritems():
-        (takeoff_details, info_details, obst_details, telem_details) = details
-        # Create user
-        user = User.objects.create_user(
-                username, 'testemail@x.com', 'testpass')
-        user.save()
-        # Create takeoff and landing events
-        for (timestamp, uas_in_air) in takeoff_details:
-            log = TakeoffOrLandingEvent()
-            log.user = user
-            log.uas_in_air = uas_in_air
-            log.save()
-            log.timestamp = epoch + datetime.timedelta(seconds=timestamp)
-            log.save()
-        # Create access log events
-        log_tuples = [(ServerInfoAccessLog, info_details),
-                      (ObstacleAccessLog, obst_details)]
-        for (Cls, times) in log_tuples:
-            for timestamp in times:
-                log = Cls()
-                log.user = user
-                log.save()
-                log.timestamp = epoch + datetime.timedelta(seconds=timestamp)
-                log.save()
-        # Create telemetry logs
-        for (lat, lon, alt, timestamp) in telem_details:
-            pos = GpsPosition()
-            pos.latitude = lat
-            pos.longitude = lon
-            pos.save()
-            apos = AerialPosition()
-            apos.gps_position = pos
-            apos.altitude_msl = alt
-            apos.save()
-            log = UasTelemetry()
-            log.user = user
-            log.uas_position = apos
-            log.uas_heading = 0
-            log.save()
-            log.timestamp = epoch + datetime.timedelta(seconds=timestamp)
-            log.save()
-
-    # Create dummy position
-    pos = GpsPosition()
-    pos.latitude = 10
-    pos.longitude = 100
-    pos.save()
-    apos = AerialPosition()
-    apos.altitude_msl = 1000
-    apos.gps_position = pos
-    apos.save()
-    wpt = Waypoint()
-    wpt.position = apos
-    wpt.order = 10
-    wpt.save()
-    # Create mission configuration
-    config = MissionConfig()
-    config.mission_waypoints_dist_max = satisfy_dist
-    config.home_pos = pos
-    config.emergent_last_known_pos = pos
-    config.off_axis_target_pos = pos
-    config.sric_pos = pos
-    config.ir_target_pos = pos
-    config.air_drop_pos = pos
-    config.save()
-    config.search_grid_points.add(wpt)
-    config.emergent_grid_points.add(wpt)
-    config.save()
-    # Add bounary positions
-    for (alt_min, alt_max, wpts) in boundary_details:
-        zone = FlyZone()
-        zone.altitude_msl_min = alt_min
-        zone.altitude_msl_max = alt_max
-        zone.save()
-        for wpt_id in xrange(len(wpts)):
-            (lat, lon) = wpts[wpt_id]
-            gpos = GpsPosition()
-            gpos.latitude = lat
-            gpos.longitude = lon
-            gpos.save()
-            apos = AerialPosition()
-            apos.gps_position = gpos
-            apos.altitude_msl = 0
-            apos.save()
-            wpt = Waypoint()
-            wpt.order = wpt_id
-            wpt.position = apos
-            wpt.save()
-            zone.boundary_pts.add(wpt)
-        zone.save()
-    # Create waypoints
-    for wpt_id in xrange(len(wpt_details)):
-        (lat, lon, alt) = wpt_details[wpt_id]
-        gpos = GpsPosition()
-        gpos.latitude = lat
-        gpos.longitude = lon
-        gpos.save()
-        apos = AerialPosition()
-        apos.gps_position = gpos
-        apos.altitude_msl = alt
-        apos.save()
-        wpt = Waypoint()
-        wpt.order = wpt_id
-        wpt.position = apos
-        wpt.save()
-        config.mission_waypoints.add(wpt)
-    config.save()
-    # Create stationary obstacles
-    for (lat, lon, radius, height) in stationary_details:
-        gpos = GpsPosition()
-        gpos.latitude = lat
-        gpos.longitude = lon
-        gpos.save()
-        obst = StationaryObstacle()
-        obst.gps_position = gpos
-        obst.cylinder_radius = radius
-        obst.cylinder_height = height
-        obst.save()
-    # Create moving obstacles
-    for (radius, speed, wpt_details) in moving_details:
-        obst = MovingObstacle()
-        obst.speed_avg = speed
-        obst.sphere_radius = radius
-        obst.save()
-        for wpt_id in xrange(len(wpt_details)):
-            (lat, lon, alt) = wpt_details[wpt_id]
-            gpos = GpsPosition()
-            gpos.latitude = lat
-            gpos.longitude = lon
-            gpos.save()
-            apos = AerialPosition()
-            apos.gps_position = gpos
-            apos.altitude_msl = alt
-            apos.save()
-            wpt = Waypoint()
-            wpt.order = wpt_id
-            wpt.position = apos
-            wpt.save()
-            obst.waypoints.add(wpt)
-        obst.save()
-
-
 def clearTestDatabase():
     """Clears all objects from the test database."""
     classes = [
@@ -680,51 +341,68 @@ def clearTestDatabase():
 class TestHaversine(TestCase):
     """Tests the haversine code correctness."""
 
-    def distance_close_enough(self, distance_actual, distance_received):
+    def assertCloseEnough(self, distance_actual, distance_received,
+                          threshold=0.003048):  # 10 feet in km
         """Determines whether the km distances given are close enough."""
-        distance_thresh = 0.003048  # 10 feet in km
-        return abs(distance_actual - distance_received) <= distance_thresh
-
-    def evaluate_input(self, lon1, lat1, lon2, lat2, distance_actual):
-        """Evaluates the haversine code for the given input."""
-        distance_received = haversine(lon1, lat1, lon2, lat2)
-        return self.distance_close_enough(distance_actual, distance_received)
+        self.assertLessEqual(abs(distance_actual - distance_received),
+                             threshold)
 
     def evaluate_inputs(self, input_output_list):
         """Evaluates a list of inputs and outputs."""
         for (lon1, lat1, lon2, lat2, distance_actual) in input_output_list:
-            if not self.evaluate_input(lon1, lat1, lon2, lat2, distance_actual):
-                return False
-        return True
+            distance_received = haversine(lon1, lat1, lon2, lat2)
+            self.assertCloseEnough(distance_actual, distance_received)
 
     def test_zero_distance(self):
         """Tests various latitudes and longitudes which have zero distance."""
-        self.assertTrue(self.evaluate_inputs(
-            TESTDATA_ZERO_DIST))
+        self.evaluate_inputs([
+          # (lon1, lat1, lon2, lat2, dist_actual)
+            (0,    0,    0,    0,    0),
+            (1,    1,    1,    1,    0),
+            (-1,   -1,   -1,   -1,   0),
+            (1,    -1,   1,    -1,   0),
+            (-1,   1,    -1,   1,    0),
+            (76,   42,   76,   42,   0),
+            (-76,  42,   -76,  42,   0),
+        ])
 
     def test_hemisphere_distances(self):
         """Tests distances in each hemisphere."""
-        self.assertTrue(self.evaluate_inputs(
-            TESTDATA_HEMISPHERE_DIST))
+        self.evaluate_inputs([
+          # (lon1, lat1, lon2, lat2, dist_actual)
+            (-73,  40,   -74,  41,   139.6886345468666),
+            (73,   40,   74,   41,   139.6886345468667),
+            (73,   -40,  74,   -41,  139.6886345468667),
+            (-73,  -40,  -74,  -41,  139.68863454686704),
+        ])
 
     def test_competition_distances(self):
         """Tests distances representative of competition amounts."""
-        self.assertTrue(self.evaluate_inputs(
-            TESTDATA_COMPETITION_DIST))
+        self.evaluate_inputs([
+          # (lon1,       lat1,      lon2,       lat2,      dist_actual)
+            (-76.428709, 38.145306, -76.426375, 38.146146, 0.22446),
+            (-76.428537, 38.145399, -76.427818, 38.144686, 0.10045),
+            (-76.434261, 38.142471, -76.418876, 38.147838, 1.46914),
+        ])
 
 
 class TestKilometersToFeet(TestCase):
     """Tests the conversion from kilometers to feet."""
 
-    def evaluate_conversion(self, km, ft_actual):
-        """Tests the conversion of the given input to feet."""
-        convert_thresh = 5
-        return abs(kilometersToFeet(km) - ft_actual) < convert_thresh
-
     def test_km_to_ft(self):
         """Performs a data-driven test of the conversion."""
-        for (km, ft_actual) in TESTDATA_KM_TO_FT:
-            self.assertTrue(self.evaluate_conversion(km, ft_actual))
+        threshold = 5 # ft
+
+        cases = [
+          # (km,  ft_actual)
+            (0,   0),
+            (1,   3280.84),
+            (1.5, 4921.26),
+            (100, 328084),
+        ]
+
+        for (km, ft_actual) in cases:
+            self.assertLess(abs(kilometersToFeet(km) - ft_actual), threshold)
 
 
 class TestKnotsToFeetPerSecond(TestCase):
@@ -737,303 +415,396 @@ class TestKnotsToFeetPerSecond(TestCase):
 
     def test_knots_to_fps(self):
         """Performs a data-drive test of the conversion."""
-        for (knots, fps_actual) in TESTDATA_KNOTS_TO_FPS:
-            self.assertTrue(self.evaluate_conversion(knots, fps_actual))
+        threshold = 5 # ft/s
+
+        cases = [
+          # (knots, fps)
+            (0.1,   0.168781),
+            (1,     1.68781),
+            (10,    16.8781),
+            (100,   168.781),
+        ]
+
+        for (knots, fps_actual) in cases:
+            self.assertLess(abs(knotsToFeetPerSecond(knots) - fps_actual), threshold)
 
 
 class TestGpsPositionModel(TestCase):
     """Tests the GpsPosition model."""
 
-    def tearDown(self):
-        """Tears down the test."""
-        clearTestDatabase()
-
     def test_unicode(self):
         """Tests the unicode method executes."""
-        pos = GpsPosition()
-        pos.latitude = 10
-        pos.longitude = 100
+        pos = GpsPosition(latitude=10, longitude=100)
         pos.save()
-        self.assertTrue(pos.__unicode__())
 
-    def eval_distanceTo_input(self, lon1, lat1, lon2, lat2, distance_actual):
-        """Evaluates the distanceTo functionality for the given inputs."""
-        wpt1 = GpsPosition()
-        wpt1.latitude = lat1
-        wpt1.longitude = lon1
-        wpt2 = GpsPosition()
-        wpt2.latitude = lat2
-        wpt2.longitude = lon2
-        dist12 = wpt1.distanceTo(wpt2)
-        dist21 = wpt2.distanceTo(wpt1)
-        dist_actual_ft = kilometersToFeet(distance_actual)
-        diffdist12 = abs(dist12 - dist_actual_ft)
-        diffdist21 = abs(dist21 - dist_actual_ft)
-        dist_thresh = 10.0
-        return diffdist12 <= dist_thresh and diffdist21 <= dist_thresh
+        pos.__unicode__()
 
-    def eval_distanceTo_inputs(self, input_output_list):
-        """Evaluates the distanceTo function on various inputs."""
-        for (lon1, lat1, lon2, lat2, distance_actual) in input_output_list:
-            if not self.eval_distanceTo_input(lon1, lat1, lon2, lat2,
-                    distance_actual):
-                return False
-        return True
+    def assertDistanceEqual(self, pos1, pos2, dist, threshold=10):
+        """GpsPosition distances are within threshold (ft)."""
+        self.assertAlmostEqual(pos1.distanceTo(pos2), dist, delta=threshold)
+        self.assertAlmostEqual(pos2.distanceTo(pos1), dist, delta=threshold)
 
-    def test_distanceTo_zero(self):
+    def evaluate_inputs(self, io_list):
+        """Evaluates the distanceTo calc with the given input list."""
+        for (lon1, lat1, lon2, lat2, dist_actual) in io_list:
+            gps1 = GpsPosition(latitude=lat1, longitude=lon1)
+            gps1.save()
+
+            gps2 = GpsPosition(latitude=lat2, longitude=lon2)
+            gps2.save()
+
+            self.assertDistanceEqual(gps1, gps2, dist_actual)
+
+    def test_distance_zero(self):
         """Tests distance calc for same position."""
-        self.assertTrue(self.eval_distanceTo_inputs(
-            TESTDATA_ZERO_DIST))
+        self.evaluate_inputs([
+          # (lon1, lat1, lon2, lat2, dist_actual)
+            (0,    0,    0,    0,    0),
+            (1,    1,    1,    1,    0),
+            (-1,   -1,   -1,   -1,   0),
+            (1,    -1,   1,    -1,   0),
+            (-1,   1,    -1,   1,    0),
+            (76,   42,   76,   42,   0),
+            (-76,  42,   -76,  42,   0),
+        ])
 
-    def test_distanceTo_competition_amounts(self):
+    def test_distance_competition_amounts(self):
         """Tests distance calc for competition amounts."""
-        self.assertTrue(self.eval_distanceTo_inputs(
-            TESTDATA_COMPETITION_DIST))
-
+        self.evaluate_inputs([
+          # (lon1,       lat1,      lon2,       lat2,      dist_actual)
+            (-76.428709, 38.145306, -76.426375, 38.146146, 736.4),
+            (-76.428537, 38.145399, -76.427818, 38.144686, 329.6),
+            (-76.434261, 38.142471, -76.418876, 38.147838, 4820.0),
+        ])
 
 class TestAerialPositionModel(TestCase):
     """Tests the AerialPosition model."""
 
-    def tearDown(self):
-        """Tears down the test."""
-        clearTestDatabase()
-
     def test_unicode(self):
         """Tests the unicode method executes."""
-        pos = GpsPosition()
-        pos.latitude = 10
-        pos.longitude = 100
+        gps = GpsPosition(latitude=10, longitude=100)
+        gps.save()
+
+        pos = AerialPosition(gps_position=gps, altitude_msl=100)
         pos.save()
-        apos = AerialPosition()
-        apos.gps_position = pos
-        apos.altitude_msl = 100
-        apos.save()
-        self.assertTrue(apos.__unicode__())
 
-    def eval_distanceTo_input(self, lon1, lat1, alt1, lon2, lat2, alt2,
-            dist_actual):
-        """Evaluates the distanceTo calc with the given inputs."""
-        gpos1 = GpsPosition()
-        gpos1.latitude = lat1
-        gpos1.longitude = lon1
-        gpos1.save()
-        pos1 = AerialPosition()
-        pos1.gps_position = gpos1
-        pos1.altitude_msl = alt1
-        gpos2 = GpsPosition()
-        gpos2.latitude = lat2
-        gpos2.longitude = lon2
-        gpos2.save()
-        pos2 = AerialPosition()
-        pos2.gps_position = gpos2
-        pos2.altitude_msl = alt2
-        dist12 = pos1.distanceTo(pos2)
-        dist21 = pos2.distanceTo(pos1)
-        dist_actual_ft = kilometersToFeet(dist_actual)
-        diffdist12 = abs(dist12 - dist_actual_ft)
-        diffdist21 = abs(dist21 - dist_actual_ft)
-        dist_thresh = 10.0
-        return diffdist12 <= dist_thresh and diffdist21 <= dist_thresh
+        pos.__unicode__()
 
-    def eval_distanceTo_inputs(self, input_output_list):
+    def assertDistanceEqual(self, pos1, pos2, dist, threshold=10):
+        """AerialPosition distances are within threshold (ft)."""
+        self.assertAlmostEqual(pos1.distanceTo(pos2), dist, delta=threshold)
+        self.assertAlmostEqual(pos2.distanceTo(pos1), dist, delta=threshold)
+
+    def evaluate_inputs(self, io_list):
         """Evaluates the distanceTo calc with the given input list."""
-        for (lon1, lat1, alt1,
-                lon2, lat2, alt2, dist_actual) in input_output_list:
-            if not self.eval_distanceTo_input(lon1, lat1, alt1, lon2, lat2,
-                    alt2, dist_actual):
-                return False
-        return True
+        for (lon1, lat1, alt1, lon2, lat2, alt2, dist_actual) in io_list:
+            gps1 = GpsPosition(latitude=lat1, longitude=lon1)
+            gps1.save()
 
-    def test_distanceTo_zero(self):
+            gps2 = GpsPosition(latitude=lat2, longitude=lon2)
+            gps2.save()
+
+            pos1 = AerialPosition(gps_position=gps1, altitude_msl=alt1)
+            pos2 = AerialPosition(gps_position=gps2, altitude_msl=alt2)
+
+            self.assertDistanceEqual(pos1, pos2, dist_actual)
+
+    def test_distance_zero(self):
         """Tests distance calc for same position."""
-        self.assertTrue(self.eval_distanceTo_inputs(
-            TESTDATA_ZERO_3D_DIST))
+        self.evaluate_inputs([
+          # (lon1, lat1, alt1, lon2, lat2, alt2, dist_actual)
+            (0,    0,    0,    0,    0,    0,    0),
+            (1,    2,    3,    1,    2,    3,    0),
+            (-30,  30,   100,  -30,  30,   100,  0),
+        ])
 
-    def test_distanceTo_competition_amounts(self):
+    def test_distance_competition_amounts(self):
         """Tests distance calc for competition amounts."""
-        self.assertTrue(self.eval_distanceTo_inputs(
-            TESTDATA_COMPETITION_3D_DIST))
+        self.evaluate_inputs([
+          # (lon1,       lat1,      alt1, lon2,       lat2,      alt2, dist_actual)
+            (-76.428709, 38.145306, 0,    -76.426375, 38.146146, 0,    736.4),
+            (-76.428537, 38.145399, 0,    -76.427818, 38.144686, 100,  344.4),
+            (-76.434261, 38.142471, 100,  -76.418876, 38.147838, 800,  4873.7),
+        ])
 
 
 class TestWaypointModel(TestCase):
     """Tests the Waypoint model."""
 
-    def tearDown(self):
-        """Tears down the test."""
-        clearTestDatabase()
-
     def test_unicode(self):
         """Tests the unicode method executes."""
-        pos = GpsPosition()
-        pos.latitude = 10
-        pos.longitude = 100
-        pos.save()
-        apos = AerialPosition()
-        apos.altitude_msl = 1000
-        apos.gps_position = pos
-        apos.save()
-        wpt = Waypoint()
-        wpt.position = apos
-        wpt.order = 10
-        wpt.save()
-        self.assertTrue(wpt.__unicode__())
+        gps = GpsPosition(latitude=10, longitude=100)
+        gps.save()
 
-    def test_distanceTo(self):
-        """Tests the distance calculation executes correctly."""
-        for (lon1, lat1, alt1,
-                lon2, lat2, alt2, dist_actual) in TESTDATA_COMPETITION_3D_DIST:
-            gpos1 = GpsPosition()
-            gpos1.latitude = lat1
-            gpos1.longitude = lon1
-            gpos1.save()
-            pos1 = AerialPosition()
-            pos1.gps_position = gpos1
-            pos1.altitude_msl = alt1
+        pos = AerialPosition(gps_position=gps, altitude_msl=100)
+        pos.save()
+
+        wpt = Waypoint(position=pos, order=10)
+        wpt.save()
+
+        wpt.__unicode__()
+
+    def assertDistanceEqual(self, wpt1, wpt2, dist, threshold=10):
+        """Waypoint distances are within threshold (ft)."""
+        self.assertAlmostEqual(wpt1.distanceTo(wpt2), dist, delta=threshold)
+        self.assertAlmostEqual(wpt2.distanceTo(wpt1), dist, delta=threshold)
+
+    def evaluate_inputs(self, io_list):
+        for (lon1, lat1, alt1, lon2, lat2, alt2, dist) in io_list:
+            gps1 = GpsPosition(latitude=lat1, longitude=lon1)
+            gps1.save()
+
+            gps2 = GpsPosition(latitude=lat2, longitude=lon2)
+            gps2.save()
+
+            pos1 = AerialPosition(gps_position=gps1, altitude_msl=alt1)
             pos1.save()
-            wpt1 = Waypoint()
-            wpt1.position = pos1
-            gpos2 = GpsPosition()
-            gpos2.latitude = lat2
-            gpos2.longitude = lon2
-            gpos2.save()
-            pos2 = AerialPosition()
-            pos2.gps_position = gpos2
-            pos2.altitude_msl = alt2
+
+            pos2 = AerialPosition(gps_position=gps2, altitude_msl=alt2)
             pos2.save()
-            wpt2 = Waypoint()
-            wpt2.position = pos2
-            self.assertEqual(pos1.distanceTo(pos2), wpt1.distanceTo(wpt2))
+
+            wpt1 = Waypoint(position=pos1)
+            wpt2 = Waypoint(position=pos2)
+
+            self.assertDistanceEqual(wpt1, wpt2, dist)
+
+    def test_distance(self):
+        """Tests the distance calculation executes correctly."""
+        self.evaluate_inputs([
+          # (lon1,       lat1,      alt1, lon2,       lat2,      alt2, dist_actual)
+            (-76.428709, 38.145306, 0,    -76.426375, 38.146146, 0,    736.4),
+            (-76.428537, 38.145399, 0,    -76.427818, 38.144686, 100,  344.4),
+            (-76.434261, 38.142471, 100,  -76.418876, 38.147838, 800,  4873.7),
+        ])
 
 
 class TestServerInfoModel(TestCase):
     """Tests the ServerInfo model."""
 
-    def tearDown(self):
-        """Tears down the test."""
-        clearTestDatabase()
-
     def test_unicode(self):
         """Tests the unicode method executes."""
-        info = ServerInfo()
-        info.timestamp = timezone.now()
-        info.team_msg = 'Test message.'
+        info = ServerInfo(timestamp=timezone.now(),
+                          team_msg='Test message.')
         info.save()
-        self.assertTrue(info.__unicode__())
 
-    def test_toJSON(self):
+        info.__unicode__()
+
+    def test_serialization(self):
         """Tests the JSON serialization method."""
-        TEST_MSG = 'Hello, world.'
-        TEST_TIME = timezone.now()
+        message = 'Hello, world.'
+        time = timezone.now()
 
-        server_info = ServerInfo()
-        server_info.timestamp = TEST_TIME
-        server_info.team_msg = TEST_MSG
+        server_info = ServerInfo(timestamp=time, team_msg=message)
         json_data = server_info.toJSON()
 
         self.assertTrue('message' in json_data)
-        self.assertEqual(json_data['message'], TEST_MSG)
+        self.assertEqual(json_data['message'], message)
         self.assertTrue('message_timestamp' in json_data)
-        self.assertEqual(json_data['message_timestamp'], str(TEST_TIME))
+        self.assertEqual(json_data['message_timestamp'], str(time))
 
 
-class TestAccessLogModel(TestCase):
-    """Tests the AccessLog model."""
+class TestAccessLogCommon(TestCase):
+    """Common code for AccessLog model tests."""
 
     def setUp(self):
         """Sets up the tests."""
-        self.users = dict()
-        self.access_logs = dict()
-        self.periods = dict()
-        self.period_access_logs = dict()
-        self.interop_times = dict()
-        self.base_time = timezone.now().replace(
-                hour=0, minute=0, second=0, microsecond=0)
-        for (username, rates, period_access_logs) in TESTDATA_ACCESSLOG:
-            # Create user
-            user = User.objects.create_user(
-                username, 'testemail@x.com', 'testpass')
-            user.save()
-            self.users[username] = user
-            # Set rates as already built
-            self.interop_times[username] = rates
-            # Create structures for user
-            user_logs = self.access_logs.setdefault(username, list())
-            user_periods = self.periods.setdefault(username, list())
-            user_period_logs = self.period_access_logs.setdefault(
-                    username, list())
-            # Fill logs with data
-            for (period_start, period_end, timestamps) in period_access_logs:
-                cur_period_log = list()
-                for timestamp in timestamps:
-                    # Create log for current timestamp and add
-                    log = AccessLog()
-                    log.user = user
-                    log.save()
-                    log.timestamp = self.base_time + datetime.timedelta(
-                            seconds=timestamp)
-                    log.save()
-                    user_logs.append(log)
-                    cur_period_log.append(log)
-                if period_start is not None or period_end is not None:
-                    if period_start is not None:
-                        period_start = self.base_time + datetime.timedelta(
-                            seconds=period_start)
-                    if period_end is not None:
-                        period_end = self.base_time + datetime.timedelta(
-                            seconds=period_end)
-                    user_periods.append((period_start, period_end))
-                    user_period_logs.append(cur_period_log)
+        self.user1 = User.objects.create_user('user1', 'email@example.com',
+                                              'pass')
 
-    def tearDown(self):
-        """Tears down the tests."""
-        clearTestDatabase()
+        self.user2 = User.objects.create_user('user2', 'email@example.com',
+                                              'pass')
+
+        self.year2000 = datetime.datetime(2000, 1, 1, tzinfo=timezone.utc)
+        self.year2001 = datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
+        self.year2002 = datetime.datetime(2002, 1, 1, tzinfo=timezone.utc)
+        self.year2003 = datetime.datetime(2003, 1, 1, tzinfo=timezone.utc)
+        self.year2004 = datetime.datetime(2004, 1, 1, tzinfo=timezone.utc)
+
+    def create_logs(self, user, num=10, start=None, delta=None):
+        if start is None:
+            start = timezone.now()
+        if delta is None:
+            delta = datetime.timedelta(seconds=1)
+
+        logs = []
+
+        for i in xrange(num):
+            log = AccessLog(user=user)
+            log.save()
+            log.timestamp = start + i*delta # Wat.
+            log.save()
+            logs.append(log)
+
+        return logs
+
+class TestAccessLogBasic(TestAccessLogCommon):
+    """Tests the AccessLog model basic functionality."""
 
     def test_unicode(self):
         """Tests the unicode method executes."""
-        log = AccessLog()
-        log.timestamp = timezone.now()
-        log.user = User.objects.create_user(
-                'testuser', 'testemail@x.com', 'testpass')
+        log = AccessLog(timestamp=timezone.now(), user=self.user1)
         log.save()
-        self.assertTrue(log.__unicode__())
 
-    def test_getAccessLogForUser(self):
-        """Tests getting the access log for each user."""
-        for user in self.users.values():
-            # Validate access log for user
-            access_log = AccessLog.getAccessLogForUser(user)
-            self.assertEqual(
-                    set(access_log),
-                    set(self.access_logs[user.username]))
+        log.__unicode__()
 
-    def test_getAccessLogForUserByTimePeriod(self):
-        """Tests getting the access log by time period."""
-        for username in self.users.keys():
-            # Validate time period access log for user
-            user_logs = self.access_logs[username]
-            time_periods = self.periods[username]
-            time_period_access_log = AccessLog.getAccessLogForUserByTimePeriod(
-                    user_logs, time_periods)
-            self.assertEqual(
-                    set([frozenset(x) for x in time_period_access_log]),
-                    set([frozenset(x) for x in self.period_access_logs[username]]))
+    def test_no_data(self):
+        self.assertEqual(0, len(AccessLog.getAccessLogForUser(self.user1)))
 
-    def test_getAccessLogRates(self):
-        """Tests getting the access log rates."""
-        for username in self.users.keys():
-            # Validate interop rates
-            user_logs = self.access_logs[username]
-            time_periods = self.periods[username]
-            time_period_access_log = AccessLog.getAccessLogForUserByTimePeriod(
-                    user_logs, time_periods)
-            access_rates = AccessLog.getAccessLogRates(
-                    time_periods, time_period_access_log)
-            (time_min, time_max, time_avg) = access_rates
-            (exp_min, exp_max, exp_avg) = self.interop_times[username]
-            self.assertAlmostEqual(time_min, exp_min)
-            self.assertAlmostEqual(time_max, exp_max)
-            self.assertAlmostEqual(time_avg, exp_avg)
+        self.assertEqual(0, len(AccessLog.getAccessLogForUserByTimePeriod([],
+                                                                          [])))
 
+        self.assertTupleEqual((None, None, None),
+                              AccessLog.getAccessLogRates([], []))
+
+    def test_basic_access(self):
+        logs = self.create_logs(self.user1)
+
+        results = AccessLog.getAccessLogForUser(self.user1)
+        self.assertSequenceEqual(logs, results)
+
+    def test_multi_user(self):
+        # Intersperse logs from two users
+        logs = []
+        for _ in xrange(10):
+            logs += self.create_logs(self.user1, num=1)
+            self.create_logs(self.user2, num=1)
+
+        results = AccessLog.getAccessLogForUser(self.user1)
+        self.assertSequenceEqual(logs, results)
+
+class TestAccessLogGetByPeriod(TestAccessLogCommon):
+    """Test AccessLog.getAccessLogForUserByTimePeriod()"""
+
+    def setUp(self):
+        super(TestAccessLogGetByPeriod, self).setUp()
+
+        self.year2000_logs = self.create_logs(self.user1, start=self.year2000)
+        self.year2003_logs = self.create_logs(self.user1, start=self.year2003)
+        self.logs = self.year2000_logs + self.year2003_logs
+
+    def test_single_period(self):
+        """Single set of logs accessible."""
+        results = AccessLog.getAccessLogForUserByTimePeriod(self.logs, [
+            (self.year2000, self.year2001),
+        ])
+
+        self.assertSequenceEqual([self.year2000_logs], results)
+
+    def test_full_range(self):
+        """All logs from (-inf, inf)."""
+        results = AccessLog.getAccessLogForUserByTimePeriod(self.logs, [
+            (None, None),
+        ])
+
+        self.assertSequenceEqual([self.logs], results)
+
+    def test_both_periods(self):
+        """Both sets of logs, accesses individually."""
+        results = AccessLog.getAccessLogForUserByTimePeriod(self.logs, [
+            (self.year2000, self.year2001),
+            (self.year2003, self.year2004),
+        ])
+
+        self.assertSequenceEqual([self.year2000_logs, self.year2003_logs],
+                                 results)
+
+    def test_non_intersecting_period(self):
+        """No logs matched."""
+        results = AccessLog.getAccessLogForUserByTimePeriod(self.logs, [
+            (self.year2001, self.year2002),
+        ])
+
+        self.assertSequenceEqual([[]], results)
+
+    def test_one_intersecting_period(self):
+        """Only one period matches logs."""
+        results = AccessLog.getAccessLogForUserByTimePeriod(self.logs, [
+            (self.year2001, self.year2002),
+            (self.year2003, self.year2004),
+        ])
+
+        self.assertSequenceEqual([[], self.year2003_logs], results)
+
+    def test_open_start(self):
+        """Logs (-inf, 2001)"""
+        results = AccessLog.getAccessLogForUserByTimePeriod(self.logs, [
+            (None, self.year2001),
+        ])
+
+        self.assertSequenceEqual([self.year2000_logs], results)
+
+    def test_open_end(self):
+        """Logs (2003, inf)"""
+        results = AccessLog.getAccessLogForUserByTimePeriod(self.logs, [
+            (self.year2003, None),
+        ])
+
+        self.assertSequenceEqual([self.year2003_logs], results)
+
+class TestAccessLogRates(TestAccessLogCommon):
+    """Test AccessLog.getAccessLogRates()"""
+
+    def consistent_period(self, logs, delta):
+        # getAccessLogRates uses time between beginning/end of the period
+        # and the first/last log to compute rates, so to get constant rates,
+        # the period must begin and end delta seconds before/after the logs.
+        return (logs[0].timestamp-delta, logs[-1].timestamp+delta)
+
+    def test_constant_rate(self):
+        """Rates computed correctly."""
+        delta = datetime.timedelta(seconds=1)
+
+        logs = self.create_logs(self.user1, delta=delta)
+        period = self.consistent_period(logs, delta)
+
+        rates = AccessLog.getAccessLogRates([period], [logs])
+
+        self.assertSequenceEqual((1, 1, 1), rates)
+
+    def test_ignore_start_end(self):
+        """When start and end are None, only times between logs are compared."""
+        delta = datetime.timedelta(seconds=1)
+
+        logs = self.create_logs(self.user1, delta=delta)
+        period = (None, None)
+
+        rates = AccessLog.getAccessLogRates([period], [logs])
+
+        self.assertSequenceEqual((1, 1, 1), rates)
+
+    def test_multiple_periods(self):
+        """Multiple periods are combined without introducing errors."""
+        delta = datetime.timedelta(seconds=1)
+
+        logs = [
+            self.create_logs(self.user1, start=self.year2000, delta=delta),
+            self.create_logs(self.user1, start=self.year2001, delta=delta),
+        ]
+
+        periods = [self.consistent_period(l, delta) for l in logs]
+
+        rates = AccessLog.getAccessLogRates(periods, logs)
+
+        self.assertSequenceEqual((1, 1, 1), rates)
+
+    def test_different_deltas(self):
+        """Sets of logs are combined for overall rates."""
+        delta = datetime.timedelta(seconds=1)
+
+        logs = [
+            self.create_logs(self.user1, num=1000,
+                             start=self.year2000, delta=delta),
+            self.create_logs(self.user1, num=1000,
+                             start=self.year2001, delta=delta/2),
+        ]
+
+        periods = [self.consistent_period(l, delta) for l in logs]
+
+        rates = AccessLog.getAccessLogRates(periods, logs)
+
+        self.assertAlmostEqual(0.5, rates[0]) # min
+        self.assertAlmostEqual(1.0, rates[1]) # max
+        self.assertAlmostEqual(0.75, rates[2], delta=0.001) # avg
 
 class TestUasTelemetry(TestCase):
     """Tests the UasTelemetry model."""
@@ -1850,31 +1621,92 @@ class TestMissionConfigModel(TestCase):
         wpts_satisfied = config.evaluateUasSatisfiedWaypoints(uas_logs)
         self.assertEqual(wpts_satisfied, exp_satisfied)
 
+class TestMissionConfigModelEvalTeams(TestCase):
+
+    fixtures = ['testdata/sample_mission.json']
+
     def test_evaluateTeams(self):
         """Tests the evaluation of teams method."""
-        # Create test data and perform eval
-        TESTDATA_createSampleMission()
-        config = MissionConfig.objects.all()[0]
-        eval_data = config.evaluateTeams()
-        # Convert output to username keyed
-        username_eval_data = dict()
-        for (user, data) in eval_data.iteritems():
-            username_eval_data[user.username] = data
-        # Assert equal to expected
-        dicts_to_process = [
-                (username_eval_data, TESTDATA_MISSIONCONFIG_EVALTEAMS)]
-        while dicts_to_process:
-            (dictA, dictB) = dicts_to_process.pop()
-            self.assertEqual(dictA.keys(), dictB.keys())
-            for (key, valA) in dictA.iteritems():
-                valB = dictB[key]
-                if type(valA) is dict:
-                    dicts_to_process.append((valA, valB))
-                elif type(valA) is float:
-                    self.assertAlmostEqual(valA, valB)
-                else:
-                    self.assertEqual(valA, valB)
+        user0 = User.objects.get(username='user0')
+        user1 = User.objects.get(username='user1')
+        config = MissionConfig.objects.get()
 
+        teams = config.evaluateTeams()
+
+        # Contains user0 and user1
+        self.assertEqual(2, len(teams))
+
+        # Verify dictionary structure
+        for user, val in teams.iteritems():
+            self.assertIn('waypoints_satisfied', val)
+            self.assertIn(1, val['waypoints_satisfied'])
+            self.assertIn(2, val['waypoints_satisfied'])
+
+            self.assertIn('out_of_bounds_time', val)
+
+            self.assertIn('interop_times', val)
+
+            for key in ['server_info', 'obst_info', 'uas_telem']:
+                self.assertIn(key, val['interop_times'])
+                self.assertIn('min', val['interop_times'][key])
+                self.assertIn('max', val['interop_times'][key])
+                self.assertIn('avg', val['interop_times'][key])
+
+            self.assertIn('stationary_obst_collision', val)
+            self.assertIn(25, val['stationary_obst_collision'])
+            self.assertIn(26, val['stationary_obst_collision'])
+
+            self.assertIn('moving_obst_collision', val)
+            self.assertIn(25, val['moving_obst_collision'])
+            self.assertIn(26, val['moving_obst_collision'])
+
+        # user0 data
+        self.assertEqual(True, teams[user0]['waypoints_satisfied'][1])
+        self.assertEqual(False, teams[user0]['waypoints_satisfied'][2])
+
+        self.assertAlmostEqual(0.6, teams[user0]['out_of_bounds_time'])
+
+        self.assertAlmostEqual(0.0, teams[user0]['interop_times']['server_info']['min'])
+        self.assertAlmostEqual(0.4, teams[user0]['interop_times']['server_info']['max'])
+        self.assertAlmostEqual(1./6, teams[user0]['interop_times']['server_info']['avg'])
+
+        self.assertAlmostEqual(0.0, teams[user0]['interop_times']['obst_info']['min'])
+        self.assertAlmostEqual(0.5, teams[user0]['interop_times']['obst_info']['max'])
+        self.assertAlmostEqual(1./5, teams[user0]['interop_times']['obst_info']['avg'])
+
+        self.assertAlmostEqual(0.0, teams[user0]['interop_times']['uas_telem']['min'])
+        self.assertAlmostEqual(0.5, teams[user0]['interop_times']['uas_telem']['max'])
+        self.assertAlmostEqual(1./6, teams[user0]['interop_times']['uas_telem']['avg'])
+
+        self.assertEqual(True, teams[user0]['stationary_obst_collision'][25])
+        self.assertEqual(False, teams[user0]['stationary_obst_collision'][26])
+
+        self.assertEqual(True, teams[user0]['moving_obst_collision'][25])
+        self.assertEqual(False, teams[user0]['moving_obst_collision'][26])
+
+        # user1 data
+        self.assertEqual(True, teams[user1]['waypoints_satisfied'][1])
+        self.assertEqual(True, teams[user1]['waypoints_satisfied'][2])
+
+        self.assertAlmostEqual(1.0, teams[user1]['out_of_bounds_time'])
+
+        self.assertAlmostEqual(0.1, teams[user1]['interop_times']['server_info']['min'])
+        self.assertAlmostEqual(0.5, teams[user1]['interop_times']['server_info']['max'])
+        self.assertAlmostEqual(1./3, teams[user1]['interop_times']['server_info']['avg'])
+
+        self.assertAlmostEqual(0.1, teams[user1]['interop_times']['obst_info']['min'])
+        self.assertAlmostEqual(0.4, teams[user1]['interop_times']['obst_info']['max'])
+        self.assertAlmostEqual(1./4, teams[user1]['interop_times']['obst_info']['avg'])
+
+        self.assertAlmostEqual(0.0, teams[user1]['interop_times']['uas_telem']['min'])
+        self.assertAlmostEqual(1.0, teams[user1]['interop_times']['uas_telem']['max'])
+        self.assertAlmostEqual(1./3, teams[user1]['interop_times']['uas_telem']['avg'])
+
+        self.assertEqual(False, teams[user1]['stationary_obst_collision'][25])
+        self.assertEqual(False, teams[user1]['stationary_obst_collision'][26])
+
+        self.assertEqual(False, teams[user1]['moving_obst_collision'][25])
+        self.assertEqual(False, teams[user1]['moving_obst_collision'][26])
 
 class TestLoginUserView(TestCase):
     """Tests the loginUser view."""
@@ -2253,10 +2085,10 @@ class TestPostUasPosition(TestCase):
 class TestEvaluateTeams(TestCase):
     """Tests the evaluateTeams view."""
 
+    fixtures = ['testdata/sample_mission.json']
+
     def setUp(self):
         """Sets up the tests."""
-        # Create mission data
-        TESTDATA_createSampleMission()
         # Create nonadmin user
         self.nonadmin_user = User.objects.create_user(
                 'testuser', 'testemail@x.com', 'testpass')
@@ -2271,11 +2103,6 @@ class TestEvaluateTeams(TestCase):
         self.loginUrl = reverse('auvsi_suas:login')
         self.evalUrl = reverse('auvsi_suas:evaluate_teams')
         logging.disable(logging.CRITICAL)
-
-
-    def tearDown(self):
-        """Tears down the tests."""
-        clearTestDatabase()
 
     def test_evaluateTeams_nonadmin(self):
         """Tests that you can only access data as admin."""
