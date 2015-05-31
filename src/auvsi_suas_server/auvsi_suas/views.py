@@ -12,6 +12,7 @@ from auvsi_suas.models import AerialPosition
 from auvsi_suas.models import FlyZone
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import MissionConfig
+from auvsi_suas.models import User
 from auvsi_suas.models import MovingObstacle
 from auvsi_suas.models import ObstacleAccessLog
 from auvsi_suas.models import ServerInfo
@@ -30,6 +31,8 @@ from django.http import HttpResponseBadRequest
 from django.http import HttpResponseServerError
 from django.shortcuts import render
 from scipy import interpolate
+import simplekml
+from simplekml import AltitudeMode
 
 
 # Logging for the module
@@ -308,6 +311,48 @@ def evaluateTeams(request):
     output = csv_output.getvalue()
     csv_output.close()
     return HttpResponse(output)
+
+
+# Require admin access
+@user_passes_test(lambda u: u.is_superuser)
+def generate_kml(_):
+    """Evaluates the teams by forming a CSV containing useful stats."""
+    logger.info('Admin downloaded team evaluation.')
+
+    kml = simplekml.Kml()
+    users = User.objects.all()
+    for user in users:
+        # Ignore admins
+        if user.is_superuser:
+            continue
+        uas_telemetry_logs = UasTelemetry.getAccessLogForUser(user)
+        pts = []
+        for entry in uas_telemetry_logs:
+            pos = entry.uas_position.gps_position
+            if pos.latitude == 0 and pos.longitude == 0:
+                continue
+            pts.append(
+                (
+                    pos.longitude,
+                    pos.latitude,
+                    entry.uas_position.altitude_msl,
+                )
+            )
+        ls = kml.newlinestring(
+            name=user.username,
+            coords=pts,
+            altitudemode=AltitudeMode.absolute,
+        )
+        ls.extrude = 1
+        ls.style.linestyle.width = 2
+        ls.style.linestyle.color = simplekml.Color.blue
+
+    response = HttpResponse(kml.kml())
+    # save_file_name = request_file[:request_file.lower().rfind(".kml")] # strips off the .kmz extension
+    response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
+    response['Content-Disposition'] = 'attachment; filename=%s.kml' % 'mission'
+    response['Content-Length'] = str(len(response.content))
+    return response
 
 
 # @login_required()
