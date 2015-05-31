@@ -39,6 +39,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'auvsi_suas',
+    'auvsi_suas.views.interop',
+    'auvsi_suas.views.auvsi_admin',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -144,5 +146,20 @@ LOGIN_URL='/login'
 
 # Migrations
 MIGRATION_MODULES = {
-    'auvsi_suas': 'auvsi_suas.migrations.auvsi_suas',
+    'auvsi_suas.models': 'auvsi_suas.models.migrations',
 }
+
+# Custom test runner.
+TEST_RUNNER = 'auvsi_suas.test_runner.AuvsiSuasTestRunner'
+
+# Whether tests can/should generate plots (requires window access)
+TEST_ENABLE_PLOTTING = False
+
+# Whether to perform load tests (slower)
+TEST_ENABLE_LOADTEST = False
+
+# The time to execute each loadtest for
+TEST_LOADTEST_TIME = 10.0
+# The minimum rate of an individual interop interface
+# (1.5x safety factor, 10Hz, 4 interfaces)
+TEST_LOADTEST_INTEROP_MIN_RATE = 1.5 * 10.0 * 4
