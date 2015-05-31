@@ -15,5 +15,5 @@ urlpatterns = patterns('',
     url(r'^$', views.indexView, name='index'),
     url(r'^auvsi_admin/evaluate_teams.csv$', views.evaluateTeams,
         name='evaluate_teams'),
-    url(r'^auvsi_admin/mission.kml$', views.generate_kml, name='generate_kml'),
+    url(r'^auvsi_admin/export_data.kml$', views.generate_kml, name='generate_kml'),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -12,7 +12,6 @@ from auvsi_suas.models import AerialPosition
 from auvsi_suas.models import FlyZone
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import MissionConfig
-from auvsi_suas.models import User
 from auvsi_suas.models import MovingObstacle
 from auvsi_suas.models import ObstacleAccessLog
 from auvsi_suas.models import ServerInfo
@@ -20,6 +19,7 @@ from auvsi_suas.models import ServerInfoAccessLog
 from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.models import TakeoffOrLandingEvent
 from auvsi_suas.models import UasTelemetry
+from auvsi_suas.models import User
 from auvsi_suas.models import Waypoint
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
@@ -31,8 +31,9 @@ from django.http import HttpResponseBadRequest
 from django.http import HttpResponseServerError
 from django.shortcuts import render
 from scipy import interpolate
-import simplekml
 from simplekml import AltitudeMode
+from simplekml import Color
+from simplekml import Kml
 
 
 # Logging for the module
@@ -319,7 +320,7 @@ def generate_kml(_):
     """Evaluates the teams by forming a CSV containing useful stats."""
     logger.info('Admin downloaded team evaluation.')
 
-    kml = simplekml.Kml()
+    kml = Kml()
     users = User.objects.all()
     for user in users:
         # Ignore admins
@@ -345,10 +346,9 @@ def generate_kml(_):
         )
         ls.extrude = 1
         ls.style.linestyle.width = 2
-        ls.style.linestyle.color = simplekml.Color.blue
+        ls.style.linestyle.color = Color.blue
 
     response = HttpResponse(kml.kml())
-    # save_file_name = request_file[:request_file.lower().rfind(".kml")] # strips off the .kmz extension
     response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
     response['Content-Disposition'] = 'attachment; filename=%s.kml' % 'mission'
     response['Content-Length'] = str(len(response.content))
