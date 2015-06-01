@@ -1,6 +1,7 @@
 """Tests for the moving_obstacle module."""
 
 import datetime
+import time
 from auvsi_suas.models import AerialPosition
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import MovingObstacle
@@ -248,6 +249,17 @@ class TestMovingObstacle(TestCase):
         self.assertEqual(lat, self.single_wpt_lat)
         self.assertEqual(lon, self.single_wpt_lon)
         self.assertEqual(alt, self.single_wpt_alt)
+
+    def test_getPosition_changes(self):
+        """Position of obstacle changes over time."""
+        # Pick an obstacle with more than one point
+        obstacle = self.obstacles[0]
+
+        original = obstacle.getPosition()
+        time.sleep(0.1)
+        new = obstacle.getPosition()
+
+        self.assertNotEqual(original, new)
 
     def test_getPosition_waypoints_plot(self):
         """Tests position calculation by saving plots of calculation.
