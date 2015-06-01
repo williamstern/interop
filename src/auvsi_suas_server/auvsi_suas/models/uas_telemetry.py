@@ -26,6 +26,10 @@ class UasTelemetry(AccessLog):
 
     @classmethod
     def kml(cls, user, logs, kml):
+        """
+        Appends kml nodes describing the given user's flight as described
+        by the log array given.
+        """
         pts = []
         threshold = 1  # Degrees
         kml_folder = kml.newfolder(name=user.username)
