@@ -5,9 +5,6 @@ from django.http import HttpResponse
 from simplekml import Kml
 
 
-__author__ = 'Joe'
-
-
 # Require admin access
 @user_passes_test(lambda u: u.is_superuser)
 def generateKml(_):
