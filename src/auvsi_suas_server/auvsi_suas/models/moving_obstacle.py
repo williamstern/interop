@@ -136,7 +136,7 @@ class MovingObstacle(models.Model):
 
         return (total_travel_time, spline_reps)
 
-    def getPosition(self, cur_time=timezone.now()):
+    def getPosition(self, cur_time=None):
         """Gets the current position for the obstacle.
 
         Args:
@@ -145,6 +145,9 @@ class MovingObstacle(models.Model):
           Returns a tuple (latitude, longitude, altitude_msl) for the obstacle
           at the given time.
         """
+        if cur_time is None:
+            cur_time = timezone.now()
+
         # Get waypoints
         if hasattr(self, 'preprocessed_waypoints'):
             waypoints = self.preprocessed_waypoints
