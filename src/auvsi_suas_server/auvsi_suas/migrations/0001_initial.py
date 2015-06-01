@@ -48,6 +48,9 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('mission_waypoints_dist_max', models.FloatField()),
                 ('air_drop_pos', models.ForeignKey(related_name='missionconfig_air_drop_pos', to='auvsi_suas.GpsPosition')),
+                ('emergent_last_known_pos', models.ForeignKey(related_name='missionconfig_emergent_last_known_pos', to='auvsi_suas.GpsPosition')),
+                ('home_pos', models.ForeignKey(related_name='missionconfig_home_pos', to='auvsi_suas.GpsPosition')),
+                ('ir_target_pos', models.ForeignKey(related_name='missionconfig_ir_target_pos', to='auvsi_suas.GpsPosition')),
             ],
         ),
         migrations.CreateModel(
@@ -117,26 +120,6 @@ class Migration(migrations.Migration):
             model_name='movingobstacle',
             name='waypoints',
             field=models.ManyToManyField(to='auvsi_suas.Waypoint'),
-        ),
-        migrations.AddField(
-            model_name='missionconfig',
-            name='emergent_grid_points',
-            field=models.ManyToManyField(related_name='missionconfig_emergent_grid_points', to='auvsi_suas.Waypoint'),
-        ),
-        migrations.AddField(
-            model_name='missionconfig',
-            name='emergent_last_known_pos',
-            field=models.ForeignKey(related_name='missionconfig_emergent_last_known_pos', to='auvsi_suas.GpsPosition'),
-        ),
-        migrations.AddField(
-            model_name='missionconfig',
-            name='home_pos',
-            field=models.ForeignKey(related_name='missionconfig_home_pos', to='auvsi_suas.GpsPosition'),
-        ),
-        migrations.AddField(
-            model_name='missionconfig',
-            name='ir_target_pos',
-            field=models.ForeignKey(related_name='missionconfig_ir_target_pos', to='auvsi_suas.GpsPosition'),
         ),
         migrations.AddField(
             model_name='missionconfig',
