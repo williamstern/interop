@@ -22,16 +22,22 @@ class TestGenerateKML(TestCase):
         self.nonadmin_user = User.objects.create_user(
                 'testuser', 'testemail@x.com', 'testpass')
         self.nonadmin_user.save()
-        self.nonadmin_client = Client()
+
         # Create admin user
         self.admin_user = User.objects.create_superuser(
                 'testuser2', 'testemail@x.com', 'testpass')
         self.admin_user.save()
-        self.admin_client = Client()
+
         # Create URLs for testing
         self.loginUrl = reverse('auvsi_suas:login')
         self.evalUrl = reverse('auvsi_suas:export_data')
         logging.disable(logging.CRITICAL)
+
+    def test_generateKML_nonadmin(self):
+        """Tests the generate KML method."""
+        self.client.post(self.loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        response = self.client.get(self.evalUrl)
+        self.assertGreaterEqual(response.status_code, 300)
 
     def test_generateKML(self):
         """Tests the generate KML method."""
@@ -43,7 +49,6 @@ class TestGenerateKML(TestCase):
         self.validate_kml(kml_data, self.folders, self.users, self.coordinates)
 
     def validate_kml(self, kml_data, folders, users, coordinates):
-        print(kml_data)
         ElementTree.fromstring(kml_data)
         for folder in folders:
             tag = '<name>{}</name>'.format(folder)
