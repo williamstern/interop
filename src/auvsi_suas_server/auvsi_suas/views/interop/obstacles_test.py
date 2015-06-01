@@ -155,6 +155,10 @@ class TestObstaclesView(TestCase):
 
         self.assertEqual(1, len(ObstacleAccessLog.objects.all()))
 
+    def test_disable_log(self):
+        """Normal users cannot disable logging."""
+        response = self.client.get(obstacle_url, {'log': 'false'})
+        self.assertEqual(response.status_code, 400)
 
     def test_loadtest(self):
         """Tests the max load the view can handle."""
@@ -175,3 +179,38 @@ class TestObstaclesView(TestCase):
                 op_rate, settings.TEST_LOADTEST_INTEROP_MIN_RATE)
 
 
+class TestObstaclesViewSuperuser(TestObstaclesView):
+    """Tests the getObstacles view as superuser."""
+
+    def setUp(self):
+        super(TestObstaclesViewSuperuser, self).setUp()
+
+        self.user = User.objects.create_superuser(
+                'superuser', 'email@example.com', 'superpass')
+        self.user.save()
+
+        # Login
+        response = self.client.post(login_url, {
+            'username': 'superuser',
+            'password': 'superpass'
+        })
+        self.assertEqual(200, response.status_code)
+
+    def test_bad_param(self):
+        """Non true/false doesn't work."""
+        response = self.client.get(obstacle_url, {'log': '42'})
+        self.assertEqual(400, response.status_code)
+
+    def test_disable_log(self):
+        """Superuser can disable logging."""
+        response = self.client.get(obstacle_url, {'log': 'false'})
+        self.assertEqual(200, response.status_code)
+
+        self.assertEqual(0, len(ObstacleAccessLog.objects.all()))
+
+    def test_enable_log(self):
+        """Log stays enabled."""
+        response = self.client.get(obstacle_url, {'log': 'true'})
+        self.assertEqual(200, response.status_code)
+
+        self.assertEqual(1, len(ObstacleAccessLog.objects.all()))
