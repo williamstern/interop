@@ -4,6 +4,7 @@ import json
 from auvsi_suas.models import MovingObstacle
 from auvsi_suas.models import ObstacleAccessLog
 from auvsi_suas.models import StationaryObstacle
+from auvsi_suas.views import boolean_param
 from auvsi_suas.views import logger
 from django.core.cache import cache
 from django.http import HttpResponse
@@ -23,9 +24,23 @@ def getObstacles(request):
         logger.debug(request)
         return HttpResponseBadRequest('User not logged in. Login required.')
 
+    log_access = True
+
+    # ?log=(true|false) to enable/disable logging of superusers
+    if 'log' in request.GET:
+        if not request.user.is_superuser:
+            return HttpResponseBadRequest(
+                    'Only superusers may set the log parameter')
+
+        try:
+            log_access = boolean_param(request.GET['log'])
+        except ValueError as e:
+            return HttpResponseBadRequest(e)
+
     # Log user access to obstacle info
     logger.info('User downloaded obstacle info: %s.' % request.user.username)
-    ObstacleAccessLog(user=request.user).save()
+    if log_access:
+        ObstacleAccessLog(user=request.user).save()
 
     # Form JSON response portion for stationary obstacles
     stationary_obstacles_cached = True
