@@ -25,7 +25,7 @@ urlpatterns = patterns('',
         name='evaluate_teams'),
     url(
         r'^auvsi_admin/export_data.kml$',
-        export_kml.generate_kml,
+        export_kml.generateKml,
         name='export_data',
     ),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

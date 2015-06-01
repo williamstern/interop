@@ -3,6 +3,10 @@
 from access_log import AccessLog
 from aerial_position import AerialPosition
 from django.db import models
+from math import pow
+from math import sqrt
+from simplekml import AltitudeMode
+from simplekml import Color
 
 
 class UasTelemetry(AccessLog):
@@ -19,3 +23,30 @@ class UasTelemetry(AccessLog):
                        (str(self.pk), self.user.__unicode__(),
                         str(self.timestamp), str(self.uas_heading),
                         self.uas_position.__unicode__()))
+
+    @classmethod
+    def kml(cls, user, logs, kml):
+        pts = []
+        threshold = 1  # Degrees
+        kml_folder = kml.newfolder(name=user.username)
+
+        for entry in logs:
+            pos = entry.uas_position.gps_position
+            mag = sqrt(pow(pos.latitude, 2)+pow(pos.longitude, 2))
+            if mag < threshold:
+                continue
+            kml_entry = (
+                pos.longitude,
+                pos.latitude,
+                entry.uas_position.altitude_msl,
+            )
+            pts.append(kml_entry)
+
+        ls = kml_folder.newlinestring(
+            name=user.username,
+            coords=pts,
+            altitudemode=AltitudeMode.absolute,
+        )
+        ls.extrude = 1
+        ls.style.linestyle.width = 2
+        ls.style.linestyle.color = Color.blue
