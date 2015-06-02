@@ -36,8 +36,7 @@ class UasTelemetry(AccessLog):
 
         for entry in logs:
             pos = entry.uas_position.gps_position
-            mag = sqrt(pow(pos.latitude, 2)+pow(pos.longitude, 2))
-            if mag < threshold:
+            if max(abs(pos.latitude), abs(pos.longitude)) < threshold:
                 continue
             kml_entry = (
                 pos.longitude,
