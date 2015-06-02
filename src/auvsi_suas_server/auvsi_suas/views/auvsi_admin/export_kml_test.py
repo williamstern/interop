@@ -10,11 +10,6 @@ from xml.etree import ElementTree
 
 class TestGenerateKMLCommon(TestCase):
     """Tests the generateKML view."""
-    def __init__(self, *args, **kwargs):
-        super(TestGenerateKMLCommon, self).__init__(*args, **kwargs)
-        self.folders = ['Teams', 'Mission']
-        self.users = ['testuser']
-        self.coordinates = ['0.0, 0.0, 0.0']
 
     def setUp(self):
         """Sets up the tests."""
