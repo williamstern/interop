@@ -3,8 +3,6 @@
 from access_log import AccessLog
 from aerial_position import AerialPosition
 from django.db import models
-from math import pow
-from math import sqrt
 from simplekml import AltitudeMode
 from simplekml import Color
 
@@ -29,6 +27,13 @@ class UasTelemetry(AccessLog):
         """
         Appends kml nodes describing the given user's flight as described
         by the log array given.
+
+        Args:
+            user: A Django User to get username from
+            logs: A list of UasTelemetry elements
+            kml: A simpleKML Container to which the flight data will be added
+        Returns:
+            None
         """
         pts = []
         threshold = 1  # Degrees
