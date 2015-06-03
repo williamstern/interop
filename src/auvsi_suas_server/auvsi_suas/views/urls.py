@@ -1,4 +1,5 @@
 from auvsi_suas.views.auvsi_admin import evaluate_teams
+from auvsi_suas.views.auvsi_admin import export_kml
 from auvsi_suas.views.auvsi_admin import index
 from auvsi_suas.views.interop import login
 from auvsi_suas.views.interop import obstacles
@@ -22,4 +23,9 @@ urlpatterns = patterns('',
     url(r'^$', index.getIndex, name='index'),
     url(r'^auvsi_admin/evaluate_teams.csv$', evaluate_teams.getTeamEvaluationCsv,
         name='evaluate_teams'),
+    url(
+        r'^auvsi_admin/export_data.kml$',
+        export_kml.generateKml,
+        name='export_data',
+    ),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
