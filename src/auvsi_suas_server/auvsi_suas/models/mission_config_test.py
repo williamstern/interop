@@ -41,7 +41,8 @@ class TestMissionConfigModel(TestCase):
         config.emergent_last_known_pos = pos
         config.off_axis_target_pos = pos
         config.sric_pos = pos
-        config.ir_target_pos = pos
+        config.ir_primary_target_pos = pos
+        config.ir_secondary_target_pos = pos
         config.air_drop_pos = pos
         config.save()
         config.mission_waypoints.add(wpt)
@@ -63,7 +64,8 @@ class TestMissionConfigModel(TestCase):
         config.emergent_last_known_pos = gpos
         config.off_axis_target_pos = gpos
         config.sric_pos = gpos
-        config.ir_target_pos = gpos
+        config.ir_primary_target_pos = gpos
+        config.ir_secondary_target_pos = gpos
         config.air_drop_pos = gpos
         config.save()
         # Create waypoints for config

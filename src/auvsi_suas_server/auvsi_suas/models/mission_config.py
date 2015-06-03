@@ -40,9 +40,12 @@ class MissionConfig(models.Model):
     # The SRIC position
     sric_pos = models.ForeignKey(
             GpsPosition, related_name="missionconfig_sric_pos")
-    # The IR target position
-    ir_target_pos = models.ForeignKey(
-            GpsPosition, related_name="missionconfig_ir_target_pos")
+    # The IR primary target position
+    ir_primary_target_pos = models.ForeignKey(
+            GpsPosition, related_name="missionconfig_ir_primary_target_pos")
+    # The IR secondary target position
+    ir_secondary_target_pos = models.ForeignKey(
+            GpsPosition, related_name="missionconfig_ir_secondary_target_pos")
     # The air drop position
     air_drop_pos = models.ForeignKey(
             GpsPosition, related_name="missionconfig_air_drop_pos")
@@ -60,7 +63,7 @@ class MissionConfig(models.Model):
                        "mission_waypoints_dist_max:%s, "
                        "mission_waypoints:[%s], search_grid:[%s], "
                        "emergent_lkp:%s, off_axis:%s, "
-                       "sric_pos:%s, ir_pos:%s, "
+                       "sric_pos:%s, ir_primary_pos:%s, ir_secondary_pos:%s, "
                        "air_drop_pos:%s)" %
                        (str(self.pk), self.home_pos.__unicode__(),
                         str(self.mission_waypoints_dist_max),
@@ -68,7 +71,8 @@ class MissionConfig(models.Model):
                         self.emergent_last_known_pos.__unicode__(),
                         self.off_axis_target_pos.__unicode__(),
                         self.sric_pos.__unicode__(),
-                        self.ir_target_pos.__unicode__(),
+                        self.ir_primary_target_pos.__unicode__(),
+                        self.ir_secondary_target_pos.__unicode__(),
                         self.air_drop_pos.__unicode__()))
 
     def evaluateUasSatisfiedWaypoints(self, uas_telemetry_logs):
