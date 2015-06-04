@@ -1,8 +1,10 @@
 """Index page admin view."""
 
+from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render
 
 
+@user_passes_test(lambda u: u.is_superuser)
 def getIndex(request):
     """Main view for users connecting via web browsers.
 
