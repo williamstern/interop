@@ -1,3 +1,4 @@
+from auvsi_suas.views import teams
 from auvsi_suas.views.auvsi_admin import evaluate_teams
 from auvsi_suas.views.auvsi_admin import export_kml
 from auvsi_suas.views.auvsi_admin import index
@@ -18,6 +19,9 @@ urlpatterns = patterns('',
     url(r'^api/interop/obstacles$', obstacles.getObstacles, name='obstacles'),
     url(r'^api/interop/uas_telemetry$', uas_telemetry.postUasPosition,
         name='uas_telemetry'),
+
+    # Admin API
+    url(r'^api/teams$', teams.getTeams, name='teams'),
 
     # Admin access views
     url(r'^$', index.getIndex, name='index'),

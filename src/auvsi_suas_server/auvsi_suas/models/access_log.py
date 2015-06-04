@@ -1,8 +1,10 @@
 """Model for an access log."""
 
+import datetime
 import numpy as np
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class AccessLog(models.Model):
@@ -29,6 +31,31 @@ class AccessLog(models.Model):
             A list of access log objects for the given user sorted by timestamp.
         """
         return cls.objects.filter(user_id=user.pk).order_by('timestamp')
+
+    @classmethod
+    def userActive(cls, user, base=None, delta=None):
+        """Determines if a user is 'active'.
+
+        A user is 'active' if they have reported telemetry since delta
+        time in the past.
+
+        Args:
+            user: User to determine if is active
+            base: Base time for active period, defaults to now
+            delta: time period before base to consider user active
+        Returns:
+            True if user reported telemetry since base - delta
+        """
+        if base is None:
+            base = timezone.now()
+        if delta is None:
+            delta = datetime.timedelta(seconds=10)
+
+        since = base - delta
+
+        return 0 != cls.getAccessLogForUser(user) \
+            .filter(timestamp__gt=since) \
+            .filter(timestamp__lt=base).count()
 
     @classmethod
     def getAccessLogForUserByTimePeriod(cls, access_logs, time_periods):

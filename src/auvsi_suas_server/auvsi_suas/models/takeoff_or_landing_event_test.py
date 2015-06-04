@@ -33,7 +33,7 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
         """Tests the unicode method executes."""
         log = TakeoffOrLandingEvent(user=self.user1, uas_in_air=True)
         log.save()
-        log.__unicode__()
+        self.assertIsNotNone(log.__unicode__())
 
     def test_basic_flight_period(self):
         """Single flight reported as period."""
@@ -135,3 +135,38 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
             (self.year2000, self.year2000 + 2*self.ten_minutes),
             (self.year2001, self.year2001 + self.ten_minutes),
         ])
+
+    def test_user_in_air_no_logs(self):
+        """Not in-air without logs."""
+        self.assertFalse(TakeoffOrLandingEvent.userInAir(self.user1))
+
+    def test_user_in_air_before_landing(self):
+        """In-air before landing."""
+        self.create_event(self.year2000, True)
+
+        self.assertTrue(TakeoffOrLandingEvent.userInAir(self.user1))
+
+    def test_user_in_air_after_landing(self):
+        """Not in-air after landing."""
+        self.create_event(self.year2000, True)
+        self.create_event(self.year2000 + self.ten_minutes, False)
+
+        self.assertFalse(TakeoffOrLandingEvent.userInAir(self.user1))
+
+    def test_user_in_air_second_flight(self):
+        """In-air during second flight."""
+        self.create_event(self.year2000, True)
+        self.create_event(self.year2000 + self.ten_minutes, False)
+
+        self.create_event(self.year2001, True)
+
+        self.assertTrue(TakeoffOrLandingEvent.userInAir(self.user1))
+
+    def test_user_in_air_time(self):
+        """In-air base time check."""
+        self.create_event(self.year2000, True)
+        self.create_event(self.year2000 + 2*self.ten_minutes, False)
+
+        time = self.year2000 + self.ten_minutes
+
+        self.assertTrue(TakeoffOrLandingEvent.userInAir(self.user1, time=time))
