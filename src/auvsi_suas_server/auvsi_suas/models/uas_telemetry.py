@@ -3,8 +3,8 @@
 from access_log import AccessLog
 from aerial_position import AerialPosition
 from django.db import models
-from simplekml import AltitudeMode
-from simplekml import Color
+from auvsi_suas.patches.simplekml_patch import AltitudeMode
+from auvsi_suas.patches.simplekml_patch import Color
 
 
 class UasTelemetry(AccessLog):
@@ -35,26 +35,48 @@ class UasTelemetry(AccessLog):
         Returns:
             None
         """
-        pts = []
+        # KML Compliant Datetime Formatter
+        kml_datetime_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+        icon = 'http://maps.google.com/mapfiles/kml/shapes/airports.png'
         threshold = 1  # Degrees
+
+        coords = []
+        angles = []
+        when = []
         kml_folder = kml.newfolder(name=user.username)
 
         for entry in logs:
             pos = entry.uas_position.gps_position
             if max(abs(pos.latitude), abs(pos.longitude)) < threshold:
                 continue
-            kml_entry = (
+
+            # Spatial Coordinates
+            coord = (
                 pos.longitude,
                 pos.latitude,
                 entry.uas_position.altitude_msl,
             )
-            pts.append(kml_entry)
+            coords.append(coord)
 
-        ls = kml_folder.newlinestring(
-            name=user.username,
-            coords=pts,
-            altitudemode=AltitudeMode.absolute,
-        )
-        ls.extrude = 1
-        ls.style.linestyle.width = 2
-        ls.style.linestyle.color = Color.blue
+            # Time Elements
+            time = entry.timestamp.strftime(kml_datetime_format)
+            when.append(time)
+
+            # Degrees heading, tilt, and roll
+            angle = (entry.uas_heading, 0.0, 0.0)
+            angles.append(angle)
+
+        # Create a new track in the folder
+        trk = kml_folder.newgxtrack(name='Flight Path')
+        trk.altitudemode = AltitudeMode.absolute
+
+        # Append flight data
+        trk.newwhen(when)
+        trk.newgxcoord(coords)
+        trk.newgxangle(angles)
+
+        # Set styling
+        trk.extrude = 1  # Extend path to ground
+        trk.style.linestyle.width = 2
+        trk.style.linestyle.color = Color.blue
+        trk.iconstyle.icon.href = icon

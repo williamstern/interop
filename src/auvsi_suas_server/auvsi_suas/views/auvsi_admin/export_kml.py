@@ -2,7 +2,7 @@ from auvsi_suas.models import UasTelemetry
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from django.http import HttpResponse
-from simplekml import Kml
+from auvsi_suas.patches.simplekml_patch import Kml
 
 
 # Require admin access
