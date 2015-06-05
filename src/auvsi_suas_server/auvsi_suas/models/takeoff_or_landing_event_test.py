@@ -2,87 +2,136 @@
 
 import datetime
 from auvsi_suas.models import TakeoffOrLandingEvent
-from django.contrib.auth.models import User
-from django.test import TestCase
+from auvsi_suas.models.access_log_test import TestAccessLogCommon
 from django.utils import timezone
 
 
-# [(user, [(timestamp, in_air)], [(time_start, time_end)]]
-TESTDATA_TAKEOFFORLANDINGEVENT = [
-    ('no_logs',
-        [],
-        []),
-    ('forgot_takeoff',
-        [(0.0, False)],
-        [(None, 0.0)]),
-    ('forgot_landing',
-        [(0.0, True)],
-        [(0.0, None)]),
-    ('single_flight',
-        [(0.0, True), (100.0, False)],
-        [(0.0, 100.0)]),
-    ('multi_flight',
-        [(0.0, True), (100.0, False), (150.0, True), (200.0, False)],
-        [(0.0, 100.0), (150.0, 200.0)]),
-    ('multi_with_double_forget',
-        [(0.0, False), (1.0, True), (2.0, False), (3.0, True)],
-        [(None, 0.0), (1.0, 2.0), (3.0, None)]),
-    ('missing_inbetween_log',
-        [(0.0, True), (1.0, False), (2.0, False), (3.0, True), (4.0, False)],
-        [(0.0, 1.0), (3.0, 4.0)]),
-]
-
-
-class TestTakeoffOrLandingEventModel(TestCase):
+class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
     """Tests the TakeoffOrLandingEvent model."""
 
     def setUp(self):
-        """Sets up the tests."""
-        self.users = list()
-        self.user_flight_periods = dict()
-        self.base_time = timezone.now().replace(
-                hour=0, minute=0, second=0, microsecond=0)
-        for (username, logs, periods) in TESTDATA_TAKEOFFORLANDINGEVENT:
-            # Create user
-            user = User.objects.create_user(
-                username, 'testemail@x.com', 'testpass')
-            user.save()
-            # Create log events
-            for (time_offset, uas_in_air) in logs:
-                timestamp = self.base_time + datetime.timedelta(
-                        seconds = time_offset)
-                event = TakeoffOrLandingEvent(
-                        user=user, timestamp=timestamp, uas_in_air=uas_in_air)
-                event.save()
-            # Create expected time periods
-            user_periods = self.user_flight_periods.setdefault(user, list())
-            for (time_start, time_end) in periods:
-                if time_start is not None:
-                    time_start = self.base_time + datetime.timedelta(
-                            seconds = time_start)
-                if time_end is not None:
-                    time_end = self.base_time + datetime.timedelta(
-                            seconds = time_end)
-                user_periods.append((time_start, time_end))
+        super(TestTakeoffOrLandingEventModel, self).setUp()
+
+        self.ten_minutes = datetime.timedelta(minutes=10)
+
+    def create_event(self, time, uas_in_air):
+        """Create a TakeoffOrLandingEvent for test user."""
+        event = TakeoffOrLandingEvent(user=self.user1,
+                                      uas_in_air=uas_in_air)
+        event.save()
+        event.timestamp = time
+        event.save()
+        return event
+
+    def evaluate_periods(self, expected):
+        """Check actual periods against expected."""
+        periods = TakeoffOrLandingEvent.getFlightPeriodsForUser(self.user1)
+
+        self.assertSequenceEqual(expected, periods)
 
     def test_unicode(self):
         """Tests the unicode method executes."""
-        user = User.objects.create_user(
-                'testuser', 'testemail@x.com', 'testpass')
-        log = TakeoffOrLandingEvent(
-                timestamp=timezone.now(), user=user, uas_in_air=True)
+        log = TakeoffOrLandingEvent(user=self.user1, uas_in_air=True)
         log.save()
-        self.assertTrue(log.__unicode__())
+        log.__unicode__()
 
-    def test_getFlightPeriodsForUser(self):
-        """Tests the flight period list class method."""
-        for user in self.users:
-            event_cls = takeoff_or_landing_event.TakeoffOrLandingEvent
-            flight_periods = event_cls.getFlightPeriodsForUser(user)
-            exp_periods = self.user_flight_periods[user]
-            self.assertEqual(len(flight_periods), len(exp_periods))
-            for period_id in range(len(flight_periods)):
-                (period_start, period_end) = flight_periods[period_id]
-                (exp_start, exp_end) = exp_periods[period_id]
-                self.assertAlmostEqual(period_start, exp_start)
-                self.assertAlmostEqual(period_end, exp_end)
+    def test_basic_flight_period(self):
+        """Single flight reported as period."""
+        self.create_event(self.year2000, True)
+        self.create_event(self.year2000 + self.ten_minutes, False)
+
+        self.evaluate_periods([
+            (self.year2000, self.year2000 + self.ten_minutes),
+        ])
+
+    def test_flight_period_missing_takeoff(self):
+        """Missing takeoff reported as None."""
+        self.create_event(self.year2000, False)
+
+        self.evaluate_periods([
+            (None, self.year2000),
+        ])
+
+    def test_flight_period_missing_landing(self):
+        """Missing landing reported as None."""
+        self.create_event(self.year2000, True)
+
+        self.evaluate_periods([
+            (self.year2000, None),
+        ])
+
+    def test_flight_period_multiple_flights(self):
+        """Multiple flight reported together."""
+        self.create_event(self.year2000, True)
+        self.create_event(self.year2000 + self.ten_minutes, False)
+
+        self.create_event(self.year2001, True)
+        self.create_event(self.year2001 + self.ten_minutes, False)
+
+        self.evaluate_periods([
+            (self.year2000, self.year2000 + self.ten_minutes),
+            (self.year2001, self.year2001 + self.ten_minutes),
+        ])
+
+    def test_flight_period_multiple_flights_order(self):
+        """Multiple flights listed in chronological order."""
+        self.create_event(self.year2001, True)
+        self.create_event(self.year2001 + self.ten_minutes, False)
+
+        self.create_event(self.year2000, True)
+        self.create_event(self.year2000 + self.ten_minutes, False)
+
+        self.evaluate_periods([
+            (self.year2000, self.year2000 + self.ten_minutes),
+            (self.year2001, self.year2001 + self.ten_minutes),
+        ])
+
+    def test_flight_period_missing_multiple(self):
+        """Multiple flight can be missing details."""
+        # Forgot takeoff
+        self.create_event(self.year2000, False)
+
+        # Normal
+        self.create_event(self.year2001, True)
+        self.create_event(self.year2001 + self.ten_minutes, False)
+
+        # Forgot landing
+        self.create_event(self.year2002, True)
+
+        self.evaluate_periods([
+            (None, self.year2000),
+            (self.year2001, self.year2001 + self.ten_minutes),
+            (self.year2002, None),
+        ])
+
+    def test_flight_period_multiple_landing(self):
+        """Double landing ignored"""
+        self.create_event(self.year2000, True)
+        self.create_event(self.year2000 + self.ten_minutes, False)
+
+        # Land again? Ignored
+        self.create_event(self.year2000 + 2*self.ten_minutes, False)
+
+        self.create_event(self.year2001, True)
+        self.create_event(self.year2001 + self.ten_minutes, False)
+
+        self.evaluate_periods([
+            (self.year2000, self.year2000 + self.ten_minutes),
+            (self.year2001, self.year2001 + self.ten_minutes),
+        ])
+
+    def test_flight_period_multiple_takeoff(self):
+        """Double takeoff ignored."""
+        self.create_event(self.year2000, True)
+        # Take off again? Ignored
+        self.create_event(self.year2000 + self.ten_minutes, True)
+        # Land
+        self.create_event(self.year2000 + 2*self.ten_minutes, False)
+
+        self.create_event(self.year2001, True)
+        self.create_event(self.year2001 + self.ten_minutes, False)
+
+        self.evaluate_periods([
+            (self.year2000, self.year2000 + 2*self.ten_minutes),
+            (self.year2001, self.year2001 + self.ten_minutes),
+        ])
