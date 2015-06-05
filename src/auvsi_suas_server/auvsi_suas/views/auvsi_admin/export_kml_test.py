@@ -11,6 +11,9 @@ from xml.etree import ElementTree
 class TestGenerateKMLCommon(TestCase):
     """Tests the generateKML view."""
 
+    # String formatter for KML format that expects lon, lat, alt arguments
+    coord_format = '<gx:coord>{} {} {}</gx:coord>'
+
     def setUp(self):
         """Sets up the tests."""
         # Create nonadmin user
@@ -39,7 +42,8 @@ class TestGenerateKMLCommon(TestCase):
             self.assertTrue(tag in kml_data)
 
         for coord in coordinates:
-            self.assertTrue(coord in kml_data)
+            coord_str = self.coord_format.format(coord[0], coord[1], coord[2])
+            self.assertIn(coord_str, kml_data)
 
 
 class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
@@ -48,7 +52,7 @@ class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
         super(TestGenerateKMLNoFixture, self).__init__(*args, **kwargs)
         self.folders = ['Teams', 'Mission']
         self.users = ['testuser']
-        self.coordinates = ['0.0, 0.0, 0.0']
+        self.coordinates = []
 
     def test_generateKML_not_logged_in(self):
         """Tests the generate KML method."""
@@ -80,14 +84,13 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
         self.folders = ['Teams', 'Mission']
         self.users = ['testuser', 'user0', 'user1']
         self.coordinates = [
-            '-76.0,38.0,0.0',
-            '-76.0,38.0,10.0',
-            '-76.0,38.0,20.0',
-            '-76.0,38.0,30.0',
-            '-76.0,38.0,100.0',
-            '-76.0,38.0,30.0',
-            '-76.0,38.0,60.0',
-            '0.0, 0.0, 0.0',
+            (-76.0, 38.0, 0.0),
+            (-76.0, 38.0, 10.0),
+            (-76.0, 38.0, 20.0),
+            (-76.0, 38.0, 30.0),
+            (-76.0, 38.0, 100.0),
+            (-76.0, 38.0, 30.0),
+            (-76.0, 38.0, 60.0),
         ]
 
     def test_generateKML_not_logged_in(self):

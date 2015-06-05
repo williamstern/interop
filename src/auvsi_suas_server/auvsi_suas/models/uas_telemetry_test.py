@@ -28,6 +28,9 @@ class TestUasTelemetry(TestCase):
 
 
 class TestUasTelemetryKML(TestCase):
+    # String formatter for KML format that expects lon, lat, alt arguments
+    coord_format = '<gx:coord>{} {} {}</gx:coord>'
+
     def test_kml_simple(self):
         # Create User
         nonadmin_user = User.objects.create_user(
@@ -54,7 +57,7 @@ class TestUasTelemetryKML(TestCase):
             kml=kml,
         )
         for coord in coordinates:
-            tag = '{},{},{}'.format(coord[1], coord[0], coord[2])
+            tag = self.coord_format.format(coord[1], coord[0], coord[2])
             self.assertTrue(tag in kml.kml())
 
     def test_kml_empty(self):
@@ -103,11 +106,11 @@ class TestUasTelemetryKML(TestCase):
         )
 
         for filtered in filtered_out:
-            tag = '{},{},{}'.format(filtered[1], filtered[0], filtered[2])
+            tag = self.coord_format.format(filtered[1], filtered[0], filtered[2])
             self.assertTrue(tag not in kml.kml())
 
         for coord in coordinates:
-            tag = '{},{},{}'.format(coord[1], coord[0], coord[2])
+            tag = self.coord_format.format(coord[1], coord[0], coord[2])
             self.assertTrue(tag in kml.kml())
 
     def create_log_element(self, lat, lon, alt, user):
