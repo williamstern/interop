@@ -8,6 +8,7 @@
  * Application module.
  */
 var auvsiSuasApp = angular.module('auvsiSuasApp', [
+    'ngResource',
     'ngRoute'
 ]);
 
