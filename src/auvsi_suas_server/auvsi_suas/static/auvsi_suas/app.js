@@ -30,4 +30,3 @@ auvsiSuasApp.config(['$routeProvider', function($routeProvider) {
             redirectTo: '/'
         });
 }]);
-

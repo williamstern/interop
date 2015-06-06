@@ -1,3 +1,4 @@
+<!-- Main Application Page --!>
 <!DOCTYPE html>
 {% load staticfiles %}
 
@@ -33,7 +34,7 @@
   <script src="{% static 'foundation/js/foundation.topbar.js' %}"></script>
 
   <!-- AngularJS --!>
-  <script src="{% static 'angularjs/angular.min.js' %}"></script>
+  <script src="{% static 'angularjs/angular.js' %}"></script>
   <script src="{% static 'angularjs/angular-route.js' %}"></script>
 
   <!-- AUVSI SUAS --!>
@@ -53,13 +54,23 @@
 <body>
 
   <!-- Navigation --!>
-  <div class="row">
-    Navigation placeholder.
-  </div>
+  <nav class="top-bar" data-topbar role="navigation" ng-controller="NavigationCtrl as navigationCtrl">
+    <ul class="title-area">
+      <li class="name">
+        <h1><a href="/#/">AUVSI SUAS Server</a></h1>
+      </li>
+    </ul>
+
+    <section class="top-bar-section">
+      <ul class="right" ng-if="navigationCtrl.shouldShowMissionLinks()">
+        <li><a target="_blank" href="/auvsi_admin/evaluate_teams.csv">Evaluate Teams (CSV)</a></li>
+        <li><a target="_blank" href="/auvsi_admin/export_data.kml">Export Data (KML)</a></li>
+      </ul>
+    </section>
+  </nav>
 
   <!-- Route specific view --!>
   <div ng-view></div>
-
 
 </body>
 
