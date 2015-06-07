@@ -55,6 +55,7 @@ class TestUasTelemetryKML(TestCase):
             user=nonadmin_user,
             logs=UasTelemetry.getAccessLogForUser(nonadmin_user),
             kml=kml,
+            kml_doc=kml,
         )
         for coord in coordinates:
             tag = self.coord_format.format(coord[1], coord[0], coord[2])
@@ -71,6 +72,7 @@ class TestUasTelemetryKML(TestCase):
             user=nonadmin_user,
             logs=UasTelemetry.getAccessLogForUser(nonadmin_user),
             kml=kml,
+            kml_doc=kml,
         )
 
     def test_kml_filter(self):
@@ -103,6 +105,7 @@ class TestUasTelemetryKML(TestCase):
             user=nonadmin_user,
             logs=UasTelemetry.getAccessLogForUser(nonadmin_user),
             kml=kml,
+            kml_doc=kml,
         )
 
         for filtered in filtered_out:

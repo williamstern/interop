@@ -22,6 +22,7 @@ def generateKml(_):
             user=user,
             logs=UasTelemetry.getAccessLogForUser(user),
             kml=kml_teams,
+            kml_doc=kml.document,
         )
 
     response = HttpResponse(kml.kml())

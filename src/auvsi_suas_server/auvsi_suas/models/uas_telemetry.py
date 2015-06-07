@@ -2,6 +2,7 @@
 
 from access_log import AccessLog
 from aerial_position import AerialPosition
+from auvsi_suas.models.moving_obstacle import MovingObstacle
 from django.db import models
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
@@ -23,7 +24,7 @@ class UasTelemetry(AccessLog):
                         self.uas_position.__unicode__()))
 
     @classmethod
-    def kml(cls, user, logs, kml):
+    def kml(cls, user, logs, kml, kml_doc):
         """
         Appends kml nodes describing the given user's flight as described
         by the log array given.
@@ -32,6 +33,7 @@ class UasTelemetry(AccessLog):
             user: A Django User to get username from
             logs: A list of UasTelemetry elements
             kml: A simpleKML Container to which the flight data will be added
+            kml_doc: The simpleKML Document to which schemas will be added
         Returns:
             None
         """
@@ -45,11 +47,21 @@ class UasTelemetry(AccessLog):
         when = []
         kml_folder = kml.newfolder(name=user.username)
 
+        def is_not_zero(x):
+            """
+            Returns whether or not the given entry is at latitude and
+            longitude of 0,0
+            :param x: UasTelemetry element
+            :return: Boolean
+            """
+            pos = x.uas_position.gps_position
+            if max(abs(pos.latitude), abs(pos.longitude)) < threshold:
+                return False
+            return True
+        logs = filter(is_not_zero, logs)
+
         for entry in logs:
             pos = entry.uas_position.gps_position
-            if max(abs(pos.latitude), abs(pos.longitude)) < threshold:
-                continue
-
             # Spatial Coordinates
             coord = (
                 pos.longitude,
@@ -80,3 +92,6 @@ class UasTelemetry(AccessLog):
         trk.style.linestyle.width = 2
         trk.style.linestyle.color = Color.blue
         trk.iconstyle.icon.href = icon
+
+        for obstacle in MovingObstacle.objects.all():
+            obstacle.kml(path=logs, kml=kml_folder, kml_doc=kml_doc)
