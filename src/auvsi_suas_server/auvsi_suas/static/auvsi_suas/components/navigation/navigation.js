@@ -5,6 +5,7 @@
 
 /**
  * Navigation controller for main application navigation.
+ * @param $routeParams The routeParams service.
  */
 NavigationCtrl = function($routeParams) {
     /**
