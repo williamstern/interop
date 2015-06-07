@@ -1,7 +1,8 @@
+<!-- Main Application Page --!>
 <!DOCTYPE html>
 {% load staticfiles %}
 
-<html lang="en">
+<html lang="en" ng-app="auvsiSuasApp">
 
 <head>
   <meta charset="utf-8" />
@@ -33,24 +34,44 @@
   <script src="{% static 'foundation/js/foundation.topbar.js' %}"></script>
 
   <!-- AngularJS --!>
-  <script src="{% static 'angularjs/angular.min.js' %}"></script>
+  <script src="{% static 'angularjs/angular.js' %}"></script>
+  <script src="{% static 'angularjs/angular-route.js' %}"></script>
+
+  <!-- AUVSI SUAS --!>
+  <link rel="stylesheet" href="{% static 'auvsi_suas/app.css'%}" />
+  <link rel="stylesheet" href="{% static 'auvsi_suas/pages/mission-dashboard/mission-dashboard.css'%}" />
+  <link rel="stylesheet" href="{% static 'auvsi_suas/pages/mission-list/mission-list.css'%}" />
+  <!-- TODO --!>
+  <script src="{% static 'auvsi_suas/app.js'%}"></script>
+  <script src="{% static 'auvsi_suas/components/navigation/navigation.js'%}"></script>
+  <script src="{% static 'auvsi_suas/components/backend-service/backend-service.js'%}"></script>
+  <script src="{% static 'auvsi_suas/pages/mission-dashboard/mission-dashboard-controller.js'%}"></script>
+  <script src="{% static 'auvsi_suas/pages/mission-list/mission-list-controller.js'%}"></script>
 
   <title>AUVSI SUAS Server</title>
 </head>
 
 <body>
 
-  <div class="row">
-    <div class="small-12 large-12 columns" style="text-align:center;">
-      <h1>AUVSI SUAS Competition Server</h1>
-      <p>
-        This webpage was served by the AUVSI SUAS competition web server. This
-        is a placeholder for the administration interface.
-      </p>
-    </div>
-  </div>
+  <!-- Navigation --!>
+  <nav class="top-bar" data-topbar role="navigation" ng-controller="NavigationCtrl as navigationCtrl">
+    <ul class="title-area">
+      <li class="name">
+        <h1><a href="/#/">AUVSI SUAS Server</a></h1>
+      </li>
+    </ul>
+
+    <section class="top-bar-section">
+      <ul class="right" ng-if="navigationCtrl.shouldShowMissionLinks()">
+        <li><a target="_blank" href="/auvsi_admin/evaluate_teams.csv">Evaluate Teams (CSV)</a></li>
+        <li><a target="_blank" href="/auvsi_admin/export_data.kml">Export Data (KML)</a></li>
+      </ul>
+    </section>
+  </nav>
+
+  <!-- Route specific view --!>
+  <div ng-view></div>
 
 </body>
 
 </html>
-
