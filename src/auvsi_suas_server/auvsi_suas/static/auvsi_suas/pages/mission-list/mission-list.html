@@ -1,10 +1,18 @@
 <div class="row">
-  <div class="small-12 large-12 columns" style="text-align:center;">
+  <div class="small-12 columns text-center">
     <h1>AUVSI SUAS Competition Server</h1>
-    <p>
-      This webpage was served by the AUVSI SUAS competition web server. This 
-is a placeholder for the administration interface.
+    <p ng-if="!missionListCtrl.hasMissions()">
+      No missions stored.
     </p>
   </div>
 </div>
 
+<div class="row text-center" ng-if="missionListCtrl.hasMissions()">
+  <div class="small-3 small-centered columns">
+    <ul class="stack button-group text-center">
+      <li ng-repeat="mission in missionListCtrl.Backend.missions">
+        <a href="/#/mission/{{mission.id}}" class="button">Mission {{mission.id}}</a>
+      </li>
+    </ul>
+  </div>
+</div>

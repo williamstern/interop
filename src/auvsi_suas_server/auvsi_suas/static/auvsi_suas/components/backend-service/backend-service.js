@@ -62,13 +62,13 @@ Backend = function($resource, $interval) {
 Backend.prototype.update = function() {
     // Execute all asynchronous background syncs.
     var missions = this.Missions.query({},
-            angular.bind(this, Backend.setMissions, missions));
+            angular.bind(this, this.setMissions, missions));
     var teams = this.Teams.query({},
-            angular.bind(this, Backend.setTeams, teams));
+            angular.bind(this, this.setTeams, teams));
     var obstacles = this.Obstacles.get({},
-            angular.bind(this, Backend.setObstacles, obstacles));
+            angular.bind(this, this.setObstacles, obstacles));
     var telemetry = this.Telemetry.query({},
-            angular.bind(this, Backend.setTelemetry, telemetry));
+            angular.bind(this, this.setTelemetry, telemetry));
 };
 
 
