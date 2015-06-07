@@ -1,3 +1,4 @@
+from auvsi_suas.views import missions
 from auvsi_suas.views import teams
 from auvsi_suas.views.auvsi_admin import evaluate_teams
 from auvsi_suas.views.auvsi_admin import export_kml
@@ -21,6 +22,7 @@ urlpatterns = patterns('',
         name='uas_telemetry'),
 
     # Admin API
+    url(r'^api/missions$', missions.getMissions, name='missions'),
     url(r'^api/teams$', teams.getTeams, name='teams'),
 
     # Admin access views
