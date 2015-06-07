@@ -60,4 +60,4 @@ ensure_puppet_module stankevich-python
 # Launch the Puppet process. Prepares machine.
 log "Executing Puppet setup..."
 sudo puppet apply --modulepath=${SETUP}/puppet_files:/etc/puppet/modules/ \
-    puppet_files/auvsi_suas.pp
+    ${SETUP}/puppet_files/auvsi_suas.pp
