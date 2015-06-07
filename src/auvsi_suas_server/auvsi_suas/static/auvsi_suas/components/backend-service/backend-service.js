@@ -61,14 +61,14 @@ Backend = function($resource, $interval) {
  */
 Backend.prototype.update = function() {
     // Execute all asynchronous background syncs.
-    var missions = this.Missions.query({},
-            angular.bind(this, this.setMissions, missions));
-    var teams = this.Teams.query({},
-            angular.bind(this, this.setTeams, teams));
-    var obstacles = this.Obstacles.get({},
-            angular.bind(this, this.setObstacles, obstacles));
-    var telemetry = this.Telemetry.query({},
-            angular.bind(this, this.setTelemetry, telemetry));
+    this.Missions.query({}).$promise.then(
+            angular.bind(this, this.setMissions));
+    this.Teams.query({}).$promise.then(
+            angular.bind(this, this.setTeams));
+    this.Obstacles.get({}).$promise.then(
+            angular.bind(this, this.setObstacles));
+    this.Telemetry.query({}).$promise.then(
+            angular.bind(this, this.setTelemetry));
 };
 
 
@@ -77,6 +77,7 @@ Backend.prototype.update = function() {
  * @param missions The missions to set.
  */
 Backend.prototype.setMissions = function(missions) {
+    console.log(missions);
     this.missions = missions;
 };
 
