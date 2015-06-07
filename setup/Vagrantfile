@@ -20,7 +20,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box_url = "https://vagrantcloud.com/ubuntu/boxes/trusty64/versions/20150521.0.0/providers/virtualbox.box"
 
   # Forward port for SUAS server
-  config.vm.network "forwarded_port", guest: 80,   host: 80
+  config.vm.network "forwarded_port", guest: 80,   host: 8000
   config.vm.network "forwarded_port", guest: 8080, host: 8080
 
   # Sync the repository folder to known path in VM
