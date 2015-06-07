@@ -77,7 +77,6 @@ Backend.prototype.update = function() {
  * @param missions The missions to set.
  */
 Backend.prototype.setMissions = function(missions) {
-    console.log(missions);
     this.missions = missions;
 };
 
