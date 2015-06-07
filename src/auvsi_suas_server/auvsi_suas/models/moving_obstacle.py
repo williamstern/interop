@@ -246,8 +246,7 @@ class MovingObstacle(models.Model):
         entries are given.
 
         Args:
-            user: A Django User to get username from
-            logs: A list of UasTelemetry elements.
+            path: A list of UasTelemetry elements.
             kml: A simpleKML Container to which the flight data will be added
             kml_doc: The simpleKML Document to which schemas will be added
         Returns:
@@ -262,21 +261,11 @@ class MovingObstacle(models.Model):
         when = []
         ranges = []
 
-        def times(start, end, delta):
-            curr = start
-            while curr < end:
-                yield curr
-                curr += delta
-
         if len(path) < 2:
             return
-        start_time = path[0].timestamp
-        end_time = path[len(path)-1].timestamp
 
-        latest_postion = 0  # Index of last known position
-        for time in times(start_time, end_time, timedelta(milliseconds=kml_output_resolution)):
-            pos = self.getPosition(time)
-
+        dt = timedelta(milliseconds=kml_output_resolution)
+        for pos, uav, time in self.times(path, dt):
             # Spatial Coordinates (longitude, latitude, altitude)
             coord = (pos[1], pos[0], pos[2])
             coords.append(coord)
@@ -285,21 +274,14 @@ class MovingObstacle(models.Model):
             when.append(time.strftime(kml_datetime_format))
 
             # Distance Elements
-            while path[latest_postion+1].timestamp < time:
-                latest_postion += 1
-            from_coord = (
-                path[latest_postion].uas_position.gps_position.latitude,
-                path[latest_postion].uas_position.gps_position.longitude,
-                path[latest_postion].uas_position.altitude_msl,
-            )
-            uas_range = distance.distanceTo(*from_coord+pos)
+            uas_range = distance.distanceTo(*uav+pos)
             ranges.append(uas_range)
 
         # Create a new track in the folder
         trk = kml.newgxtrack(name='Obstacle Path {}'.format(self.id))
         trk.altitudemode = AltitudeMode.absolute
 
-        # Create a schema for extended data: heart rate, cadence and power
+        # Create a schema for extended data: proximity
         schema = kml_doc.newschema()
         schema.newgxsimplearrayfield(name='proximity', type=Types.float, displayname='UAS Proximity [ft]')
         trk.extendeddata.schemadata.schemaurl = schema.id
@@ -314,3 +296,31 @@ class MovingObstacle(models.Model):
         trk.style.linestyle.width = 2
         trk.style.linestyle.color = Color.red
         trk.iconstyle.icon.href = icon
+
+    def times(self, uav_path, delta):
+        """
+        Generator for getting the position of the obstacle and uav
+        for each time slice
+
+        Args:
+            uav_path: A list of UasTelemetry elements.
+            delta: timedelta for the step size
+        Returns:
+            Obstacle position, UAV position, time
+            position is a tuple(latitude, longitude, altitude)
+        """
+        curr = uav_path[0].timestamp
+        end = uav_path[len(uav_path)-1].timestamp
+        path_index = 0  # Index of last known position
+        while curr < end:
+            # Advance the path_index forward in time
+            while uav_path[path_index+1].timestamp <= curr:
+                path_index += 1
+
+            uav = (
+                uav_path[path_index].uas_position.gps_position.latitude,
+                uav_path[path_index].uas_position.gps_position.longitude,
+                uav_path[path_index].uas_position.altitude_msl,
+            )
+            yield self.getPosition(curr), uav, curr
+            curr += delta

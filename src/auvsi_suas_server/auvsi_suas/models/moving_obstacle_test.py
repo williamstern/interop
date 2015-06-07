@@ -454,7 +454,6 @@ class TestMovingObstacle(TestCase):
         Tests the generation of kml data
             The correct number of elements are generated
             The meta-data tag is present
-        :return:
         """
         array_field_tag = '<gx:SimpleArrayField name="proximity" type="float">'
         coordinates = [
@@ -482,7 +481,7 @@ class TestMovingObstacle(TestCase):
 
         # Calculate expected number of data tags
         time_delta = end_time-start_time
-        ms_elapsed = (time_delta.seconds*1e6+time_delta.microseconds)/1000
+        ms_elapsed = time_delta.total_seconds()*1000
         kml_output_resolution = 100  # milliseconds
         samples_expected = int(ms_elapsed/kml_output_resolution)
 

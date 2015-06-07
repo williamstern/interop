@@ -49,10 +49,12 @@ class UasTelemetry(AccessLog):
 
         def is_not_zero(x):
             """
-            Returns whether or not the given entry is at latitude and
-            longitude of 0,0
-            :param x: UasTelemetry element
-            :return: Boolean
+            Determine whether entry is not near latitude and longitude of 0,0.
+
+            Args:
+                x: UasTelemetry element
+            Returns:
+                Boolean: True if position is not near 0,0, else False
             """
             pos = x.uas_position.gps_position
             if max(abs(pos.latitude), abs(pos.longitude)) < threshold:
