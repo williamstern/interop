@@ -35,7 +35,7 @@ class TestAccessLogCommon(TestCase):
         for i in xrange(num):
             log = AccessLog(user=user)
             log.save()
-            log.timestamp = start + i*delta # Wat.
+            log.timestamp = start + i*delta
             log.save()
             logs.append(log)
 
