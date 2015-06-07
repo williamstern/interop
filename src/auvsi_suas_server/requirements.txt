@@ -1,6 +1,7 @@
 Django>=1.8,<1.9
-numpy
-scipy
+iso8601
 matplotlib
+numpy
 psycopg2
+scipy
 simplekml==1.2.7
