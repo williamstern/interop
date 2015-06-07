@@ -1,9 +1,26 @@
 <div class="row">
-  <div class="small-12 large-12 columns" style="text-align:center;">
-    <h1>Mission Dashboard</h1>
-    <p>
-      Placeholder.
-    </p>
+
+  <div class="small-3 columns">
+    <div class="row text-center text-middle">
+      <h4>Dashboard</h4>
+    </div>
+
+    <hr></hr>
+
+    <div class="row" ng-repeat="team in missionDashboardCtrl.getActiveOrInAirTeams()">
+      <div class="panel {{missionDashboardCtrl.getTeamColorClass(team)}}">
+        <h4>{{team.id}}: {{team.name}}</h4>
+        <h6>Active: {{team.active}}</h6>
+        <h6>In Air: {{team.in_air}}</h6>
+      </div>
+    </div>
   </div>
+
+  <div class="small-9 columns">
+    <div class="row">
+      Live Display Placeholder.
+    </div>
+  </div>
+
 </div>
 
