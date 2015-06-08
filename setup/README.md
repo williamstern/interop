@@ -12,8 +12,12 @@ vagrant up
 ```
 
 This will download an Ubuntu base image, boot it and execute the Puppet
-manifest. Port 80 and 8080 will be forwarded from the guest to the host to
-allow access to the SUAS server.
+manifest. A couple of ports are forwarded from the guest to the host:
+
+* Guest port 80 to host port 8000: An Apache web server running the interop
+  server is available on this port.
+* Guest port 8080 to host port 8080: To be used when running a development
+  server (with `manage.py`).
 
 To setup a physical or prebuilt virtual machine, change the working directory
 to this directory, and execute script:
