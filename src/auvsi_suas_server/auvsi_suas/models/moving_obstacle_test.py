@@ -447,3 +447,19 @@ class TestMovingObstacle(TestCase):
                 obst.waypoints.all()[0].position.gps_position.longitude)
         self.assertEqual(json_data['altitude_msl'],
                 obst.waypoints.all()[0].position.altitude_msl)
+
+    def test_toJSON_time_changes(self):
+        """toJSON, called at different times, causes different locations"""
+        for o in self.obstacles:
+            d1 = o.toJSON()
+            d2 = o.toJSON()
+            self.assertNotEqual(d1, d2)
+
+    def test_toJSON_time_freeze(self):
+        """toJSON, called at the same time, causes same locations"""
+        time = timezone.now()
+
+        for o in self.obstacles:
+            d1 = o.toJSON(time=time)
+            d2 = o.toJSON(time=time)
+            self.assertEqual(d1, d2)

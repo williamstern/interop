@@ -14,6 +14,7 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
+from django.utils import timezone
 
 
 login_url = reverse('auvsi_suas:login')
@@ -27,8 +28,8 @@ class TestObstaclesViewLoggedOut(TestCase):
         response = self.client.get(obstacle_url)
         self.assertEqual(400, response.status_code)
 
-class TestObstaclesView(TestCase):
-    """Tests the getObstacles view."""
+class TestObstaclesViewCommon(TestCase):
+    """Obstacles view common test setup."""
 
     def create_stationary_obstacle(self, lat, lon, radius, height):
         """Create a new StationaryObstacle model.
@@ -120,6 +121,9 @@ class TestObstaclesView(TestCase):
         })
         self.assertEqual(200, response.status_code)
 
+class TestObstaclesView(TestObstaclesViewCommon):
+    """Tests the getObstacles view."""
+
     def test_post(self):
         """POST requests are not allowed."""
         response = self.client.post(obstacle_url)
@@ -158,7 +162,28 @@ class TestObstaclesView(TestCase):
     def test_disable_log(self):
         """Normal users cannot disable logging."""
         response = self.client.get(obstacle_url, {'log': 'false'})
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(400, response.status_code)
+
+    def test_different(self):
+        """Responses at different times are different (moving obstacles move)"""
+        response = self.client.get(obstacle_url)
+        self.assertEqual(200, response.status_code)
+
+        data1 = json.loads(response.content)
+
+        response = self.client.get(obstacle_url)
+        self.assertEqual(200, response.status_code)
+
+        data2 = json.loads(response.content)
+
+        self.assertNotEqual(data1, data2)
+
+    def test_no_time(self):
+        """Normal users cannot set time."""
+        response = self.client.get(obstacle_url, {
+            'time': timezone.now().isoformat(),
+        })
+        self.assertEqual(400, response.status_code)
 
     def test_loadtest(self):
         """Tests the max load the view can handle."""
@@ -179,7 +204,7 @@ class TestObstaclesView(TestCase):
                 op_rate, settings.TEST_LOADTEST_INTEROP_MIN_RATE)
 
 
-class TestObstaclesViewSuperuser(TestObstaclesView):
+class TestObstaclesViewSuperuser(TestObstaclesViewCommon):
     """Tests the getObstacles view as superuser."""
 
     def setUp(self):
@@ -214,3 +239,30 @@ class TestObstaclesViewSuperuser(TestObstaclesView):
         self.assertEqual(200, response.status_code)
 
         self.assertEqual(1, len(ObstacleAccessLog.objects.all()))
+
+    def test_bad_time(self):
+        """Bad time format rejected."""
+        response = self.client.get(obstacle_url, {
+            'time': 'June 1, 2000',
+        })
+        self.assertEqual(400, response.status_code)
+
+    def test_same_time(self):
+        """Obstacles at the same time are the same."""
+        time = timezone.now().isoformat()
+
+        response = self.client.get(obstacle_url, {
+            'time': time,
+        })
+        self.assertEqual(200, response.status_code)
+
+        data1 = json.loads(response.content)
+
+        response = self.client.get(obstacle_url, {
+            'time': time,
+        })
+        self.assertEqual(200, response.status_code)
+
+        data2 = json.loads(response.content)
+
+        self.assertEqual(data1, data2)
