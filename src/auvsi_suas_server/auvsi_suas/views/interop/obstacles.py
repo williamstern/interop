@@ -1,5 +1,6 @@
 """Interoperability obstacles view."""
 
+import iso8601
 import json
 from auvsi_suas.models import MovingObstacle
 from auvsi_suas.models import ObstacleAccessLog
@@ -9,6 +10,7 @@ from auvsi_suas.views import logger
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
+from django.utils import timezone
 
 
 def getObstacles(request):
@@ -25,6 +27,7 @@ def getObstacles(request):
         return HttpResponseBadRequest('User not logged in. Login required.')
 
     log_access = True
+    time = timezone.now()
 
     # ?log=(true|false) to enable/disable logging of superusers
     if 'log' in request.GET:
@@ -36,6 +39,18 @@ def getObstacles(request):
             log_access = boolean_param(request.GET['log'])
         except ValueError as e:
             return HttpResponseBadRequest(e)
+
+    # ?time=TIMESTAMP to get obstacle location at specific time
+    if 'time' in request.GET:
+        if not request.user.is_superuser:
+            return HttpResponseBadRequest(
+                    'Only superusers may set the time parameter')
+
+        try:
+            time = iso8601.parse_date(request.GET['time'])
+        except iso8601.ParseError:
+            return HttpResponseBadRequest("Bad timestamp '%s'" % \
+                                            request.GET['time'])
 
     # Log user access to obstacle info
     logger.info('User downloaded obstacle info: %s.' % request.user.username)
@@ -65,7 +80,7 @@ def getObstacles(request):
     moving_obstacles_json = list()
     for cur_obst in moving_obstacles:
         # Add current obstacle
-        cur_obst_json = cur_obst.toJSON()
+        cur_obst_json = cur_obst.toJSON(time=time)
         moving_obstacles_json.append(cur_obst_json)
 
     # Form final JSON response

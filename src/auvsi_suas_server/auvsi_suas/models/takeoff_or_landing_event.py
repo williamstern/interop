@@ -2,6 +2,7 @@
 
 from access_log import AccessLog
 from django.db import models
+from django.utils import timezone
 
 
 class TakeoffOrLandingEvent(AccessLog):
@@ -59,3 +60,27 @@ class TakeoffOrLandingEvent(AccessLog):
                                  None))
 
         return time_periods
+
+    @classmethod
+    def userInAir(cls, user, time=None):
+        """Determine if given user is currently in-air
+
+        Args:
+            user: User to get in-flight status for
+            time: Time to check in-air status; default now
+        Returns:
+            True if user is currently in-flight, False otherwise
+        """
+        if time is None:
+            time = timezone.now()
+
+        event = cls.objects \
+            .filter(user=user.pk) \
+            .filter(timestamp__lt=time) \
+            .order_by('timestamp') \
+            .last()
+
+        if event:
+            return event.uas_in_air
+        else:
+            return False

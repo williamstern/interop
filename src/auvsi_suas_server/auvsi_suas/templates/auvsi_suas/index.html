@@ -1,28 +1,85 @@
+<!-- Main Application Page --!>
 <!DOCTYPE html>
 {% load staticfiles %}
 
-<html lang="en">
+<html lang="en" ng-app="auvsiSuasApp">
 
 <head>
   <meta charset="utf-8" />
-  <link rel="stylesheet" href="{% static 'auvsi_suas/css/foundation.css' %}" />
-  <script src="{% static 'auvsi_suas/js/foundation/foundation.js' %}"></script>
+
+  <!-- Foundation --!>
+  <link rel="stylesheet" href="{% static 'foundation/css/foundation.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'foundation/css/normalize.css' %}" />
+  <script src="{% static 'foundation/js/fastclick.js' %}"></script>
+  <script src="{% static 'foundation/js/jquery.js' %}"></script>
+  <script src="{% static 'foundation/js/jquery.cookie.js' %}"></script>
+  <script src="{% static 'foundation/js/modernizr.js' %}"></script>
+  <script src="{% static 'foundation/js/placeholder.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.min.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.abide.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.accordion.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.alert.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.clearing.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.dropdown.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.equalizer.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.interchange.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.joyride.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.magellan.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.offcanvas.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.orbit.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.reveal.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.slider.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.tab.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.tooltip.js' %}"></script>
+  <script src="{% static 'foundation/js/foundation.topbar.js' %}"></script>
+
+  <!-- AngularJS --!>
+  <script src="{% static 'angularjs/angular.js' %}"></script>
+  <script src="{% static 'angularjs/angular-animate.js' %}"></script>
+  <script src="{% static 'angularjs/angular-cookies.js' %}"></script>
+  <script src="{% static 'angularjs/angular-resource.js' %}"></script>
+  <script src="{% static 'angularjs/angular-route.js' %}"></script>
+  <script src="{% static 'angularjs/angular-sanitize.js' %}"></script>
+  <script src="{% static 'angularjs/angular-touch.js' %}"></script>
+
+  <!-- AUVSI SUAS --!>
+  <link rel="stylesheet" href="{% static 'auvsi_suas/app.css'%}" />
+  <link rel="stylesheet" href="{% static 'auvsi_suas/pages/mission-dashboard/mission-dashboard.css'%}" />
+  <link rel="stylesheet" href="{% static 'auvsi_suas/pages/mission-list/mission-list.css'%}" />
+
+  <script src="{% static 'auvsi_suas/app.js'%}"></script>
+  <script src="{% static 'auvsi_suas/components/navigation/navigation.js'%}"></script>
+  <script src="{% static 'auvsi_suas/components/backend-service/backend-service.js'%}"></script>
+  <script src="{% static 'auvsi_suas/pages/mission-dashboard/mission-dashboard-controller.js'%}"></script>
+  <script src="{% static 'auvsi_suas/pages/mission-list/mission-list-controller.js'%}"></script>
+
   <title>AUVSI SUAS Server</title>
 </head>
 
 <body>
 
-  <div class="row">
-    <div class="small-12 large-12 columns" style="text-align:center;">
-      <h1>AUVSI SUAS Competition Server</h1>
-      <p>
-        This webpage was served by the AUVSI SUAS competition web server. This
-        is a placeholder for the administration interface.
-      </p>
-    </div>
-  </div>
+  <!-- Navigation --!>
+  <nav class="top-bar" data-topbar role="navigation" ng-controller="NavigationCtrl as navigationCtrl">
+    <ul class="title-area">
+      <li class="name">
+        <h1><a href="/#/">AUVSI SUAS Server</a></h1>
+      </li>
+    </ul>
+
+    <section class="top-bar-section">
+      <ul class="right" ng-if="navigationCtrl.shouldShowMissionLinks()">
+        <li><a target="_blank" href="/auvsi_admin/evaluate_teams.csv">Evaluate Teams (CSV)</a></li>
+        <li><a target="_blank" href="/auvsi_admin/export_data.kml">Export Data (KML)</a></li>
+      </ul>
+      <ul class="right">
+        <li><a target="_blank" href="/admin">Edit Data</a></li>
+      </ul>
+    </section>
+  </nav>
+
+  <!-- Route specific view --!>
+  <div ng-view></div>
 
 </body>
 
 </html>
-

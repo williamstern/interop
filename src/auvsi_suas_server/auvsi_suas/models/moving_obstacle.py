@@ -228,9 +228,9 @@ class MovingObstacle(models.Model):
                 return True
         return False
 
-    def toJSON(self):
+    def toJSON(self, time=None):
         """Obtain a JSON style representation of object."""
-        (latitude, longitude, altitude_msl) = self.getPosition()
+        (latitude, longitude, altitude_msl) = self.getPosition(cur_time=time)
         data = {
             'latitude': latitude,
             'longitude': longitude,

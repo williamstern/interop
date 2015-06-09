@@ -195,3 +195,60 @@ class MissionConfig(models.Model):
                 collision = obst.evaluateCollisionWithUas(uas_telemetry_logs)
                 moving_collisions[obst.pk] = collision
         return results
+
+    def toJSON(self):
+        """Return a dict, for conversion to JSON."""
+        ret = {
+            "id": self.pk,
+            "home_pos": {
+                "latitude": self.home_pos.latitude,
+                "longitude": self.home_pos.longitude,
+            },
+            "mission_waypoints_dist_max": self.mission_waypoints_dist_max,
+            "mission_waypoints": [], # Filled in below
+            "search_grid_points": [], # Filled in below
+            "emergent_last_known_pos": {
+                "latitude": self.emergent_last_known_pos.latitude,
+                "longitude": self.emergent_last_known_pos.longitude,
+            },
+            "off_axis_target_pos": {
+                "latitude": self.off_axis_target_pos.latitude,
+                "longitude": self.off_axis_target_pos.longitude,
+            },
+            "sric_pos": {
+                "latitude": self.sric_pos.latitude,
+                "longitude": self.sric_pos.longitude,
+            },
+            "ir_primary_target_pos": {
+                "latitude": self.ir_primary_target_pos.latitude,
+                "longitude": self.ir_primary_target_pos.longitude,
+            },
+            "ir_secondary_target_pos": {
+                "latitude": self.ir_secondary_target_pos.latitude,
+                "longitude": self.ir_secondary_target_pos.longitude,
+            },
+            "air_drop_pos": {
+                "latitude": self.air_drop_pos.latitude,
+                "longitude": self.air_drop_pos.longitude,
+            },
+        }
+
+        for waypoint in self.mission_waypoints.all():
+            ret['mission_waypoints'].append({
+                "id": waypoint.pk,
+                "latitude": waypoint.position.gps_position.latitude,
+                "longitude": waypoint.position.gps_position.longitude,
+                "altitude_msl": waypoint.position.altitude_msl,
+                "order": waypoint.order,
+            })
+
+        for point in self.search_grid_points.all():
+            ret['search_grid_points'].append({
+                "id": point.pk,
+                "latitude": point.position.gps_position.latitude,
+                "longitude": point.position.gps_position.longitude,
+                "altitude_msl": point.position.altitude_msl,
+                "order": point.order,
+            })
+
+        return ret

@@ -24,6 +24,19 @@ class UasTelemetry(AccessLog):
                         str(self.timestamp), str(self.uas_heading),
                         self.uas_position.__unicode__()))
 
+    def toJSON(self):
+        ret = {
+            'id': self.pk,
+            'user': self.user.pk,
+            'timestamp': self.timestamp.isoformat(),
+            'latitude': self.uas_position.gps_position.latitude,
+            'longitude': self.uas_position.gps_position.longitude,
+            'altitude_msl': self.uas_position.altitude_msl,
+            'heading': self.uas_heading,
+        }
+
+        return ret
+
     @classmethod
     def kml(cls, user, logs, kml, kml_doc):
         """

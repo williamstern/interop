@@ -35,7 +35,7 @@ class TestAccessLogCommon(TestCase):
         for i in xrange(num):
             log = AccessLog(user=user)
             log.save()
-            log.timestamp = start + i*delta # Wat.
+            log.timestamp = start + i*delta
             log.save()
             logs.append(log)
 
@@ -76,6 +76,26 @@ class TestAccessLogBasic(TestAccessLogCommon):
 
         results = AccessLog.getAccessLogForUser(self.user1)
         self.assertSequenceEqual(logs, results)
+
+    def test_user_active(self):
+        delta = datetime.timedelta(seconds=1)
+
+        self.create_logs(self.user1, start=self.year2000, num=10, delta=delta)
+
+        latest_time = self.year2000 + 10*delta
+
+        # Active for user with recent logs
+        self.assertTrue(AccessLog.userActive(self.user1, base=latest_time))
+
+        # Not active for user with no logs
+        self.assertFalse(AccessLog.userActive(self.user2, base=latest_time))
+
+        # Not active for user with no recent logs
+        self.assertFalse(AccessLog.userActive(self.user1, base=self.year2001))
+
+        # Active now
+        self.create_logs(self.user1, num=10, delta=delta)
+        self.assertTrue(AccessLog.userActive(self.user1))
 
 class TestAccessLogGetByPeriod(TestAccessLogCommon):
     """Test AccessLog.getAccessLogForUserByTimePeriod()"""
