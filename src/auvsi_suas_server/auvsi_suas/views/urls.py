@@ -25,6 +25,7 @@ urlpatterns = patterns('',
     # Admin API
     url(r'^api/missions$', missions.getMissions, name='missions'),
     url(r'^api/teams$', teams.getTeams, name='teams'),
+    url(r'^api/teams/(?P<pk>\d+)$', teams.getTeamsId, name='teams_id'),
     url(r'^api/telemetry$', telemetry.getTelemetry, name='telemetry'),
 
     # Admin access views
