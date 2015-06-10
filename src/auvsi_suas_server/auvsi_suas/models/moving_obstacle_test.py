@@ -8,6 +8,7 @@ from auvsi_suas.models import MovingObstacle
 from auvsi_suas.models import UasTelemetry
 from auvsi_suas.models import units
 from auvsi_suas.models import Waypoint
+from auvsi_suas.patches.simplekml_patch import Kml
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -447,6 +448,69 @@ class TestMovingObstacle(TestCase):
                 obst.waypoints.all()[0].position.gps_position.longitude)
         self.assertEqual(json_data['altitude_msl'],
                 obst.waypoints.all()[0].position.altitude_msl)
+
+    def test_kml(self):
+        """
+        Tests the generation of kml data
+            The correct number of elements are generated
+            The meta-data tag is present
+        """
+        array_field_tag = '<gx:SimpleArrayField name="proximity" type="float">'
+        coordinates = [
+            (-76.0, 38.0, 0.0),
+            (-76.0, 38.0, 10.0),
+            (-76.0, 38.0, 20.0),
+            (-76.0, 38.0, 30.0),
+            (-76.0, 38.0, 100.0),
+            (-76.0, 38.0, 30.0),
+            (-76.0, 38.0, 60.0),
+        ]
+
+        user = User.objects.create_user(
+            'testuser', 'testemail@x.com', 'testpass')
+        user.save()
+
+        # Create Coordinates
+        start_time = timezone.now()
+        next_time = start_time
+        end_time = start_time
+        for coord in coordinates:
+            self.create_log_element(*coord, user=user, log_time=next_time)
+            end_time = next_time
+            next_time += datetime.timedelta(seconds=1)
+
+        # Calculate expected number of data tags
+        time_delta = end_time-start_time
+        ms_elapsed = time_delta.total_seconds()*1000
+        kml_output_resolution = 100  # milliseconds
+        samples_expected = int(ms_elapsed/kml_output_resolution)
+
+        for cur_obst in self.obstacles:
+            kml = Kml()
+            kml_mission = kml.newfolder(name='SubFolder')
+            cur_obst.kml(
+                path=UasTelemetry.getAccessLogForUser(user),
+                kml=kml_mission,
+                kml_doc=kml.document,
+            )
+            result_kml = kml.kml()
+            self.assertEqual(samples_expected, result_kml.count('<gx:value>'))
+            self.assertIn(array_field_tag, result_kml)
+
+    def create_log_element(self, lat, lon, alt, user, log_time):
+        pos = GpsPosition(latitude=lat, longitude=lon)
+        pos.save()
+        apos = AerialPosition(gps_position=pos, altitude_msl=alt)
+        apos.save()
+        log = UasTelemetry(
+            user=user,
+            uas_position=apos,
+            uas_heading=100,
+        )
+        log.save()
+        log.timestamp = log_time
+        log.save()
+        return log
 
     def test_toJSON_time_changes(self):
         """toJSON, called at different times, causes different locations"""

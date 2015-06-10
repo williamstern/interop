@@ -3,6 +3,10 @@
 import numpy as np
 from auvsi_suas.models import distance
 from auvsi_suas.models import units
+from auvsi_suas.patches.simplekml_patch import AltitudeMode
+from auvsi_suas.patches.simplekml_patch import Color
+from auvsi_suas.patches.simplekml_patch import Types
+from datetime import timedelta
 from waypoint import Waypoint
 from django.db import models
 from django.utils import timezone
@@ -234,3 +238,89 @@ class MovingObstacle(models.Model):
             'sphere_radius': self.sphere_radius
         }
         return data
+
+    def kml(self, path, kml, kml_doc):
+        """
+        Appends kml nodes describing the given user's flight as described
+        by the log array given. No nodes are added if less than two log
+        entries are given.
+
+        Args:
+            path: A list of UasTelemetry elements.
+            kml: A simpleKML Container to which the flight data will be added
+            kml_doc: The simpleKML Document to which schemas will be added
+        Returns:
+            None
+        """
+        # KML Compliant Datetime Formatter
+        kml_datetime_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+        icon = 'http://maps.google.com/mapfiles/kml/shapes/airports.png'
+        kml_output_resolution = 100  # milliseconds
+
+        coords = []
+        when = []
+        ranges = []
+
+        if len(path) < 2:
+            return
+
+        dt = timedelta(milliseconds=kml_output_resolution)
+        for pos, uav, time in self.times(path, dt):
+            # Spatial Coordinates (longitude, latitude, altitude)
+            coord = (pos[1], pos[0], pos[2])
+            coords.append(coord)
+
+            # Time Elements
+            when.append(time.strftime(kml_datetime_format))
+
+            # Distance Elements
+            uas_range = distance.distanceTo(*uav+pos)
+            ranges.append(uas_range)
+
+        # Create a new track in the folder
+        trk = kml.newgxtrack(name='Obstacle Path {}'.format(self.id))
+        trk.altitudemode = AltitudeMode.absolute
+
+        # Create a schema for extended data: proximity
+        schema = kml_doc.newschema()
+        schema.newgxsimplearrayfield(name='proximity', type=Types.float, displayname='UAS Proximity [ft]')
+        trk.extendeddata.schemadata.schemaurl = schema.id
+
+        # Append flight data
+        trk.newwhen(when)
+        trk.newgxcoord(coords)
+        trk.extendeddata.schemadata.newgxsimplearraydata('proximity', ranges)
+
+        # Set styling
+        trk.extrude = 1  # Extend path to ground
+        trk.style.linestyle.width = 2
+        trk.style.linestyle.color = Color.red
+        trk.iconstyle.icon.href = icon
+
+    def times(self, uav_path, delta):
+        """
+        Generator for getting the position of the obstacle and uav
+        for each time slice
+
+        Args:
+            uav_path: A list of UasTelemetry elements.
+            delta: timedelta for the step size
+        Returns:
+            Obstacle position, UAV position, time
+            position is a tuple(latitude, longitude, altitude)
+        """
+        curr = uav_path[0].timestamp
+        end = uav_path[len(uav_path)-1].timestamp
+        path_index = 0  # Index of last known position
+        while curr < end:
+            # Advance the path_index forward in time
+            while uav_path[path_index+1].timestamp <= curr:
+                path_index += 1
+
+            uav = (
+                uav_path[path_index].uas_position.gps_position.latitude,
+                uav_path[path_index].uas_position.gps_position.longitude,
+                uav_path[path_index].uas_position.altitude_msl,
+            )
+            yield self.getPosition(curr), uav, curr
+            curr += delta
