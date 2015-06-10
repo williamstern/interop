@@ -1,6 +1,8 @@
 """Mission configuration model."""
 
 import logging
+from auvsi_suas.patches.simplekml_patch import Color
+from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from fly_zone import FlyZone
 from gps_position import GpsPosition
 from moving_obstacle import MovingObstacle
@@ -252,3 +254,73 @@ class MissionConfig(models.Model):
             })
 
         return ret
+
+    @classmethod
+    def kml(cls, kml):
+        """
+        Appends kml nodes describing the mission configurations.
+
+        Args:
+            kml: A simpleKML Container to which the flight data will be added
+        Returns:
+            None
+        """
+        for mission_number, mission in enumerate(MissionConfig.objects.all()):
+            mission_name = 'Mission {}'.format(mission_number)
+            kml_folder = kml.newfolder(name=mission_name)
+
+            # Static Points
+            locations = {
+                'Home Position': mission.home_pos,
+                'Emergent LKP': mission.emergent_last_known_pos,
+                'Off Axis': mission.off_axis_target_pos,
+                'SRIC': mission.sric_pos,
+                'IR Primary': mission.ir_primary_target_pos,
+                'IR Secondary': mission.ir_secondary_target_pos,
+                'Air Drop': mission.air_drop_pos,
+            }
+            for key, point in locations.iteritems():
+                coord = (point.longitude, point.latitude)
+                kml_folder.newpoint(name=key, coords=[coord])
+
+            # Waypoints
+            waypoints_folder = kml_folder.newfolder(name='Flight Area')
+            linestring = waypoints_folder.newlinestring(name="A Line")
+            waypoints = []
+            for waypoint in mission.mission_waypoints.all():
+                coord = waypoint.position.gps_position
+                waypoints.append((coord.longitude, coord.latitude, waypoint.position.altitude_msl))
+            linestring.coords = waypoints
+
+            # Waypoints Style
+            linestring.altitudemode = AltitudeMode.absolute
+            linestring.extrude = 1
+            linestring.style.linestyle.color = Color.black
+            linestring.style.polystyle.color = Color.changealphaint(100, Color.green)
+
+            # Waypoints Points
+            for n, point in enumerate(waypoints):
+                wp = waypoints_folder.newpoint(name=str(n), coords=[point])
+                wp.altitudemode = AltitudeMode.absolute
+                wp.extrude = 1
+                wp.visibility = False
+
+            # Flight Area
+            flight_area_folder = kml_folder.newfolder(name='Flight Area')
+            pol = flight_area_folder.newpolygon(name='Flight Area')
+            search_area = []
+            for point in mission.search_grid_points.all():
+                coord = point.position.gps_position
+                search_area.append((coord.longitude, coord.latitude, point.position.altitude_msl))
+            search_area.append(search_area[0])
+            pol.outerboundaryis = search_area
+
+            # Flight Area Style
+            pol.style.linestyle.color = Color.red
+            pol.style.linestyle.width = 2
+            pol.style.polystyle.color = Color.changealphaint(50, Color.green)
+
+            # Flight Area Points
+            for n, point in enumerate(search_area[:-1]):
+                wp = flight_area_folder.newpoint(name=str(n), coords=[point])
+                wp.visibility = False
