@@ -280,16 +280,27 @@ class MissionConfig(models.Model):
                 'Air Drop': mission.air_drop_pos,
             }
             for key, point in locations.iteritems():
-                coord = (point.longitude, point.latitude)
-                kml_folder.newpoint(name=key, coords=[coord])
+                gps = (point.longitude, point.latitude)
+                wp = kml_folder.newpoint(name=key, coords=[gps])
+                wp.description = str(point)
 
             # Waypoints
-            waypoints_folder = kml_folder.newfolder(name='Flight Area')
-            linestring = waypoints_folder.newlinestring(name="A Line")
+            waypoints_folder = kml_folder.newfolder(name='Waypoints')
+            linestring = waypoints_folder.newlinestring(name="Waypoints")
             waypoints = []
+            waypoint_num = 1
             for waypoint in mission.mission_waypoints.all():
-                coord = waypoint.position.gps_position
-                waypoints.append((coord.longitude, coord.latitude, waypoint.position.altitude_msl))
+                gps = waypoint.position.gps_position
+                coord = (gps.longitude, gps.latitude, waypoint.position.altitude_msl)
+                waypoints.append(coord)
+
+                # Add waypoint marker
+                wp = waypoints_folder.newpoint(name=str(waypoint_num), coords=[coord])
+                wp.description = str(waypoint)
+                wp.altitudemode = AltitudeMode.absolute
+                wp.extrude = 1
+                wp.visibility = False
+                waypoint_num += 1
             linestring.coords = waypoints
 
             # Waypoints Style
@@ -298,20 +309,22 @@ class MissionConfig(models.Model):
             linestring.style.linestyle.color = Color.black
             linestring.style.polystyle.color = Color.changealphaint(100, Color.green)
 
-            # Waypoints Points
-            for n, point in enumerate(waypoints):
-                wp = waypoints_folder.newpoint(name=str(n), coords=[point])
-                wp.altitudemode = AltitudeMode.absolute
-                wp.extrude = 1
-                wp.visibility = False
 
             # Flight Area
             flight_area_folder = kml_folder.newfolder(name='Flight Area')
             pol = flight_area_folder.newpolygon(name='Flight Area')
             search_area = []
+            search_area_num = 1
             for point in mission.search_grid_points.all():
-                coord = point.position.gps_position
-                search_area.append((coord.longitude, coord.latitude, point.position.altitude_msl))
+                gps = point.position.gps_position
+                coord = (gps.longitude, gps.latitude, point.position.altitude_msl)
+                search_area.append(coord)
+
+                # Add boundary marker
+                wp = flight_area_folder.newpoint(name=str(search_area_num), coords=[coord])
+                wp.description = str(point)
+                wp.visibility = False
+                search_area_num += 1
             search_area.append(search_area[0])
             pol.outerboundaryis = search_area
 
@@ -320,7 +333,3 @@ class MissionConfig(models.Model):
             pol.style.linestyle.width = 2
             pol.style.polystyle.color = Color.changealphaint(50, Color.green)
 
-            # Flight Area Points
-            for n, point in enumerate(search_area[:-1]):
-                wp = flight_area_folder.newpoint(name=str(n), coords=[point])
-                wp.visibility = False
