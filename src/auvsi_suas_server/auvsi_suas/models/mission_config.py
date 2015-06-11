@@ -256,80 +256,87 @@ class MissionConfig(models.Model):
         return ret
 
     @classmethod
-    def kml(cls, kml):
+    def kml_all(cls, kml):
         """
-        Appends kml nodes describing the mission configurations.
+        Appends kml nodes describing all mission configurations.
 
         Args:
-            kml: A simpleKML Container to which the flight data will be added
-        Returns:
-            None
+            kml: A simpleKML Container to which the mission data will be added
         """
-        for mission_number, mission in enumerate(MissionConfig.objects.all()):
-            mission_name = 'Mission {}'.format(mission_number)
-            kml_folder = kml.newfolder(name=mission_name)
+        for mission in MissionConfig.objects.all():
+            mission.kml(kml)
 
-            # Static Points
-            locations = {
-                'Home Position': mission.home_pos,
-                'Emergent LKP': mission.emergent_last_known_pos,
-                'Off Axis': mission.off_axis_target_pos,
-                'SRIC': mission.sric_pos,
-                'IR Primary': mission.ir_primary_target_pos,
-                'IR Secondary': mission.ir_secondary_target_pos,
-                'Air Drop': mission.air_drop_pos,
-            }
-            for key, point in locations.iteritems():
-                gps = (point.longitude, point.latitude)
-                wp = kml_folder.newpoint(name=key, coords=[gps])
-                wp.description = str(point)
+    def kml(self, kml):
+        """
+        Appends kml nodes describing this mission configurations.
 
-            # Waypoints
-            waypoints_folder = kml_folder.newfolder(name='Waypoints')
-            linestring = waypoints_folder.newlinestring(name="Waypoints")
-            waypoints = []
-            waypoint_num = 1
-            for waypoint in mission.mission_waypoints.all():
-                gps = waypoint.position.gps_position
-                coord = (gps.longitude, gps.latitude, waypoint.position.altitude_msl)
-                waypoints.append(coord)
+        Args:
+            kml: A simpleKML Container to which the mission data will be added
+        """
+        mission_name = 'Mission {}'.format(self.pk)
+        kml_folder = kml.newfolder(name=mission_name)
 
-                # Add waypoint marker
-                wp = waypoints_folder.newpoint(name=str(waypoint_num), coords=[coord])
-                wp.description = str(waypoint)
-                wp.altitudemode = AltitudeMode.absolute
-                wp.extrude = 1
-                wp.visibility = False
-                waypoint_num += 1
-            linestring.coords = waypoints
+        # Static Points
+        locations = {
+            'Home Position': self.home_pos,
+            'Emergent LKP': self.emergent_last_known_pos,
+            'Off Axis': self.off_axis_target_pos,
+            'SRIC': self.sric_pos,
+            'IR Primary': self.ir_primary_target_pos,
+            'IR Secondary': self.ir_secondary_target_pos,
+            'Air Drop': self.air_drop_pos,
+        }
+        for key, point in locations.iteritems():
+            gps = (point.longitude, point.latitude)
+            wp = kml_folder.newpoint(name=key, coords=[gps])
+            wp.description = str(point)
 
-            # Waypoints Style
-            linestring.altitudemode = AltitudeMode.absolute
-            linestring.extrude = 1
-            linestring.style.linestyle.color = Color.black
-            linestring.style.polystyle.color = Color.changealphaint(100, Color.green)
+        # Waypoints
+        waypoints_folder = kml_folder.newfolder(name='Waypoints')
+        linestring = waypoints_folder.newlinestring(name="Waypoints")
+        waypoints = []
+        waypoint_num = 1
+        for waypoint in self.mission_waypoints.all():
+            gps = waypoint.position.gps_position
+            coord = (gps.longitude, gps.latitude, waypoint.position.altitude_msl)
+            waypoints.append(coord)
+
+            # Add waypoint marker
+            wp = waypoints_folder.newpoint(name=str(waypoint_num), coords=[coord])
+            wp.description = str(waypoint)
+            wp.altitudemode = AltitudeMode.absolute
+            wp.extrude = 1
+            wp.visibility = False
+            waypoint_num += 1
+        linestring.coords = waypoints
+
+        # Waypoints Style
+        linestring.altitudemode = AltitudeMode.absolute
+        linestring.extrude = 1
+        linestring.style.linestyle.color = Color.black
+        linestring.style.polystyle.color = Color.changealphaint(100, Color.green)
 
 
-            # Flight Area
-            flight_area_folder = kml_folder.newfolder(name='Flight Area')
-            pol = flight_area_folder.newpolygon(name='Flight Area')
-            search_area = []
-            search_area_num = 1
-            for point in mission.search_grid_points.all():
-                gps = point.position.gps_position
-                coord = (gps.longitude, gps.latitude, point.position.altitude_msl)
-                search_area.append(coord)
+        # Search Area
+        search_area_folder = kml_folder.newfolder(name='Search Area')
+        pol = search_area_folder.newpolygon(name='Search Area')
+        search_area = []
+        search_area_num = 1
+        for point in self.search_grid_points.all():
+            gps = point.position.gps_position
+            coord = (gps.longitude, gps.latitude, point.position.altitude_msl)
+            search_area.append(coord)
 
-                # Add boundary marker
-                wp = flight_area_folder.newpoint(name=str(search_area_num), coords=[coord])
-                wp.description = str(point)
-                wp.visibility = False
-                search_area_num += 1
-            search_area.append(search_area[0])
-            pol.outerboundaryis = search_area
+            # Add boundary marker
+            wp = search_area_folder.newpoint(name=str(search_area_num), coords=[coord])
+            wp.description = str(point)
+            wp.visibility = False
+            search_area_num += 1
+        search_area.append(search_area[0])
+        pol.outerboundaryis = search_area
 
-            # Flight Area Style
-            pol.style.linestyle.color = Color.red
-            pol.style.linestyle.width = 2
-            pol.style.polystyle.color = Color.changealphaint(50, Color.green)
+        # Search Area Style
+        pol.style.linestyle.color = Color.black
+        pol.style.linestyle.width = 2
+        pol.style.polystyle.color = Color.changealphaint(50, Color.blue)
 

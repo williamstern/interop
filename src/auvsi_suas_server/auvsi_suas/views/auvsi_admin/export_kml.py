@@ -1,3 +1,4 @@
+from auvsi_suas.models import FlyZone
 from auvsi_suas.models import MissionConfig
 from auvsi_suas.models import UasTelemetry
 from django.contrib.auth.decorators import user_passes_test
@@ -25,7 +26,9 @@ def generateKml(_):
             kml=kml_teams,
             kml_doc=kml.document,
         )
-    MissionConfig.kml(kml_mission)
+    MissionConfig.kml_all(kml_mission)
+    kml_flyzone = kml.newfolder(name='Fly Zones')
+    FlyZone.kml_all(kml_flyzone)
 
     response = HttpResponse(kml.kml())
     response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
