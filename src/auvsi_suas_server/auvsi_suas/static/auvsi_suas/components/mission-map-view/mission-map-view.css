@@ -2,10 +2,6 @@
  * Styles for the MissionMapView directive.
  */
 
-mission-map-view {
-    width: 500px;
-    height: 500px;
-}
 
 mission-map-view canvas {
     width: 100%;
