@@ -36,7 +36,7 @@ def getServerInfo(request):
         if info is None:
             info = ServerInfo.objects.latest('timestamp')
             cache.set(server_info_key, info)
-    except server_info.ServerInfo.DoesNotExist:
+    except ServerInfo.DoesNotExist:
         # Failed to obtain server info
         return HttpResponseServerError('No server info available.')
     else:
