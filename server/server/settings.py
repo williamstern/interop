@@ -27,6 +27,10 @@ TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
 ALLOWED_HOSTS = ['*']
 
+# Public IP addresses given access to Django Debug Toolbar
+# Add your IP here, if not localhost.
+INTERNAL_IPS = ['127.0.0.1']
+
 # Application definition
 
 INSTALLED_APPS = (
@@ -39,6 +43,7 @@ INSTALLED_APPS = (
     'auvsi_suas',
     'auvsi_suas.views.interop',
     'auvsi_suas.views.auvsi_admin',
+    'debug_toolbar',
 )  # yapf: disable
 
 MIDDLEWARE_CLASSES = (
@@ -48,6 +53,12 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )  # yapf: disable
+
+# Add a '?debug' parameter to API endpoints, which wraps them in an HTML
+# response, allowing the use of Django Debug Toolbar with the endpoints.
+if DEBUG:
+    import debug
+    MIDDLEWARE_CLASSES += debug.middleware
 
 ROOT_URLCONF = 'server.urls'
 
