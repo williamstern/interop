@@ -91,9 +91,6 @@ MissionMapView.prototype.link = function(scope, element, attrs) {
     this.element_ = element;
     this.attrs_ = attrs;
 
-    // Create a renderer and add to directive element.
-    this.renderer_ = new THREE.WebGLRenderer({antialias: true});
-    element.append(this.renderer_.domElement);
     // Create a camera and configure it.
     var fieldOfView = 60;
     var aspectRatio = 1;
@@ -101,14 +98,20 @@ MissionMapView.prototype.link = function(scope, element, attrs) {
     var farClipPlane = 100000;
     this.camera_ = new THREE.PerspectiveCamera(
             fieldOfView, aspectRatio, nearClipPlane, farClipPlane);
-
-    // Set camera and renderer sizes.
-    this.setCameraAndRendererSize_();
-
     // Start the camera above the ground, with 45deg azimuth, looking at origin.
     this.camera_.position.set(0, -300, 300);
     this.camera_.up = new THREE.Vector3(0, 0, 1);
     this.camera_.lookAt(new THREE.Vector3(0, 0, 0));
+
+    // Create a renderer and configure it.
+    this.renderer_ = new THREE.WebGLRenderer({antialias: true, precision: 'highp', alpha: true});
+    this.renderer_.shadowMapEnabled = true;
+    this.renderer_.shadowMapType = THREE.PCFSoftShadowMap;
+    // Add renderer to DOM.
+    element.append(this.renderer_.domElement);
+
+    // Set camera and renderer sizes.
+    this.setCameraAndRendererSize_();
 
     // Whenever the window resizes, update the camera and renderer.
     angular.element(this.window_).on(

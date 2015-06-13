@@ -10,7 +10,13 @@
  * @param Backend The backend service.
  * @param MissionScene The mission scene building service.
  */
-MissionDashboardCtrl = function($rootScope, Backend, MissionScene) {
+MissionDashboardCtrl = function(
+        $rootScope, $routeParams, Backend, MissionScene) {
+    /**
+     * The route params service.
+     */
+    this.routeParams_ = $routeParams;
+
     /**
      * The backend service.
      */
@@ -29,11 +35,33 @@ MissionDashboardCtrl = function($rootScope, Backend, MissionScene) {
 
 
 /**
+ * Gets the current mission.
+ * @return The current mission.
+ */
+MissionDashboardCtrl.prototype.getCurrentMission = function() {
+    var missionId = this.routeParams_['missionId'];
+    if (!missionId || !this.Backend.missions) {
+        return null;
+    }
+
+    for (var i = 0; i < this.Backend.missions.length; i++) {
+        var mission = this.Backend.missions[i];
+        if (mission.id == missionId) {
+            return mission;
+        }
+    }
+
+    return null;
+};
+
+
+/**
  * Rebuild the mission scene using the backend data.
  */
 MissionDashboardCtrl.prototype.rebuildMissionScene = function() {
+    // Get the current mission.
     this.MissionScene.rebuildScene(
-            this.Backend.mission, this.Backend.obstacles,
+            this.getCurrentMission(), this.Backend.obstacles,
             this.Backend.telemetry);
 };
 
@@ -91,6 +119,7 @@ MissionDashboardCtrl.prototype.getActiveOrInAirTeams = function() {
 // Register controller with app.
 angular.module('auvsiSuasApp').controller('MissionDashboardCtrl', [
     '$rootScope',
+    '$routeParams',
     'Backend',
     'MissionScene',
     MissionDashboardCtrl

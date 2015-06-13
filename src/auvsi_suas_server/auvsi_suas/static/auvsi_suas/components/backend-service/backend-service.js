@@ -76,7 +76,7 @@ Backend.prototype.update = function() {
             angular.bind(this, this.setTeams));
     this.Obstacles.get({}).$promise.then(
             angular.bind(this, this.setObstacles));
-    this.Telemetry.query({}).$promise.then(
+    this.Telemetry.query({limit: 1}).$promise.then(
             angular.bind(this, this.setTelemetry));
 };
 
