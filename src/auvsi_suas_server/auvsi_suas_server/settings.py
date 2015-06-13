@@ -66,6 +66,7 @@ DATABASES = {
         'NAME': 'auvsi_suas_db',
         'USER': 'postgresql_user',
         'PASSWORD': 'postgresql_pass',
+        'CONN_MAX_AGE': 60,
         'HOST': 'localhost',
         'TEST': {
             'NAME': 'test_auvsi_suas_db',
