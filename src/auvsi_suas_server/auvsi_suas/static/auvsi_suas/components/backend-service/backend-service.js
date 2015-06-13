@@ -1,5 +1,8 @@
 /**
  * Service to interact with backend.
+ * The data will be synced with the backend at a regular interval. You can
+ * access the data via public fields of the service. When data is updated it
+ * will broadcast an 'Backend.dataUpdated' event.
  */
 
 
@@ -7,8 +10,9 @@
  * Service to interact with backend.
  * @param $resource The resource service.
  * @param $interval The interval service.
+ * @param $rootScope The root scope service.
  */
-Backend = function($resource, $interval) {
+Backend = function($resource, $interval, $rootScope) {
     /**
      * Missions backend interface.
      */
@@ -52,7 +56,12 @@ Backend = function($resource, $interval) {
     /**
      * The update which syncs with the backend periodically (1s).
      */
-    this.update = $interval(angular.bind(this, this.update), 1000);
+    this.updateInterval = $interval(angular.bind(this, this.update), 1000);
+
+    /**
+     * The root scope service.
+     */
+    this.rootScope_ = $rootScope;
 };
 
 
@@ -73,11 +82,20 @@ Backend.prototype.update = function() {
 
 
 /**
+ * Notifies others of data change by broadcasting an event.
+ */
+Backend.prototype.notifyDataUpdated_ = function() {
+    this.rootScope_.$broadcast('Backend.dataUpdated');
+};
+
+
+/**
  * Sets the missions.
  * @param missions The missions to set.
  */
 Backend.prototype.setMissions = function(missions) {
     this.missions = missions;
+    this.notifyDataUpdated_();
 };
 
 
@@ -87,6 +105,7 @@ Backend.prototype.setMissions = function(missions) {
  */
 Backend.prototype.setTeams = function(teams) {
     this.teams = teams;
+    this.notifyDataUpdated_();
 };
 
 
@@ -96,6 +115,7 @@ Backend.prototype.setTeams = function(teams) {
  */
 Backend.prototype.setObstacles = function(obstacles) {
     this.obstacles = obstacles;
+    this.notifyDataUpdated_();
 };
 
 
@@ -105,6 +125,7 @@ Backend.prototype.setObstacles = function(obstacles) {
  */
 Backend.prototype.setTelemetry = function(telemetry) {
     this.telemetry = telemetry;
+    this.notifyDataUpdated_();
 };
 
 
@@ -112,5 +133,6 @@ Backend.prototype.setTelemetry = function(telemetry) {
 angular.module('auvsiSuasApp').service('Backend', [
     '$resource',
     '$interval',
+    '$rootScope',
     Backend
 ]);

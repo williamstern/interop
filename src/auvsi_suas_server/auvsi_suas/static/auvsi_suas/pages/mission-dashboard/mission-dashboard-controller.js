@@ -6,13 +6,35 @@
 
 /**
  * Controller for the Mission Dashboard page.
+ * @param $rootScope The root scope to listen for events.
  * @param Backend The backend service.
+ * @param MissionScene The mission scene building service.
  */
-MissionDashboardCtrl = function(Backend) {
+MissionDashboardCtrl = function($rootScope, Backend, MissionScene) {
     /**
      * The backend service.
      */
     this.Backend = Backend;
+
+    /**
+     * The mission scene buildling service.
+     */
+    this.MissionScene = MissionScene;
+
+    // Whenever the backend data is updated, rebuild the scene.
+    $rootScope.$on(
+            'Backend.dataUpdated',
+            angular.bind(this, this.rebuildMissionScene));
+};
+
+
+/**
+ * Rebuild the mission scene using the backend data.
+ */
+MissionDashboardCtrl.prototype.rebuildMissionScene = function() {
+    this.MissionScene.rebuildScene(
+            this.Backend.mission, this.Backend.obstacles,
+            this.Backend.telemetry);
 };
 
 
@@ -68,6 +90,8 @@ MissionDashboardCtrl.prototype.getActiveOrInAirTeams = function() {
 
 // Register controller with app.
 angular.module('auvsiSuasApp').controller('MissionDashboardCtrl', [
+    '$rootScope',
     'Backend',
+    'MissionScene',
     MissionDashboardCtrl
 ]);

@@ -50,7 +50,7 @@ class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
     """Tests the generateKML view."""
     def __init__(self, *args, **kwargs):
         super(TestGenerateKMLNoFixture, self).__init__(*args, **kwargs)
-        self.folders = ['Teams', 'Mission']
+        self.folders = ['Teams', 'Missions']
         self.users = ['testuser']
         self.coordinates = []
 
@@ -81,7 +81,7 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
 
     def __init__(self, *args, **kwargs):
         super(TestGenerateKMLWithFixture, self).__init__(*args, **kwargs)
-        self.folders = ['Teams', 'Mission']
+        self.folders = ['Teams', 'Missions']
         self.users = ['testuser', 'user0', 'user1']
         self.coordinates = [
             (-76.0, 38.0, 0.0),

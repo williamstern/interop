@@ -1,5 +1,6 @@
 """Fly zone model."""
-
+from auvsi_suas.patches.simplekml_patch import AltitudeMode
+from auvsi_suas.patches.simplekml_patch import Color
 import numpy as np
 from django.db import models
 from matplotlib import path as mplpath
@@ -131,4 +132,43 @@ class FlyZone(models.Model):
 
         return total_time
 
+    @classmethod
+    def kml_all(cls, kml):
+        """
+        Appends kml nodes describing all flyzone.
 
+        Args:
+            kml: A simpleKML Container to which the fly zones will be added
+        """
+        for flyzone in FlyZone.objects.all():
+            flyzone.kml(kml)
+
+    def kml(self, kml):
+        """
+        Appends kml nodes describing this flyzone.
+
+        Args:
+            kml: A simpleKML Container to which the fly zone will be added
+        """
+
+        zone_name = 'Fly Zone {}'.format(self.pk)
+        pol = kml.newpolygon(name=zone_name)
+        fly_zone = []
+        flyzone_num = 1
+        for point in self.boundary_pts.all():
+            gps = point.position.gps_position
+            coord = (gps.longitude, gps.latitude, point.position.altitude_msl)
+            fly_zone.append(coord)
+
+            # Add boundary marker
+            wp = kml.newpoint(name=str(flyzone_num), coords=[coord])
+            wp.description = str(point)
+            wp.visibility = False
+            flyzone_num += 1
+        fly_zone.append(fly_zone[0])
+        pol.outerboundaryis = fly_zone
+
+        # Search Area Style
+        pol.style.linestyle.color = Color.red
+        pol.style.linestyle.width = 3
+        pol.style.polystyle.color = Color.changealphaint(50, Color.green)

@@ -15,3 +15,12 @@
 .mission-dashboard-team-inactive-and-not-in-air {
     background-color: #D9D9D9;  // Gray
 }
+
+.mission-dashboard-mission-view {
+    padding: 20px;
+    width: 100%;
+}
+
+.mission-dashboard-misison-view mission-map-view {
+    width: 100%;
+}

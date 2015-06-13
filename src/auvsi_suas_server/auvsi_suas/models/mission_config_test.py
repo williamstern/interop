@@ -5,6 +5,7 @@ from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import MissionConfig
 from auvsi_suas.models import UasTelemetry
 from auvsi_suas.models import Waypoint
+from auvsi_suas.patches.simplekml_patch import Kml
 from django.contrib.auth.models import User
 from django.test import TestCase
 
@@ -288,3 +289,24 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertIn('longitude', data['air_drop_pos'])
         self.assertEqual(10.0, data['air_drop_pos']['latitude'])
         self.assertEqual(100.0, data['air_drop_pos']['longitude'])
+
+    def test_toKML(self):
+        """Test Generation of kml for all mission data"""
+        kml = Kml()
+        MissionConfig.kml_all(kml=kml)
+        data = kml.kml()
+        names = [
+            'Off Axis',
+            'IR Secondary',
+            'SRIC',
+            'Home Position',
+            'IR Primary',
+            'Air Drop',
+            'Emergent LKP',
+            'Search Area',
+            'Waypoints',
+        ]
+        for name in names:
+            tag = '<name>{}</name>'.format(name)
+            err = 'tag "{}" not found in {}'.format(tag, data)
+            self.assertIn(tag, data, err)
