@@ -33,7 +33,7 @@ class auvsi_suas::apache_setup {
       wsgi_application_group => '%{GLOBAL}',
       wsgi_daemon_process => 'wsgi',
       wsgi_daemon_process_options => {
-        processes => '2',
+        processes => '4',
         threads => '6',
         display-name => '%{GROUP}',
       },
