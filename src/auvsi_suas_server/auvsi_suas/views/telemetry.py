@@ -59,7 +59,10 @@ def getTelemetry(request):
             return HttpResponseBadRequest("Bad timestamp '%s'" % \
                                             request.GET['before'])
 
-    query = UasTelemetry.objects
+    # Prefetch data from all ForeignKeys (e.g., AerialPosition) when
+    # evaluating the query.  This allows us to avoid making hundreds
+    # of other queries as we access all of those fields.
+    query = UasTelemetry.objects.select_related()
 
     if user:
         query = query.filter(user=user)
