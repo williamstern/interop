@@ -24,6 +24,25 @@ class UasTelemetry(AccessLog):
                         str(self.timestamp), str(self.uas_heading),
                         self.uas_position.__unicode__()))
 
+    @classmethod
+    def getAccessLogForUser(cls, user):
+        """Gets the time-sorted list of access log for the given user.
+
+        Note: This prefetches the related AerialPosition and GpsPosition
+        for each entry.  Thus, any subsequent changes to those entries in
+        the database after fetch may not be reflected in the objects.
+
+        Args:
+            user: The user to get the access log for.
+        Returns:
+            A list of access log objects for the given user sorted by timestamp.
+        """
+        # Almost every user of UasTelemetry.getAccessLogForUser wants to use
+        # the related AerialPosition and GpsPosition.  To avoid excessive
+        # database queries, we select these values from the database up front.
+        return super(UasTelemetry, cls).getAccessLogForUser(user) \
+                .select_related('uas_position__gps_position')
+
     def toJSON(self):
         ret = {
             'id': self.pk,
