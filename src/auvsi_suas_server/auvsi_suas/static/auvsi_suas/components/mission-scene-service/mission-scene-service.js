@@ -2,6 +2,12 @@
  * Service to build 3D scenes representing missions.
  * The built scene can be accessed via public fields of the service. When the
  * scene is rebuilt it will broadcast an 'MissionScene.sceneUpdated' event.
+ *
+ * The world reference frame has the `home_pos` of the `MissionConfig` at
+ * the origin. The `x` axis represents longitude direction, with units of
+ * feet from the `home_pos`. The `y` axis represents the latitude direction,
+ * with units of feet form the `home_pos`. The `z` axis represents altitude in
+ * feet MSL.
  */
 
 
@@ -40,8 +46,7 @@ MissionScene = function($rootScope) {
 /**
  * Rebuild the scene with the given mission data.
  * @param mission The mission configuration.
- * @param obstacles The obstacles data.
- * @param telemetry The UAS telemetry data.
+ * @param obstacles The obstacles data.  * @param telemetry The UAS telemetry data.
  */
 MissionScene.prototype.rebuildScene = function(mission, obstacles, telemetry) {
     // Create fresh scene for rebuild.

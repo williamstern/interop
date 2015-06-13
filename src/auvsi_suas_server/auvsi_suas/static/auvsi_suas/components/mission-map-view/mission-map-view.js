@@ -23,11 +23,12 @@ MissionMapView = function($window, MissionScene) {
     this.scope_ = null;
 
     /**
-     * The element.  */
+     * The directive element where the map is drawn.
+     */
     this.element_ = null;
 
     /**
-     * The element attributes.
+     * The directive element attributes.
      */
     this.attrs_ = null;
 
@@ -52,27 +53,27 @@ MissionMapView = function($window, MissionScene) {
     this.camera_ = null;
 
     /**
-     * Raycaster for view.
+     * Raycaster for view, used to handle mouse interactions.
      */
     this.raycaster_ = new THREE.Raycaster();
 
     /**
-     * The mouse down position.
+     * The position on screen when mouse went down.
      */
     this.mouseDownPos_ = new THREE.Vector2();
 
     /**
-     * The mouse move position.
+     * The position on screen when mouse moved.
      */
     this.mouseMovePos_ = new THREE.Vector2();
 
     /**
-     * The mouse down position in world coordinates.
+     * The position in the world when mouse went down.
      */
     this.mouseDownWorldPos_ = new THREE.Vector3();
 
     /**
-     * The mouse move position in world coordinates.
+     * The position in the world when mouse was moved.
      */
     this.mouseMoveWorldPos_ = new THREE.Vector3();
 };
