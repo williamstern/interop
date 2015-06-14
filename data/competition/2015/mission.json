@@ -1376,7 +1376,7 @@
 {
     "fields": {
         "cylinder_height": 750.0,
-        "cylinder_radius": 320.0,
+        "cylinder_radius": 300.0,
         "gps_position": 45
     },
     "model": "auvsi_suas.stationaryobstacle",
