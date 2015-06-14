@@ -54,6 +54,8 @@
   <script src="{% static 'auvsi_suas/app.js'%}"></script>
   <script src="{% static 'auvsi_suas/components/navigation/navigation.js'%}"></script>
   <script src="{% static 'auvsi_suas/components/backend-service/backend-service.js'%}"></script>
+  <script src="{% static 'auvsi_suas/components/units-service/units-service.js'%}"></script>
+  <script src="{% static 'auvsi_suas/components/distance-service/distance-service.js'%}"></script>
   <script src="{% static 'auvsi_suas/components/mission-scene-service/mission-scene-service.js'%}"></script>
   <script src="{% static 'auvsi_suas/components/mission-map-view/mission-map-view.js'%}"></script>
   <script src="{% static 'auvsi_suas/pages/mission-dashboard/mission-dashboard-controller.js'%}"></script>
@@ -85,6 +87,11 @@
 
   <!-- Route specific view --!>
   <div ng-view></div>
+
+  <!-- Init Foundation !-->
+  <script>
+    $(document).foundation();
+  </script>
 
 </body>
 
