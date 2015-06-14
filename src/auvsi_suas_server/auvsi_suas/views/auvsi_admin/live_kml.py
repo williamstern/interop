@@ -16,7 +16,9 @@ from django.http import HttpResponseForbidden
 # Require admin access
 @user_passes_test(lambda u: u.is_superuser)
 def generateKml(request):
-    """ Generates a KML file HttpResponse"""
+    """ Generates a KML for live display.
+    This KML uses a network link to update via the update.kml endpoint
+    """
     kml = Kml(name='AUVSI SUAS LIVE Flight Data')
     kml_mission = kml.newfolder(name='Missions')
     MissionConfig.kml_all(kml_mission)
@@ -38,26 +40,29 @@ def generateKml(request):
     return response
 
 
-def cookiePacker(request):
-    # Check if a sessionid has been provided
-    if 'sessionid' not in request.GET:
+def setRequestSessionFromCookie(func):
+    def wrapper(request):
+        # Check if a sessionid has been provided
+        if 'sessionid' not in request.GET:
+                return HttpResponseForbidden()
+
+        try:
+            # pack the params back into the cookie
+            request.COOKIES['sessionid'] = request.GET['sessionid']
+
+            # Update the user associated with the cookie
+            session = Session.objects.get(session_key=request.GET['sessionid'])
+            uid = session.get_decoded().get('_auth_user_id')
+            request.user = User.objects.get(pk=uid)
+        except ObjectDoesNotExist:
             return HttpResponseForbidden()
-
-    try:
-        # pack the params back into the cookie
-        request.COOKIES['sessionid'] = request.GET['sessionid']
-
-        # Update the user associated with the cookie
-        session = Session.objects.get(session_key=request.GET['sessionid'])
-        uid = session.get_decoded().get('_auth_user_id')
-        request.user = User.objects.get(pk=uid)
-    except ObjectDoesNotExist:
-        return HttpResponseForbidden()
-    else:
-        return generateLiveKml(request)
+        else:
+            return func(request)
+    return wrapper
 
 
 # Require admin access
+@setRequestSessionFromCookie
 @user_passes_test(lambda u: u.is_superuser)
 def generateLiveKml(_):
     """ Generates a KML file HttpResponse"""

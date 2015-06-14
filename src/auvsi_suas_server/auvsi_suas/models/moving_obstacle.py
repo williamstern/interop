@@ -326,8 +326,17 @@ class MovingObstacle(models.Model):
             curr += delta
 
     @classmethod
-    def live_kml(cls, kml, timespan):
-        kml_output_resolution = 100  # milliseconds
+    def live_kml(cls, kml, timespan, resolution=100):
+        """
+        Appends kml nodes describing current paths of the obstacles
+
+        Args:
+            kml: A simpleKML Container to which the obstacle data will be added
+            timespan: A timedelta to look backwards in time
+            resolution: integer number of milliseconds between obstacle positions
+        Returns:
+            None
+        """
 
         def track(obstacle, span, dt):
             curr = timezone.now()
@@ -338,10 +347,11 @@ class MovingObstacle(models.Model):
                 time -= dt
 
         for obstacle in MovingObstacle.objects.all():
-            dt = timedelta(milliseconds=kml_output_resolution)
+            dt = timedelta(milliseconds=resolution)
             linestring = kml.newlinestring(name="Obstacle")
             coords = []
             for pos in track(obstacle, timespan, dt):
+                # Longitude, Latitude, Altitude
                 coord = (pos[1], pos[0], pos[2])
                 coords.append(coord)
             linestring.coords = coords

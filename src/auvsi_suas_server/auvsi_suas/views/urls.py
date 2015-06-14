@@ -45,7 +45,7 @@ urlpatterns = patterns('',
     ),
     url(
         r'^auvsi_admin/update.kml$',
-        live_kml.cookiePacker,
+        live_kml.generateLiveKml,
         name='update_kml',
     ),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
