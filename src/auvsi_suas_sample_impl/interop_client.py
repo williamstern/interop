@@ -6,11 +6,17 @@ This binary brings together communication code and data generation code.
 import argparse
 import datetime
 import logging
+import signal
 import sys
 import time
 
 import interop_comms
 import interop_datagen
+
+
+def signalHandler(signal, frame):
+    """Handles the signal by marking the program as no longer running."""
+    sys.exit(0)
 
 
 def executeInteroperability(
@@ -28,7 +34,7 @@ def executeInteroperability(
     request = interop_comms.LoginRequest(username, password)
     interop_client.queueRequest(request)
 
-    # Continually execute interop requests
+    # Continually execute interop requests until signaled to stop
     while True:
         # Get start time of the round
         start_time = datetime.datetime.now()
@@ -47,11 +53,17 @@ def executeInteroperability(
         end_time = datetime.datetime.now()
         delay_time = interop_time - (end_time - start_time).total_seconds()
         if delay_time > 0:
-            time.sleep(delay_time)
+            try:
+                time.sleep(delay_time)
+            except KeyboardInterrupt:
+                sys.exit(0)
 
 
 def main():
     """Configures the interoperability binary."""
+    # Setup signal handler
+    signal.signal(signal.SIGINT, signalHandler)
+
     # Setup logging
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
@@ -86,6 +98,7 @@ def main():
     # Create client and data generator from parameters
     interop_client = interop_comms.InteroperabilityClient(
             args.interop_server_host)
+    interop_client.daemon = True
     interop_client.start()
     data_generator = interop_datagen.ZeroValueGenerator()
 
