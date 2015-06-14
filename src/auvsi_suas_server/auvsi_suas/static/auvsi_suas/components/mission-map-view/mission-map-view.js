@@ -99,7 +99,7 @@ MissionMapView.prototype.link = function(scope, element, attrs) {
     this.camera_ = new THREE.PerspectiveCamera(
             fieldOfView, aspectRatio, nearClipPlane, farClipPlane);
     // Start the camera above the ground, with 45deg azimuth, looking at origin.
-    this.camera_.position.set(0, -300, 300);
+    this.camera_.position.set(0, -200, 1600);
     this.camera_.up = new THREE.Vector3(0, 0, 1);
     this.camera_.lookAt(new THREE.Vector3(0, 0, 0));
 
