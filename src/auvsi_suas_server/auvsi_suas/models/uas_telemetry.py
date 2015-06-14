@@ -118,10 +118,8 @@ class UasTelemetry(AccessLog):
     def live_kml(cls, kml, timespan):
         users = User.objects.all()
         for user in users:
-            all_logs = UasTelemetry.getAccessLogForUser(user)
-            curr = timezone.now()
-            period = (curr-timespan, curr)
-            period_logs = filter(lambda x: cls._in_period(x, period), all_logs)
+            period_logs = UasTelemetry.getAccessLogForUser(user)\
+                .filter(timestamp__gt=timezone.now()-timespan)
 
             if len(period_logs) < 1:
                 continue
