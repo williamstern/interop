@@ -169,7 +169,6 @@ class InteroperabilityClient(threading.Thread):
                 blocking.
         """
         super(InteroperabilityClient, self).__init__()
-        self.running = True
         self.conn = httplib.HTTPConnection(host)
         self.requests = Queue.Queue(maxsize=max_queued)
         self.cookies = None
@@ -186,7 +185,7 @@ class InteroperabilityClient(threading.Thread):
 
     def run(self):
         """The processing function for requests."""
-        while self.running:
+        while True:
             # Get request to make
             cur_request = self.requests.get()
             cur_request.requestDequeued()
