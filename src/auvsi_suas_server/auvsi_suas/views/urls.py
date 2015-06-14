@@ -3,6 +3,7 @@ from auvsi_suas.views import teams
 from auvsi_suas.views import telemetry
 from auvsi_suas.views.auvsi_admin import evaluate_teams
 from auvsi_suas.views.auvsi_admin import export_kml
+from auvsi_suas.views.auvsi_admin import live_kml
 from auvsi_suas.views.auvsi_admin import index
 from auvsi_suas.views.interop import login
 from auvsi_suas.views.interop import obstacles
@@ -36,5 +37,15 @@ urlpatterns = patterns('',
         r'^auvsi_admin/export_data.kml$',
         export_kml.generateKml,
         name='export_data',
+    ),
+    url(
+        r'^auvsi_admin/live.kml$',
+        live_kml.generateKml,
+        name='live_kml',
+    ),
+    url(
+        r'^auvsi_admin/update.kml$',
+        live_kml.generateLiveKml,
+        name='update_kml',
     ),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

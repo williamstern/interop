@@ -324,3 +324,38 @@ class MovingObstacle(models.Model):
             )
             yield self.getPosition(curr), uav, curr
             curr += delta
+
+    @classmethod
+    def live_kml(cls, kml, timespan, resolution=100):
+        """
+        Appends kml nodes describing current paths of the obstacles
+
+        Args:
+            kml: A simpleKML Container to which the obstacle data will be added
+            timespan: A timedelta to look backwards in time
+            resolution: integer number of milliseconds between obstacle positions
+        Returns:
+            None
+        """
+
+        def track(obstacle, span, dt):
+            curr = timezone.now()
+            last = curr-span
+            time = curr
+            while time >= last:
+                yield obstacle.getPosition(time)
+                time -= dt
+
+        for obstacle in MovingObstacle.objects.all():
+            dt = timedelta(milliseconds=resolution)
+            linestring = kml.newlinestring(name="Obstacle")
+            coords = []
+            for pos in track(obstacle, timespan, dt):
+                # Longitude, Latitude, Altitude
+                coord = (pos[1], pos[0], pos[2])
+                coords.append(coord)
+            linestring.coords = coords
+            linestring.altitudemode = AltitudeMode.absolute
+            linestring.extrude = 1
+            linestring.style.linestyle.color = Color.red
+            linestring.style.polystyle.color = Color.changealphaint(100, Color.red)

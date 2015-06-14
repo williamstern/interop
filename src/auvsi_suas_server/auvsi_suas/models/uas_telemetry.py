@@ -4,7 +4,9 @@ from access_log import AccessLog
 from aerial_position import AerialPosition
 from takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.moving_obstacle import MovingObstacle
+from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
 
@@ -130,6 +132,33 @@ class UasTelemetry(AccessLog):
 
             for obstacle in MovingObstacle.objects.all():
                 obstacle.kml(path=period_logs, kml=kml_flight, kml_doc=kml_doc)
+
+    @classmethod
+    def live_kml(cls, kml, timespan):
+        users = User.objects.all()
+        for user in users:
+            period_logs = UasTelemetry.getAccessLogForUser(user)\
+                .filter(timestamp__gt=timezone.now()-timespan)
+
+            if len(period_logs) < 1:
+                continue
+
+            linestring = kml.newlinestring(name=user.username)
+            coords = []
+            for entry in period_logs:
+                pos = entry.uas_position.gps_position
+                # Spatial Coordinates
+                coord = (
+                    pos.longitude,
+                    pos.latitude,
+                    entry.uas_position.altitude_msl,
+                )
+                coords.append(coord)
+            linestring.coords = coords
+            linestring.altitudemode = AltitudeMode.absolute
+            linestring.extrude = 1
+            linestring.style.linestyle.color = Color.blue
+            linestring.style.polystyle.color = Color.changealphaint(100, Color.blue)
 
     @staticmethod
     def _in_period(log, period):
