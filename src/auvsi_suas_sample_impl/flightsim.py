@@ -112,6 +112,8 @@ def _read_kml_flightpath(filename):
     if coords is None:
         raise AttributeError
 
+    # Coords is a space delimited string of comma delimited floats
+    # i.e.  -76.42769387747484,38.14568798598072,0 -76.42978051879199,38.15063018032259,30 ...
     coord_list = map(lambda pos_str: pos_str.split(','), coords.split(' '))  # Split into list of strings
     coord_list = [map(float, x) for x in coord_list]  # Convert strings to floats
     return [SpatialState(x[1], x[0], x[2]) for x in coord_list]  # Convert to list of tuples

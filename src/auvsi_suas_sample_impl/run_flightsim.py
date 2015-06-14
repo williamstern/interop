@@ -1,7 +1,4 @@
-"""Client for interoperability. This is the sample implementation binary.
-
-This binary brings together communication code and data generation code.
-"""
+""" Runs the Mission Simulator """
 
 import argparse
 import datetime
