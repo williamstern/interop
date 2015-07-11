@@ -24,11 +24,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network "forwarded_port", guest: 8080, host: 8080
 
   # Sync the repository folder to known path in VM
-  config.vm.synced_folder "../", "/home/vagrant/auvsi_suas_competition"
+  config.vm.synced_folder "../", "/home/vagrant/interop"
 
   # Use automated setup script
   config.vm.provision :shell do |shell|
-    shell.inline = "cd /home/vagrant/auvsi_suas_competition/setup;
+    shell.inline = "cd /home/vagrant/interop/setup;
                     ./setup.sh;"
   end
 

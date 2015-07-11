@@ -24,10 +24,10 @@ class auvsi_suas::apache_setup {
     }
     # Configure the python path
     class { 'apache::mod::wsgi':
-      wsgi_python_path   => '/auvsi_suas_competition/src/auvsi_suas_server/',
+      wsgi_python_path   => '/interop/server/',
     }
     # Configure production via WSGI
-    apache::vhost { 'auvsi_suas_server':
+    apache::vhost { 'interop_server':
       port => '80',
       docroot => '/var/www/',
       wsgi_application_group => '%{GLOBAL}',
@@ -37,17 +37,17 @@ class auvsi_suas::apache_setup {
         threads => '6',
         display-name => '%{GROUP}',
       },
-      wsgi_import_script => '/auvsi_suas_competition/src/auvsi_suas_server/auvsi_suas_server/wsgi.py',
+      wsgi_import_script => '/interop/server/server/wsgi.py',
       wsgi_import_script_options  =>
         { process-group => 'wsgi', application-group => '%{GLOBAL}' },
       wsgi_process_group => 'wsgi',
       wsgi_script_aliases => {
-        '/' => '/auvsi_suas_competition/src/auvsi_suas_server/auvsi_suas_server/wsgi.py'
+        '/' => '/interop/server/server/wsgi.py'
       },
       error_log_file => 'auvsi_suas_server.debug.log',
       aliases => [
         { alias => '/static',
-          path => '/auvsi_suas_competition/src/auvsi_suas_server/auvsi_suas/static',
+          path => '/interop/server/auvsi_suas/static',
         },
       ],
     }

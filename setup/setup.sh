@@ -34,7 +34,7 @@ function ensure_puppet_module() {
 
 # Create soft link from repo to standardize scripts
 log "Creating softlinks..."
-sudo ln -snf ${REPO} /auvsi_suas_competition
+sudo ln -snf ${REPO} /interop
 
 # Update the package list
 log "Updating package list and upgrading packages..."

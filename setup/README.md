@@ -2,7 +2,7 @@ AUVSI SUAS Setup Scripts
 ================================================================================
 
 This folder contains setup scripts to automatically install dependencies for
-development and deployment of the AUVSI SUAS software systems.
+development and deployment of the AUVSI SUAS interoperability software systems.
 
 To automatically build and setup a virtual machine, install
 [Vagrant](https://www.vagrantup.com/), change into this directory, and run:
