@@ -11,18 +11,18 @@ class auvsi_suas::server_setup {
     # Prepare database
     exec { 'migrate':
         command => "python manage.py migrate --noinput",
-        cwd => "/auvsi_suas_competition/src/auvsi_suas_server/",
+        cwd => "/interop/server/",
     }
 
     # Copy all static files
     exec { 'collectstatic':
         command => "python manage.py collectstatic --noinput",
-        cwd => "/auvsi_suas_competition/src/auvsi_suas_server/",
+        cwd => "/interop/server/",
     }
 
     # Load initial testadmin superuser
     exec { 'testadmin superuser':
         command => "python manage.py loaddata fixtures/testadmin_superuser.yaml",
-        cwd => "/auvsi_suas_competition/src/auvsi_suas_server/",
+        cwd => "/interop/server/",
     }
 }

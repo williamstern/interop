@@ -1,5 +1,5 @@
 """
-Django settings for auvsi_suas_server project.
+Django settings for the interop server.
 
 For more information on this file, see
 https://docs.djangoproject.com/en/1.6/topics/settings/
@@ -52,9 +52,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-ROOT_URLCONF = 'auvsi_suas_server.urls'
+ROOT_URLCONF = 'server.urls'
 
-WSGI_APPLICATION = 'auvsi_suas_server.wsgi.application'
+WSGI_APPLICATION = 'server.wsgi.application'
 
 
 # Database

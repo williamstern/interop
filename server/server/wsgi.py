@@ -1,5 +1,5 @@
 """
-WSGI config for auvsi_suas_server project.
+WSGI config for the interop server.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,7 +11,7 @@ import logging
 import os
 import sys
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "auvsi_suas_server.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "server.settings")
 
 # Add parent directory to Python path
 server_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

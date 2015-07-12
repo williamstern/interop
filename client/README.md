@@ -7,7 +7,8 @@ of the running system, to load test the deployment configuration, or test
 components which are otherwise difficult to test.
 
 You can use the code by executing:
-python interop_client.py localhost:80 0.1 testuser testpass
+
+    python interop_client.py localhost:80 0.1 testuser testpass
 
 
 ## Mission Simulator
@@ -17,4 +18,4 @@ file is provided "./data/FlightPath.kml".  The file should contain a line path
 called FlightPath.  A suitable path may be created using the "Add Path" icon
 in Google Earth.  Altitudes must be added manually when using that process.
 
-python run_flightsim.py 127.0.0.1:8000 0.1 cornell uni ./data/FlightPath.kml
+    python run_flightsim.py 127.0.0.1:8000 0.1 cornell uni ./data/FlightPath.kml

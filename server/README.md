@@ -1,13 +1,14 @@
 AUVSI SUAS Source Files
 ================================================================================
 
-This folder contains the AUVSI SUAS Django web server used at competition. The
-directory contains the following files:
+This folder contains the AUVSI SUAS Interoperability Django web server. This
+server is used at competition to run the interoperability and sense, detect,
+and avoid tasks.  This directory is a Django project, with the following
+components:
 
-  1. auvsi_suas: The Django application that contains the main code and logic
-        for the AUVSI SUAS competition. This includes various models, views, and
-        control logic.
-  2. auvsi_suas_server: The Django website that uses the auvsi_suas application
+  1. `auvsi_suas`: The Django application that contains the main code and logic
+        for the server. This includes various models, views, and control logic.
+  2. `server`: The Django website that uses the `auvsi_suas` application
         to service user requests.
   3. manage.py: A utility program provided by Django which can be used to manage
         the application. This includes creating databases, running the

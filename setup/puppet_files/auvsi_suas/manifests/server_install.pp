@@ -16,6 +16,6 @@ class auvsi_suas::server_install {
         ensure => "latest",
     }
 
-    python::requirements { '/auvsi_suas_competition/src/auvsi_suas_server/requirements.txt' :
+    python::requirements { '/interop/server/requirements.txt' :
     }
 }
