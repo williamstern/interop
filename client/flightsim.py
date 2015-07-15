@@ -24,15 +24,15 @@ class KmlGenerator(DataGenerator):
         self.time = new_time
         move_distance = self.speed * delta_time
 
-        delta_altitude = delta_time*max_climb_rate
-        delta_heading = delta_time*max_turn_rate
+        delta_altitude = delta_time * max_climb_rate
+        delta_heading = delta_time * max_turn_rate
 
         while move_distance > 0:
             vec = self.pos.vector(self.path[self.waypoint])
 
             # Way-point Switching
             if vec.distance < switch_threshold:
-                if self.waypoint+1 == len(self.path):
+                if self.waypoint + 1 == len(self.path):
                     break
                 else:
                     self.waypoint += 1
@@ -53,18 +53,14 @@ class KmlGenerator(DataGenerator):
             # Apply motion
             self.pos.move(vec)
 
-        """Overrides base method."""
         return (
-            self.pos.latitude,
-            self.pos.longitude,
-            self.pos.altitude,
-            self.pos.heading,
-        )
+            self.pos.latitude, self.pos.longitude, self.pos.altitude,
+            self.pos.heading, )
 
 
 def calc_new_heading(current, commanded, max_delta):
     def get_angle(a, b):
-        b = b if b < a else b+360
+        b = b if b < a else b + 360
         return (b - a) % 360
 
     # Select the shortest direction to turn
@@ -105,8 +101,10 @@ def _read_kml_flightpath(filename):
                 correct_name = True
             if not correct_name:
                 continue
-        for line_string in node.iter('{http://www.opengis.net/kml/2.2}LineString'):
-            for coordinates in line_string.iter('{http://www.opengis.net/kml/2.2}coordinates'):
+        for line_string in node.iter(
+            '{http://www.opengis.net/kml/2.2}LineString'):
+            for coordinates in line_string.iter(
+                '{http://www.opengis.net/kml/2.2}coordinates'):
                 coords = coordinates.text.strip()
                 break
     if coords is None:
@@ -148,8 +146,7 @@ class SpatialState(object):
         movevec = self._latlon - waypoint._latlon
         return SpatialVector(
             vector=movevec,
-            altitude=waypoint._alt-self._alt,
-        )
+            altitude=waypoint._alt - self._alt, )
 
     def move(self, vec):
         """
@@ -171,11 +168,11 @@ class SpatialVector(object):
 
     @property
     def distance(self):
-        return self.vector.magnitude*1000
+        return self.vector.magnitude * 1000
 
     @distance.setter
     def distance(self, value):
-        self.vector.magnitude = value/1000.0
+        self.vector.magnitude = value / 1000.0
 
     @property
     def heading(self):

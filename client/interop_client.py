@@ -20,7 +20,8 @@ def signalHandler(signal, frame):
 
 
 def executeInteroperability(
-        interop_client, data_generator, interop_time, username, password):
+    interop_client, data_generator, interop_time, username, password
+):
     """Executes interoperability using the given configuration.
 
     Args:
@@ -47,7 +48,7 @@ def executeInteroperability(
         request = interop_comms.ObstaclesRequest()
         interop_client.queueRequest(request)
         request = interop_comms.UasTelemetryRequest(
-                latitude, longitude, altitude_msl, uas_heading)
+            latitude, longitude, altitude_msl, uas_heading)
         interop_client.queueRequest(request)
         # Delay for interop timing
         end_time = datetime.datetime.now()
@@ -71,41 +72,52 @@ def main():
     stream = logging.StreamHandler(sys.stdout)
     stream.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-            '%(asctime)s. %(name)s. %(levelname)s. %(message)s')
+        '%(asctime)s. %(name)s. %(levelname)s. %(message)s')
     stream.setFormatter(formatter)
     logger.addHandler(stream)
 
     # Get parameters from command line
     parser = argparse.ArgumentParser(
-            description='Sample interoperability implementation.')
+        description='Sample interoperability implementation.')
     parser.add_argument(
-            'interop_server_host', metavar='H', type=str, nargs='?',
-            help='Host and port of interoperability server. E.g. localhost:80')
+        'interop_server_host',
+        metavar='H',
+        type=str,
+        nargs='?',
+        help='Host and port of interoperability server. E.g. localhost:80')
     parser.add_argument(
-            'interop_time', metavar='T', type=float, nargs='?',
-            help='Time between interoperability request sets. Floating point '
-                 'seconds.')
-    parser.add_argument(
-            'username', metavar='U', type=str, nargs='?',
-            help='Username for interoperability login.')
-    parser.add_argument(
-            'password', metavar='P', type=str, nargs='?',
-            help='Password for interoperability login.')
+        'interop_time',
+        metavar='T',
+        type=float,
+        nargs='?',
+        help='Time between interoperability request sets. Floating point '
+        'seconds.')
+    parser.add_argument('username',
+                        metavar='U',
+                        type=str,
+                        nargs='?',
+                        help='Username for interoperability login.')
+    parser.add_argument('password',
+                        metavar='P',
+                        type=str,
+                        nargs='?',
+                        help='Password for interoperability login.')
     args = parser.parse_args()
+
     logging.info('Interoperability server host: %s.', args.interop_server_host)
     logging.info('Interoperability time: %f.', args.interop_time)
 
     # Create client and data generator from parameters
     interop_client = interop_comms.InteroperabilityClient(
-            args.interop_server_host)
+        args.interop_server_host)
     interop_client.daemon = True
     interop_client.start()
     data_generator = interop_datagen.ZeroValueGenerator()
 
     # Launch interoperability client
     executeInteroperability(
-            interop_client, data_generator, args.interop_time, args.username,
-            args.password)
+        interop_client, data_generator, args.interop_time, args.username,
+        args.password)
 
 
 if __name__ == '__main__':
