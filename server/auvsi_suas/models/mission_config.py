@@ -15,7 +15,6 @@ from waypoint import Waypoint
 from django.contrib.auth.models import User
 from django.db import models
 
-
 # Logging for the module
 logger = logging.getLogger(__name__)
 
@@ -23,43 +22,57 @@ logger = logging.getLogger(__name__)
 class MissionConfig(models.Model):
     """The details for the active mission. There should only be one."""
     # The home position for use as a reference point. Should be the tents.
-    home_pos = models.ForeignKey(
-            GpsPosition, related_name="missionconfig_home_pos")
+    home_pos = models.ForeignKey(GpsPosition,
+                                 related_name="missionconfig_home_pos")
+
     # The max distance to a waypoint to consider it satisfied/hit in feet.
     mission_waypoints_dist_max = models.FloatField()
+
     # The waypoints that define the mission waypoint path
     mission_waypoints = models.ManyToManyField(
-            Waypoint, related_name="missionconfig_mission_waypoints")
+        Waypoint,
+        related_name="missionconfig_mission_waypoints")
+
     # The polygon that defines the search grid
     search_grid_points = models.ManyToManyField(
-            Waypoint, related_name="missionconfig_search_grid_points")
+        Waypoint,
+        related_name="missionconfig_search_grid_points")
+
     # The last known position of the emergent target
     emergent_last_known_pos = models.ForeignKey(
-            GpsPosition, related_name="missionconfig_emergent_last_known_pos")
+        GpsPosition,
+        related_name="missionconfig_emergent_last_known_pos")
+
     # Off-axis target position
     off_axis_target_pos = models.ForeignKey(
-            GpsPosition, related_name="missionconfig_off_axis_target_pos")
+        GpsPosition,
+        related_name="missionconfig_off_axis_target_pos")
+
     # The SRIC position
-    sric_pos = models.ForeignKey(
-            GpsPosition, related_name="missionconfig_sric_pos")
+    sric_pos = models.ForeignKey(GpsPosition,
+                                 related_name="missionconfig_sric_pos")
+
     # The IR primary target position
     ir_primary_target_pos = models.ForeignKey(
-            GpsPosition, related_name="missionconfig_ir_primary_target_pos")
+        GpsPosition,
+        related_name="missionconfig_ir_primary_target_pos")
+
     # The IR secondary target position
     ir_secondary_target_pos = models.ForeignKey(
-            GpsPosition, related_name="missionconfig_ir_secondary_target_pos")
+        GpsPosition,
+        related_name="missionconfig_ir_secondary_target_pos")
+
     # The air drop position
-    air_drop_pos = models.ForeignKey(
-            GpsPosition, related_name="missionconfig_air_drop_pos")
+    air_drop_pos = models.ForeignKey(GpsPosition,
+                                     related_name="missionconfig_air_drop_pos")
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
         mission_waypoints_str = ", ".join(
-                ["%s" % wpt.__unicode__()
-                 for wpt in self.mission_waypoints.all()])
+            ["%s" % wpt.__unicode__() for wpt in self.mission_waypoints.all()])
         search_grid_str = ", ".join(
-                ["%s" % wpt.__unicode__()
-                 for wpt in self.search_grid_points.all()])
+            ["%s" % wpt.__unicode__()
+             for wpt in self.search_grid_points.all()])
 
         return unicode("MissionConfig (pk:%s, home_pos:%s, "
                        "mission_waypoints_dist_max:%s, "
@@ -126,76 +139,89 @@ class MissionConfig(models.Model):
         fly_zones = FlyZone.objects.all()
         stationary_obstacles = StationaryObstacle.objects.all()
         moving_obstacles = MovingObstacle.objects.all()
+
         # Start a results map from user to evaluation data
         results = dict()
+
         # Fill in evaluation data for each user except admins
         users = User.objects.all()
         logger.info('Starting team evaluations.')
+
         for user in users:
             # Ignore admins
             if user.is_superuser:
                 continue
+
             logger.info('Evaluation starting for user: %s.' % user.username)
+
             # Start the evaluation data structure
             eval_data = results.setdefault(user, dict())
+
             # Get the relevant logs for the user
             server_info_logs = ServerInfoAccessLog.getAccessLogForUser(user)
             obstacle_logs = ObstacleAccessLog.getAccessLogForUser(user)
             uas_telemetry_logs = UasTelemetry.getAccessLogForUser(user)
-            flight_periods = TakeoffOrLandingEvent.getFlightPeriodsForUser(user)
+            flight_periods = TakeoffOrLandingEvent.getFlightPeriodsForUser(
+                user)
+
             # Determine if the uas hit the waypoints
             waypoints = self.evaluateUasSatisfiedWaypoints(uas_telemetry_logs)
             waypoints_keyed = dict()
             for wpt_id in xrange(len(waypoints)):
-                waypoints_keyed[wpt_id+1] = waypoints[wpt_id]
+                waypoints_keyed[wpt_id + 1] = waypoints[wpt_id]
             eval_data['waypoints_satisfied'] = waypoints_keyed
+
             # Determine if the uas went out of bounds
             out_of_bounds_time = FlyZone.evaluateUasOutOfBounds(
-                    fly_zones, uas_telemetry_logs)
+                fly_zones, uas_telemetry_logs)
             eval_data['out_of_bounds_time'] = out_of_bounds_time
+
             # Determine interop rates
             interop_times = eval_data.setdefault('interop_times', dict())
+
             server_info_times = ServerInfoAccessLog.getAccessLogRates(
-                    flight_periods,
-                    ServerInfoAccessLog.getAccessLogForUserByTimePeriod(
-                        server_info_logs, flight_periods)
-                    )
+                flight_periods,
+                ServerInfoAccessLog.getAccessLogForUserByTimePeriod(
+                    server_info_logs, flight_periods))
+
             obstacle_times = ObstacleAccessLog.getAccessLogRates(
-                    flight_periods,
-                    ObstacleAccessLog.getAccessLogForUserByTimePeriod(
-                        obstacle_logs, flight_periods)
-                    )
+                flight_periods,
+                ObstacleAccessLog.getAccessLogForUserByTimePeriod(
+                    obstacle_logs, flight_periods))
+
             uas_telemetry_times = UasTelemetry.getAccessLogRates(
-                    flight_periods,
-                    UasTelemetry.getAccessLogForUserByTimePeriod(
-                        uas_telemetry_logs, flight_periods)
-                    )
+                flight_periods, UasTelemetry.getAccessLogForUserByTimePeriod(
+                    uas_telemetry_logs, flight_periods))
+
             interop_times['server_info'] = {
-                    'min': server_info_times[0],
-                    'max': server_info_times[1],
-                    'avg': server_info_times[2]
+                'min': server_info_times[0],
+                'max': server_info_times[1],
+                'avg': server_info_times[2]
             }
             interop_times['obst_info'] = {
-                    'min': obstacle_times[0],
-                    'max': obstacle_times[1],
-                    'avg': obstacle_times[2]
+                'min': obstacle_times[0],
+                'max': obstacle_times[1],
+                'avg': obstacle_times[2]
             }
             interop_times['uas_telem'] = {
-                    'min': uas_telemetry_times[0],
-                    'max': uas_telemetry_times[1],
-                    'avg': uas_telemetry_times[2]
+                'min': uas_telemetry_times[0],
+                'max': uas_telemetry_times[1],
+                'avg': uas_telemetry_times[2]
             }
+
             # Determine collisions with stationary and moving obstacles
             stationary_collisions = eval_data.setdefault(
-                    'stationary_obst_collision', dict())
+                'stationary_obst_collision', dict())
             for obst in stationary_obstacles:
                 collision = obst.evaluateCollisionWithUas(uas_telemetry_logs)
                 stationary_collisions[obst.pk] = collision
+
             moving_collisions = eval_data.setdefault(
-                    'moving_obst_collision', dict())
+                'moving_obst_collision', dict())
             for obst in moving_obstacles:
                 collision = obst.evaluateCollisionWithUas(uas_telemetry_logs)
                 moving_collisions[obst.pk] = collision
+
         return results
 
     def toJSON(self):
@@ -207,8 +233,8 @@ class MissionConfig(models.Model):
                 "longitude": self.home_pos.longitude,
             },
             "mission_waypoints_dist_max": self.mission_waypoints_dist_max,
-            "mission_waypoints": [], # Filled in below
-            "search_grid_points": [], # Filled in below
+            "mission_waypoints": [],  # Filled in below
+            "search_grid_points": [],  # Filled in below
             "emergent_last_known_pos": {
                 "latitude": self.emergent_last_known_pos.latitude,
                 "longitude": self.emergent_last_known_pos.longitude,
@@ -298,11 +324,13 @@ class MissionConfig(models.Model):
         waypoint_num = 1
         for waypoint in self.mission_waypoints.all():
             gps = waypoint.position.gps_position
-            coord = (gps.longitude, gps.latitude, waypoint.position.altitude_msl)
+            coord = (gps.longitude, gps.latitude,
+                     waypoint.position.altitude_msl)
             waypoints.append(coord)
 
             # Add waypoint marker
-            wp = waypoints_folder.newpoint(name=str(waypoint_num), coords=[coord])
+            wp = waypoints_folder.newpoint(name=str(waypoint_num),
+                                           coords=[coord])
             wp.description = str(waypoint)
             wp.altitudemode = AltitudeMode.absolute
             wp.extrude = 1
@@ -314,8 +342,8 @@ class MissionConfig(models.Model):
         linestring.altitudemode = AltitudeMode.absolute
         linestring.extrude = 1
         linestring.style.linestyle.color = Color.black
-        linestring.style.polystyle.color = Color.changealphaint(100, Color.green)
-
+        linestring.style.polystyle.color = Color.changealphaint(100,
+                                                                Color.green)
 
         # Search Area
         search_area_folder = kml_folder.newfolder(name='Search Area')
@@ -328,7 +356,8 @@ class MissionConfig(models.Model):
             search_area.append(coord)
 
             # Add boundary marker
-            wp = search_area_folder.newpoint(name=str(search_area_num), coords=[coord])
+            wp = search_area_folder.newpoint(name=str(search_area_num),
+                                             coords=[coord])
             wp.description = str(point)
             wp.visibility = False
             search_area_num += 1
@@ -339,4 +368,3 @@ class MissionConfig(models.Model):
         pol.style.linestyle.color = Color.black
         pol.style.linestyle.width = 2
         pol.style.polystyle.color = Color.changealphaint(50, Color.blue)
-

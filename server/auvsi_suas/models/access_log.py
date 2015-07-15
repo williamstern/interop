@@ -20,7 +20,6 @@ class AccessLog(models.Model):
                        (self.__class__.__name__, str(self.pk),
                         self.user.__unicode__(), str(self.timestamp)))
 
-
     @classmethod
     def getAccessLogForUser(cls, user):
         """Gets the time-sorted list of access log for the given user.
@@ -104,8 +103,7 @@ class AccessLog(models.Model):
         return time_period_access_logs
 
     @classmethod
-    def getAccessLogRates(
-            cls, time_periods, time_period_access_logs):
+    def getAccessLogRates(cls, time_periods, time_period_access_logs):
         """Gets the access log rates.
 
         Args:
@@ -137,15 +135,15 @@ class AccessLog(models.Model):
                 time_diff = (first_log.timestamp - time_start).total_seconds()
                 times_between_logs.append(time_diff)
             # Account for time between logs
-            for access_log_id in range(len(cur_access_logs)-1):
+            for access_log_id in range(len(cur_access_logs) - 1):
                 log_t = cur_access_logs[access_log_id]
-                log_tp1 = cur_access_logs[access_log_id+1]
-                time_diff = (log_tp1.timestamp -
-                        log_t.timestamp).total_seconds()
+                log_tp1 = cur_access_logs[access_log_id + 1]
+                time_diff = (log_tp1.timestamp - log_t.timestamp
+                             ).total_seconds()
                 times_between_logs.append(time_diff)
             # Account for time between last log and landing
             if time_end is not None:
-                last_log = cur_access_logs[len(cur_access_logs)-1]
+                last_log = cur_access_logs[len(cur_access_logs) - 1]
                 time_diff = (time_end - last_log.timestamp).total_seconds()
                 times_between_logs.append(time_diff)
 
@@ -155,8 +153,6 @@ class AccessLog(models.Model):
             times_between_min = np.min(times_between_logs)
             times_between_max = np.max(times_between_logs)
             times_between_avg = np.mean(times_between_logs)
-            return (times_between_min,
-                    times_between_max,
-                    times_between_avg)
+            return (times_between_min, times_between_max, times_between_avg)
         else:
             return (None, None, None)

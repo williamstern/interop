@@ -27,7 +27,6 @@ class AerialPosition(models.Model):
           Distance in feet.
         """
         return distance.distanceTo(
-                self.gps_position.latitude, self.gps_position.longitude,
-                self.altitude_msl,
-                other.gps_position.latitude, other.gps_position.longitude,
-                other.altitude_msl)
+            self.gps_position.latitude, self.gps_position.longitude,
+            self.altitude_msl, other.gps_position.latitude,
+            other.gps_position.longitude, other.altitude_msl)

@@ -101,10 +101,8 @@ class UasTelemetry(AccessLog):
                 pos = entry.uas_position.gps_position
                 # Spatial Coordinates
                 coord = (
-                    pos.longitude,
-                    pos.latitude,
-                    entry.uas_position.altitude_msl,
-                )
+                    pos.longitude, pos.latitude,
+                    entry.uas_position.altitude_msl, )
                 coords.append(coord)
 
                 # Time Elements
@@ -149,16 +147,15 @@ class UasTelemetry(AccessLog):
                 pos = entry.uas_position.gps_position
                 # Spatial Coordinates
                 coord = (
-                    pos.longitude,
-                    pos.latitude,
-                    entry.uas_position.altitude_msl,
-                )
+                    pos.longitude, pos.latitude,
+                    entry.uas_position.altitude_msl, )
                 coords.append(coord)
             linestring.coords = coords
             linestring.altitudemode = AltitudeMode.absolute
             linestring.extrude = 1
             linestring.style.linestyle.color = Color.blue
-            linestring.style.polystyle.color = Color.changealphaint(100, Color.blue)
+            linestring.style.polystyle.color = Color.changealphaint(100,
+                                                                    Color.blue)
 
     @staticmethod
     def _in_period(log, period):

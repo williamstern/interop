@@ -28,8 +28,8 @@ def haversine(lon1, lat1, lon2, lat2):
     # haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
-    hav_a = (math.sin(dlat/2)**2
-             + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2)
+    hav_a = (math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) *
+             math.sin(dlon / 2) ** 2)
     hav_c = 2 * math.asin(math.sqrt(hav_a))
 
     # 6367 km is the radius of the Earth
@@ -38,8 +38,8 @@ def haversine(lon1, lat1, lon2, lat2):
 
 
 def distanceTo(
-        latitude_1, longitude_1, altitude_1,
-        latitude_2, longitude_2, altitude_2):
+    latitude_1, longitude_1, altitude_1, latitude_2, longitude_2, altitude_2
+):
     """Get the distance in feet between the two positions.
 
     Args:
@@ -50,8 +50,7 @@ def distanceTo(
         longitude_2: The longitude of the second position.
         altitude_2: The altitude in feet of the second position.
     """
-    gps_dist_km = haversine(
-            longitude_1, latitude_1, longitude_2, latitude_2)
+    gps_dist_km = haversine(longitude_1, latitude_1, longitude_2, latitude_2)
     gps_dist_ft = units.kilometersToFeet(gps_dist_km)
     alt_dist_ft = abs(altitude_1 - altitude_2)
     return math.hypot(gps_dist_ft, alt_dist_ft)

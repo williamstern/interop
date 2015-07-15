@@ -35,11 +35,12 @@ class TestAccessLogCommon(TestCase):
         for i in xrange(num):
             log = AccessLog(user=user)
             log.save()
-            log.timestamp = start + i*delta
+            log.timestamp = start + i * delta
             log.save()
             logs.append(log)
 
         return logs
+
 
 class TestAccessLogBasic(TestAccessLogCommon):
     """Tests the AccessLog model basic functionality."""
@@ -82,7 +83,7 @@ class TestAccessLogBasic(TestAccessLogCommon):
 
         self.create_logs(self.user1, start=self.year2000, num=10, delta=delta)
 
-        latest_time = self.year2000 + 10*delta
+        latest_time = self.year2000 + 10 * delta
 
         # Active for user with recent logs
         self.assertTrue(AccessLog.userActive(self.user1, base=latest_time))
@@ -97,6 +98,7 @@ class TestAccessLogBasic(TestAccessLogCommon):
         self.create_logs(self.user1, num=10, delta=delta)
         self.assertTrue(AccessLog.userActive(self.user1))
 
+
 class TestAccessLogGetByPeriod(TestAccessLogCommon):
     """Test AccessLog.getAccessLogForUserByTimePeriod()"""
 
@@ -110,28 +112,28 @@ class TestAccessLogGetByPeriod(TestAccessLogCommon):
     def test_single_period(self):
         """Single set of logs accessible."""
         results = AccessLog.getAccessLogForUserByTimePeriod(
-                self.logs, [
-                    (self.year2000, self.year2001),
-                ])
+            self.logs, [
+                (self.year2000, self.year2001),
+            ])
 
         self.assertSequenceEqual([self.year2000_logs], results)
 
     def test_full_range(self):
         """All logs from (-inf, inf)."""
         results = AccessLog.getAccessLogForUserByTimePeriod(
-                self.logs, [
-                    (None, None),
-                ])
+            self.logs, [
+                (None, None),
+            ])
 
         self.assertSequenceEqual([self.logs], results)
 
     def test_both_periods(self):
         """Both sets of logs, accesses individually."""
         results = AccessLog.getAccessLogForUserByTimePeriod(
-                self.logs, [
-                    (self.year2000, self.year2001),
-                    (self.year2003, self.year2004),
-                ])
+            self.logs, [
+                (self.year2000, self.year2001),
+                (self.year2003, self.year2004),
+            ])
 
         self.assertSequenceEqual([self.year2000_logs, self.year2003_logs],
                                  results)
@@ -139,39 +141,40 @@ class TestAccessLogGetByPeriod(TestAccessLogCommon):
     def test_non_intersecting_period(self):
         """No logs matched."""
         results = AccessLog.getAccessLogForUserByTimePeriod(
-                self.logs, [
-                    (self.year2001, self.year2002),
-                ])
+            self.logs, [
+                (self.year2001, self.year2002),
+            ])
 
         self.assertSequenceEqual([[]], results)
 
     def test_one_intersecting_period(self):
         """Only one period matches logs."""
         results = AccessLog.getAccessLogForUserByTimePeriod(
-                self.logs, [
-                    (self.year2001, self.year2002),
-                    (self.year2003, self.year2004),
-                ])
+            self.logs, [
+                (self.year2001, self.year2002),
+                (self.year2003, self.year2004),
+            ])
 
         self.assertSequenceEqual([[], self.year2003_logs], results)
 
     def test_open_start(self):
         """Logs (-inf, 2001)"""
         results = AccessLog.getAccessLogForUserByTimePeriod(
-                self.logs, [
-                    (None, self.year2001),
-                ])
+            self.logs, [
+                (None, self.year2001),
+            ])
 
         self.assertSequenceEqual([self.year2000_logs], results)
 
     def test_open_end(self):
         """Logs (2003, inf)"""
         results = AccessLog.getAccessLogForUserByTimePeriod(
-                self.logs, [
-                    (self.year2003, None),
-                ])
+            self.logs, [
+                (self.year2003, None),
+            ])
 
         self.assertSequenceEqual([self.year2003_logs], results)
+
 
 class TestAccessLogRates(TestAccessLogCommon):
     """Test AccessLog.getAccessLogRates()"""
@@ -180,7 +183,7 @@ class TestAccessLogRates(TestAccessLogCommon):
         # getAccessLogRates uses time between beginning/end of the period
         # and the first/last log to compute rates, so to get constant rates,
         # the period must begin and end delta seconds before/after the logs.
-        return (logs[0].timestamp-delta, logs[-1].timestamp+delta)
+        return (logs[0].timestamp - delta, logs[-1].timestamp + delta)
 
     def test_constant_rate(self):
         """Rates computed correctly."""
@@ -209,8 +212,12 @@ class TestAccessLogRates(TestAccessLogCommon):
         delta = datetime.timedelta(seconds=1)
 
         logs = [
-            self.create_logs(self.user1, start=self.year2000, delta=delta),
-            self.create_logs(self.user1, start=self.year2001, delta=delta),
+            self.create_logs(self.user1,
+                             start=self.year2000,
+                             delta=delta),
+            self.create_logs(self.user1,
+                             start=self.year2001,
+                             delta=delta),
         ]
 
         periods = [self.consistent_period(l, delta) for l in logs]
@@ -224,16 +231,20 @@ class TestAccessLogRates(TestAccessLogCommon):
         delta = datetime.timedelta(seconds=1)
 
         logs = [
-            self.create_logs(self.user1, num=1000,
-                             start=self.year2000, delta=delta),
-            self.create_logs(self.user1, num=1000,
-                             start=self.year2001, delta=delta/2),
+            self.create_logs(self.user1,
+                             num=1000,
+                             start=self.year2000,
+                             delta=delta),
+            self.create_logs(self.user1,
+                             num=1000,
+                             start=self.year2001,
+                             delta=delta / 2),
         ]
 
         periods = [self.consistent_period(l, delta) for l in logs]
 
         rates = AccessLog.getAccessLogRates(periods, logs)
 
-        self.assertAlmostEqual(0.5, rates[0]) # min
-        self.assertAlmostEqual(1.0, rates[1]) # max
-        self.assertAlmostEqual(0.75, rates[2], delta=0.001) # avg
+        self.assertAlmostEqual(0.5, rates[0])  # min
+        self.assertAlmostEqual(1.0, rates[1])  # max
+        self.assertAlmostEqual(0.75, rates[2], delta=0.001)  # avg

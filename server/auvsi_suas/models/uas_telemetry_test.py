@@ -16,8 +16,8 @@ class TestUasTelemetry(TestCase):
     """Tests the UasTelemetry model."""
 
     def setUp(self):
-        user = User.objects.create_user(
-                'testuser', 'testemail@x.com', 'testpass')
+        user = User.objects.create_user('testuser', 'testemail@x.com',
+                                        'testpass')
         user.save()
 
         pos = GpsPosition(latitude=10, longitude=100)
@@ -26,9 +26,10 @@ class TestUasTelemetry(TestCase):
         apos = AerialPosition(gps_position=pos, altitude_msl=200)
         apos.save()
 
-        self.log = UasTelemetry(
-                timestamp=timezone.now(), user=user, uas_position=apos,
-                uas_heading=90)
+        self.log = UasTelemetry(timestamp=timezone.now(),
+                                user=user,
+                                uas_position=apos,
+                                uas_heading=90)
         self.log.save()
 
     def test_unicode(self):
@@ -62,8 +63,8 @@ class TestUasTelemetryKML(TestCase):
 
     def test_kml_simple(self):
         # Create User
-        nonadmin_user = User.objects.create_user(
-                'testuser', 'testemail@x.com', 'testpass')
+        nonadmin_user = User.objects.create_user('testuser', 'testemail@x.com',
+                                                 'testpass')
         nonadmin_user.save()
 
         coordinates = [
@@ -88,16 +89,15 @@ class TestUasTelemetryKML(TestCase):
             user=nonadmin_user,
             logs=UasTelemetry.getAccessLogForUser(nonadmin_user),
             kml=kml,
-            kml_doc=kml,
-        )
+            kml_doc=kml, )
         for coord in coordinates:
             tag = self.coord_format.format(coord[1], coord[0], coord[2])
             self.assertTrue(tag in kml.kml())
 
     def test_kml_empty(self):
         # Create User
-        nonadmin_user = User.objects.create_user(
-                'testuser2', 'testemail@x.com', 'testpass')
+        nonadmin_user = User.objects.create_user('testuser2',
+                                                 'testemail@x.com', 'testpass')
         nonadmin_user.save()
 
         kml = Kml()
@@ -105,13 +105,12 @@ class TestUasTelemetryKML(TestCase):
             user=nonadmin_user,
             logs=UasTelemetry.getAccessLogForUser(nonadmin_user),
             kml=kml,
-            kml_doc=kml,
-        )
+            kml_doc=kml, )
 
     def test_kml_filter(self):
         # Create User
-        nonadmin_user = User.objects.create_user(
-                'testuser3', 'testemail@x.com', 'testpass')
+        nonadmin_user = User.objects.create_user('testuser3',
+                                                 'testemail@x.com', 'testpass')
         nonadmin_user.save()
 
         coordinates = [
@@ -123,10 +122,7 @@ class TestUasTelemetryKML(TestCase):
             (-76.0, 38.0, 30.0),
             (-76.0, 38.0, 60.0),
         ]
-        filtered_out = [
-            (0.1, 0.001, 100),
-            (0.0, 0.0, 0)
-        ]
+        filtered_out = [(0.1, 0.001, 100), (0.0, 0.0, 0)]
         # Create Coordinates
         start = TakeoffOrLandingEvent(user=nonadmin_user, uas_in_air=True)
         start.save()
@@ -142,11 +138,11 @@ class TestUasTelemetryKML(TestCase):
             user=nonadmin_user,
             logs=UasTelemetry.getAccessLogForUser(nonadmin_user),
             kml=kml,
-            kml_doc=kml,
-        )
+            kml_doc=kml, )
 
         for filtered in filtered_out:
-            tag = self.coord_format.format(filtered[1], filtered[0], filtered[2])
+            tag = self.coord_format.format(filtered[1], filtered[0],
+                                           filtered[2])
             self.assertTrue(tag not in kml.kml())
 
         for coord in coordinates:
@@ -157,22 +153,20 @@ class TestUasTelemetryKML(TestCase):
         base = timezone.now()
         inc = datetime.timedelta(seconds=1)
         periods = [
-            (base-inc, base+inc),
-            (None, base+inc),
-            (base-inc, None),
+            (base - inc, base + inc),
+            (None, base + inc),
+            (base - inc, None),
         ]
 
-        log = UasTelemetry(
-            timestamp=base,
-        )
+        log = UasTelemetry(timestamp=base, )
         for period in periods:
             self.assertTrue(UasTelemetry._in_period(log, period))
 
         false_periods = [
-            (base+inc, base+2*inc),
-            (base-2*inc, base-inc),
-            (base+inc, None),
-            (None, base-inc),
+            (base + inc, base + 2 * inc),
+            (base - 2 * inc, base - inc),
+            (base + inc, None),
+            (None, base - inc),
         ]
         for period in false_periods:
             self.assertFalse(UasTelemetry._in_period(log, period))
@@ -186,6 +180,5 @@ class TestUasTelemetryKML(TestCase):
             timestamp=timezone.now(),
             user=user,
             uas_position=apos,
-            uas_heading=100,
-        )
+            uas_heading=100, )
         log.save()

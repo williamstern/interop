@@ -16,8 +16,7 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
 
     def create_event(self, time, uas_in_air):
         """Create a TakeoffOrLandingEvent for test user."""
-        event = TakeoffOrLandingEvent(user=self.user1,
-                                      uas_in_air=uas_in_air)
+        event = TakeoffOrLandingEvent(user=self.user1, uas_in_air=uas_in_air)
         event.save()
         event.timestamp = time
         event.save()
@@ -50,7 +49,7 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
 
         self.evaluate_periods([
             (None, self.year2000),
-        ])
+        ])  # yapf: disable
 
     def test_flight_period_missing_landing(self):
         """Missing landing reported as None."""
@@ -58,7 +57,7 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
 
         self.evaluate_periods([
             (self.year2000, None),
-        ])
+        ])  # yapf: disable
 
     def test_flight_period_multiple_flights(self):
         """Multiple flight reported together."""
@@ -110,7 +109,7 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
         self.create_event(self.year2000 + self.ten_minutes, False)
 
         # Land again? Ignored
-        self.create_event(self.year2000 + 2*self.ten_minutes, False)
+        self.create_event(self.year2000 + 2 * self.ten_minutes, False)
 
         self.create_event(self.year2001, True)
         self.create_event(self.year2001 + self.ten_minutes, False)
@@ -126,13 +125,13 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
         # Take off again? Ignored
         self.create_event(self.year2000 + self.ten_minutes, True)
         # Land
-        self.create_event(self.year2000 + 2*self.ten_minutes, False)
+        self.create_event(self.year2000 + 2 * self.ten_minutes, False)
 
         self.create_event(self.year2001, True)
         self.create_event(self.year2001 + self.ten_minutes, False)
 
         self.evaluate_periods([
-            (self.year2000, self.year2000 + 2*self.ten_minutes),
+            (self.year2000, self.year2000 + 2 * self.ten_minutes),
             (self.year2001, self.year2001 + self.ten_minutes),
         ])
 
@@ -165,7 +164,7 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
     def test_user_in_air_time(self):
         """In-air base time check."""
         self.create_event(self.year2000, True)
-        self.create_event(self.year2000 + 2*self.ten_minutes, False)
+        self.create_event(self.year2000 + 2 * self.ten_minutes, False)
 
         time = self.year2000 + self.ten_minutes
 

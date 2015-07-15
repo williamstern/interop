@@ -9,14 +9,13 @@ from auvsi_suas.patches.simplekml_patch import Kml
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-
 # [satisfy_dist, waypoints, uas_logs, satisfied_list]
 TESTDATA_MISSIONCONFIG_EVALWAYPOINTS = (
     100.0,
     [(38, -76, 100), (39, -77, 200), (37, -75, 0)],
     [(38, -76, 150), (40, -78, 600), (37, -75, 50), (38, 100, 0)],
     [True, False, True]
-)
+)  # yapf: disable
 
 
 class TestMissionConfigModel(TestCase):
@@ -53,7 +52,9 @@ class TestMissionConfigModel(TestCase):
 
     def test_evaluateUasSatisfiedWaypoints(self):
         """Tests the evaluation of waypoints method."""
-        (satisfy_dist, waypoint_details, uas_log_details, exp_satisfied) = TESTDATA_MISSIONCONFIG_EVALWAYPOINTS
+        (satisfy_dist, waypoint_details, uas_log_details,
+         exp_satisfied) = TESTDATA_MISSIONCONFIG_EVALWAYPOINTS
+
         # Create mission config
         gpos = GpsPosition()
         gpos.latitude = 10
@@ -69,6 +70,7 @@ class TestMissionConfigModel(TestCase):
         config.ir_secondary_target_pos = gpos
         config.air_drop_pos = gpos
         config.save()
+
         # Create waypoints for config
         for wpt_id in xrange(len(waypoint_details)):
             (lat, lon, alt) = waypoint_details[wpt_id]
@@ -90,7 +92,7 @@ class TestMissionConfigModel(TestCase):
         # Create UAS telemetry logs
         uas_logs = list()
         user = User.objects.create_user(
-                'testuser', 'testemail@x.com', 'testpass')
+            'testuser', 'testemail@x.com', 'testpass')
         for (lat, lon, alt) in uas_log_details:
             pos = GpsPosition()
             pos.latitude = lat
@@ -157,17 +159,26 @@ class TestMissionConfigModelSampleMission(TestCase):
 
         self.assertAlmostEqual(0.6, teams[user0]['out_of_bounds_time'])
 
-        self.assertAlmostEqual(0.0, teams[user0]['interop_times']['server_info']['min'])
-        self.assertAlmostEqual(0.4, teams[user0]['interop_times']['server_info']['max'])
-        self.assertAlmostEqual(1./6, teams[user0]['interop_times']['server_info']['avg'])
+        self.assertAlmostEqual(
+            0.0, teams[user0]['interop_times']['server_info']['min'])
+        self.assertAlmostEqual(
+            0.4, teams[user0]['interop_times']['server_info']['max'])
+        self.assertAlmostEqual(
+            1. / 6, teams[user0]['interop_times']['server_info']['avg'])
 
-        self.assertAlmostEqual(0.0, teams[user0]['interop_times']['obst_info']['min'])
-        self.assertAlmostEqual(0.5, teams[user0]['interop_times']['obst_info']['max'])
-        self.assertAlmostEqual(1./5, teams[user0]['interop_times']['obst_info']['avg'])
+        self.assertAlmostEqual(
+            0.0, teams[user0]['interop_times']['obst_info']['min'])
+        self.assertAlmostEqual(
+            0.5, teams[user0]['interop_times']['obst_info']['max'])
+        self.assertAlmostEqual(
+            1. / 5, teams[user0]['interop_times']['obst_info']['avg'])
 
-        self.assertAlmostEqual(0.0, teams[user0]['interop_times']['uas_telem']['min'])
-        self.assertAlmostEqual(0.5, teams[user0]['interop_times']['uas_telem']['max'])
-        self.assertAlmostEqual(1./6, teams[user0]['interop_times']['uas_telem']['avg'])
+        self.assertAlmostEqual(
+            0.0, teams[user0]['interop_times']['uas_telem']['min'])
+        self.assertAlmostEqual(
+            0.5, teams[user0]['interop_times']['uas_telem']['max'])
+        self.assertAlmostEqual(
+            1. / 6, teams[user0]['interop_times']['uas_telem']['avg'])
 
         self.assertEqual(True, teams[user0]['stationary_obst_collision'][25])
         self.assertEqual(False, teams[user0]['stationary_obst_collision'][26])
@@ -181,17 +192,26 @@ class TestMissionConfigModelSampleMission(TestCase):
 
         self.assertAlmostEqual(1.0, teams[user1]['out_of_bounds_time'])
 
-        self.assertAlmostEqual(0.1, teams[user1]['interop_times']['server_info']['min'])
-        self.assertAlmostEqual(0.5, teams[user1]['interop_times']['server_info']['max'])
-        self.assertAlmostEqual(1./3, teams[user1]['interop_times']['server_info']['avg'])
+        self.assertAlmostEqual(
+            0.1, teams[user1]['interop_times']['server_info']['min'])
+        self.assertAlmostEqual(
+            0.5, teams[user1]['interop_times']['server_info']['max'])
+        self.assertAlmostEqual(
+            1. / 3, teams[user1]['interop_times']['server_info']['avg'])
 
-        self.assertAlmostEqual(0.1, teams[user1]['interop_times']['obst_info']['min'])
-        self.assertAlmostEqual(0.4, teams[user1]['interop_times']['obst_info']['max'])
-        self.assertAlmostEqual(1./4, teams[user1]['interop_times']['obst_info']['avg'])
+        self.assertAlmostEqual(
+            0.1, teams[user1]['interop_times']['obst_info']['min'])
+        self.assertAlmostEqual(
+            0.4, teams[user1]['interop_times']['obst_info']['max'])
+        self.assertAlmostEqual(
+            1. / 4, teams[user1]['interop_times']['obst_info']['avg'])
 
-        self.assertAlmostEqual(0.0, teams[user1]['interop_times']['uas_telem']['min'])
-        self.assertAlmostEqual(1.0, teams[user1]['interop_times']['uas_telem']['max'])
-        self.assertAlmostEqual(1./3, teams[user1]['interop_times']['uas_telem']['avg'])
+        self.assertAlmostEqual(
+            0.0, teams[user1]['interop_times']['uas_telem']['min'])
+        self.assertAlmostEqual(
+            1.0, teams[user1]['interop_times']['uas_telem']['max'])
+        self.assertAlmostEqual(
+            1. / 3, teams[user1]['interop_times']['uas_telem']['avg'])
 
         self.assertEqual(False, teams[user1]['stationary_obst_collision'][25])
         self.assertEqual(False, teams[user1]['stationary_obst_collision'][26])

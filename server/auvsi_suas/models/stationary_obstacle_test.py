@@ -7,7 +7,6 @@ from auvsi_suas.models import UasTelemetry
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-
 # (lat, lon, rad, height)
 TESTDATA_STATOBST_CONTAINSPOS_OBJ = (-76, 38, 100, 200)
 # (lat, lon, alt)
@@ -16,13 +15,13 @@ TESTDATA_STATOBST_CONTAINSPOS_INSIDE = [
     (-76, 38, 200),
     (-76.0002, 38, 100),
     (-76, 38.0003, 100)
-]
+]  # yapf: disable
 TESTDATA_STATOBST_CONTAINSPOS_OUTSIDE = [
     (-76, 38, -1),
     (-76, 38, 201),
     (-76.0003, 38, 100),
     (-76, 38.004, 100)
-]
+]  # yapf: disable
 
 TESTDATA_STATOBST_EVALCOLLISION = (
     # Cylinder position
@@ -38,7 +37,7 @@ TESTDATA_STATOBST_EVALCOLLISION = (
      (-76, 38.002, 50),
      (-76, 38, -1),
      (-76, 38, 101)]
-)
+)  # yapf: disable
 
 
 class TestStationaryObstacleModel(TestCase):
@@ -48,22 +47,22 @@ class TestStationaryObstacleModel(TestCase):
         """Tests the unicode method executes."""
         pos = GpsPosition(latitude=100, longitude=200)
         pos.save()
-        obst = StationaryObstacle(
-                gps_position=pos, cylinder_radius=10, cylinder_height=100)
+        obst = StationaryObstacle(gps_position=pos,
+                                  cylinder_radius=10,
+                                  cylinder_height=100)
         obst.save()
         self.assertTrue(obst.__unicode__())
 
     def test_containsPos(self):
         """Tests the inside obstacle method."""
         # Form the test obstacle
-        pos = GpsPosition(
-                latitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[0],
-                longitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[1])
+        pos = GpsPosition(latitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[0],
+                          longitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[1])
         pos.save()
         obst = StationaryObstacle(
-                gps_position=pos,
-                cylinder_radius=TESTDATA_STATOBST_CONTAINSPOS_OBJ[2],
-                cylinder_height=TESTDATA_STATOBST_CONTAINSPOS_OBJ[3])
+            gps_position=pos,
+            cylinder_radius=TESTDATA_STATOBST_CONTAINSPOS_OBJ[2],
+            cylinder_height=TESTDATA_STATOBST_CONTAINSPOS_OBJ[3])
         # Run test points against obstacle
         test_data = [
             (TESTDATA_STATOBST_CONTAINSPOS_INSIDE, True),
@@ -73,30 +72,34 @@ class TestStationaryObstacleModel(TestCase):
             for (lat, lon, alt) in cur_data:
                 pos = GpsPosition(latitude=lat, longitude=lon)
                 pos.save()
-                apos = AerialPosition(
-                        gps_position=pos, altitude_msl=alt)
+                apos = AerialPosition(gps_position=pos, altitude_msl=alt)
                 self.assertEqual(obst.containsPos(apos), cur_contains)
 
     def test_evaluateCollisionWithUas(self):
         """Tests the collision with UAS method."""
         # Create testing data
-        user = User.objects.create_user(
-                'testuser', 'testemail@x.com', 'testpass')
+        user = User.objects.create_user('testuser', 'testemail@x.com',
+                                        'testpass')
         user.save()
-        (cyl_details, inside_pos, outside_pos) = TESTDATA_STATOBST_EVALCOLLISION
+
+        (cyl_details, inside_pos,
+         outside_pos) = TESTDATA_STATOBST_EVALCOLLISION
         (cyl_lat, cyl_lon, cyl_height, cyl_rad) = cyl_details
+
         gpos = GpsPosition(latitude=cyl_lat, longitude=cyl_lon)
         gpos.save()
-        obst = StationaryObstacle(
-                gps_position=gpos, cylinder_radius=cyl_rad,
-                cylinder_height=cyl_height)
+
+        obst = StationaryObstacle(gps_position=gpos,
+                                  cylinder_radius=cyl_rad,
+                                  cylinder_height=cyl_height)
         obst.save()
+
         inside_logs = list()
         outside_logs = list()
         logs_to_create = [
-                (inside_pos, inside_logs),
-                (outside_pos, outside_logs)
+            (inside_pos, inside_logs), (outside_pos, outside_logs)
         ]
+
         for (positions, log_list) in logs_to_create:
             for (lat, lon, alt) in positions:
                 gpos = GpsPosition(latitude=lat, longitude=lon)
@@ -109,13 +112,9 @@ class TestStationaryObstacleModel(TestCase):
         # Assert collisions correctly evaluated
         collisions = [(inside_logs, True), (outside_logs, False)]
         for (log_list, inside) in collisions:
-            self.assertEqual(
-                    obst.evaluateCollisionWithUas(log_list),
-                    inside)
+            self.assertEqual(obst.evaluateCollisionWithUas(log_list), inside)
             for log in log_list:
-                self.assertEqual(
-                        obst.evaluateCollisionWithUas([log]),
-                        inside)
+                self.assertEqual(obst.evaluateCollisionWithUas([log]), inside)
 
     def test_toJSON(self):
         """Tests the JSON serialization method."""
@@ -126,9 +125,9 @@ class TestStationaryObstacleModel(TestCase):
 
         gpos = GpsPosition(latitude=TEST_LAT, longitude=TEST_LONG)
         gpos.save()
-        obstacle = StationaryObstacle(
-                gps_position=gpos, cylinder_radius=TEST_RADIUS,
-                cylinder_height=TEST_HEIGHT)
+        obstacle = StationaryObstacle(gps_position=gpos,
+                                      cylinder_radius=TEST_RADIUS,
+                                      cylinder_height=TEST_HEIGHT)
         json_data = obstacle.toJSON()
 
         self.assertTrue('latitude' in json_data)

@@ -10,7 +10,6 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
 
-
 TESTDATA_FLYZONE_CONTAINSPOS = [
     # Check can't be inside polygon defined by 1 point
     {
@@ -29,7 +28,7 @@ TESTDATA_FLYZONE_CONTAINSPOS = [
     # Check can't be inside polygon defined by 2 points
     {
         'min_alt': 0,
-        'max_alt':  100,
+        'max_alt': 100,
         'waypoints': [
             (0, 0),
             (100, 0),
@@ -122,7 +121,7 @@ TESTDATA_FLYZONE_CONTAINSPOS = [
 TESTDATA_FLYZONE_EVALBOUNDS = (
     [(0, 100, [(38, -76), (39, -76), (39, -77), (38, -77)]),
      (100, 700, [(38, -76), (39, -76), (39, -77), (38, -77)])
-    ],
+     ],
     [(0.0,
       [(38.5, -76.5, 50, 0), (38.5, -76.5, 50, 1.0)]),
      (1.0,
@@ -137,7 +136,7 @@ TESTDATA_FLYZONE_EVALBOUNDS = (
        (38.5, -76.5, 600, 4.0),
        (38.5, -78, 100, 5.0)])
      ]
-)
+)  # yapf: disable
 
 
 class TestFlyZone(TestCase):
@@ -228,7 +227,7 @@ class TestFlyZone(TestCase):
                 aerial_pos_list.append(apos)
                 expected_results.append(inside)
             self.assertEqual(
-                    zone.containsManyPos(aerial_pos_list), expected_results)
+                zone.containsManyPos(aerial_pos_list), expected_results)
 
     def test_evaluateUasOutOfBounds(self):
         """Tests the UAS out of bounds method."""
@@ -261,12 +260,17 @@ class TestFlyZone(TestCase):
         # For each user, validate time out of bounds
         user_id = 0
         epoch = timezone.now().replace(
-                year=1970, month=1, day=1, hour=0, minute=0, second=0,
-                microsecond=0)
+            year=1970,
+            month=1,
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0)
         for exp_out_of_bounds_time, uas_log_details in uas_details:
             # Create the logs
-            user = User.objects.create_user(
-                'testuser%d' % user_id, 'testemail@x.com', 'testpass')
+            user = User.objects.create_user('testuser%d' % user_id,
+                                            'testemail@x.com', 'testpass')
             user_id += 1
             uas_logs = list()
             for (lat, lon, alt, timestamp) in uas_log_details:
@@ -283,11 +287,10 @@ class TestFlyZone(TestCase):
                 log.uas_position = apos
                 log.uas_heading = 0
                 log.save()
-                log.timestamp = epoch + datetime.timedelta(
-                        seconds=timestamp)
+                log.timestamp = epoch + datetime.timedelta(seconds=timestamp)
                 log.save()
                 uas_logs.append(log)
             # Assert out of bounds time matches expected
             out_of_bounds_time = FlyZone.evaluateUasOutOfBounds(
-                    zones, uas_logs)
+                zones, uas_logs)
             self.assertAlmostEqual(out_of_bounds_time, exp_out_of_bounds_time)

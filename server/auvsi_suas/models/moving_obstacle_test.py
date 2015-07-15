@@ -14,7 +14,6 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
 
-
 TESTDATA_COMPETITION_DIST = [
     (-76.428709, 38.145306, -76.426375, 38.146146, 0.22446),
     (-76.428537, 38.145399, -76.427818, 38.144686, 0.10045),
@@ -29,13 +28,13 @@ TESTDATA_MOVOBST_CONTAINSPOS_INSIDE = [
     (-76, 38, 300),
     (-76.0002, 38, 200),
     (-76, 38.0003, 200)
-]
+]  # yapf: disable
 TESTDATA_MOVOBST_CONTAINSPOS_OUTSIDE = [
     (-76, 38, 99),
     (-76, 38, 301),
     (-76.0003, 38, 200),
     (-76, 38.004, 200)
-]
+]  # yapf: disable
 
 TESTDATA_MOVOBST_PATHS = [
     # Test 2 points
@@ -62,7 +61,7 @@ TESTDATA_MOVOBST_PATHS = [
      (38.147729, -76.419185, 200),
      (38.147573, -76.420832, 100),
      (38.148522, -76.419507, 750)]
-]
+]  # yapf: disable
 
 TESTDATA_MOVOBST_EVALCOLLISION = (
     # Obst radius and speed
@@ -90,8 +89,8 @@ TESTDATA_MOVOBST_EVALCOLLISION = (
       [(38, -76, 100),
        (38.1, -76.1, 350),
        (38.1, -76.1, 50)])
-    ]
-)
+     ]
+)  # yapf: disable
 
 
 class TestMovingObstacle(TestCase):
@@ -161,19 +160,19 @@ class TestMovingObstacle(TestCase):
         obst.sphere_radius = 100
         obst.save()
         for _ in range(3):
-          pos = GpsPosition()
-          pos.latitude = 10
-          pos.longitude = 100
-          pos.save()
-          apos = AerialPosition()
-          apos.altitude_msl = 1000
-          apos.gps_position = pos
-          apos.save()
-          wpt = Waypoint()
-          wpt.position = apos
-          wpt.order = 10
-          wpt.save()
-          obst.waypoints.add(wpt)
+            pos = GpsPosition()
+            pos.latitude = 10
+            pos.longitude = 100
+            pos.save()
+            apos = AerialPosition()
+            apos.altitude_msl = 1000
+            apos.gps_position = pos
+            apos.save()
+            wpt = Waypoint()
+            wpt.position = apos
+            wpt.order = 10
+            wpt.save()
+            obst.waypoints.add(wpt)
         self.assertTrue(obst.__unicode__())
 
     def test_getWaypointTravelTime_invalid_inputs(self):
@@ -184,21 +183,16 @@ class TestMovingObstacle(TestCase):
         self.assertIsNone(obstacle.getWaypointTravelTime(None, 1, 1))
         self.assertIsNone(obstacle.getWaypointTravelTime([], 1, 1))
         self.assertIsNone(obstacle.getWaypointTravelTime([None], 1, 1))
-        self.assertIsNone(obstacle.getWaypointTravelTime(
-            [None, None], None, 1))
-        self.assertIsNone(obstacle.getWaypointTravelTime(
-            [None, None], 1, None))
-        self.assertIsNone(obstacle.getWaypointTravelTime(
-            [None, None], -1, 0))
-        self.assertIsNone(obstacle.getWaypointTravelTime(
-            [None, None], 0, -1))
-        self.assertIsNone(obstacle.getWaypointTravelTime(
-            [None, None], 2, 0))
-        self.assertIsNone(obstacle.getWaypointTravelTime(
-            [None, None], 0, 2))
+        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], None,
+                                                         1))
+        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], 1,
+                                                         None))
+        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], -1, 0))
+        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], 0, -1))
+        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], 2, 0))
+        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], 0, 2))
         obstacle.speed_avg = 0
-        self.assertIsNone(obstacle.getWaypointTravelTime(
-            [None, None], 0, 1))
+        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], 0, 1))
 
     def eval_travel_time(self, time_actual, time_received):
         """Evaluates whether the travel times are close enough."""
@@ -237,8 +231,7 @@ class TestMovingObstacle(TestCase):
                 obstacle = MovingObstacle()
                 obstacle.speed_avg = speed
                 self.assertTrue(self.eval_travel_time(
-                    obstacle.getWaypointTravelTime(waypoints, 0, 1),
-                    time))
+                    obstacle.getWaypointTravelTime(waypoints, 0, 1), time))
 
     def test_getPosition_no_waypoints(self):
         """Tests position calc on no-"""
@@ -286,35 +279,40 @@ class TestMovingObstacle(TestCase):
             # Get waypoint positions as numpy array
             waypoints = cur_obst.waypoints.order_by('order')
             waypoint_travel_times = cur_obst.getInterWaypointTravelTimes(
-                    waypoints)
+                waypoints)
             waypoint_times = cur_obst.getWaypointTimes(waypoint_travel_times)
-            total_time = waypoint_times[len(waypoint_times)-1]
+            total_time = waypoint_times[len(waypoint_times) - 1]
             num_waypoints = len(waypoints)
-            wpt_latitudes = np.zeros(num_waypoints+1)
-            wpt_longitudes = np.zeros(num_waypoints+1)
-            wpt_altitudes = np.zeros(num_waypoints+1)
-            for waypoint_id in range(num_waypoints+1):
+            wpt_latitudes = np.zeros(num_waypoints + 1)
+            wpt_longitudes = np.zeros(num_waypoints + 1)
+            wpt_altitudes = np.zeros(num_waypoints + 1)
+            for waypoint_id in range(num_waypoints + 1):
                 cur_id = waypoint_id % num_waypoints
-                wpt_latitudes[waypoint_id] = (
-                    waypoints[cur_id].position.latitude)
-                wpt_longitudes[waypoint_id] = (
-                    waypoints[cur_id].position.longitude)
-                wpt_altitudes[waypoint_id] = (
-                    waypoints[cur_id].position.altitude_msl)
 
-            # Create time series to represent samples at 10 Hz for 1.5 trips
-            time_pos = np.arange(0, 1.5*total_time, 0.10)
+                # yapf: disable
+                wpt_latitudes[waypoint_id] = waypoints[cur_id].position.latitude
+                wpt_longitudes[waypoint_id] = waypoints[cur_id].position.longitude
+                wpt_altitudes[waypoint_id] = waypoints[cur_id].position.altitude_msl
+                # yapf: enable
+
+                # Create time series to represent samples at 10 Hz for 1.5 trips
+            time_pos = np.arange(0, 1.5 * total_time, 0.10)
             # Sample position for the time series
             latitudes = np.zeros(len(time_pos))
             longitudes = np.zeros(len(time_pos))
             altitudes = np.zeros(len(time_pos))
-            epoch = timezone.now().replace(
-                year=1970, month=1, day=1, hour=0, minute=0, second=0,
-                microsecond=0)
+            epoch = timezone.now().replace(year=1970,
+                                           month=1,
+                                           day=1,
+                                           hour=0,
+                                           minute=0,
+                                           second=0,
+                                           microsecond=0)
             for time_id in range(len(time_pos)):
                 cur_time_offset = time_pos[time_id]
-                cur_samp_time = (epoch +
-                        datetime.timedelta(seconds=cur_time_offset))
+                cur_samp_time = epoch + datetime.timedelta(
+                    seconds=cur_time_offset)
+
                 (lat, lon, alt) = cur_obst.getPosition(cur_samp_time)
                 latitudes[time_id] = lat
                 longitudes[time_id] = lon
@@ -323,18 +321,17 @@ class TestMovingObstacle(TestCase):
             # Create plot
             plt.figure()
             plt.subplot(311)
-            plt.plot(time_pos, latitudes, 'b',
-                     waypoint_times, wpt_latitudes, 'rx')
+            plt.plot(time_pos, latitudes, 'b', waypoint_times, wpt_latitudes,
+                     'rx')
             plt.subplot(312)
-            plt.plot(time_pos, longitudes, 'b',
-                     waypoint_times, wpt_longitudes, 'rx')
+            plt.plot(time_pos, longitudes, 'b', waypoint_times, wpt_longitudes,
+                     'rx')
             plt.subplot(313)
-            plt.plot(time_pos, altitudes, 'b',
-                     waypoint_times, wpt_altitudes, 'rx')
+            plt.plot(time_pos, altitudes, 'b', waypoint_times, wpt_altitudes,
+                     'rx')
             plt.savefig(
-                    ('data/testOutput/'
-                     'auvsi_suas-MovingObstacle-getPosition-%d.jpg' %
-                     obst_id))
+                ('data/testOutput/'
+                 'auvsi_suas-MovingObstacle-getPosition-%d.jpg' % obst_id))
 
     def test_containsPos(self):
         """Tests the inside obstacle method."""
@@ -355,19 +352,16 @@ class TestMovingObstacle(TestCase):
                 apos = AerialPosition()
                 apos.gps_position = gpos
                 apos.altitude_msl = alt
-                self.assertEqual(
-                        obst.containsPos(
-                            TESTDATA_MOVOBST_CONTAINSPOS_OBJ[0],
-                            TESTDATA_MOVOBST_CONTAINSPOS_OBJ[1],
-                            TESTDATA_MOVOBST_CONTAINSPOS_OBJ[3],
-                            apos),
-                        cur_contains)
+                self.assertEqual(obst.containsPos(
+                    TESTDATA_MOVOBST_CONTAINSPOS_OBJ[0],
+                    TESTDATA_MOVOBST_CONTAINSPOS_OBJ[1],
+                    TESTDATA_MOVOBST_CONTAINSPOS_OBJ[3], apos), cur_contains)
 
     def test_evaluateCollisionWithUas(self):
         """Tests the collision with UAS method."""
         # Get test data
-        user = User.objects.create_user(
-                'testuser', 'testemail@x.com', 'testpass')
+        user = User.objects.create_user('testuser', 'testemail@x.com',
+                                        'testpass')
         user.save()
         testdata = TESTDATA_MOVOBST_EVALCOLLISION
         (obst_rad, obst_speed, obst_pos, log_details) = testdata
@@ -393,9 +387,13 @@ class TestMovingObstacle(TestCase):
             obst.waypoints.add(wpt)
         obst.save()
         # Create sets of logs
-        epoch = timezone.now().replace(
-                year=1970, month=1, day=1, hour=0, minute=0, second=0,
-                microsecond=0)
+        epoch = timezone.now().replace(year=1970,
+                                       month=1,
+                                       day=1,
+                                       hour=0,
+                                       minute=0,
+                                       second=0,
+                                       microsecond=0)
         inside_logs = list()
         outside_logs = list()
         for (time_sec, inside_pos, outside_pos) in log_details:
@@ -423,13 +421,9 @@ class TestMovingObstacle(TestCase):
         # Assert the obstacle correctly computes collisions
         log_collisions = [(True, inside_logs), (False, outside_logs)]
         for (inside, logs) in log_collisions:
-            self.assertEqual(
-                    obst.evaluateCollisionWithUas(logs),
-                    inside)
+            self.assertEqual(obst.evaluateCollisionWithUas(logs), inside)
             for log in logs:
-                self.assertEqual(
-                        obst.evaluateCollisionWithUas([log]),
-                        inside)
+                self.assertEqual(obst.evaluateCollisionWithUas([log]), inside)
 
     def test_toJSON(self):
         """Tests the JSON serialization method."""
@@ -439,15 +433,19 @@ class TestMovingObstacle(TestCase):
             self.assertTrue('longitude' in json_data)
             self.assertTrue('altitude_msl' in json_data)
             self.assertTrue('sphere_radius' in json_data)
-            self.assertEqual(json_data['sphere_radius'], cur_obst.sphere_radius)
+            self.assertEqual(json_data['sphere_radius'],
+                             cur_obst.sphere_radius)
         obst = self.obst_single_wpt
         json_data = obst.toJSON()
+
+        # yapf: disable
         self.assertEqual(json_data['latitude'],
-                obst.waypoints.all()[0].position.gps_position.latitude)
+                         obst.waypoints.all()[0].position.gps_position.latitude)
         self.assertEqual(json_data['longitude'],
-                obst.waypoints.all()[0].position.gps_position.longitude)
+                         obst.waypoints.all()[0].position.gps_position.longitude)
         self.assertEqual(json_data['altitude_msl'],
-                obst.waypoints.all()[0].position.altitude_msl)
+                         obst.waypoints.all()[0].position.altitude_msl)
+        # yapf: enable
 
     def test_kml(self):
         """
@@ -466,8 +464,8 @@ class TestMovingObstacle(TestCase):
             (-76.0, 38.0, 60.0),
         ]
 
-        user = User.objects.create_user(
-            'testuser', 'testemail@x.com', 'testpass')
+        user = User.objects.create_user('testuser', 'testemail@x.com',
+                                        'testpass')
         user.save()
 
         # Create Coordinates
@@ -480,10 +478,10 @@ class TestMovingObstacle(TestCase):
             next_time += datetime.timedelta(seconds=1)
 
         # Calculate expected number of data tags
-        time_delta = end_time-start_time
-        ms_elapsed = time_delta.total_seconds()*1000
+        time_delta = end_time - start_time
+        ms_elapsed = time_delta.total_seconds() * 1000
         kml_output_resolution = 100  # milliseconds
-        samples_expected = int(ms_elapsed/kml_output_resolution)
+        samples_expected = int(ms_elapsed / kml_output_resolution)
 
         for cur_obst in self.obstacles:
             kml = Kml()
@@ -491,8 +489,7 @@ class TestMovingObstacle(TestCase):
             cur_obst.kml(
                 path=UasTelemetry.getAccessLogForUser(user),
                 kml=kml_mission,
-                kml_doc=kml.document,
-            )
+                kml_doc=kml.document, )
             result_kml = kml.kml()
             self.assertEqual(samples_expected, result_kml.count('<gx:value>'))
             self.assertIn(array_field_tag, result_kml)
@@ -502,11 +499,7 @@ class TestMovingObstacle(TestCase):
         pos.save()
         apos = AerialPosition(gps_position=pos, altitude_msl=alt)
         apos.save()
-        log = UasTelemetry(
-            user=user,
-            uas_position=apos,
-            uas_heading=100,
-        )
+        log = UasTelemetry(user=user, uas_position=apos, uas_heading=100, )
         log.save()
         log.timestamp = log_time
         log.save()
