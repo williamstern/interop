@@ -17,7 +17,6 @@ from auvsi_suas.models import Waypoint
 class LargeDataModelAdmin(admin.ModelAdmin):
     show_full_result_count = False
 
-
 # Register models for admin page
 admin.site.register(AerialPosition, LargeDataModelAdmin)
 admin.site.register(FlyZone)
