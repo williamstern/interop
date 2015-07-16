@@ -30,6 +30,8 @@ function ensure_puppet_module() {
     else
         log "Puppet module \"${module}\" already installed"
     fi
+
+    sudo puppet module upgrade ${module}
 }
 
 # Create soft link from repo to standardize scripts
@@ -47,6 +49,7 @@ log "Installing Puppet and modules..."
 sudo apt-get -y install puppet
 # Install puppet modules
 sudo mkdir -p /etc/puppet/modules/
+ensure_puppet_module puppetlabs-concat
 ensure_puppet_module puppetlabs-postgresql
 ensure_puppet_module puppetlabs-apache
 # We explicitly use the apt module, so it is listed here.  However, the
