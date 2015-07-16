@@ -26,7 +26,7 @@ def generateKml(request):
     FlyZone.kml_all(kml_flyzone)
 
     parameters = '?sessionid={}'.format(request.COOKIES['sessionid'])
-    uri = request.build_absolute_uri('/auvsi_admin/update.kml')+parameters
+    uri = request.build_absolute_uri('/auvsi_admin/update.kml') + parameters
 
     netlink = kml.newnetworklink(name="Live Data")
     netlink.link.href = uri
@@ -44,7 +44,7 @@ def setRequestSessionFromCookie(func):
     def wrapper(request):
         # Check if a sessionid has been provided
         if 'sessionid' not in request.GET:
-                return HttpResponseForbidden()
+            return HttpResponseForbidden()
 
         try:
             # pack the params back into the cookie
@@ -58,6 +58,7 @@ def setRequestSessionFromCookie(func):
             return HttpResponseForbidden()
         else:
             return func(request)
+
     return wrapper
 
 

@@ -16,12 +16,12 @@ class TestEvaluateTeams(TestCase):
         """Sets up the tests."""
         # Create nonadmin user
         self.nonadmin_user = User.objects.create_user(
-                'testuser', 'testemail@x.com', 'testpass')
+            'testuser', 'testemail@x.com', 'testpass')
         self.nonadmin_user.save()
         self.nonadmin_client = Client()
         # Create admin user
         self.admin_user = User.objects.create_superuser(
-                'testuser2', 'testemail@x.com', 'testpass')
+            'testuser2', 'testemail@x.com', 'testpass')
         self.admin_user.save()
         self.admin_client = Client()
         # Create URLs for testing
@@ -43,7 +43,9 @@ class TestEvaluateTeams(TestCase):
         client = self.client
         loginUrl = self.loginUrl
         evalUrl = self.evalUrl
-        client.post(loginUrl, {'username': 'testuser2', 'password': 'testpass'})
+        client.post(loginUrl,
+                    {'username': 'testuser2',
+                     'password': 'testpass'})
         response = client.get(evalUrl)
         self.assertEqual(response.status_code, 200)
         csv_data = response.content

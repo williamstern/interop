@@ -18,12 +18,12 @@ class TestGenerateKMLCommon(TestCase):
         """Sets up the tests."""
         # Create nonadmin user
         self.nonadmin_user = User.objects.create_user(
-                'testuser', 'testemail@x.com', 'testpass')
+            'testuser', 'testemail@x.com', 'testpass')
         self.nonadmin_user.save()
 
         # Create admin user
         self.admin_user = User.objects.create_superuser(
-                'testuser2', 'testemail@x.com', 'testpass')
+            'testuser2', 'testemail@x.com', 'testpass')
         self.admin_user.save()
 
         # Create URLs for testing
@@ -48,6 +48,7 @@ class TestGenerateKMLCommon(TestCase):
 
 class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
     """Tests the generateKML view."""
+
     def __init__(self, *args, **kwargs):
         super(TestGenerateKMLNoFixture, self).__init__(*args, **kwargs)
         self.folders = ['Teams', 'Missions']
@@ -61,13 +62,17 @@ class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
 
     def test_generateKML_nonadmin(self):
         """Tests the generate KML method."""
-        self.client.post(self.loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        self.client.post(self.loginUrl,
+                         {'username': 'testuser',
+                          'password': 'testpass'})
         response = self.client.get(self.evalUrl)
         self.assertGreaterEqual(response.status_code, 300)
 
     def test_generateKML(self):
         """Tests the generate KML method."""
-        self.client.post(self.loginUrl, {'username': 'testuser2', 'password': 'testpass'})
+        self.client.post(self.loginUrl,
+                         {'username': 'testuser2',
+                          'password': 'testpass'})
         response = self.client.get(self.evalUrl)
         self.assertEqual(response.status_code, 200)
 
@@ -100,13 +105,17 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
 
     def test_generateKML_nonadmin(self):
         """Tests the generate KML method."""
-        self.client.post(self.loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        self.client.post(self.loginUrl,
+                         {'username': 'testuser',
+                          'password': 'testpass'})
         response = self.client.get(self.evalUrl)
         self.assertGreaterEqual(response.status_code, 300)
 
     def test_generateKML(self):
         """Tests the generate KML method."""
-        self.client.post(self.loginUrl, {'username': 'testuser2', 'password': 'testpass'})
+        self.client.post(self.loginUrl,
+                         {'username': 'testuser2',
+                          'password': 'testpass'})
         response = self.client.get(self.evalUrl)
         self.assertEqual(response.status_code, 200)
 
