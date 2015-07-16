@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 
+
 # Require admin access
 @user_passes_test(lambda u: u.is_superuser)
 def getTelemetry(request):
@@ -77,5 +78,4 @@ def getTelemetry(request):
 
     response = [l.toJSON() for l in logs]
 
-    return HttpResponse(json.dumps(response),
-                        content_type="application/json")
+    return HttpResponse(json.dumps(response), content_type="application/json")

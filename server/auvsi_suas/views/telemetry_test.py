@@ -11,24 +11,23 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils import timezone
 
-
 login_url = reverse('auvsi_suas:login')
 telemetry_url = reverse('auvsi_suas:telemetry')
 
 
 class TestTelemetryViewLoggedOut(TestCase):
-
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
         response = self.client.get(telemetry_url)
         self.assertGreaterEqual(response.status_code, 300)
+
 
 class TestTelemetryView(TestCase):
     """Test telemetry view."""
 
     def setUp(self):
         self.superuser = User.objects.create_superuser(
-                'superuser', 'email@example.com', 'superpass')
+            'superuser', 'email@example.com', 'superpass')
         self.superuser.save()
 
         self.user1 = User.objects.create_user('user1', 'email@example.com',
@@ -48,8 +47,12 @@ class TestTelemetryView(TestCase):
         })
         self.assertEqual(200, response.status_code)
 
-    def create_logs(self, user, num=10, start=None, delta=None,
-                    altitude=100, heading=90):
+    def create_logs(self, user,
+                    num=10,
+                    start=None,
+                    delta=None,
+                    altitude=100,
+                    heading=90):
         if start is None:
             start = timezone.now()
         if delta is None:
@@ -58,16 +61,18 @@ class TestTelemetryView(TestCase):
         logs = []
 
         for i in xrange(num):
-            gps = GpsPosition(latitude=38+0.001*i, longitude=-78+0.001*i)
+            gps = GpsPosition(latitude=38 + 0.001 * i,
+                              longitude=-78 + 0.001 * i)
             gps.save()
 
             pos = AerialPosition(gps_position=gps, altitude_msl=altitude)
             pos.save()
 
-            log = UasTelemetry(user=user, uas_position=pos,
+            log = UasTelemetry(user=user,
+                               uas_position=pos,
                                uas_heading=heading)
             log.save()
-            log.timestamp = start + i*delta
+            log.timestamp = start + i * delta
             log.save()
             logs.append(log)
 
@@ -76,7 +81,7 @@ class TestTelemetryView(TestCase):
     def test_normal_user(self):
         """Normal users not allowed access."""
         user = User.objects.create_user(
-                'testuser', 'email@example.com', 'testpass')
+            'testuser', 'email@example.com', 'testpass')
         user.save()
 
         # Login
@@ -103,8 +108,11 @@ class TestTelemetryView(TestCase):
 
     def test_basic(self):
         """Correct telemetry returned, with correct data."""
-        telem = self.create_logs(self.user1, num=10, start=self.year2000,
-                                 altitude=100, heading=90)
+        telem = self.create_logs(self.user1,
+                                 num=10,
+                                 start=self.year2000,
+                                 altitude=100,
+                                 heading=90)
 
         response = self.client.get(telemetry_url)
         self.assertEqual(200, response.status_code)

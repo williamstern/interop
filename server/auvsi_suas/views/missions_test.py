@@ -6,24 +6,23 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils import timezone
 
-
 login_url = reverse('auvsi_suas:login')
 missions_url = reverse('auvsi_suas:missions')
 
 
 class TestMissionsViewLoggedOut(TestCase):
-
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
         response = self.client.get(missions_url)
         self.assertGreaterEqual(response.status_code, 300)
+
 
 class TestMissionsViewCommon(TestCase):
     """Common test setup"""
 
     def setUp(self):
         self.superuser = User.objects.create_superuser(
-                'superuser', 'email@example.com', 'superpass')
+            'superuser', 'email@example.com', 'superpass')
         self.superuser.save()
 
         # Login
@@ -33,13 +32,14 @@ class TestMissionsViewCommon(TestCase):
         })
         self.assertEqual(200, response.status_code)
 
+
 class TestMissionsViewBasic(TestMissionsViewCommon):
     """Tests the missions view with minimal data."""
 
     def test_normal_user(self):
         """Normal users not allowed access."""
-        user = User.objects.create_user(
-                'testuser', 'email@example.com', 'testpass')
+        user = User.objects.create_user('testuser', 'email@example.com',
+                                        'testpass')
         user.save()
 
         # Login
@@ -63,6 +63,7 @@ class TestMissionsViewBasic(TestMissionsViewCommon):
         self.assertEqual(200, response.status_code)
 
         self.assertEqual([], json.loads(response.content))
+
 
 class TestMissionsViewSampleMission(TestMissionsViewCommon):
     """Tests the missions view with sample mission."""
@@ -125,14 +126,16 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertEqual(150, data[0]['search_grid_points'][0]['id'])
         self.assertEqual(10.0, data[0]['search_grid_points'][0]['latitude'])
         self.assertEqual(100.0, data[0]['search_grid_points'][0]['longitude'])
-        self.assertEqual(1000.0, data[0]['search_grid_points'][0]['altitude_msl'])
+        self.assertEqual(1000.0,
+                         data[0]['search_grid_points'][0]['altitude_msl'])
         self.assertEqual(10, data[0]['search_grid_points'][0]['order'])
 
         self.assertIn('emergent_last_known_pos', data[0])
         self.assertIn('latitude', data[0]['emergent_last_known_pos'])
         self.assertIn('longitude', data[0]['emergent_last_known_pos'])
         self.assertEqual(10.0, data[0]['emergent_last_known_pos']['latitude'])
-        self.assertEqual(100.0, data[0]['emergent_last_known_pos']['longitude'])
+        self.assertEqual(100.0,
+                         data[0]['emergent_last_known_pos']['longitude'])
 
         self.assertIn('off_axis_target_pos', data[0])
         self.assertIn('latitude', data[0]['off_axis_target_pos'])
@@ -156,7 +159,8 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertIn('latitude', data[0]['ir_secondary_target_pos'])
         self.assertIn('longitude', data[0]['ir_secondary_target_pos'])
         self.assertEqual(10.0, data[0]['ir_secondary_target_pos']['latitude'])
-        self.assertEqual(100.0, data[0]['ir_secondary_target_pos']['longitude'])
+        self.assertEqual(100.0,
+                         data[0]['ir_secondary_target_pos']['longitude'])
 
         self.assertIn('air_drop_pos', data[0])
         self.assertIn('latitude', data[0]['air_drop_pos'])
