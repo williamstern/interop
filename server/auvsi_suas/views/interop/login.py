@@ -30,7 +30,7 @@ def loginUser(request):
         # Failed to get POST parameters, invalid request
         logger.warning('Did not specify username & password in login request.')
         return HttpResponseBadRequest('Login must be POST request with '
-                '"username" and "password" parameters.')
+                                      '"username" and "password" parameters.')
     else:
         # Use credentials to authenticate
         user = authenticate(username=username, password=password)

@@ -16,17 +16,16 @@ from django.test import TestCase
 from django.test.client import Client
 from django.utils import timezone
 
-
 login_url = reverse('auvsi_suas:login')
 obstacle_url = reverse('auvsi_suas:obstacles')
 
 
 class TestObstaclesViewLoggedOut(TestCase):
-
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
         response = self.client.get(obstacle_url)
         self.assertEqual(400, response.status_code)
+
 
 class TestObstaclesViewCommon(TestCase):
     """Obstacles view common test setup."""
@@ -83,7 +82,7 @@ class TestObstaclesViewCommon(TestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(
-                'testuser', 'email@example.com', 'testpass')
+            'testuser', 'email@example.com', 'testpass')
         self.user.save()
 
         # Add a couple of stationary obstacles
@@ -120,6 +119,7 @@ class TestObstaclesViewCommon(TestCase):
             'password': 'testpass'
         })
         self.assertEqual(200, response.status_code)
+
 
 class TestObstaclesView(TestObstaclesViewCommon):
     """Tests the getObstacles view."""
@@ -201,7 +201,7 @@ class TestObstaclesView(TestObstaclesViewCommon):
 
         print 'Obstacle Info Rate (%f)' % op_rate
         self.assertGreaterEqual(
-                op_rate, settings.TEST_LOADTEST_INTEROP_MIN_RATE)
+            op_rate, settings.TEST_LOADTEST_INTEROP_MIN_RATE)
 
 
 class TestObstaclesViewSuperuser(TestObstaclesViewCommon):
@@ -211,7 +211,7 @@ class TestObstaclesViewSuperuser(TestObstaclesViewCommon):
         super(TestObstaclesViewSuperuser, self).setUp()
 
         self.user = User.objects.create_superuser(
-                'superuser', 'email@example.com', 'superpass')
+            'superuser', 'email@example.com', 'superpass')
         self.user.save()
 
         # Login
@@ -244,7 +244,7 @@ class TestObstaclesViewSuperuser(TestObstaclesViewCommon):
         """Bad time format rejected."""
         response = self.client.get(obstacle_url, {
             'time': 'June 1, 2000',
-        })
+        })  # yapf: disable
         self.assertEqual(400, response.status_code)
 
     def test_same_time(self):
@@ -253,14 +253,14 @@ class TestObstaclesViewSuperuser(TestObstaclesViewCommon):
 
         response = self.client.get(obstacle_url, {
             'time': time,
-        })
+        })  # yapf: disable
         self.assertEqual(200, response.status_code)
 
         data1 = json.loads(response.content)
 
         response = self.client.get(obstacle_url, {
             'time': time,
-        })
+        })  # yapf: disable
         self.assertEqual(200, response.status_code)
 
         data2 = json.loads(response.content)
