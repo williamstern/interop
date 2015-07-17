@@ -44,7 +44,6 @@ class auvsi_suas::apache_setup {
       wsgi_script_aliases => {
         '/' => '/interop/server/server/wsgi.py'
       },
-      error_log_file => 'auvsi_suas_server.debug.log',
       aliases => [
         { alias => '/static',
           path => '/interop/server/auvsi_suas/static',
