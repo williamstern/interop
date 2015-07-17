@@ -33,7 +33,7 @@ class TakeoffOrLandingEvent(AccessLog):
         """
         time_periods = list()
         # Get the access logs for the user
-        access_logs = TakeoffOrLandingEvent.getAccessLogForUser(user)
+        access_logs = TakeoffOrLandingEvent.by_user(user)
 
         # If UAS in air at start, assume forgot to log takeoff, assign infinity
         if len(access_logs) > 0 and not access_logs[0].uas_in_air:

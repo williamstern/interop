@@ -8,6 +8,7 @@ from obstacle_access_log import ObstacleAccessLog
 from server_info import ServerInfo
 from server_info_access_log import ServerInfoAccessLog
 from stationary_obstacle import StationaryObstacle
+from time_period import TimePeriod
 from takeoff_or_landing_event import TakeoffOrLandingEvent
 from uas_telemetry import UasTelemetry
 from waypoint import Waypoint

@@ -27,7 +27,7 @@ class UasTelemetry(AccessLog):
                         self.uas_position.__unicode__()))
 
     @classmethod
-    def getAccessLogForUser(cls, user):
+    def by_user(cls, user):
         """Gets the time-sorted list of access log for the given user.
 
         Note: This prefetches the related AerialPosition and GpsPosition
@@ -39,10 +39,10 @@ class UasTelemetry(AccessLog):
         Returns:
             A list of access log objects for the given user sorted by timestamp.
         """
-        # Almost every user of UasTelemetry.getAccessLogForUser wants to use
+        # Almost every user of UasTelemetry.by_user wants to use
         # the related AerialPosition and GpsPosition.  To avoid excessive
         # database queries, we select these values from the database up front.
-        return super(UasTelemetry, cls).getAccessLogForUser(user) \
+        return super(UasTelemetry, cls).by_user(user) \
                 .select_related('uas_position__gps_position')
 
     def toJSON(self):
@@ -135,7 +135,7 @@ class UasTelemetry(AccessLog):
     def live_kml(cls, kml, timespan):
         users = User.objects.all()
         for user in users:
-            period_logs = UasTelemetry.getAccessLogForUser(user)\
+            period_logs = UasTelemetry.by_user(user)\
                 .filter(timestamp__gt=timezone.now()-timespan)
 
             if len(period_logs) < 1:

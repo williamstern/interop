@@ -21,7 +21,7 @@ class AccessLog(models.Model):
                         self.user.__unicode__(), str(self.timestamp)))
 
     @classmethod
-    def getAccessLogForUser(cls, user):
+    def by_user(cls, user):
         """Gets the time-sorted list of access log for the given user.
 
         Args:
@@ -32,7 +32,7 @@ class AccessLog(models.Model):
         return cls.objects.filter(user_id=user.pk).order_by('timestamp')
 
     @classmethod
-    def userActive(cls, user, base=None, delta=None):
+    def user_active(cls, user, base=None, delta=None):
         """Determines if a user is 'active'.
 
         A user is 'active' if they have reported telemetry since delta
@@ -52,55 +52,38 @@ class AccessLog(models.Model):
 
         since = base - delta
 
-        return 0 != cls.getAccessLogForUser(user) \
+        return 0 != cls.by_user(user) \
             .filter(timestamp__gt=since) \
             .filter(timestamp__lt=base).count()
 
     @classmethod
-    def getAccessLogForUserByTimePeriod(cls, access_logs, time_periods):
+    def by_time_period(cls, user, time_periods):
         """Gets a list of time-sorted lists of access logs for each time period.
 
+        The method returns the full sets of AccessLogs for each TimePeriod. If
+        overlapping TimePeriods are provided, the results may contain duplicate
+        logs.
+
         Args:
-            access_logs: A list of access logs for a given user sorted by
-                timestamp.
-            time_periods: A sorted list of (time_start, time_end) tuples which
-                indicate the start and end time of a time period. A value of
-                None indicates infinity. The list must be sorted by time_start
-                and be non-intersecting. Both start and end are inclusive.
+            user: The user to get the access log for.
+            time_periods: A list of TimePeriod objects.
         Returns:
-            A list where each entry is a list of access logs sorted by timestamp
-            such that each log is for the given user and in the time period
-            given in the time_periods list.
+            A list of AccessLog lists, where each AccessLog list contains all
+            AccessLogs corresponding to the related TimePeriod.
         """
-        cur_access_id = 0
-        cur_time_id = 0
-        time_period_access_logs = list()
-        while (cur_access_id < len(access_logs) and
-               cur_time_id < len(time_periods)):
-            # Add new period access list if not yet added for current period
-            if cur_time_id == len(time_period_access_logs):
-                time_period_access_logs.append(list())
-            # Get the current time period and access log
-            cur_time = time_periods[cur_time_id]
-            (time_start, time_end) = cur_time
-            cur_access = access_logs[cur_access_id]
-            # Check if access log before the period, indicates not in a period
-            if time_start is not None and cur_access.timestamp < time_start:
-                cur_access_id += 1
-                continue
-            # Check if access log after the period
-            if time_end is not None and cur_access.timestamp > time_end:
-                cur_time_id += 1
-                continue
-            # Access log not before and not after, so its during. Add the log
-            time_period_access_logs[cur_time_id].append(cur_access)
-            cur_access_id += 1
+        ret = []
 
-        # Add empty lists for all remaining time periods
-        while len(time_period_access_logs) < len(time_periods):
-            time_period_access_logs.append(list())
+        for period in time_periods:
+            logs = cls.by_user(user)
 
-        return time_period_access_logs
+            if period.start:
+                logs = logs.filter(timestamp__gte=period.start)
+            if period.end:
+                logs = logs.filter(timestamp__lte=period.end)
+
+            ret.append(logs)
+
+        return ret
 
     @classmethod
     def getAccessLogRates(cls, time_periods, time_period_access_logs):

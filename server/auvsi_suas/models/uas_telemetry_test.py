@@ -87,7 +87,7 @@ class TestUasTelemetryKML(TestCase):
         kml = Kml()
         UasTelemetry.kml(
             user=nonadmin_user,
-            logs=UasTelemetry.getAccessLogForUser(nonadmin_user),
+            logs=UasTelemetry.by_user(nonadmin_user),
             kml=kml,
             kml_doc=kml, )
         for coord in coordinates:
@@ -103,7 +103,7 @@ class TestUasTelemetryKML(TestCase):
         kml = Kml()
         UasTelemetry.kml(
             user=nonadmin_user,
-            logs=UasTelemetry.getAccessLogForUser(nonadmin_user),
+            logs=UasTelemetry.by_user(nonadmin_user),
             kml=kml,
             kml_doc=kml, )
 
@@ -136,7 +136,7 @@ class TestUasTelemetryKML(TestCase):
         kml = Kml()
         UasTelemetry.kml(
             user=nonadmin_user,
-            logs=UasTelemetry.getAccessLogForUser(nonadmin_user),
+            logs=UasTelemetry.by_user(nonadmin_user),
             kml=kml,
             kml_doc=kml, )
 

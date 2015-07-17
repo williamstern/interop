@@ -1,7 +1,7 @@
 """Tests for the access_log module."""
 
 import datetime
-from auvsi_suas.models import AccessLog
+from auvsi_suas.models import AccessLog, TimePeriod
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
@@ -53,10 +53,10 @@ class TestAccessLogBasic(TestAccessLogCommon):
         log.__unicode__()
 
     def test_no_data(self):
-        logs = AccessLog.getAccessLogForUser(self.user1)
+        logs = AccessLog.by_user(self.user1)
         self.assertEqual(len(logs), 0)
 
-        logs = AccessLog.getAccessLogForUserByTimePeriod([], [])
+        logs = AccessLog.by_time_period(self.user1, [])
         self.assertEqual(len(logs), 0)
 
         log_rates = AccessLog.getAccessLogRates([], [])
@@ -65,7 +65,7 @@ class TestAccessLogBasic(TestAccessLogCommon):
     def test_basic_access(self):
         logs = self.create_logs(self.user1)
 
-        results = AccessLog.getAccessLogForUser(self.user1)
+        results = AccessLog.by_user(self.user1)
         self.assertSequenceEqual(logs, results)
 
     def test_multi_user(self):
@@ -75,7 +75,7 @@ class TestAccessLogBasic(TestAccessLogCommon):
             logs += self.create_logs(self.user1, num=1)
             self.create_logs(self.user2, num=1)
 
-        results = AccessLog.getAccessLogForUser(self.user1)
+        results = AccessLog.by_user(self.user1)
         self.assertSequenceEqual(logs, results)
 
     def test_user_active(self):
@@ -86,94 +86,92 @@ class TestAccessLogBasic(TestAccessLogCommon):
         latest_time = self.year2000 + 10 * delta
 
         # Active for user with recent logs
-        self.assertTrue(AccessLog.userActive(self.user1, base=latest_time))
+        self.assertTrue(AccessLog.user_active(self.user1, base=latest_time))
 
         # Not active for user with no logs
-        self.assertFalse(AccessLog.userActive(self.user2, base=latest_time))
+        self.assertFalse(AccessLog.user_active(self.user2, base=latest_time))
 
         # Not active for user with no recent logs
-        self.assertFalse(AccessLog.userActive(self.user1, base=self.year2001))
+        self.assertFalse(AccessLog.user_active(self.user1, base=self.year2001))
 
         # Active now
         self.create_logs(self.user1, num=10, delta=delta)
-        self.assertTrue(AccessLog.userActive(self.user1))
+        self.assertTrue(AccessLog.user_active(self.user1))
 
 
-class TestAccessLogGetByPeriod(TestAccessLogCommon):
-    """Test AccessLog.getAccessLogForUserByTimePeriod()"""
+class TestAccessLogByTimePeriod(TestAccessLogCommon):
+    """Test AccessLog.by_time_period()"""
 
     def setUp(self):
-        super(TestAccessLogGetByPeriod, self).setUp()
+        super(TestAccessLogByTimePeriod, self).setUp()
 
         self.year2000_logs = self.create_logs(self.user1, start=self.year2000)
         self.year2003_logs = self.create_logs(self.user1, start=self.year2003)
         self.logs = self.year2000_logs + self.year2003_logs
 
+    def to_lists(self, results):
+        """Convert a list of QuerySet results to a list of lists."""
+        return [list(r) for r in results]
+
     def test_single_period(self):
         """Single set of logs accessible."""
-        results = AccessLog.getAccessLogForUserByTimePeriod(
-            self.logs, [
-                (self.year2000, self.year2001),
-            ])
+        results = AccessLog.by_time_period(self.user1, [
+            TimePeriod(self.year2000, self.year2001)
+        ])
 
-        self.assertSequenceEqual([self.year2000_logs], results)
+        self.assertSequenceEqual([self.year2000_logs], self.to_lists(results))
 
     def test_full_range(self):
         """All logs from (-inf, inf)."""
-        results = AccessLog.getAccessLogForUserByTimePeriod(
-            self.logs, [
-                (None, None),
-            ])
+        results = AccessLog.by_time_period(self.user1, [
+            TimePeriod(None, None)
+        ])
 
-        self.assertSequenceEqual([self.logs], results)
+        self.assertSequenceEqual([self.logs], self.to_lists(results))
 
     def test_both_periods(self):
         """Both sets of logs, accesses individually."""
-        results = AccessLog.getAccessLogForUserByTimePeriod(
-            self.logs, [
-                (self.year2000, self.year2001),
-                (self.year2003, self.year2004),
-            ])
+        results = AccessLog.by_time_period(self.user1, [
+            TimePeriod(self.year2000, self.year2001),
+            TimePeriod(self.year2003, self.year2004),
+        ])
 
         self.assertSequenceEqual([self.year2000_logs, self.year2003_logs],
-                                 results)
+                                 self.to_lists(results))
 
     def test_non_intersecting_period(self):
         """No logs matched."""
-        results = AccessLog.getAccessLogForUserByTimePeriod(
-            self.logs, [
-                (self.year2001, self.year2002),
-            ])
+        results = AccessLog.by_time_period(self.user1, [
+            TimePeriod(self.year2001, self.year2002),
+        ])
 
-        self.assertSequenceEqual([[]], results)
+        self.assertSequenceEqual([[]], self.to_lists(results))
 
     def test_one_intersecting_period(self):
         """Only one period matches logs."""
-        results = AccessLog.getAccessLogForUserByTimePeriod(
-            self.logs, [
-                (self.year2001, self.year2002),
-                (self.year2003, self.year2004),
-            ])
+        results = AccessLog.by_time_period(self.user1, [
+            TimePeriod(self.year2001, self.year2002),
+            TimePeriod(self.year2003, self.year2004),
+        ])
 
-        self.assertSequenceEqual([[], self.year2003_logs], results)
+        self.assertSequenceEqual([[], self.year2003_logs],
+                                 self.to_lists(results))
 
     def test_open_start(self):
         """Logs (-inf, 2001)"""
-        results = AccessLog.getAccessLogForUserByTimePeriod(
-            self.logs, [
-                (None, self.year2001),
-            ])
+        results = AccessLog.by_time_period(self.user1, [
+            TimePeriod(None, self.year2001),
+        ])
 
-        self.assertSequenceEqual([self.year2000_logs], results)
+        self.assertSequenceEqual([self.year2000_logs], self.to_lists(results))
 
     def test_open_end(self):
         """Logs (2003, inf)"""
-        results = AccessLog.getAccessLogForUserByTimePeriod(
-            self.logs, [
-                (self.year2003, None),
-            ])
+        results = AccessLog.by_time_period(self.user1, [
+            TimePeriod(self.year2003, None),
+        ])
 
-        self.assertSequenceEqual([self.year2003_logs], results)
+        self.assertSequenceEqual([self.year2003_logs], self.to_lists(results))
 
 
 class TestAccessLogRates(TestAccessLogCommon):

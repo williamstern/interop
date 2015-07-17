@@ -487,7 +487,7 @@ class TestMovingObstacle(TestCase):
             kml = Kml()
             kml_mission = kml.newfolder(name='SubFolder')
             cur_obst.kml(
-                path=UasTelemetry.getAccessLogForUser(user),
+                path=UasTelemetry.by_user(user),
                 kml=kml_mission,
                 kml_doc=kml.document, )
             result_kml = kml.kml()
