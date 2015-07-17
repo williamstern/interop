@@ -35,12 +35,10 @@ class TestWaypointModel(TestCase):
             gps2 = GpsPosition(latitude=lat2, longitude=lon2)
             gps2.save()
 
-            pos1 = AerialPosition(
-                    gps_position=gps1, altitude_msl=alt1)
+            pos1 = AerialPosition(gps_position=gps1, altitude_msl=alt1)
             pos1.save()
 
-            pos2 = AerialPosition(
-                    gps_position=gps2, altitude_msl=alt2)
+            pos2 = AerialPosition(gps_position=gps2, altitude_msl=alt2)
             pos2.save()
 
             wpt1 = Waypoint(position=pos1)
@@ -51,8 +49,8 @@ class TestWaypointModel(TestCase):
     def test_distance(self):
         """Tests the distance calculation executes correctly."""
         self.evaluate_inputs([
-          # (lon1,       lat1,      alt1, lon2,       lat2,      alt2, dist_actual)
+            # (lon1,     lat1,      alt1, lon2,       lat2,      alt2, dist_actual)
             (-76.428709, 38.145306, 0,    -76.426375, 38.146146, 0,    736.4),
             (-76.428537, 38.145399, 0,    -76.427818, 38.144686, 100,  344.4),
             (-76.434261, 38.142471, 100,  -76.418876, 38.147838, 800,  4873.7),
-        ])
+        ])  # yapf: disable

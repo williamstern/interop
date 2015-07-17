@@ -24,7 +24,5 @@ class GpsPosition(models.Model):
         Returns:
           Distance in feet.
         """
-        return distance.distanceTo(
-                self.latitude, self.longitude, 0,
-                other.latitude, other.longitude, 0)
-
+        return distance.distanceTo(self.latitude, self.longitude, 0,
+                                   other.latitude, other.longitude, 0)

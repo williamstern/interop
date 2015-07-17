@@ -15,8 +15,8 @@ class TestPostUasPosition(TestCase):
 
     def setUp(self):
         """Sets up the client, server info URL, and user."""
-        self.user = User.objects.create_user(
-                'testuser', 'testemail@x.com', 'testpass')
+        self.user = User.objects.create_user('testuser', 'testemail@x.com',
+                                             'testpass')
         self.user.save()
         self.client = Client()
         self.loginUrl = reverse('auvsi_suas:login')
@@ -39,35 +39,36 @@ class TestPostUasPosition(TestCase):
         client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
         response = client.post(uasUrl)
         self.assertEqual(response.status_code, 400)
-        response = client.post(uasUrl,
-                {'longitude': 0,
-                 'altitude_msl': 0,
-                 'uas_heading': 0})
+        response = client.post(
+            uasUrl, {'longitude': 0,
+                     'altitude_msl': 0,
+                     'uas_heading': 0})
         self.assertEqual(response.status_code, 400)
-        response = client.post(uasUrl,
-                {'latitude': 0,
-                 'altitude_msl': 0,
-                 'uas_heading': 0})
+        response = client.post(
+            uasUrl, {'latitude': 0,
+                     'altitude_msl': 0,
+                     'uas_heading': 0})
         self.assertEqual(response.status_code, 400)
-        response = client.post(uasUrl,
-                {'latitude': 0,
-                 'longitude': 0,
-                 'uas_heading': 0})
+        response = client.post(
+            uasUrl, {'latitude': 0,
+                     'longitude': 0,
+                     'uas_heading': 0})
         self.assertEqual(response.status_code, 400)
-        response = client.post(uasUrl,
-                {'latitude': 0,
-                 'longitude': 0,
-                 'altitude_msl': 0})
+        response = client.post(
+            uasUrl, {'latitude': 0,
+                     'longitude': 0,
+                     'altitude_msl': 0})
         self.assertEqual(response.status_code, 400)
 
     def eval_request_values(self, lat, lon, alt, heading):
         client = self.client
         uasUrl = self.uasUrl
-        response = client.post(uasUrl,
-                {'latitude': lat,
-                 'longitude': lon,
-                 'altitude_msl': alt,
-                 'uas_heading': heading})
+        response = client.post(uasUrl, {
+            'latitude': lat,
+            'longitude': lon,
+            'altitude_msl': alt,
+            'uas_heading': heading
+        })
         return response.status_code
 
     def test_invalid_request_values(self):
@@ -82,10 +83,11 @@ class TestPostUasPosition(TestCase):
             (0, -190, 0, 0),
             (0, 190, 0, 0),
             (0, 0, 0, -10),
-            (0, 0, 0, 370)]
+            (0, 0, 0, 370)
+        ]  # yapf: disable
         for (lat, lon, alt, heading) in TEST_DATA:
             self.assertEqual(400,
-                self.eval_request_values(lat, lon, alt, heading))
+                             self.eval_request_values(lat, lon, alt, heading))
 
     def test_upload_and_store(self):
         """Tests correct upload and storage of data."""
@@ -98,11 +100,12 @@ class TestPostUasPosition(TestCase):
         lon = 20
         alt = 30
         heading = 40
-        response = client.post(uasUrl,
-                {'latitude': lat,
-                 'longitude': lon,
-                 'altitude_msl': alt,
-                 'uas_heading': heading})
+        response = client.post(uasUrl, {
+            'latitude': lat,
+            'longitude': lon,
+            'altitude_msl': alt,
+            'uas_heading': heading
+        })
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(UasTelemetry.objects.all()), 1)
         obj = UasTelemetry.objects.all()[0]
@@ -129,15 +132,17 @@ class TestPostUasPosition(TestCase):
         total_ops = 0
         start_t = time.clock()
         while time.clock() - start_t < settings.TEST_LOADTEST_TIME:
-            client.post(uasUrl,
-                    {'latitude': lat,
-                     'longiutde': lon,
-                     'altitude_msl': alt,
-                     'uas_heading': heading})
+            client.post(uasUrl, {
+                'latitude': lat,
+                'longiutde': lon,
+                'altitude_msl': alt,
+                'uas_heading': heading
+            })
             total_ops += 1
         end_t = time.clock()
         total_t = end_t - start_t
         op_rate = total_ops / total_t
 
         print 'UAS Post Rate (%f)' % op_rate
-        self.assertGreaterEqual(op_rate, settings.TEST_LOADTEST_INTEROP_MIN_RATE)
+        self.assertGreaterEqual(op_rate,
+                                settings.TEST_LOADTEST_INTEROP_MIN_RATE)

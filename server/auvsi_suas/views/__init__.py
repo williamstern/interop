@@ -2,6 +2,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def boolean_param(value):
     """Convert string parameter to boolean
 

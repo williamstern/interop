@@ -13,12 +13,12 @@ class TestGenerateLiveKMLCommon(TestCase):
         """Sets up the tests."""
         # Create nonadmin user
         self.nonadmin_user = User.objects.create_user(
-                'testuser', 'testemail@x.com', 'testpass')
+            'testuser', 'testemail@x.com', 'testpass')
         self.nonadmin_user.save()
 
         # Create admin user
         self.admin_user = User.objects.create_superuser(
-                'testuser2', 'testemail@x.com', 'testpass')
+            'testuser2', 'testemail@x.com', 'testpass')
         self.admin_user.save()
 
         # Create URLs for testing
@@ -36,13 +36,17 @@ class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
 
     def test_generate_live_kml(self):
         """Tests the generate KML method."""
-        self.client.post(self.loginUrl, {'username': 'testuser2', 'password': 'testpass'})
+        self.client.post(self.loginUrl,
+                         {'username': 'testuser2',
+                          'password': 'testpass'})
         response = self.client.get(self.evalUrl)
         self.assertEqual(response.status_code, 200)
 
     def test_generate_live_kml_nonadmin(self):
         """Tests the generate KML method."""
-        self.client.post(self.loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        self.client.post(self.loginUrl,
+                         {'username': 'testuser',
+                          'password': 'testpass'})
         response = self.client.get(self.evalUrl)
         self.assertGreaterEqual(response.status_code, 300)
 
@@ -59,14 +63,20 @@ class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
 
     def test_generate_live_kml_update_nonadmin(self):
         """Tests the generate KML method."""
-        response = self.client.post(self.loginUrl, {'username': 'testuser', 'password': 'testpass'})
-        response = self.client.get(self.updateUrl, {'sessionid': self.get_session_id(response)})
+        response = self.client.post(
+            self.loginUrl, {'username': 'testuser',
+                            'password': 'testpass'})
+        response = self.client.get(
+            self.updateUrl, {'sessionid': self.get_session_id(response)})
         self.assertGreaterEqual(response.status_code, 300)
 
     def test_generate_live_kml_update(self):
         """Tests the generate KML method."""
-        response = self.client.post(self.loginUrl, {'username': 'testuser2', 'password': 'testpass'})
-        response = self.client.get(self.updateUrl, {'sessionid': self.get_session_id(response)})
+        response = self.client.post(
+            self.loginUrl, {'username': 'testuser2',
+                            'password': 'testpass'})
+        response = self.client.get(
+            self.updateUrl, {'sessionid': self.get_session_id(response)})
         self.assertEqual(response.status_code, 200)
 
     @staticmethod
@@ -83,6 +93,8 @@ class TestGenerateLiveKMLWithFixture(TestGenerateLiveKMLCommon):
 
     def test_generate_live_kml(self):
         """Tests the generate KML method."""
-        self.client.post(self.loginUrl, {'username': 'testuser2', 'password': 'testpass'})
+        self.client.post(self.loginUrl,
+                         {'username': 'testuser2',
+                          'password': 'testpass'})
         response = self.client.get(self.evalUrl)
         self.assertEqual(response.status_code, 200)

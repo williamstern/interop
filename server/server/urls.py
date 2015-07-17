@@ -3,7 +3,10 @@ from django.contrib import admin
 
 admin.autodiscover()
 
-urlpatterns = patterns('',
+# yapf: disable
+urlpatterns = patterns(
+    '',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^', include('auvsi_suas.views.urls', namespace="auvsi_suas"))
 )
+# yapf: enable

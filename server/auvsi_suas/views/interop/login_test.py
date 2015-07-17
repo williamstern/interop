@@ -11,8 +11,8 @@ class TestLoginUserView(TestCase):
 
     def setUp(self):
         """Sets up the test by creating a test user."""
-        self.user = User.objects.create_user(
-                'testuser', 'testemail@x.com', 'testpass')
+        self.user = User.objects.create_user('testuser', 'testemail@x.com',
+                                             'testpass')
         self.user.save()
         self.client = Client()
         self.loginUrl = reverse('auvsi_suas:login')
@@ -36,7 +36,6 @@ class TestLoginUserView(TestCase):
         response = client.post(loginUrl, {'password': 'test'})
         self.assertEqual(response.status_code, 400)
 
-
     def test_invalid_credentials(self):
         """Tests invalid credentials for login."""
         client = self.client
@@ -49,5 +48,6 @@ class TestLoginUserView(TestCase):
         client = self.client
         loginUrl = self.loginUrl
         response = client.post(
-                loginUrl, {'username': 'testuser', 'password': 'testpass'})
+            loginUrl, {'username': 'testuser',
+                       'password': 'testpass'})
         self.assertEqual(response.status_code, 200)

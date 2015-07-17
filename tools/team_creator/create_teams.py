@@ -24,24 +24,20 @@ import socket
 import struct
 from django.contrib.auth import get_user_model
 
-
 CompetitionData = collections.namedtuple(
-        'CompetitionData',
-        ['interop_ip', 'interop_hostname', 'interop_port',
-         'team_dhcp_range_min', 'team_dhcp_range_max',
-         'team_static_range_min', 'team_static_range_max'])
-
+    'CompetitionData', ['interop_ip', 'interop_hostname', 'interop_port',
+                        'team_dhcp_range_min', 'team_dhcp_range_max',
+                        'team_static_range_min', 'team_static_range_max'])
 
 TeamData = collections.namedtuple(
-        'TeamData',
-        ['name', 'username', 'password', 'static_ip'])
+    'TeamData', ['name', 'username', 'password', 'static_ip'])
 
 
 def createTeamsData(teams_filepath, competition_data):
     """Creates user accounts and prints Latex for a PDF."""
     teams = getTeamInfo(
-            teams_filepath, competition_data.team_static_range_min,
-            competition_data.team_static_range_max)
+        teams_filepath, competition_data.team_static_range_min,
+        competition_data.team_static_range_max)
     createTeamAccounts(teams)
     printLatexHeader()
     printCompetitionDataLatex(competition_data)
@@ -76,7 +72,8 @@ def createTeamAccounts(teams):
     """Creates team accounts."""
     for team in teams:
         get_user_model().objects.create_user(
-                username=team.username, password=team.password)
+            username=team.username,
+            password=team.password)
 
 
 def printLatexHeader():
@@ -87,16 +84,17 @@ def printLatexHeader():
 
 def printCompetitionDataLatex(data):
     """Prints the competition data."""
-    print ('\\competition{%s}{%s}{%d}{%s}{%s}' %
-           (data.interop_ip, data.interop_hostname, data.interop_port,
-            data.team_dhcp_range_min, data.team_dhcp_range_max))
+    print('\\competition{%s}{%s}{%d}{%s}{%s}' %
+          (data.interop_ip, data.interop_hostname, data.interop_port,
+           data.team_dhcp_range_min, data.team_dhcp_range_max))
 
 
 def printTeamDatasLatex(teams):
     """Prints the team data."""
     for team in teams:
-        print ('\\team{%s}{%s}{%s}{%s}' % (
-            team.name, team.username, team.password, team.static_ip))
+        print('\\team{%s}{%s}{%s}{%s}' % (
+            team.name, team.username, team.password, team.static_ip
+        ))
 
 
 def printLatexFooter():
@@ -108,32 +106,41 @@ def main():
     """Configure the create team binary."""
     # Get parameters from command line.
     parser = argparse.ArgumentParser(
-            description='Creates team accounts and generates Latex.')
+        description='Creates team accounts and generates Latex.')
     parser.add_argument(
-            'teams_filepath', metavar='T', type=str,
-            help='Filepath to csv file with col 0 of name, col 1 of username.')
-    parser.add_argument(
-            'interop_ip', metavar='I', type=str,
-            help='Interop server IP address.')
-    parser.add_argument(
-            'interop_hostname', metavar='H', type=str,
-            help='Interop server hostname.')
-    parser.add_argument(
-            'interop_port', metavar='P', type=int,
-            help='Interop server port.')
-    parser.add_argument(
-            'team_dhcp_range_min', metavar='DL', type=str,
-            help='Team DHCP range lower bound.')
-    parser.add_argument(
-            'team_dhcp_range_max', metavar='DU', type=str,
-            help='Team DHCP range upper bound.')
-    parser.add_argument(
-            'team_static_range_min', metavar='SL', type=str,
-            help='Team static IP range lower bound.')
-    parser.add_argument(
-            'team_static_range_max', metavar='SU',
-            help='Team static IP range upper bound.')
+        'teams_filepath',
+        metavar='T',
+        type=str,
+        help='Filepath to csv file with col 0 of name, col 1 of username.')
+    parser.add_argument('interop_ip',
+                        metavar='I',
+                        type=str,
+                        help='Interop server IP address.')
+    parser.add_argument('interop_hostname',
+                        metavar='H',
+                        type=str,
+                        help='Interop server hostname.')
+    parser.add_argument('interop_port',
+                        metavar='P',
+                        type=int,
+                        help='Interop server port.')
+    parser.add_argument('team_dhcp_range_min',
+                        metavar='DL',
+                        type=str,
+                        help='Team DHCP range lower bound.')
+    parser.add_argument('team_dhcp_range_max',
+                        metavar='DU',
+                        type=str,
+                        help='Team DHCP range upper bound.')
+    parser.add_argument('team_static_range_min',
+                        metavar='SL',
+                        type=str,
+                        help='Team static IP range lower bound.')
+    parser.add_argument('team_static_range_max',
+                        metavar='SU',
+                        help='Team static IP range upper bound.')
     args = parser.parse_args()
+
     teams_filepath = args.teams_filepath
     interop_ip = args.interop_ip
     interop_hostname = args.interop_hostname
@@ -157,9 +164,8 @@ def main():
 
     # Create teams and print Latex data.
     competition_data = CompetitionData(
-            interop_ip, interop_hostname, interop_port,
-            team_dhcp_range_min, team_dhcp_range_max,
-            team_static_range_min, team_static_range_max)  
+        interop_ip, interop_hostname, interop_port, team_dhcp_range_min,
+        team_dhcp_range_max, team_static_range_min, team_static_range_max)
     createTeamsData(teams_filepath, competition_data)
 
 

@@ -14,7 +14,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 
-urlpatterns = patterns('',
+# yapf: disable
+urlpatterns = patterns(
+    '',
     # Team interoperability
     url(r'^api/login$', login.loginUser, name='login'),
     url(r'^api/interop/server_info$', server_info.getServerInfo,
@@ -22,13 +24,11 @@ urlpatterns = patterns('',
     url(r'^api/interop/obstacles$', obstacles.getObstacles, name='obstacles'),
     url(r'^api/interop/uas_telemetry$', uas_telemetry.postUasPosition,
         name='uas_telemetry'),
-
     # Admin API
     url(r'^api/missions$', missions.getMissions, name='missions'),
     url(r'^api/teams$', teams.getTeams, name='teams'),
     url(r'^api/teams/(?P<pk>\d+)$', teams.getTeamsId, name='teams_id'),
     url(r'^api/telemetry$', telemetry.getTelemetry, name='telemetry'),
-
     # Admin access views
     url(r'^$', index.getIndex, name='index'),
     url(r'^auvsi_admin/evaluate_teams.csv$', evaluate_teams.getTeamEvaluationCsv,
@@ -49,3 +49,4 @@ urlpatterns = patterns('',
         name='update_kml',
     ),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+# yapf: enable

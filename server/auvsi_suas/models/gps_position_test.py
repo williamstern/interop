@@ -33,21 +33,21 @@ class TestGpsPositionModel(TestCase):
     def test_distance_zero(self):
         """Tests distance calc for same position."""
         self.evaluate_inputs([
-          # (lon1, lat1, lon2, lat2, dist_actual)
-            (0,    0,    0,    0,    0),
-            (1,    1,    1,    1,    0),
-            (-1,   -1,   -1,   -1,   0),
-            (1,    -1,   1,    -1,   0),
-            (-1,   1,    -1,   1,    0),
-            (76,   42,   76,   42,   0),
-            (-76,  42,   -76,  42,   0),
-        ])
+            # (lon1, lat1, lon2, lat2, dist_actual)
+            (0,      0,    0,    0,    0),
+            (1,      1,    1,    1,    0),
+            (-1,     -1,   -1,   -1,   0),
+            (1,      -1,   1,    -1,   0),
+            (-1,     1,    -1,   1,    0),
+            (76,     42,   76,   42,   0),
+            (-76,    42,   -76,  42,   0),
+        ])  # yapf: disable
 
     def test_distance_competition_amounts(self):
         """Tests distance calc for competition amounts."""
         self.evaluate_inputs([
-          # (lon1,       lat1,      lon2,       lat2,      dist_actual)
+            # (lon1,     lat1,      lon2,       lat2,      dist_actual)
             (-76.428709, 38.145306, -76.426375, 38.146146, 736.4),
             (-76.428537, 38.145399, -76.427818, 38.144686, 329.6),
             (-76.434261, 38.142471, -76.418876, 38.147838, 4820.0),
-        ])
+        ])  # yapf: disable

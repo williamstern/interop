@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/1.6/ref/settings/
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
@@ -28,7 +27,6 @@ TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
 
 ALLOWED_HOSTS = ['*']
 
-
 # Application definition
 
 INSTALLED_APPS = (
@@ -41,21 +39,19 @@ INSTALLED_APPS = (
     'auvsi_suas',
     'auvsi_suas.views.interop',
     'auvsi_suas.views.auvsi_admin',
-)
+)  # yapf: disable
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-#    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-)
+)  # yapf: disable
 
 ROOT_URLCONF = 'server.urls'
 
 WSGI_APPLICATION = 'server.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
@@ -94,7 +90,8 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(asctime)s %(levelname)s %(module)s %(process)d %(thread)d %(message)s'
+            'format':
+            '%(asctime)s %(levelname)s %(module)s %(process)d %(thread)d %(message)s'
         },
         'simple': {
             'format': '%(asctime)s %(levelname)s %(module)s %(message)s'
@@ -134,7 +131,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
@@ -143,12 +139,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'auvsi_suas/static')
 
 # Login URL
 
-LOGIN_URL='/admin/login/?next=/'
+LOGIN_URL = '/admin/login/?next=/'
 
 # Migrations
 MIGRATION_MODULES = {
     'auvsi_suas.models': 'auvsi_suas.models.migrations',
-}
+}  # yapf: disable
 
 # Custom test runner.
 TEST_RUNNER = 'auvsi_suas.test_runner.AuvsiSuasTestRunner'

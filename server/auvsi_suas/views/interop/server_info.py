@@ -45,5 +45,4 @@ def getServerInfo(request):
             'server_info': info.toJSON(),
             'server_time': str(datetime.datetime.now())
         }
-        return HttpResponse(json.dumps(data),
-                            content_type="application/json")
+        return HttpResponse(json.dumps(data), content_type="application/json")

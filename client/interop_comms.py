@@ -12,7 +12,6 @@ import threading
 import urllib
 import Queue
 
-
 METHOD_GET = 'GET'
 METHOD_POST = 'POST'
 
@@ -42,7 +41,7 @@ class InteropRequest(object):
     def requestQueued(self):
         """Marks the request as queued."""
         self.queue_start_time = datetime.datetime.now()
-    
+
     def requestDequeued(self):
         """Marks the request as dequeued."""
         self.queue_end_time = datetime.datetime.now()
@@ -50,7 +49,7 @@ class InteropRequest(object):
     def requestStarted(self):
         """Marks the request as started."""
         self.request_start_time = datetime.datetime.now()
-    
+
     def requestFinished(self):
         """Marks the request as finished."""
         self.request_end_time = datetime.datetime.now()
@@ -64,15 +63,14 @@ class InteropRequest(object):
             status: The status code of the response.
             data: The data of the response.
         """
-        queue_time = (self.queue_end_time -
-                      self.queue_start_time).total_seconds()
-        request_time = (self.request_end_time -
-                        self.request_start_time).total_seconds()
+        queue_time = (self.queue_end_time - self.queue_start_time
+                      ).total_seconds()
+        request_time = (self.request_end_time - self.request_start_time
+                        ).total_seconds()
         logging.info(
-                'Url: %s. Method: %s. Params: %s. Status: %s. Data: %s. '
-                'Queue Time: %s. Request Time: %s.',
-                self.url, self.method, str(self.params), status, data,
-                queue_time, request_time)
+            'Url: %s. Method: %s. Params: %s. Status: %s. Data: %s. '
+            'Queue Time: %s. Request Time: %s.', self.url, self.method,
+            str(self.params), status, data, queue_time, request_time)
 
 
 class LoginRequest(InteropRequest):
@@ -87,18 +85,16 @@ class LoginRequest(InteropRequest):
         """
         url = '/api/login'
         method = METHOD_POST
-        params = {
-                'username': username,
-                'password': password,
-        }
-        super(LoginRequest, self).__init__(
-                url, method, params)
+        params = {'username': username, 'password': password, }
+
+        super(LoginRequest, self).__init__(url, method, params)
 
     def handleResponse(self, client, response, status, data):
         """Overrides base method."""
         super(LoginRequest, self).handleResponse(
-                client, response, status, data)
+            client, response, status, data)
         client.cookies = response.getheader('Set-Cookie')
+
 
 InteropRequest.register(LoginRequest)
 
@@ -111,8 +107,8 @@ class ServerInfoRequest(InteropRequest):
         url = '/api/interop/server_info'
         method = METHOD_GET
         params = {}
-        super(ServerInfoRequest, self).__init__(
-                url, method, params)
+        super(ServerInfoRequest, self).__init__(url, method, params)
+
 
 InteropRequest.register(ServerInfoRequest)
 
@@ -125,8 +121,8 @@ class ObstaclesRequest(InteropRequest):
         url = '/api/interop/obstacles'
         method = METHOD_GET
         params = {}
-        super(ObstaclesRequest, self).__init__(
-                url, method, params)
+        super(ObstaclesRequest, self).__init__(url, method, params)
+
 
 InteropRequest.register(ObstaclesRequest)
 
@@ -146,13 +142,13 @@ class UasTelemetryRequest(InteropRequest):
         url = '/api/interop/uas_telemetry'
         method = METHOD_POST
         params = {
-                'latitude': latitude,
-                'longitude': longitude,
-                'altitude_msl': altitude_msl,
-                'uas_heading': uas_heading,
+            'latitude': latitude,
+            'longitude': longitude,
+            'altitude_msl': altitude_msl,
+            'uas_heading': uas_heading,
         }
-        super(UasTelemetryRequest, self).__init__(
-                url, method, params)
+        super(UasTelemetryRequest, self).__init__(url, method, params)
+
 
 InteropRequest.register(UasTelemetryRequest)
 
@@ -197,13 +193,12 @@ class InteroperabilityClient(threading.Thread):
             if cur_request.method == METHOD_GET:
                 url = (cur_request.url + '?' +
                        urllib.urlencode(cur_request.params))
-                self.conn.request(
-                        cur_request.method, url, headers=headers)
+                self.conn.request(cur_request.method, url, headers=headers)
             else:
                 headers['Content-type'] = 'application/x-www-form-urlencoded'
                 self.conn.request(
-                        cur_request.method, cur_request.url,
-                        urllib.urlencode(cur_request.params), headers)
+                    cur_request.method, cur_request.url,
+                    urllib.urlencode(cur_request.params), headers)
             cur_request.requestStarted()
             # Get response
             response = self.conn.getresponse()
@@ -211,5 +206,4 @@ class InteroperabilityClient(threading.Thread):
             status = response.status
             data = response.read()
             cur_request.requestFinished()
-            cur_request.handleResponse(
-                    self, response, status, data)
+            cur_request.handleResponse(self, response, status, data)

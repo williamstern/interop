@@ -8,14 +8,16 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 
+
 def userJson(user):
     """Generate JSON-style dict for user."""
     return {
         'name': user.username,
         'id': user.pk,
-        'in_air':  TakeoffOrLandingEvent.userInAir(user),
-        'active':  UasTelemetry.userActive(user),
+        'in_air': TakeoffOrLandingEvent.userInAir(user),
+        'active': UasTelemetry.userActive(user),
     }
+
 
 # Require admin access
 @user_passes_test(lambda u: u.is_superuser)
@@ -35,8 +37,8 @@ def getTeams(request):
         if not user.is_superuser:
             teams.append(userJson(user))
 
-    return HttpResponse(json.dumps(teams),
-                        content_type="application/json")
+    return HttpResponse(json.dumps(teams), content_type="application/json")
+
 
 # Require admin access
 @user_passes_test(lambda u: u.is_superuser)

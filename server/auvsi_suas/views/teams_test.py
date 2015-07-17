@@ -11,25 +11,24 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils import timezone
 
-
 login_url = reverse('auvsi_suas:login')
 teams_url = reverse('auvsi_suas:teams')
 teams_id_url = functools.partial(reverse, 'auvsi_suas:teams_id')
 
 
 class TestTeamsViewLoggedOut(TestCase):
-
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
         response = self.client.get(teams_url)
         self.assertGreaterEqual(response.status_code, 300)
+
 
 class TestTeamsView(TestCase):
     """Tests the teams view."""
 
     def setUp(self):
         self.superuser = User.objects.create_superuser(
-                'superuser', 'email@example.com', 'superpass')
+            'superuser', 'email@example.com', 'superpass')
         self.superuser.save()
 
         # Login
@@ -41,12 +40,12 @@ class TestTeamsView(TestCase):
 
     def create_data(self):
         """Create a basic sample dataset."""
-        self.user1 = User.objects.create_user(
-                'user1', 'email@example.com', 'testpass')
+        self.user1 = User.objects.create_user('user1', 'email@example.com',
+                                              'testpass')
         self.user1.save()
 
-        self.user2 = User.objects.create_user(
-                'user2', 'email@example.com', 'testpass')
+        self.user2 = User.objects.create_user('user2', 'email@example.com',
+                                              'testpass')
         self.user2.save()
 
         # user1 is flying
@@ -68,16 +67,15 @@ class TestTeamsView(TestCase):
         pos = AerialPosition(gps_position=gps, altitude_msl=0)
         pos.save()
 
-        telem = UasTelemetry(user=self.user2, uas_position=pos,
-                             uas_heading=90)
+        telem = UasTelemetry(user=self.user2, uas_position=pos, uas_heading=90)
         telem.save()
         telem.timestamp = self.timestamp
         telem.save()
 
     def test_normal_user(self):
         """Normal users not allowed access."""
-        user = User.objects.create_user(
-                'testuser', 'email@example.com', 'testpass')
+        user = User.objects.create_user('testuser', 'email@example.com',
+                                        'testpass')
         user.save()
 
         # Login
@@ -136,23 +134,24 @@ class TestTeamsView(TestCase):
         self.assertEqual(False, data[1]['in_air'])
         self.assertEqual(True, data[1]['active'])
 
-class TestTeamsIdViewLoggedOut(TestCase):
 
+class TestTeamsIdViewLoggedOut(TestCase):
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
         response = self.client.get(teams_id_url(args=[1]))
         self.assertGreaterEqual(response.status_code, 300)
 
+
 class TestTeamsIdView(TestCase):
     """Tests the teams-by-id view."""
 
     def setUp(self):
-        self.user1 = User.objects.create_user(
-                'user1', 'email@example.com', 'testpass')
+        self.user1 = User.objects.create_user('user1', 'email@example.com',
+                                              'testpass')
         self.user1.save()
 
         self.superuser = User.objects.create_superuser(
-                'superuser', 'email@example.com', 'superpass')
+            'superuser', 'email@example.com', 'superpass')
         self.superuser.save()
 
         # Login

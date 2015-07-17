@@ -16,11 +16,9 @@ class StationaryObstacle(models.Model):
     def __unicode__(self):
         """Descriptive text for use in displays."""
         return unicode("StationaryObstacle (pk:%s, radius:%s, height:%s, "
-                       "gps:%s)" %
-                       (str(self.pk), str(self.cylinder_radius),
-                        str(self.cylinder_height),
-                        self.gps_position.__unicode__()))
-
+                       "gps:%s)" % (str(self.pk), str(self.cylinder_radius),
+                                    str(self.cylinder_height),
+                                    self.gps_position.__unicode__()))
 
     def containsPos(self, aerial_pos):
         """Whether the pos is contained within the obstacle.
@@ -64,8 +62,9 @@ class StationaryObstacle(models.Model):
         else:
             latitude = self.gps_position.latitude
             longitude = self.gps_position.longitude
+
         data = {
-            'latitude':  latitude,
+            'latitude': latitude,
             'longitude': longitude,
             'cylinder_radius': self.cylinder_radius,
             'cylinder_height': self.cylinder_height

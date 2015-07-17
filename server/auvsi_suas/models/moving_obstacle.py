@@ -28,9 +28,9 @@ class MovingObstacle(models.Model):
                           for wpt in self.waypoints.all()]
         waypoints_str = ", ".join(waypoints_strs)
         return unicode("MovingObstacle (pk:%s, speed:%s, radius:%s, "
-                       "waypoints:[%s])" %
-                       (str(self.pk), str(self.speed_avg),
-                        str(self.sphere_radius), waypoints_str))
+                       "waypoints:[%s])" % (str(self.pk), str(self.speed_avg),
+                                            str(self.sphere_radius),
+                                            waypoints_str))
 
     def getWaypointTravelTime(self, waypoints, id_tm1, id_t):
         """Gets the travel time to the current waypoint from a previous.
@@ -44,14 +44,15 @@ class MovingObstacle(models.Model):
           error.
         """
         # Validate inputs
-        if (not waypoints
-            or len(waypoints) < 2
-            or id_tm1 is None
-            or id_t is None
-            or id_tm1 < 0 or id_tm1 >= len(waypoints)
-            or id_t < 0 or id_t >= len(waypoints)
-            or self.speed_avg <= 0):
-            # Invalid inputs
+        if not waypoints:
+            return None
+        if len(waypoints) < 2:
+            return None
+        if id_tm1 is None or id_tm1 < 0 or id_tm1 >= len(waypoints):
+            return None
+        if id_t is None or id_t < 0 or id_t >= len(waypoints):
+            return None
+        if self.speed_avg <= 0:
             return None
 
         waypoint_t = waypoints[id_t]
@@ -73,7 +74,7 @@ class MovingObstacle(models.Model):
         """
         num_waypoints = len(waypoints)
         travel_times = np.zeros(num_waypoints + 1)
-        for waypoint_id in range(1, num_waypoints+1):
+        for waypoint_id in range(1, num_waypoints + 1):
             # Current intra waypoint travel time
             id_tm1 = (waypoint_id - 1) % num_waypoints
             id_t = waypoint_id % num_waypoints
@@ -82,7 +83,6 @@ class MovingObstacle(models.Model):
             travel_times[waypoint_id] = cur_travel_time
 
         return travel_times
-
 
     def getWaypointTimes(self, waypoint_travel_times):
         """Computes the time at which the obstacle will be at each waypoint.
@@ -129,7 +129,7 @@ class MovingObstacle(models.Model):
         waypoint_travel_times = self.getInterWaypointTravelTimes(waypoints)
         # Get the waypoint times
         pos_times = self.getWaypointTimes(waypoint_travel_times)
-        total_travel_time = pos_times[len(pos_times)-1]
+        total_travel_time = pos_times[len(pos_times) - 1]
 
         # Create spline representation
         spline_k = 3 if num_waypoints >= 3 else 2  # Cubic if enough points
@@ -159,9 +159,9 @@ class MovingObstacle(models.Model):
             # Load waypoints for obstacle, filter for consecutive duplicates
             all_wpts = self.waypoints.order_by('order')
             waypoints = [
-                    all_wpts[i]
-                    for i in range(len(all_wpts))
-                    if i == 0 or all_wpts[i].distanceTo(all_wpts[i-1]) != 0]
+                all_wpts[i] for i in range(len(all_wpts))
+                if i == 0 or all_wpts[i].distanceTo(all_wpts[i - 1]) != 0
+            ]
             self.preprocessed_waypoints = waypoints
 
         # Waypoint counts of 0 or 1 can skip calc, so can no speed
@@ -183,9 +183,13 @@ class MovingObstacle(models.Model):
         (total_travel_time, spline_reps) = spline_curve
 
         # Sample spline at current time
-        epoch_time = timezone.now().replace(
-                year=1970, month=1, day=1, hour=0, minute=0, second=0,
-                microsecond=0)
+        epoch_time = timezone.now().replace(year=1970,
+                                            month=1,
+                                            day=1,
+                                            hour=0,
+                                            minute=0,
+                                            second=0,
+                                            microsecond=0)
         cur_time_sec = (cur_time - epoch_time).total_seconds()
         cur_path_time = np.mod(cur_time_sec, total_travel_time)
         latitude = float(splev(cur_path_time, spline_reps[0]))
@@ -205,11 +209,10 @@ class MovingObstacle(models.Model):
         Returns:
             Whether the given position is inside the obstacle.
         """
-        dist_to_center = distance.distanceTo(
-                obst_lat, obst_lon, obst_alt,
-                aerial_pos.gps_position.latitude,
-                aerial_pos.gps_position.longitude,
-                aerial_pos.altitude_msl)
+        dist_to_center = distance.distanceTo(obst_lat, obst_lon, obst_alt,
+                                             aerial_pos.gps_position.latitude,
+                                             aerial_pos.gps_position.longitude,
+                                             aerial_pos.altitude_msl)
         return dist_to_center <= self.sphere_radius
 
     def evaluateCollisionWithUas(self, uas_telemetry_logs):
@@ -274,7 +277,7 @@ class MovingObstacle(models.Model):
             when.append(time.strftime(kml_datetime_format))
 
             # Distance Elements
-            uas_range = distance.distanceTo(*uav+pos)
+            uas_range = distance.distanceTo(*uav + pos)
             ranges.append(uas_range)
 
         # Create a new track in the folder
@@ -283,7 +286,9 @@ class MovingObstacle(models.Model):
 
         # Create a schema for extended data: proximity
         schema = kml_doc.newschema()
-        schema.newgxsimplearrayfield(name='proximity', type=Types.float, displayname='UAS Proximity [ft]')
+        schema.newgxsimplearrayfield(name='proximity',
+                                     type=Types.float,
+                                     displayname='UAS Proximity [ft]')
         trk.extendeddata.schemadata.schemaurl = schema.id
 
         # Append flight data
@@ -310,18 +315,17 @@ class MovingObstacle(models.Model):
             position is a tuple(latitude, longitude, altitude)
         """
         curr = uav_path[0].timestamp
-        end = uav_path[len(uav_path)-1].timestamp
+        end = uav_path[len(uav_path) - 1].timestamp
         path_index = 0  # Index of last known position
         while curr < end:
             # Advance the path_index forward in time
-            while uav_path[path_index+1].timestamp <= curr:
+            while uav_path[path_index + 1].timestamp <= curr:
                 path_index += 1
 
             uav = (
                 uav_path[path_index].uas_position.gps_position.latitude,
                 uav_path[path_index].uas_position.gps_position.longitude,
-                uav_path[path_index].uas_position.altitude_msl,
-            )
+                uav_path[path_index].uas_position.altitude_msl, )
             yield self.getPosition(curr), uav, curr
             curr += delta
 
@@ -340,7 +344,7 @@ class MovingObstacle(models.Model):
 
         def track(obstacle, span, dt):
             curr = timezone.now()
-            last = curr-span
+            last = curr - span
             time = curr
             while time >= last:
                 yield obstacle.getPosition(time)
@@ -358,4 +362,5 @@ class MovingObstacle(models.Model):
             linestring.altitudemode = AltitudeMode.absolute
             linestring.extrude = 1
             linestring.style.linestyle.color = Color.red
-            linestring.style.polystyle.color = Color.changealphaint(100, Color.red)
+            linestring.style.polystyle.color = Color.changealphaint(100,
+                                                                    Color.red)

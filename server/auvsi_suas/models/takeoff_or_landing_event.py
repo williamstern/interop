@@ -56,7 +56,7 @@ class TakeoffOrLandingEvent(AccessLog):
 
         # If UAS in air at end, assume forgot to log landing, assign infinity
         if uas_in_air:
-            time_periods.append((access_logs[len(access_logs)-1].timestamp,
+            time_periods.append((access_logs[len(access_logs) - 1].timestamp,
                                  None))
 
         return time_periods

@@ -17,8 +17,8 @@ class TestGetServerInfoView(TestCase):
 
     def setUp(self):
         """Sets up the client, server info URL, and user."""
-        self.user = User.objects.create_user(
-                'testuser', 'testemail@x.com', 'testpass')
+        self.user = User.objects.create_user('testuser', 'testemail@x.com',
+                                             'testpass')
         self.user.save()
         self.info = ServerInfo()
         self.info.team_msg = 'test message'
@@ -83,4 +83,4 @@ class TestGetServerInfoView(TestCase):
 
         print 'Server Info Rate (%f)' % op_rate
         self.assertGreaterEqual(
-                op_rate, settings.TEST_LOADTEST_INTEROP_MIN_RATE)
+            op_rate, settings.TEST_LOADTEST_INTEROP_MIN_RATE)

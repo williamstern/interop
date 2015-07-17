@@ -33,7 +33,7 @@ def getObstacles(request):
     if 'log' in request.GET:
         if not request.user.is_superuser:
             return HttpResponseBadRequest(
-                    'Only superusers may set the log parameter')
+                'Only superusers may set the log parameter')
 
         try:
             log_access = boolean_param(request.GET['log'])
@@ -44,7 +44,7 @@ def getObstacles(request):
     if 'time' in request.GET:
         if not request.user.is_superuser:
             return HttpResponseBadRequest(
-                    'Only superusers may set the time parameter')
+                'Only superusers may set the time parameter')
 
         try:
             time = iso8601.parse_date(request.GET['time'])
@@ -96,7 +96,4 @@ def getObstacles(request):
         cache.set(moving_obstacles_key, moving_obstacles)
 
     # Return JSON data
-    return HttpResponse(json.dumps(data),
-                        content_type="application/json")
-
-
+    return HttpResponse(json.dumps(data), content_type="application/json")
