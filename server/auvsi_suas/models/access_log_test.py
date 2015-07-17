@@ -194,7 +194,7 @@ class TestAccessLogRates(TestAccessLogCommon):
 
         rates = AccessLog.getAccessLogRates([period], [logs])
 
-        self.assertSequenceEqual((1, 1, 1), rates)
+        self.assertSequenceEqual((1, 1), rates)
 
     def test_ignore_start_end(self):
         """When start and end are None, only times between logs are compared."""
@@ -205,7 +205,7 @@ class TestAccessLogRates(TestAccessLogCommon):
 
         rates = AccessLog.getAccessLogRates([period], [logs])
 
-        self.assertSequenceEqual((1, 1, 1), rates)
+        self.assertSequenceEqual((1, 1), rates)
 
     def test_multiple_periods(self):
         """Multiple periods are combined without introducing errors."""
@@ -224,7 +224,7 @@ class TestAccessLogRates(TestAccessLogCommon):
 
         rates = AccessLog.getAccessLogRates(periods, logs)
 
-        self.assertSequenceEqual((1, 1, 1), rates)
+        self.assertSequenceEqual((1, 1), rates)
 
     def test_different_deltas(self):
         """Sets of logs are combined for overall rates."""
@@ -245,6 +245,5 @@ class TestAccessLogRates(TestAccessLogCommon):
 
         rates = AccessLog.getAccessLogRates(periods, logs)
 
-        self.assertAlmostEqual(0.5, rates[0])  # min
-        self.assertAlmostEqual(1.0, rates[1])  # max
-        self.assertAlmostEqual(0.75, rates[2], delta=0.001)  # avg
+        self.assertAlmostEqual(1.0, rates[0])  # max
+        self.assertAlmostEqual(0.75, rates[1], delta=0.001)  # avg

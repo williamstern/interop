@@ -141,7 +141,6 @@ class TestMissionConfigModelSampleMission(TestCase):
 
             for key in ['server_info', 'obst_info', 'uas_telem']:
                 self.assertIn(key, val['interop_times'])
-                self.assertIn('min', val['interop_times'][key])
                 self.assertIn('max', val['interop_times'][key])
                 self.assertIn('avg', val['interop_times'][key])
 
@@ -160,21 +159,15 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertAlmostEqual(0.6, teams[user0]['out_of_bounds_time'])
 
         self.assertAlmostEqual(
-            0.0, teams[user0]['interop_times']['server_info']['min'])
-        self.assertAlmostEqual(
             0.4, teams[user0]['interop_times']['server_info']['max'])
         self.assertAlmostEqual(
             1. / 6, teams[user0]['interop_times']['server_info']['avg'])
 
         self.assertAlmostEqual(
-            0.0, teams[user0]['interop_times']['obst_info']['min'])
-        self.assertAlmostEqual(
             0.5, teams[user0]['interop_times']['obst_info']['max'])
         self.assertAlmostEqual(
             1. / 5, teams[user0]['interop_times']['obst_info']['avg'])
 
-        self.assertAlmostEqual(
-            0.0, teams[user0]['interop_times']['uas_telem']['min'])
         self.assertAlmostEqual(
             0.5, teams[user0]['interop_times']['uas_telem']['max'])
         self.assertAlmostEqual(
@@ -193,21 +186,15 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertAlmostEqual(1.0, teams[user1]['out_of_bounds_time'])
 
         self.assertAlmostEqual(
-            0.1, teams[user1]['interop_times']['server_info']['min'])
-        self.assertAlmostEqual(
             0.5, teams[user1]['interop_times']['server_info']['max'])
         self.assertAlmostEqual(
             1. / 3, teams[user1]['interop_times']['server_info']['avg'])
 
         self.assertAlmostEqual(
-            0.1, teams[user1]['interop_times']['obst_info']['min'])
-        self.assertAlmostEqual(
             0.4, teams[user1]['interop_times']['obst_info']['max'])
         self.assertAlmostEqual(
             1. / 4, teams[user1]['interop_times']['obst_info']['avg'])
 
-        self.assertAlmostEqual(
-            0.0, teams[user1]['interop_times']['uas_telem']['min'])
         self.assertAlmostEqual(
             1.0, teams[user1]['interop_times']['uas_telem']['max'])
         self.assertAlmostEqual(
