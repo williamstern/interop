@@ -1,4 +1,5 @@
 Django>=1.8,<1.9
+django-debug-toolbar
 iso8601
 matplotlib
 numpy
