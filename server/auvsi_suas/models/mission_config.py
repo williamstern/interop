@@ -158,12 +158,10 @@ class MissionConfig(models.Model):
             # Start the evaluation data structure
             eval_data = results.setdefault(user, dict())
 
-            # Get the relevant logs for the user
-            flight_periods = TakeoffOrLandingEvent.getFlightPeriodsForUser(
-                user)
-            # TODO(prattmic): cleanup APIs to all take/return TimePeriod
-            fp_timeperiods = [TimePeriod(f[0], f[1]) for f in flight_periods]
+            # Find the user's flights.
+            flight_periods = TakeoffOrLandingEvent.flights(user)
 
+            # TODO(prattmic): Only evaluate logs while in flight?
             uas_telemetry_logs = UasTelemetry.by_user(user)
 
             # Determine if the uas hit the waypoints
@@ -183,15 +181,15 @@ class MissionConfig(models.Model):
 
             server_info_times = ServerInfoAccessLog.getAccessLogRates(
                 flight_periods,
-                ServerInfoAccessLog.by_time_period(user, fp_timeperiods))
+                ServerInfoAccessLog.by_time_period(user, flight_periods))
 
             obstacle_times = ObstacleAccessLog.getAccessLogRates(
                 flight_periods,
-                ObstacleAccessLog.by_time_period(user, fp_timeperiods))
+                ObstacleAccessLog.by_time_period(user, flight_periods))
 
             uas_telemetry_times = UasTelemetry.getAccessLogRates(
                 flight_periods,
-                UasTelemetry.by_time_period(user, fp_timeperiods))
+                UasTelemetry.by_time_period(user, flight_periods))
 
             interop_times['server_info'] = {
                 'max': server_info_times[0],

@@ -2,6 +2,7 @@
 
 import datetime
 import numpy as np
+from time_period import TimePeriod
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -99,6 +100,10 @@ class AccessLog(models.Model):
             A (max, avg) tuple. The max is the max time between logs, and avg
             is the avg time between logs.
             """
+        # FIXME(prattmic): truly take TimePeriod here
+        if len(time_periods) > 0 and type(time_periods[0]) == TimePeriod:
+            time_periods = [(t.start, t.end) for t in time_periods]
+
         times_between_logs = list()
         for time_period_id in range(len(time_periods)):
             # Get the times and logs for this period

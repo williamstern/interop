@@ -2,6 +2,7 @@
 
 import datetime
 from auvsi_suas.models import TakeoffOrLandingEvent
+from auvsi_suas.models import TimePeriod
 from auvsi_suas.models.access_log_test import TestAccessLogCommon
 from django.utils import timezone
 
@@ -24,7 +25,7 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
 
     def evaluate_periods(self, expected):
         """Check actual periods against expected."""
-        periods = TakeoffOrLandingEvent.getFlightPeriodsForUser(self.user1)
+        periods = TakeoffOrLandingEvent.flights(self.user1)
 
         self.assertSequenceEqual(expected, periods)
 
@@ -40,7 +41,7 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
         self.create_event(self.year2000 + self.ten_minutes, False)
 
         self.evaluate_periods([
-            (self.year2000, self.year2000 + self.ten_minutes),
+            TimePeriod(self.year2000, self.year2000 + self.ten_minutes),
         ])
 
     def test_flight_period_missing_takeoff(self):
@@ -48,7 +49,7 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
         self.create_event(self.year2000, False)
 
         self.evaluate_periods([
-            (None, self.year2000),
+            TimePeriod(None, self.year2000),
         ])  # yapf: disable
 
     def test_flight_period_missing_landing(self):
@@ -56,7 +57,7 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
         self.create_event(self.year2000, True)
 
         self.evaluate_periods([
-            (self.year2000, None),
+            TimePeriod(self.year2000, None),
         ])  # yapf: disable
 
     def test_flight_period_multiple_flights(self):
@@ -68,8 +69,8 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
         self.create_event(self.year2001 + self.ten_minutes, False)
 
         self.evaluate_periods([
-            (self.year2000, self.year2000 + self.ten_minutes),
-            (self.year2001, self.year2001 + self.ten_minutes),
+            TimePeriod(self.year2000, self.year2000 + self.ten_minutes),
+            TimePeriod(self.year2001, self.year2001 + self.ten_minutes),
         ])
 
     def test_flight_period_multiple_flights_order(self):
@@ -81,8 +82,8 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
         self.create_event(self.year2000 + self.ten_minutes, False)
 
         self.evaluate_periods([
-            (self.year2000, self.year2000 + self.ten_minutes),
-            (self.year2001, self.year2001 + self.ten_minutes),
+            TimePeriod(self.year2000, self.year2000 + self.ten_minutes),
+            TimePeriod(self.year2001, self.year2001 + self.ten_minutes),
         ])
 
     def test_flight_period_missing_multiple(self):
@@ -98,9 +99,9 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
         self.create_event(self.year2002, True)
 
         self.evaluate_periods([
-            (None, self.year2000),
-            (self.year2001, self.year2001 + self.ten_minutes),
-            (self.year2002, None),
+            TimePeriod(None, self.year2000),
+            TimePeriod(self.year2001, self.year2001 + self.ten_minutes),
+            TimePeriod(self.year2002, None),
         ])
 
     def test_flight_period_multiple_landing(self):
@@ -115,8 +116,8 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
         self.create_event(self.year2001 + self.ten_minutes, False)
 
         self.evaluate_periods([
-            (self.year2000, self.year2000 + self.ten_minutes),
-            (self.year2001, self.year2001 + self.ten_minutes),
+            TimePeriod(self.year2000, self.year2000 + self.ten_minutes),
+            TimePeriod(self.year2001, self.year2001 + self.ten_minutes),
         ])
 
     def test_flight_period_multiple_takeoff(self):
@@ -131,8 +132,8 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
         self.create_event(self.year2001 + self.ten_minutes, False)
 
         self.evaluate_periods([
-            (self.year2000, self.year2000 + 2 * self.ten_minutes),
-            (self.year2001, self.year2001 + self.ten_minutes),
+            TimePeriod(self.year2000, self.year2000 + 2 * self.ten_minutes),
+            TimePeriod(self.year2001, self.year2001 + self.ten_minutes),
         ])
 
     def test_user_in_air_no_logs(self):

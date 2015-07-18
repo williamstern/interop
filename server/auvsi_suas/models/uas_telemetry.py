@@ -79,25 +79,23 @@ class UasTelemetry(AccessLog):
 
         kml_folder = kml.newfolder(name=user.username)
 
-        periods = TakeoffOrLandingEvent.getFlightPeriodsForUser(user)
-        if len(periods) == 0:
+        flights = TakeoffOrLandingEvent.flights(user)
+        if len(flights) == 0:
             return
 
         logs = filter(lambda log: cls._is_bad_position(log, threshold), logs)
-        flight_number = 1
-        for period in periods:
-            label = 'Flight {}'.format(flight_number)
+        for i, flight in enumerate(flights):
+            label = 'Flight {}'.format(i + 1)  # Flights are one-indexed
             kml_flight = kml_folder.newfolder(name=label)
-            flight_number += 1
 
-            period_logs = filter(lambda x: cls._in_period(x, period), logs)
-            if len(period_logs) < 2:
+            flight_logs = filter(lambda x: flight.within(x.timestamp), logs)
+            if len(flight_logs) < 2:
                 continue
 
             coords = []
             angles = []
             when = []
-            for entry in period_logs:
+            for entry in flight_logs:
                 pos = entry.uas_position.gps_position
                 # Spatial Coordinates
                 coord = (
@@ -129,7 +127,7 @@ class UasTelemetry(AccessLog):
             trk.iconstyle.icon.href = icon
 
             for obstacle in MovingObstacle.objects.all():
-                obstacle.kml(path=period_logs, kml=kml_flight, kml_doc=kml_doc)
+                obstacle.kml(path=flight_logs, kml=kml_flight, kml_doc=kml_doc)
 
     @classmethod
     def live_kml(cls, kml, timespan):
@@ -156,25 +154,6 @@ class UasTelemetry(AccessLog):
             linestring.style.linestyle.color = Color.blue
             linestring.style.polystyle.color = Color.changealphaint(100,
                                                                     Color.blue)
-
-    @staticmethod
-    def _in_period(log, period):
-        """
-        Determine if the log entry occurs during the given period.
-        If time element is None, it is treated as unbound in that restriction
-
-        Args:
-            log: UasTelemetry element
-            period: tuple( starting DateTime, ending DateTime)
-        Returns:
-            Boolean: True if in period, else False
-        """
-        if period[0] is None:
-            return log.timestamp <= period[1]
-        elif period[1] is None:
-            return period[0] <= log.timestamp
-        else:
-            return period[0] <= log.timestamp <= period[1]
 
     @staticmethod
     def _is_bad_position(log, threshold):
