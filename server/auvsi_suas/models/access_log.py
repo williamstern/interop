@@ -113,8 +113,8 @@ class AccessLog(models.Model):
             time_period_access_logs: A list of access log lists for each time
                 period.
         Returns:
-            A (min, max, avg) tuple. The min is the min time between logs, max
-            is the max time between logs, and avg is the avg time between logs.
+            A (max, avg) tuple. The max is the max time between logs, and avg
+            is the avg time between logs.
             """
         times_between_logs = list()
         for time_period_id in range(len(time_periods)):
@@ -150,9 +150,8 @@ class AccessLog(models.Model):
         # Compute log rates
         if times_between_logs:
             times_between_logs = np.array(times_between_logs)
-            times_between_min = np.min(times_between_logs)
             times_between_max = np.max(times_between_logs)
             times_between_avg = np.mean(times_between_logs)
-            return (times_between_min, times_between_max, times_between_avg)
+            return (times_between_max, times_between_avg)
         else:
             return (None, None, None)
