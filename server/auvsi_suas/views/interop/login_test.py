@@ -22,8 +22,14 @@ class TestLoginUserView(TestCase):
         client = self.client
         loginUrl = self.loginUrl
 
-        # Test GET instead of POST
+        # Test GET instead of POST, without parameters
         response = client.get(loginUrl)
+        self.assertEqual(response.status_code, 400)
+
+        # Test GET instrad of POST, with proper parameters
+        response = client.get(
+            loginUrl, {'username': 'testuser',
+                       'password': 'testpass'})
         self.assertEqual(response.status_code, 400)
 
         # Test POST with no parameters
