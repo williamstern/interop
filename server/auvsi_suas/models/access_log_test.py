@@ -59,7 +59,7 @@ class TestAccessLogBasic(TestAccessLogCommon):
         logs = AccessLog.by_time_period(self.user1, [])
         self.assertEqual(len(logs), 0)
 
-        log_rates = AccessLog.getAccessLogRates([], [])
+        log_rates = AccessLog.rates(self.user1, [])
         self.assertTupleEqual(log_rates, (None, None, None))
 
     def test_basic_access(self):
@@ -175,13 +175,14 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
 
 
 class TestAccessLogRates(TestAccessLogCommon):
-    """Test AccessLog.getAccessLogRates()"""
+    """Test AccessLog.rates()"""
 
     def consistent_period(self, logs, delta):
-        # getAccessLogRates uses time between beginning/end of the period
+        # rates() uses time between beginning/end of the period
         # and the first/last log to compute rates, so to get constant rates,
         # the period must begin and end delta seconds before/after the logs.
-        return (logs[0].timestamp - delta, logs[-1].timestamp + delta)
+        return TimePeriod(logs[0].timestamp - delta,
+                          logs[-1].timestamp + delta)
 
     def test_constant_rate(self):
         """Rates computed correctly."""
@@ -190,7 +191,7 @@ class TestAccessLogRates(TestAccessLogCommon):
         logs = self.create_logs(self.user1, delta=delta)
         period = self.consistent_period(logs, delta)
 
-        rates = AccessLog.getAccessLogRates([period], [logs])
+        rates = AccessLog.rates(self.user1, [period])
 
         self.assertSequenceEqual((1, 1), rates)
 
@@ -199,9 +200,9 @@ class TestAccessLogRates(TestAccessLogCommon):
         delta = datetime.timedelta(seconds=1)
 
         logs = self.create_logs(self.user1, delta=delta)
-        period = (None, None)
+        period = TimePeriod(None, None)
 
-        rates = AccessLog.getAccessLogRates([period], [logs])
+        rates = AccessLog.rates(self.user1, [period])
 
         self.assertSequenceEqual((1, 1), rates)
 
@@ -220,7 +221,7 @@ class TestAccessLogRates(TestAccessLogCommon):
 
         periods = [self.consistent_period(l, delta) for l in logs]
 
-        rates = AccessLog.getAccessLogRates(periods, logs)
+        rates = AccessLog.rates(self.user1, periods)
 
         self.assertSequenceEqual((1, 1), rates)
 
@@ -241,7 +242,7 @@ class TestAccessLogRates(TestAccessLogCommon):
 
         periods = [self.consistent_period(l, delta) for l in logs]
 
-        rates = AccessLog.getAccessLogRates(periods, logs)
+        rates = AccessLog.rates(self.user1, periods)
 
         self.assertAlmostEqual(1.0, rates[0])  # max
         self.assertAlmostEqual(0.75, rates[1], delta=0.001)  # avg

@@ -87,52 +87,49 @@ class AccessLog(models.Model):
         return ret
 
     @classmethod
-    def getAccessLogRates(cls, time_periods, time_period_access_logs):
+    def rates(cls, user, time_periods):
         """Gets the access log rates.
 
         Args:
-            time_periods: A list of (time_start, time_end) tuples sorted by
-                time_start indicating time periods of interest where None
-                indicates infinity.
-            time_period_access_logs: A list of access log lists for each time
-                period.
+            user: The user to get the access log rates for.
+            time_periods: A list of TimePeriod objects. Note: to avoid
+                computing rates with duplicate logs, ensure that all
+                time periods are non-overlapping.
         Returns:
             A (max, avg) tuple. The max is the max time between logs, and avg
             is the avg time between logs.
             """
-        # FIXME(prattmic): truly take TimePeriod here
-        if len(time_periods) > 0 and type(time_periods[0]) == TimePeriod:
-            time_periods = [(t.start, t.end) for t in time_periods]
+        all_logs = cls.by_time_period(user, time_periods)
 
-        times_between_logs = list()
-        for time_period_id in range(len(time_periods)):
-            # Get the times and logs for this period
-            (time_start, time_end) = time_periods[time_period_id]
-            cur_access_logs = time_period_access_logs[time_period_id]
+        times_between_logs = []
+        for i, period in enumerate(time_periods):
+            # Get the logs for this period
+            # Coerce the QuerySet into a list, so we can use negative indexing.
+            logs = list(all_logs[i])
 
             # Account for a time period with no logs
-            if len(cur_access_logs) == 0:
-                if time_start is not None and time_end is not None:
-                    time_diff = (time_end - time_start).total_seconds()
+            if len(logs) == 0:
+                if period.start is not None and period.end is not None:
+                    time_diff = (period.end - period.start).total_seconds()
                     times_between_logs.append(time_diff)
                 continue
 
             # Account for time between takeoff and first log
-            if time_start is not None:
-                first_log = cur_access_logs[0]
-                time_diff = (first_log.timestamp - time_start).total_seconds()
+            if period.start is not None:
+                first = logs[0]
+                time_diff = (first.timestamp - period.start).total_seconds()
                 times_between_logs.append(time_diff)
+
             # Account for time between logs
-            for access_log_id in range(len(cur_access_logs) - 1):
-                log_t = cur_access_logs[access_log_id]
-                log_tp1 = cur_access_logs[access_log_id + 1]
-                time_diff = (log_tp1.timestamp - log_t.timestamp
-                             ).total_seconds()
+            for j, log in enumerate(logs[:-1]):
+                nextlog = logs[j + 1]
+                time_diff = (nextlog.timestamp - log.timestamp).total_seconds()
                 times_between_logs.append(time_diff)
+
             # Account for time between last log and landing
-            if time_end is not None:
-                last_log = cur_access_logs[len(cur_access_logs) - 1]
-                time_diff = (time_end - last_log.timestamp).total_seconds()
+            if period.end is not None:
+                last_log = logs[-1]
+                time_diff = (period.end - last_log.timestamp).total_seconds()
                 times_between_logs.append(time_diff)
 
         # Compute log rates

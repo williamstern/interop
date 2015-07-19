@@ -179,17 +179,11 @@ class MissionConfig(models.Model):
             # Determine interop rates
             interop_times = eval_data.setdefault('interop_times', dict())
 
-            server_info_times = ServerInfoAccessLog.getAccessLogRates(
-                flight_periods,
-                ServerInfoAccessLog.by_time_period(user, flight_periods))
+            server_info_times = ServerInfoAccessLog.rates(user, flight_periods)
 
-            obstacle_times = ObstacleAccessLog.getAccessLogRates(
-                flight_periods,
-                ObstacleAccessLog.by_time_period(user, flight_periods))
+            obstacle_times = ObstacleAccessLog.rates(user, flight_periods)
 
-            uas_telemetry_times = UasTelemetry.getAccessLogRates(
-                flight_periods,
-                UasTelemetry.by_time_period(user, flight_periods))
+            uas_telemetry_times = UasTelemetry.rates(user, flight_periods)
 
             interop_times['server_info'] = {
                 'max': server_info_times[0],
