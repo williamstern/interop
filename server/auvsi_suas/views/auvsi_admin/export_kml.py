@@ -21,7 +21,7 @@ def generateKml(_):
         if user.is_superuser:
             continue
         UasTelemetry.kml(user=user,
-                         logs=UasTelemetry.getAccessLogForUser(user),
+                         logs=UasTelemetry.by_user(user),
                          kml=kml_teams,
                          kml_doc=kml.document)
     MissionConfig.kml_all(kml_mission)

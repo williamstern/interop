@@ -87,7 +87,7 @@ class TestUasTelemetryKML(TestCase):
         kml = Kml()
         UasTelemetry.kml(
             user=nonadmin_user,
-            logs=UasTelemetry.getAccessLogForUser(nonadmin_user),
+            logs=UasTelemetry.by_user(nonadmin_user),
             kml=kml,
             kml_doc=kml, )
         for coord in coordinates:
@@ -103,7 +103,7 @@ class TestUasTelemetryKML(TestCase):
         kml = Kml()
         UasTelemetry.kml(
             user=nonadmin_user,
-            logs=UasTelemetry.getAccessLogForUser(nonadmin_user),
+            logs=UasTelemetry.by_user(nonadmin_user),
             kml=kml,
             kml_doc=kml, )
 
@@ -136,7 +136,7 @@ class TestUasTelemetryKML(TestCase):
         kml = Kml()
         UasTelemetry.kml(
             user=nonadmin_user,
-            logs=UasTelemetry.getAccessLogForUser(nonadmin_user),
+            logs=UasTelemetry.by_user(nonadmin_user),
             kml=kml,
             kml_doc=kml, )
 
@@ -149,36 +149,13 @@ class TestUasTelemetryKML(TestCase):
             tag = self.coord_format.format(coord[1], coord[0], coord[2])
             self.assertTrue(tag in kml.kml())
 
-    def test_kml_in_period(self):
-        base = timezone.now()
-        inc = datetime.timedelta(seconds=1)
-        periods = [
-            (base - inc, base + inc),
-            (None, base + inc),
-            (base - inc, None),
-        ]
-
-        log = UasTelemetry(timestamp=base, )
-        for period in periods:
-            self.assertTrue(UasTelemetry._in_period(log, period))
-
-        false_periods = [
-            (base + inc, base + 2 * inc),
-            (base - 2 * inc, base - inc),
-            (base + inc, None),
-            (None, base - inc),
-        ]
-        for period in false_periods:
-            self.assertFalse(UasTelemetry._in_period(log, period))
-
     def create_log_element(self, lat, lon, alt, user):
         pos = GpsPosition(latitude=lat, longitude=lon)
         pos.save()
         apos = AerialPosition(gps_position=pos, altitude_msl=alt)
         apos.save()
-        log = UasTelemetry(
-            timestamp=timezone.now(),
-            user=user,
-            uas_position=apos,
-            uas_heading=100, )
+        log = UasTelemetry(timestamp=timezone.now(),
+                           user=user,
+                           uas_position=apos,
+                           uas_heading=100)
         log.save()

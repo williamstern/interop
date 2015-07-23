@@ -1,6 +1,7 @@
 """Takeoff or landing event model."""
 
 from access_log import AccessLog
+from time_period import TimePeriod
 from django.db import models
 from django.utils import timezone
 
@@ -18,46 +19,44 @@ class TakeoffOrLandingEvent(AccessLog):
                         str(self.timestamp), str(self.uas_in_air)))
 
     @classmethod
-    def getFlightPeriodsForUser(cls, user):
-        """Gets the time period for which the given user was in flight.
+    def flights(cls, user):
+        """Gets the time periods for which the given user was in flight.
+
+        Duplicate takeoff or landing events are ignored.
 
         Args:
             user: The user for which to get flight periods for.
         Returns:
-            A list of (flight_start, flight_end) tuples where flight_start is
-            the time the flight started and flight_end is the time the flight
-            ended.  This is based off the takeoff and landing events stored. A
-            flight_X of None indicates since the beginning or until the end of
-            time. The list will be sorted by flight_start and the periods will
-            be non-intersecting.
+            A list of TimePeriod objects corresponding to individual flights.
         """
-        time_periods = list()
         # Get the access logs for the user
-        access_logs = TakeoffOrLandingEvent.getAccessLogForUser(user)
+        access_logs = TakeoffOrLandingEvent.by_user(user)
 
-        # If UAS in air at start, assume forgot to log takeoff, assign infinity
+        time_periods = []
+
+        # If UAS landing at start, assume forgot to log takeoff, assign infinity
         if len(access_logs) > 0 and not access_logs[0].uas_in_air:
-            time_periods.append((None, access_logs[0].timestamp))
+            time_periods.append(TimePeriod(None, access_logs[0].timestamp))
 
         # Use transition from ground to air and air to ground for flight periods
         takeoff_time = None
         landing_time = None
         uas_in_air = False
-        for cur_log in access_logs:
+        for log in access_logs:
             # Check for transition from ground to air
-            if not uas_in_air and cur_log.uas_in_air:
-                takeoff_time = cur_log.timestamp
-                uas_in_air = cur_log.uas_in_air
+            if not uas_in_air and log.uas_in_air:
+                takeoff_time = log.timestamp
+                uas_in_air = log.uas_in_air
             # Check for transition from air to ground
-            if uas_in_air and not cur_log.uas_in_air:
-                landing_time = cur_log.timestamp
-                uas_in_air = cur_log.uas_in_air
-                time_periods.append((takeoff_time, landing_time))
+            if uas_in_air and not log.uas_in_air:
+                landing_time = log.timestamp
+                uas_in_air = log.uas_in_air
+
+                time_periods.append(TimePeriod(takeoff_time, landing_time))
 
         # If UAS in air at end, assume forgot to log landing, assign infinity
         if uas_in_air:
-            time_periods.append((access_logs[len(access_logs) - 1].timestamp,
-                                 None))
+            time_periods.append(TimePeriod(access_logs.last().timestamp, None))
 
         return time_periods
 

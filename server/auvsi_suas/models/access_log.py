@@ -2,6 +2,7 @@
 
 import datetime
 import numpy as np
+from time_period import TimePeriod
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -21,7 +22,7 @@ class AccessLog(models.Model):
                         self.user.__unicode__(), str(self.timestamp)))
 
     @classmethod
-    def getAccessLogForUser(cls, user):
+    def by_user(cls, user):
         """Gets the time-sorted list of access log for the given user.
 
         Args:
@@ -32,7 +33,7 @@ class AccessLog(models.Model):
         return cls.objects.filter(user_id=user.pk).order_by('timestamp')
 
     @classmethod
-    def userActive(cls, user, base=None, delta=None):
+    def user_active(cls, user, base=None, delta=None):
         """Determines if a user is 'active'.
 
         A user is 'active' if they have reported telemetry since delta
@@ -52,99 +53,83 @@ class AccessLog(models.Model):
 
         since = base - delta
 
-        return 0 != cls.getAccessLogForUser(user) \
+        return 0 != cls.by_user(user) \
             .filter(timestamp__gt=since) \
             .filter(timestamp__lt=base).count()
 
     @classmethod
-    def getAccessLogForUserByTimePeriod(cls, access_logs, time_periods):
+    def by_time_period(cls, user, time_periods):
         """Gets a list of time-sorted lists of access logs for each time period.
 
+        The method returns the full sets of AccessLogs for each TimePeriod. If
+        overlapping TimePeriods are provided, the results may contain duplicate
+        logs.
+
         Args:
-            access_logs: A list of access logs for a given user sorted by
-                timestamp.
-            time_periods: A sorted list of (time_start, time_end) tuples which
-                indicate the start and end time of a time period. A value of
-                None indicates infinity. The list must be sorted by time_start
-                and be non-intersecting. Both start and end are inclusive.
+            user: The user to get the access log for.
+            time_periods: A list of TimePeriod objects.
         Returns:
-            A list where each entry is a list of access logs sorted by timestamp
-            such that each log is for the given user and in the time period
-            given in the time_periods list.
+            A list of AccessLog lists, where each AccessLog list contains all
+            AccessLogs corresponding to the related TimePeriod.
         """
-        cur_access_id = 0
-        cur_time_id = 0
-        time_period_access_logs = list()
-        while (cur_access_id < len(access_logs) and
-               cur_time_id < len(time_periods)):
-            # Add new period access list if not yet added for current period
-            if cur_time_id == len(time_period_access_logs):
-                time_period_access_logs.append(list())
-            # Get the current time period and access log
-            cur_time = time_periods[cur_time_id]
-            (time_start, time_end) = cur_time
-            cur_access = access_logs[cur_access_id]
-            # Check if access log before the period, indicates not in a period
-            if time_start is not None and cur_access.timestamp < time_start:
-                cur_access_id += 1
-                continue
-            # Check if access log after the period
-            if time_end is not None and cur_access.timestamp > time_end:
-                cur_time_id += 1
-                continue
-            # Access log not before and not after, so its during. Add the log
-            time_period_access_logs[cur_time_id].append(cur_access)
-            cur_access_id += 1
+        ret = []
 
-        # Add empty lists for all remaining time periods
-        while len(time_period_access_logs) < len(time_periods):
-            time_period_access_logs.append(list())
+        for period in time_periods:
+            logs = cls.by_user(user)
 
-        return time_period_access_logs
+            if period.start:
+                logs = logs.filter(timestamp__gte=period.start)
+            if period.end:
+                logs = logs.filter(timestamp__lte=period.end)
+
+            ret.append(logs)
+
+        return ret
 
     @classmethod
-    def getAccessLogRates(cls, time_periods, time_period_access_logs):
+    def rates(cls, user, time_periods):
         """Gets the access log rates.
 
         Args:
-            time_periods: A list of (time_start, time_end) tuples sorted by
-                time_start indicating time periods of interest where None
-                indicates infinity.
-            time_period_access_logs: A list of access log lists for each time
-                period.
+            user: The user to get the access log rates for.
+            time_periods: A list of TimePeriod objects. Note: to avoid
+                computing rates with duplicate logs, ensure that all
+                time periods are non-overlapping.
         Returns:
             A (max, avg) tuple. The max is the max time between logs, and avg
             is the avg time between logs.
             """
-        times_between_logs = list()
-        for time_period_id in range(len(time_periods)):
-            # Get the times and logs for this period
-            (time_start, time_end) = time_periods[time_period_id]
-            cur_access_logs = time_period_access_logs[time_period_id]
+        all_logs = cls.by_time_period(user, time_periods)
+
+        times_between_logs = []
+        for i, period in enumerate(time_periods):
+            # Get the logs for this period
+            # Coerce the QuerySet into a list, so we can use negative indexing.
+            logs = list(all_logs[i])
 
             # Account for a time period with no logs
-            if len(cur_access_logs) == 0:
-                if time_start is not None and time_end is not None:
-                    time_diff = (time_end - time_start).total_seconds()
+            if len(logs) == 0:
+                if period.start is not None and period.end is not None:
+                    time_diff = (period.end - period.start).total_seconds()
                     times_between_logs.append(time_diff)
                 continue
 
             # Account for time between takeoff and first log
-            if time_start is not None:
-                first_log = cur_access_logs[0]
-                time_diff = (first_log.timestamp - time_start).total_seconds()
+            if period.start is not None:
+                first = logs[0]
+                time_diff = (first.timestamp - period.start).total_seconds()
                 times_between_logs.append(time_diff)
+
             # Account for time between logs
-            for access_log_id in range(len(cur_access_logs) - 1):
-                log_t = cur_access_logs[access_log_id]
-                log_tp1 = cur_access_logs[access_log_id + 1]
-                time_diff = (log_tp1.timestamp - log_t.timestamp
-                             ).total_seconds()
+            for j, log in enumerate(logs[:-1]):
+                nextlog = logs[j + 1]
+                time_diff = (nextlog.timestamp - log.timestamp).total_seconds()
                 times_between_logs.append(time_diff)
+
             # Account for time between last log and landing
-            if time_end is not None:
-                last_log = cur_access_logs[len(cur_access_logs) - 1]
-                time_diff = (time_end - last_log.timestamp).total_seconds()
+            if period.end is not None:
+                last_log = logs[-1]
+                time_diff = (period.end - last_log.timestamp).total_seconds()
                 times_between_logs.append(time_diff)
 
         # Compute log rates

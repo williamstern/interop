@@ -10,6 +10,7 @@ from obstacle_access_log import ObstacleAccessLog
 from server_info_access_log import ServerInfoAccessLog
 from stationary_obstacle import StationaryObstacle
 from takeoff_or_landing_event import TakeoffOrLandingEvent
+from time_period import TimePeriod
 from uas_telemetry import UasTelemetry
 from waypoint import Waypoint
 from django.contrib.auth.models import User
@@ -157,12 +158,11 @@ class MissionConfig(models.Model):
             # Start the evaluation data structure
             eval_data = results.setdefault(user, dict())
 
-            # Get the relevant logs for the user
-            server_info_logs = ServerInfoAccessLog.getAccessLogForUser(user)
-            obstacle_logs = ObstacleAccessLog.getAccessLogForUser(user)
-            uas_telemetry_logs = UasTelemetry.getAccessLogForUser(user)
-            flight_periods = TakeoffOrLandingEvent.getFlightPeriodsForUser(
-                user)
+            # Find the user's flights.
+            flight_periods = TakeoffOrLandingEvent.flights(user)
+
+            # TODO(prattmic): Only evaluate logs while in flight?
+            uas_telemetry_logs = UasTelemetry.by_user(user)
 
             # Determine if the uas hit the waypoints
             waypoints = self.evaluateUasSatisfiedWaypoints(uas_telemetry_logs)
@@ -179,19 +179,11 @@ class MissionConfig(models.Model):
             # Determine interop rates
             interop_times = eval_data.setdefault('interop_times', dict())
 
-            server_info_times = ServerInfoAccessLog.getAccessLogRates(
-                flight_periods,
-                ServerInfoAccessLog.getAccessLogForUserByTimePeriod(
-                    server_info_logs, flight_periods))
+            server_info_times = ServerInfoAccessLog.rates(user, flight_periods)
 
-            obstacle_times = ObstacleAccessLog.getAccessLogRates(
-                flight_periods,
-                ObstacleAccessLog.getAccessLogForUserByTimePeriod(
-                    obstacle_logs, flight_periods))
+            obstacle_times = ObstacleAccessLog.rates(user, flight_periods)
 
-            uas_telemetry_times = UasTelemetry.getAccessLogRates(
-                flight_periods, UasTelemetry.getAccessLogForUserByTimePeriod(
-                    uas_telemetry_logs, flight_periods))
+            uas_telemetry_times = UasTelemetry.rates(user, flight_periods)
 
             interop_times['server_info'] = {
                 'max': server_info_times[0],

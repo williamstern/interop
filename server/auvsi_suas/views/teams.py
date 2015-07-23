@@ -15,7 +15,7 @@ def userJson(user):
         'name': user.username,
         'id': user.pk,
         'in_air': TakeoffOrLandingEvent.userInAir(user),
-        'active': UasTelemetry.userActive(user),
+        'active': UasTelemetry.user_active(user),
     }
 
 
