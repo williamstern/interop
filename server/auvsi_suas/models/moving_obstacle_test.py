@@ -175,37 +175,42 @@ class TestMovingObstacle(TestCase):
             obst.waypoints.add(wpt)
         self.assertTrue(obst.__unicode__())
 
-    def test_getWaypointTravelTime_invalid_inputs(self):
+    def test_get_waypoint_travel_time_invalid_inputs(self):
         """Tests proper invalid input handling."""
         obstacle = MovingObstacle()
         obstacle.speed_avg = 1
 
-        self.assertIsNone(obstacle.getWaypointTravelTime(None, 1, 1))
-        self.assertIsNone(obstacle.getWaypointTravelTime([], 1, 1))
-        self.assertIsNone(obstacle.getWaypointTravelTime([None], 1, 1))
-        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], None,
-                                                         1))
-        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], 1,
-                                                         None))
-        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], -1, 0))
-        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], 0, -1))
-        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], 2, 0))
-        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], 0, 2))
+        self.assertIsNone(obstacle.get_waypoint_travel_time(None, 1, 1))
+        self.assertIsNone(obstacle.get_waypoint_travel_time([], 1, 1))
+        self.assertIsNone(obstacle.get_waypoint_travel_time([None], 1, 1))
+        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], None,
+                                                            1))
+        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], 1,
+                                                            None))
+        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], -1,
+                                                            0))
+        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], 0,
+                                                            -1))
+        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], 2,
+                                                            0))
+        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], 0,
+                                                            2))
         obstacle.speed_avg = 0
-        self.assertIsNone(obstacle.getWaypointTravelTime([None, None], 0, 1))
+        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], 0,
+                                                            1))
 
     def eval_travel_time(self, time_actual, time_received):
         """Evaluates whether the travel times are close enough."""
         EVAL_THRESH = time_actual * 0.1
         return abs(time_actual - time_received) < EVAL_THRESH
 
-    def test_getWaypointTravelTime(self):
+    def test_get_waypoint_travel_time(self):
         """Tests travel time calc."""
         test_spds = [1, 10, 100, 500]
         for (lon2, lat2, lon1, lat1, dist_km) in TESTDATA_COMPETITION_DIST:
-            dist_ft = units.kilometersToFeet(dist_km)
+            dist_ft = units.kilometers_to_feet(dist_km)
             for speed in test_spds:
-                speed_fps = units.knotsToFeetPerSecond(speed)
+                speed_fps = units.knots_to_feet_per_second(speed)
                 time = dist_ft / speed_fps
                 gpos1 = GpsPosition()
                 gpos1.latitude = lat1
@@ -231,34 +236,34 @@ class TestMovingObstacle(TestCase):
                 obstacle = MovingObstacle()
                 obstacle.speed_avg = speed
                 self.assertTrue(self.eval_travel_time(
-                    obstacle.getWaypointTravelTime(waypoints, 0, 1), time))
+                    obstacle.get_waypoint_travel_time(waypoints, 0, 1), time))
 
-    def test_getPosition_no_waypoints(self):
+    def test_get_position_no_waypoints(self):
         """Tests position calc on no-"""
-        self.assertEqual(self.obst_no_wpt.getPosition(), (0, 0, 0))
+        self.assertEqual(self.obst_no_wpt.get_position(), (0, 0, 0))
 
-    def test_getPosition_one_waypoint(self):
+    def test_get_position_one_waypoint(self):
         """Tests position calc on single waypoints."""
-        (lat, lon, alt) = self.obst_single_wpt.getPosition()
+        (lat, lon, alt) = self.obst_single_wpt.get_position()
         self.assertEqual(lat, self.single_wpt_lat)
         self.assertEqual(lon, self.single_wpt_lon)
         self.assertEqual(alt, self.single_wpt_alt)
 
-    def test_getPosition_changes(self):
+    def test_get_position_changes(self):
         """Position of obstacle changes over time."""
         # Pick an obstacle with more than one point
         obstacle = self.obstacles[0]
 
-        original = obstacle.getPosition()
+        original = obstacle.get_position()
         time.sleep(0.1)
-        new = obstacle.getPosition()
+        new = obstacle.get_position()
 
         self.assertNotEqual(original, new)
 
-    def test_getPosition_waypoints_plot(self):
+    def test_get_position_waypoints_plot(self):
         """Tests position calculation by saving plots of calculation.
 
-        Saves plots to testOutput/auvsi_suas-MovingObstacle-getPosition-x.jpg.
+        Saves plots to test_output/auvsi_suas-MovingObstacle-getPosition-x.jpg.
         On each run it first deletes the existing folder. This requires manual
         inspection to validate correctness.
         """
@@ -268,9 +273,9 @@ class TestMovingObstacle(TestCase):
         # Create directory for plot output
         if not os.path.exists('data'):
             os.mkdir('data')
-        if os.path.exists('data/testOutput'):
-            shutil.rmtree('data/testOutput')
-        os.mkdir('data/testOutput')
+        if os.path.exists('data/test_output'):
+            shutil.rmtree('data/test_output')
+        os.mkdir('data/test_output')
 
         # Create plot for each path
         for obst_id in range(len(self.obstacles)):
@@ -278,9 +283,9 @@ class TestMovingObstacle(TestCase):
 
             # Get waypoint positions as numpy array
             waypoints = cur_obst.waypoints.order_by('order')
-            waypoint_travel_times = cur_obst.getInterWaypointTravelTimes(
+            waypoint_travel_times = cur_obst.get_inter_waypoint_travel_times(
                 waypoints)
-            waypoint_times = cur_obst.getWaypointTimes(waypoint_travel_times)
+            waypoint_times = cur_obst.get_waypoint_times(waypoint_travel_times)
             total_time = waypoint_times[len(waypoint_times) - 1]
             num_waypoints = len(waypoints)
             wpt_latitudes = np.zeros(num_waypoints + 1)
@@ -313,7 +318,7 @@ class TestMovingObstacle(TestCase):
                 cur_samp_time = epoch + datetime.timedelta(
                     seconds=cur_time_offset)
 
-                (lat, lon, alt) = cur_obst.getPosition(cur_samp_time)
+                (lat, lon, alt) = cur_obst.get_position(cur_samp_time)
                 latitudes[time_id] = lat
                 longitudes[time_id] = lon
                 altitudes[time_id] = alt
@@ -330,10 +335,10 @@ class TestMovingObstacle(TestCase):
             plt.plot(time_pos, altitudes, 'b', waypoint_times, wpt_altitudes,
                      'rx')
             plt.savefig(
-                ('data/testOutput/'
+                ('data/test_output/'
                  'auvsi_suas-MovingObstacle-getPosition-%d.jpg' % obst_id))
 
-    def test_containsPos(self):
+    def test_contains_pos(self):
         """Tests the inside obstacle method."""
         # Form the test obstacle
         obst = MovingObstacle()
@@ -352,12 +357,12 @@ class TestMovingObstacle(TestCase):
                 apos = AerialPosition()
                 apos.gps_position = gpos
                 apos.altitude_msl = alt
-                self.assertEqual(obst.containsPos(
+                self.assertEqual(obst.contains_pos(
                     TESTDATA_MOVOBST_CONTAINSPOS_OBJ[0],
                     TESTDATA_MOVOBST_CONTAINSPOS_OBJ[1],
                     TESTDATA_MOVOBST_CONTAINSPOS_OBJ[3], apos), cur_contains)
 
-    def test_evaluateCollisionWithUas(self):
+    def test_evaluate_collision_with_uas(self):
         """Tests the collision with UAS method."""
         # Get test data
         user = User.objects.create_user('testuser', 'testemail@x.com',
@@ -421,9 +426,10 @@ class TestMovingObstacle(TestCase):
         # Assert the obstacle correctly computes collisions
         log_collisions = [(True, inside_logs), (False, outside_logs)]
         for (inside, logs) in log_collisions:
-            self.assertEqual(obst.evaluateCollisionWithUas(logs), inside)
+            self.assertEqual(obst.evaluate_collision_with_uas(logs), inside)
             for log in logs:
-                self.assertEqual(obst.evaluateCollisionWithUas([log]), inside)
+                self.assertEqual(obst.evaluate_collision_with_uas([log]),
+                                 inside)
 
     def test_toJSON(self):
         """Tests the JSON serialization method."""

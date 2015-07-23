@@ -53,7 +53,7 @@ class TestStationaryObstacleModel(TestCase):
         obst.save()
         self.assertTrue(obst.__unicode__())
 
-    def test_containsPos(self):
+    def test_contains_pos(self):
         """Tests the inside obstacle method."""
         # Form the test obstacle
         pos = GpsPosition(latitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[0],
@@ -73,9 +73,9 @@ class TestStationaryObstacleModel(TestCase):
                 pos = GpsPosition(latitude=lat, longitude=lon)
                 pos.save()
                 apos = AerialPosition(gps_position=pos, altitude_msl=alt)
-                self.assertEqual(obst.containsPos(apos), cur_contains)
+                self.assertEqual(obst.contains_pos(apos), cur_contains)
 
-    def test_evaluateCollisionWithUas(self):
+    def test_evaluate_collision_with_uas(self):
         """Tests the collision with UAS method."""
         # Create testing data
         user = User.objects.create_user('testuser', 'testemail@x.com',
@@ -112,9 +112,11 @@ class TestStationaryObstacleModel(TestCase):
         # Assert collisions correctly evaluated
         collisions = [(inside_logs, True), (outside_logs, False)]
         for (log_list, inside) in collisions:
-            self.assertEqual(obst.evaluateCollisionWithUas(log_list), inside)
+            self.assertEqual(obst.evaluate_collision_with_uas(log_list),
+                             inside)
             for log in log_list:
-                self.assertEqual(obst.evaluateCollisionWithUas([log]), inside)
+                self.assertEqual(obst.evaluate_collision_with_uas([log]),
+                                 inside)
 
     def test_toJSON(self):
         """Tests the JSON serialization method."""

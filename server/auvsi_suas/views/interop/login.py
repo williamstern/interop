@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 
 
-def loginUser(request):
+def login_user(request):
     """Logs the user in with a POST request using the given parameters.
 
     This view performs the login process for the user. The POST paramters must

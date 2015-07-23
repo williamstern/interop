@@ -12,7 +12,7 @@ class DataGenerator(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def getUasTelemetry(self, cur_time):
+    def get_uas_telemetry(self, cur_time):
         """Gets the UAS telemetry position at the given time.
 
         Args:
@@ -27,6 +27,6 @@ class DataGenerator(object):
 class ZeroValueGenerator(DataGenerator):
     """Generates zero values for all of time."""
 
-    def getUasTelemetry(self, cur_time):
+    def get_uas_telemetry(self, cur_time):
         """Overrides base method."""
         return (0, 0, 0, 0)

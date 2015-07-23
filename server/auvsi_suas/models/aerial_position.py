@@ -18,7 +18,7 @@ class AerialPosition(models.Model):
                        (str(self.pk), str(self.altitude_msl),
                         self.gps_position.__unicode__()))
 
-    def distanceTo(self, other):
+    def distance_to(self, other):
         """Computes distance to another position.
 
         Args:
@@ -26,7 +26,7 @@ class AerialPosition(models.Model):
         Returns:
           Distance in feet.
         """
-        return distance.distanceTo(
+        return distance.distance_to(
             self.gps_position.latitude, self.gps_position.longitude,
             self.altitude_msl, other.gps_position.latitude,
             other.gps_position.longitude, other.altitude_msl)

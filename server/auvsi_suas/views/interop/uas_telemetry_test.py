@@ -11,7 +11,7 @@ from django.test.client import Client
 
 
 class TestPostUasPosition(TestCase):
-    """Tests the postUasPosition view."""
+    """Tests the post_uas_position view."""
 
     def setUp(self):
         """Sets up the client, server info URL, and user."""
@@ -19,51 +19,53 @@ class TestPostUasPosition(TestCase):
                                              'testpass')
         self.user.save()
         self.client = Client()
-        self.loginUrl = reverse('auvsi_suas:login')
-        self.uasUrl = reverse('auvsi_suas:uas_telemetry')
+        self.login_url = reverse('auvsi_suas:login')
+        self.uas_url = reverse('auvsi_suas:uas_telemetry')
         logging.disable(logging.CRITICAL)
 
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
         client = self.client
-        uasUrl = self.uasUrl
-        response = client.get(uasUrl)
+        uas_url = self.uas_url
+        response = client.get(uas_url)
         self.assertEqual(response.status_code, 400)
 
     def test_invalid_request(self):
         """Tests an invalid request by mis-specifying parameters."""
         client = self.client
-        loginUrl = self.loginUrl
-        uasUrl = self.uasUrl
+        login_url = self.login_url
+        uas_url = self.uas_url
 
-        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
-        response = client.post(uasUrl)
+        client.post(login_url,
+                    {'username': 'testuser',
+                     'password': 'testpass'})
+        response = client.post(uas_url)
         self.assertEqual(response.status_code, 400)
         response = client.post(
-            uasUrl, {'longitude': 0,
-                     'altitude_msl': 0,
-                     'uas_heading': 0})
+            uas_url, {'longitude': 0,
+                      'altitude_msl': 0,
+                      'uas_heading': 0})
         self.assertEqual(response.status_code, 400)
         response = client.post(
-            uasUrl, {'latitude': 0,
-                     'altitude_msl': 0,
-                     'uas_heading': 0})
+            uas_url, {'latitude': 0,
+                      'altitude_msl': 0,
+                      'uas_heading': 0})
         self.assertEqual(response.status_code, 400)
         response = client.post(
-            uasUrl, {'latitude': 0,
-                     'longitude': 0,
-                     'uas_heading': 0})
+            uas_url, {'latitude': 0,
+                      'longitude': 0,
+                      'uas_heading': 0})
         self.assertEqual(response.status_code, 400)
         response = client.post(
-            uasUrl, {'latitude': 0,
-                     'longitude': 0,
-                     'altitude_msl': 0})
+            uas_url, {'latitude': 0,
+                      'longitude': 0,
+                      'altitude_msl': 0})
         self.assertEqual(response.status_code, 400)
 
     def eval_request_values(self, lat, lon, alt, heading):
         client = self.client
-        uasUrl = self.uasUrl
-        response = client.post(uasUrl, {
+        uas_url = self.uas_url
+        response = client.post(uas_url, {
             'latitude': lat,
             'longitude': lon,
             'altitude_msl': alt,
@@ -74,8 +76,10 @@ class TestPostUasPosition(TestCase):
     def test_invalid_request_values(self):
         """Tests by specifying correct parameters with invalid values."""
         client = self.client
-        loginUrl = self.loginUrl
-        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        login_url = self.login_url
+        client.post(login_url,
+                    {'username': 'testuser',
+                     'password': 'testpass'})
 
         TEST_DATA = [
             (-100, 0, 0, 0),
@@ -92,15 +96,17 @@ class TestPostUasPosition(TestCase):
     def test_upload_and_store(self):
         """Tests correct upload and storage of data."""
         client = self.client
-        loginUrl = self.loginUrl
-        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
-        uasUrl = self.uasUrl
+        login_url = self.login_url
+        client.post(login_url,
+                    {'username': 'testuser',
+                     'password': 'testpass'})
+        uas_url = self.uas_url
 
         lat = 10
         lon = 20
         alt = 30
         heading = 40
-        response = client.post(uasUrl, {
+        response = client.post(uas_url, {
             'latitude': lat,
             'longitude': lon,
             'altitude_msl': alt,
@@ -121,9 +127,11 @@ class TestPostUasPosition(TestCase):
             return
 
         client = self.client
-        loginUrl = self.loginUrl
-        uasUrl = self.uasUrl
-        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        login_url = self.login_url
+        uas_url = self.uas_url
+        client.post(login_url,
+                    {'username': 'testuser',
+                     'password': 'testpass'})
 
         lat = 10
         lon = 20
@@ -132,7 +140,7 @@ class TestPostUasPosition(TestCase):
         total_ops = 0
         start_t = time.clock()
         while time.clock() - start_t < settings.TEST_LOADTEST_TIME:
-            client.post(uasUrl, {
+            client.post(uas_url, {
                 'latitude': lat,
                 'longiutde': lon,
                 'altitude_msl': alt,

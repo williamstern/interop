@@ -13,7 +13,7 @@ from django.test.client import Client
 
 
 class TestGetServerInfoView(TestCase):
-    """Tests the getServerInfo view."""
+    """Tests the server_info view."""
 
     def setUp(self):
         """Sets up the client, server info URL, and user."""
@@ -24,36 +24,40 @@ class TestGetServerInfoView(TestCase):
         self.info.team_msg = 'test message'
         self.info.save()
         self.client = Client()
-        self.loginUrl = reverse('auvsi_suas:login')
-        self.infoUrl = reverse('auvsi_suas:server_info')
+        self.login_url = reverse('auvsi_suas:login')
+        self.info_url = reverse('auvsi_suas:server_info')
         logging.disable(logging.CRITICAL)
 
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
         client = self.client
-        infoUrl = self.infoUrl
+        info_url = self.info_url
 
-        response = client.get(infoUrl)
+        response = client.get(info_url)
         self.assertEqual(response.status_code, 400)
 
     def test_invalid_request(self):
         """Tests an invalid request by mis-specifying parameters."""
         client = self.client
-        loginUrl = self.loginUrl
-        infoUrl = self.infoUrl
+        login_url = self.login_url
+        info_url = self.info_url
 
-        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
-        response = client.post(infoUrl)
+        client.post(login_url,
+                    {'username': 'testuser',
+                     'password': 'testpass'})
+        response = client.post(info_url)
         self.assertEqual(response.status_code, 400)
 
     def test_correct_log_and_response(self):
         """Tests that access is logged and returns valid response."""
         client = self.client
-        loginUrl = self.loginUrl
-        infoUrl = self.infoUrl
-        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        login_url = self.login_url
+        info_url = self.info_url
+        client.post(login_url,
+                    {'username': 'testuser',
+                     'password': 'testpass'})
 
-        response = client.get(infoUrl)
+        response = client.get(info_url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(ServerInfoAccessLog.objects.all()), 1)
         access_log = ServerInfoAccessLog.objects.all()[0]
@@ -68,14 +72,16 @@ class TestGetServerInfoView(TestCase):
             return
 
         client = self.client
-        loginUrl = self.loginUrl
-        infoUrl = self.infoUrl
-        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
+        login_url = self.login_url
+        info_url = self.info_url
+        client.post(login_url,
+                    {'username': 'testuser',
+                     'password': 'testpass'})
 
         total_ops = 0
         start_t = time.clock()
         while time.clock() - start_t < settings.TEST_LOADTEST_TIME:
-            client.get(infoUrl)
+            client.get(info_url)
             total_ops += 1
         end_t = time.clock()
         total_t = end_t - start_t

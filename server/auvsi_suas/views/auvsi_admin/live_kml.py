@@ -15,7 +15,7 @@ from django.http import HttpResponseForbidden
 
 # Require admin access
 @user_passes_test(lambda u: u.is_superuser)
-def generateKml(request):
+def generate_kml(request):
     """ Generates a KML for live display.
     This KML uses a network link to update via the update.kml endpoint
     """
@@ -40,7 +40,7 @@ def generateKml(request):
     return response
 
 
-def setRequestSessionFromCookie(func):
+def set_request_session_from_cookie(func):
     def wrapper(request):
         # Check if a sessionid has been provided
         if 'sessionid' not in request.GET:
@@ -63,9 +63,9 @@ def setRequestSessionFromCookie(func):
 
 
 # Require admin access
-@setRequestSessionFromCookie
+@set_request_session_from_cookie
 @user_passes_test(lambda u: u.is_superuser)
-def generateLiveKml(_):
+def generate_live_kml(_):
     """ Generates a KML file HttpResponse"""
     kml = Kml(name='LIVE Data')
     MovingObstacle.live_kml(kml, timedelta(seconds=5))

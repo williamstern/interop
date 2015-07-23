@@ -9,7 +9,7 @@ from auvsi_suas.patches.simplekml_patch import Kml
 
 # Require admin access
 @user_passes_test(lambda u: u.is_superuser)
-def generateKml(_):
+def generate_kml(_):
     """ Generates a KML file HttpResponse"""
 
     kml = Kml(name='AUVSI SUAS Flight Data')

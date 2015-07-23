@@ -10,7 +10,7 @@ from django.http import HttpResponseBadRequest
 
 # Require admin access
 @user_passes_test(lambda u: u.is_superuser)
-def getMissions(request):
+def missions(request):
     """Gets a list of all missions."""
     # Only GET requests
     if request.method != 'GET':

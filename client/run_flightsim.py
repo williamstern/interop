@@ -10,8 +10,7 @@ import interop_comms
 from flightsim import KmlGenerator
 
 
-def executeInteroperability(interop_client, data_generator, interop_time,
-                            username, password):
+def run(interop_client, data_generator, interop_time, username, password):
     """Executes interoperability using the given configuration.
 
     Args:
@@ -23,7 +22,7 @@ def executeInteroperability(interop_client, data_generator, interop_time,
     """
     # Start by logging in the client
     request = interop_comms.LoginRequest(username, password)
-    interop_client.queueRequest(request)
+    interop_client.queue_request(request)
 
     #Start simulator
     data_generator.start(datetime.datetime.now())
@@ -32,16 +31,16 @@ def executeInteroperability(interop_client, data_generator, interop_time,
     for sim_time in sim_frames(interop_time):
         # Execute server info requests
         request = interop_comms.ServerInfoRequest()
-        interop_client.queueRequest(request)
+        interop_client.queue_request(request)
 
         # Execute interop requests
         request = interop_comms.ObstaclesRequest()
-        interop_client.queueRequest(request)
+        interop_client.queue_request(request)
 
         # Get UAS telemetry
-        uas_telemetry = data_generator.getUasTelemetry(sim_time)
+        uas_telemetry = data_generator.get_uas_telemetry(sim_time)
         request = interop_comms.UasTelemetryRequest(*uas_telemetry)
-        interop_client.queueRequest(request)
+        interop_client.queue_request(request)
 
 
 def sim_frames(interop_time):
@@ -110,8 +109,7 @@ def main():
     data_generator = KmlGenerator(args.kml)
 
     # Launch interoperability client
-    executeInteroperability(
-        interop_client, data_generator, args.interop_time, args.username,
+    run(interop_client, data_generator, args.interop_time, args.username,
         args.password)
 
 

@@ -12,7 +12,7 @@ from django.http import HttpResponseBadRequest
 
 # Require admin access
 @user_passes_test(lambda u: u.is_superuser)
-def getTelemetry(request):
+def telemetry(request):
     """Gets a list of all telemetry."""
     # Only GET requests
     if request.method != 'GET':

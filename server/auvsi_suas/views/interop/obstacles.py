@@ -13,7 +13,7 @@ from django.http import HttpResponseBadRequest
 from django.utils import timezone
 
 
-def getObstacles(request):
+def obstacles(request):
     """Gets the obstacle information as JSON with a GET request."""
     # Validate user made a GET request
     if request.method != 'GET':

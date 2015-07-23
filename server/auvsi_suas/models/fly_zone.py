@@ -26,7 +26,7 @@ class FlyZone(models.Model):
                        (str(self.pk), str(self.altitude_msl_min),
                         str(self.altitude_msl_max), boundary_str))
 
-    def containsPos(self, aerial_pos):
+    def contains_pos(self, aerial_pos):
         """Whether the given pos is inside the zone.
 
         Args:
@@ -34,9 +34,9 @@ class FlyZone(models.Model):
         Returns:
             Whether the given position is inside the flight boundary.
         """
-        return self.containsManyPos([aerial_pos])[0]
+        return self.contains_many_pos([aerial_pos])[0]
 
-    def containsManyPos(self, aerial_pos_list):
+    def contains_many_pos(self, aerial_pos_list):
         """Evaluates a list of positions more efficiently than inidividually.
 
         Args:
@@ -87,7 +87,7 @@ class FlyZone(models.Model):
         return results
 
     @classmethod
-    def evaluateUasOutOfBounds(cls, fly_zones, uas_telemetry_logs):
+    def out_of_bounds(cls, fly_zones, uas_telemetry_logs):
         """Determines amount of time spent out of bounds.
 
         Args:
@@ -112,7 +112,7 @@ class FlyZone(models.Model):
             # Evaluate the positions still not satisfied
             cur_positions = [aerial_pos_list[cur_id]
                              for cur_id in log_ids_to_process]
-            satisfied_positions = zone.containsManyPos(cur_positions)
+            satisfied_positions = zone.contains_many_pos(cur_positions)
             # Retain those which were not satisfied in this pass
             log_ids_to_process = [log_ids_to_process[cur_id]
                                   for cur_id in range(len(log_ids_to_process))

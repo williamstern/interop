@@ -52,4 +52,4 @@ class TestHaversine(TestCase):
         ])  # yapf: disable
 
 
-# TODO: Add additional tests for distanceTo()
+# TODO: Add additional tests for distance_to()

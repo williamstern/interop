@@ -50,7 +50,7 @@ class TestMissionConfigModel(TestCase):
         config.save()
         self.assertTrue(config.__unicode__())
 
-    def test_evaluateUasSatisfiedWaypoints(self):
+    def test_satisified_waypoints(self):
         """Tests the evaluation of waypoints method."""
         (satisfy_dist, waypoint_details, uas_log_details,
          exp_satisfied) = TESTDATA_MISSIONCONFIG_EVALWAYPOINTS
@@ -110,7 +110,7 @@ class TestMissionConfigModel(TestCase):
             uas_logs.append(log)
 
         # Assert correct satisfied waypoints
-        wpts_satisfied = config.evaluateUasSatisfiedWaypoints(uas_logs)
+        wpts_satisfied = config.satisified_waypoints(uas_logs)
         self.assertEqual(wpts_satisfied, exp_satisfied)
 
 
@@ -118,13 +118,13 @@ class TestMissionConfigModelSampleMission(TestCase):
 
     fixtures = ['testdata/sample_mission.json']
 
-    def test_evaluateTeams(self):
+    def test_evaluate_teams(self):
         """Tests the evaluation of teams method."""
         user0 = User.objects.get(username='user0')
         user1 = User.objects.get(username='user1')
         config = MissionConfig.objects.get()
 
-        teams = config.evaluateTeams()
+        teams = config.evaluate_teams()
 
         # Contains user0 and user1
         self.assertEqual(2, len(teams))

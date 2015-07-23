@@ -8,7 +8,7 @@ from django.test.client import Client
 
 
 class TestEvaluateTeams(TestCase):
-    """Tests the evaluateTeams view."""
+    """Tests the evaluate_teams view."""
 
     fixtures = ['testdata/sample_mission.json']
 
@@ -25,28 +25,30 @@ class TestEvaluateTeams(TestCase):
         self.admin_user.save()
         self.admin_client = Client()
         # Create URLs for testing
-        self.loginUrl = reverse('auvsi_suas:login')
-        self.evalUrl = reverse('auvsi_suas:evaluate_teams')
+        self.login_url = reverse('auvsi_suas:login')
+        self.eval_url = reverse('auvsi_suas:evaluate_teams')
         logging.disable(logging.CRITICAL)
 
-    def test_evaluateTeams_nonadmin(self):
+    def test_evaluate_teams_nonadmin(self):
         """Tests that you can only access data as admin."""
         client = self.client
-        loginUrl = self.loginUrl
-        evalUrl = self.evalUrl
-        client.post(loginUrl, {'username': 'testuser', 'password': 'testpass'})
-        response = client.get(evalUrl)
+        login_url = self.login_url
+        eval_url = self.eval_url
+        client.post(login_url,
+                    {'username': 'testuser',
+                     'password': 'testpass'})
+        response = client.get(eval_url)
         self.assertGreaterEqual(response.status_code, 300)
 
-    def test_evaluateTeams(self):
+    def test_evaluate_teams(self):
         """Tests the CSV method."""
         client = self.client
-        loginUrl = self.loginUrl
-        evalUrl = self.evalUrl
-        client.post(loginUrl,
+        login_url = self.login_url
+        eval_url = self.eval_url
+        client.post(login_url,
                     {'username': 'testuser2',
                      'password': 'testpass'})
-        response = client.get(evalUrl)
+        response = client.get(eval_url)
         self.assertEqual(response.status_code, 200)
         csv_data = response.content
         # Check correct number of rows

@@ -38,23 +38,23 @@ class InteropRequest(object):
         self.request_start_time = None
         self.request_end_time = None
 
-    def requestQueued(self):
+    def request_queued(self):
         """Marks the request as queued."""
         self.queue_start_time = datetime.datetime.now()
 
-    def requestDequeued(self):
+    def request_dequeued(self):
         """Marks the request as dequeued."""
         self.queue_end_time = datetime.datetime.now()
 
-    def requestStarted(self):
+    def request_started(self):
         """Marks the request as started."""
         self.request_start_time = datetime.datetime.now()
 
-    def requestFinished(self):
+    def request_finished(self):
         """Marks the request as finished."""
         self.request_end_time = datetime.datetime.now()
 
-    def handleResponse(self, client, response, status, data):
+    def handle_response(self, client, response, status, data):
         """Handles the response of the request.
 
         Args:
@@ -89,9 +89,9 @@ class LoginRequest(InteropRequest):
 
         super(LoginRequest, self).__init__(url, method, params)
 
-    def handleResponse(self, client, response, status, data):
+    def handle_response(self, client, response, status, data):
         """Overrides base method."""
-        super(LoginRequest, self).handleResponse(
+        super(LoginRequest, self).handle_response(
             client, response, status, data)
         client.cookies = response.getheader('Set-Cookie')
 
@@ -169,14 +169,14 @@ class InteroperabilityClient(threading.Thread):
         self.requests = Queue.Queue(maxsize=max_queued)
         self.cookies = None
 
-    def queueRequest(self, interop_request):
+    def queue_request(self, interop_request):
         """Queues the request for processing. Blocks if full.
 
         Args:
             interop_request: The request to queue for execution.
         """
         assert isinstance(interop_request, InteropRequest)
-        interop_request.requestQueued()
+        interop_request.request_queued()
         self.requests.put(interop_request)
 
     def run(self):
@@ -184,7 +184,7 @@ class InteroperabilityClient(threading.Thread):
         while True:
             # Get request to make
             cur_request = self.requests.get()
-            cur_request.requestDequeued()
+            cur_request.request_dequeued()
             headers = {}
             # Set cookies (e.g. session info)
             if self.cookies:
@@ -199,11 +199,11 @@ class InteroperabilityClient(threading.Thread):
                 self.conn.request(
                     cur_request.method, cur_request.url,
                     urllib.urlencode(cur_request.params), headers)
-            cur_request.requestStarted()
+            cur_request.request_started()
             # Get response
             response = self.conn.getresponse()
             # Handle response
             status = response.status
             data = response.read()
-            cur_request.requestFinished()
-            cur_request.handleResponse(self, response, status, data)
+            cur_request.request_finished()
+            cur_request.handle_response(self, response, status, data)

@@ -18,34 +18,34 @@ from django.conf.urls.static import static
 urlpatterns = patterns(
     '',
     # Team interoperability
-    url(r'^api/login$', login.loginUser, name='login'),
-    url(r'^api/interop/server_info$', server_info.getServerInfo,
+    url(r'^api/login$', login.login_user, name='login'),
+    url(r'^api/interop/server_info$', server_info.server_info,
         name='server_info'),
-    url(r'^api/interop/obstacles$', obstacles.getObstacles, name='obstacles'),
-    url(r'^api/interop/uas_telemetry$', uas_telemetry.postUasPosition,
+    url(r'^api/interop/obstacles$', obstacles.obstacles, name='obstacles'),
+    url(r'^api/interop/uas_telemetry$', uas_telemetry.post_uas_position,
         name='uas_telemetry'),
     # Admin API
-    url(r'^api/missions$', missions.getMissions, name='missions'),
-    url(r'^api/teams$', teams.getTeams, name='teams'),
-    url(r'^api/teams/(?P<pk>\d+)$', teams.getTeamsId, name='teams_id'),
-    url(r'^api/telemetry$', telemetry.getTelemetry, name='telemetry'),
+    url(r'^api/missions$', missions.missions, name='missions'),
+    url(r'^api/teams$', teams.teams, name='teams'),
+    url(r'^api/teams/(?P<pk>\d+)$', teams.teams_id, name='teams_id'),
+    url(r'^api/telemetry$', telemetry.telemetry, name='telemetry'),
     # Admin access views
-    url(r'^$', index.getIndex, name='index'),
-    url(r'^auvsi_admin/evaluate_teams.csv$', evaluate_teams.getTeamEvaluationCsv,
+    url(r'^$', index.index, name='index'),
+    url(r'^auvsi_admin/evaluate_teams.csv$', evaluate_teams.team_evaluation_csv,
         name='evaluate_teams'),
     url(
         r'^auvsi_admin/export_data.kml$',
-        export_kml.generateKml,
+        export_kml.generate_kml,
         name='export_data',
     ),
     url(
         r'^auvsi_admin/live.kml$',
-        live_kml.generateKml,
+        live_kml.generate_kml,
         name='live_kml',
     ),
     url(
         r'^auvsi_admin/update.kml$',
-        live_kml.generateLiveKml,
+        live_kml.generate_live_kml,
         name='update_kml',
     ),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
