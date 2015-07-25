@@ -16,7 +16,7 @@ class GpsPosition(models.Model):
         return unicode("GpsPosition (pk:%s, lat:%s, lon:%s)" %
                        (str(self.pk), str(self.latitude), str(self.longitude)))
 
-    def distanceTo(self, other):
+    def distance_to(self, other):
         """Computes distance to another position.
 
         Args:
@@ -24,5 +24,5 @@ class GpsPosition(models.Model):
         Returns:
           Distance in feet.
         """
-        return distance.distanceTo(self.latitude, self.longitude, 0,
-                                   other.latitude, other.longitude, 0)
+        return distance.distance_to(self.latitude, self.longitude, 0,
+                                    other.latitude, other.longitude, 0)

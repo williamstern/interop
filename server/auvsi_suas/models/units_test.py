@@ -20,7 +20,7 @@ class TestKilometersToFeet(TestCase):
         ]  # yapf: disable
 
         for (km, ft_actual) in cases:
-            self.assertLess(abs(units.kilometersToFeet(km) - ft_actual),
+            self.assertLess(abs(units.kilometers_to_feet(km) - ft_actual),
                             threshold)
 
 
@@ -41,4 +41,5 @@ class TestKnotsToFeetPerSecond(TestCase):
 
         for (knots, fps_actual) in cases:
             self.assertLess(
-                abs(units.knotsToFeetPerSecond(knots) - fps_actual), threshold)
+                abs(units.knots_to_feet_per_second(knots) - fps_actual),
+                threshold)

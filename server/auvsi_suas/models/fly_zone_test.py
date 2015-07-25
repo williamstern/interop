@@ -198,8 +198,8 @@ class TestFlyZone(TestCase):
             zone.boundary_pts.add(wpt)
         self.assertTrue(zone.__unicode__())
 
-    def test_containsPos(self):
-        """Tests the containsPos method."""
+    def test_contains_pos(self):
+        """Tests the contains_pos method."""
         for (zone, test_pos) in self.testdata_containspos:
             for ((lat, lon, alt), inside) in test_pos:
                 gpos = GpsPosition()
@@ -209,10 +209,10 @@ class TestFlyZone(TestCase):
                 apos = AerialPosition()
                 apos.altitude_msl = alt
                 apos.gps_position = gpos
-                self.assertEqual(zone.containsPos(apos), inside)
+                self.assertEqual(zone.contains_pos(apos), inside)
 
-    def test_containsManyPos(self):
-        """Tests the containsManyPos method."""
+    def test_contains_many_pos(self):
+        """Tests the contains_many_pos method."""
         for (zone, test_pos) in self.testdata_containspos:
             aerial_pos_list = list()
             expected_results = list()
@@ -227,9 +227,9 @@ class TestFlyZone(TestCase):
                 aerial_pos_list.append(apos)
                 expected_results.append(inside)
             self.assertEqual(
-                zone.containsManyPos(aerial_pos_list), expected_results)
+                zone.contains_many_pos(aerial_pos_list), expected_results)
 
-    def test_evaluateUasOutOfBounds(self):
+    def test_out_of_bounds(self):
         """Tests the UAS out of bounds method."""
         (zone_details, uas_details) = TESTDATA_FLYZONE_EVALBOUNDS
         # Create FlyZone objects
@@ -291,6 +291,5 @@ class TestFlyZone(TestCase):
                 log.save()
                 uas_logs.append(log)
             # Assert out of bounds time matches expected
-            out_of_bounds_time = FlyZone.evaluateUasOutOfBounds(
-                zones, uas_logs)
+            out_of_bounds_time = FlyZone.out_of_bounds(zones, uas_logs)
             self.assertAlmostEqual(out_of_bounds_time, exp_out_of_bounds_time)

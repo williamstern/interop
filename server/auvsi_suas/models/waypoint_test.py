@@ -24,8 +24,8 @@ class TestWaypointModel(TestCase):
 
     def assertDistanceEqual(self, wpt1, wpt2, dist, threshold=10):
         """Waypoint distances are within threshold (ft)."""
-        self.assertAlmostEqual(wpt1.distanceTo(wpt2), dist, delta=threshold)
-        self.assertAlmostEqual(wpt2.distanceTo(wpt1), dist, delta=threshold)
+        self.assertAlmostEqual(wpt1.distance_to(wpt2), dist, delta=threshold)
+        self.assertAlmostEqual(wpt2.distance_to(wpt1), dist, delta=threshold)
 
     def evaluate_inputs(self, io_list):
         for (lon1, lat1, alt1, lon2, lat2, alt2, dist) in io_list:

@@ -91,7 +91,7 @@ class MissionConfig(models.Model):
                         self.ir_secondary_target_pos.__unicode__(),
                         self.air_drop_pos.__unicode__()))
 
-    def evaluateUasSatisfiedWaypoints(self, uas_telemetry_logs):
+    def satisified_waypoints(self, uas_telemetry_logs):
         """Determines whether the UAS satisfied the waypoints.
 
         Args:
@@ -105,14 +105,14 @@ class MissionConfig(models.Model):
         for waypoint in waypoints:
             satisfied = False
             for uas_log in uas_telemetry_logs:
-                distance = uas_log.uas_position.distanceTo(waypoint.position)
+                distance = uas_log.uas_position.distance_to(waypoint.position)
                 if distance < self.mission_waypoints_dist_max:
                     satisfied = True
                     break
             waypoints_satisfied.append(satisfied)
         return waypoints_satisfied
 
-    def evaluateTeams(self):
+    def evaluate_teams(self):
         """Evaluates the teams (non admin users) of the competition.
 
         Returns:
@@ -165,15 +165,15 @@ class MissionConfig(models.Model):
             uas_telemetry_logs = UasTelemetry.by_user(user)
 
             # Determine if the uas hit the waypoints
-            waypoints = self.evaluateUasSatisfiedWaypoints(uas_telemetry_logs)
+            waypoints = self.satisified_waypoints(uas_telemetry_logs)
             waypoints_keyed = dict()
             for wpt_id in xrange(len(waypoints)):
                 waypoints_keyed[wpt_id + 1] = waypoints[wpt_id]
             eval_data['waypoints_satisfied'] = waypoints_keyed
 
             # Determine if the uas went out of bounds
-            out_of_bounds_time = FlyZone.evaluateUasOutOfBounds(
-                fly_zones, uas_telemetry_logs)
+            out_of_bounds_time = FlyZone.out_of_bounds(fly_zones,
+                                                       uas_telemetry_logs)
             eval_data['out_of_bounds_time'] = out_of_bounds_time
 
             # Determine interop rates
@@ -202,13 +202,15 @@ class MissionConfig(models.Model):
             stationary_collisions = eval_data.setdefault(
                 'stationary_obst_collision', dict())
             for obst in stationary_obstacles:
-                collision = obst.evaluateCollisionWithUas(uas_telemetry_logs)
+                collision = obst.evaluate_collision_with_uas(
+                    uas_telemetry_logs)
                 stationary_collisions[obst.pk] = collision
 
             moving_collisions = eval_data.setdefault(
                 'moving_obst_collision', dict())
             for obst in moving_obstacles:
-                collision = obst.evaluateCollisionWithUas(uas_telemetry_logs)
+                collision = obst.evaluate_collision_with_uas(
+                    uas_telemetry_logs)
                 moving_collisions[obst.pk] = collision
 
         return results

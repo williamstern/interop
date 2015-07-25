@@ -27,8 +27,8 @@ class TestGenerateKMLCommon(TestCase):
         self.admin_user.save()
 
         # Create URLs for testing
-        self.loginUrl = reverse('auvsi_suas:login')
-        self.evalUrl = reverse('auvsi_suas:export_data')
+        self.login_url = reverse('auvsi_suas:login')
+        self.eval_url = reverse('auvsi_suas:export_data')
         logging.disable(logging.CRITICAL)
 
     def validate_kml(self, kml_data, folders, users, coordinates):
@@ -57,23 +57,23 @@ class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
 
     def test_generateKML_not_logged_in(self):
         """Tests the generate KML method."""
-        response = self.client.get(self.evalUrl)
+        response = self.client.get(self.eval_url)
         self.assertGreaterEqual(response.status_code, 300)
 
     def test_generateKML_nonadmin(self):
         """Tests the generate KML method."""
-        self.client.post(self.loginUrl,
+        self.client.post(self.login_url,
                          {'username': 'testuser',
                           'password': 'testpass'})
-        response = self.client.get(self.evalUrl)
+        response = self.client.get(self.eval_url)
         self.assertGreaterEqual(response.status_code, 300)
 
     def test_generateKML(self):
         """Tests the generate KML method."""
-        self.client.post(self.loginUrl,
+        self.client.post(self.login_url,
                          {'username': 'testuser2',
                           'password': 'testpass'})
-        response = self.client.get(self.evalUrl)
+        response = self.client.get(self.eval_url)
         self.assertEqual(response.status_code, 200)
 
         kml_data = response.content
@@ -100,23 +100,23 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
 
     def test_generateKML_not_logged_in(self):
         """Tests the generate KML method."""
-        response = self.client.get(self.evalUrl)
+        response = self.client.get(self.eval_url)
         self.assertGreaterEqual(response.status_code, 300)
 
     def test_generateKML_nonadmin(self):
         """Tests the generate KML method."""
-        self.client.post(self.loginUrl,
+        self.client.post(self.login_url,
                          {'username': 'testuser',
                           'password': 'testpass'})
-        response = self.client.get(self.evalUrl)
+        response = self.client.get(self.eval_url)
         self.assertGreaterEqual(response.status_code, 300)
 
     def test_generateKML(self):
         """Tests the generate KML method."""
-        self.client.post(self.loginUrl,
+        self.client.post(self.login_url,
                          {'username': 'testuser2',
                           'password': 'testpass'})
-        response = self.client.get(self.evalUrl)
+        response = self.client.get(self.eval_url)
         self.assertEqual(response.status_code, 200)
 
         kml_data = response.content

@@ -14,14 +14,12 @@ import interop_comms
 import interop_datagen
 
 
-def signalHandler(signal, frame):
+def signal_handler(signal, frame):
     """Handles the signal by marking the program as no longer running."""
     sys.exit(0)
 
 
-def executeInteroperability(
-    interop_client, data_generator, interop_time, username, password
-):
+def run(interop_client, data_generator, interop_time, username, password):
     """Executes interoperability using the given configuration.
 
     Args:
@@ -33,23 +31,23 @@ def executeInteroperability(
     """
     # Start by logging in the client
     request = interop_comms.LoginRequest(username, password)
-    interop_client.queueRequest(request)
+    interop_client.queue_request(request)
 
     # Continually execute interop requests until signaled to stop
     while True:
         # Get start time of the round
         start_time = datetime.datetime.now()
         # Get UAS telemetry for round
-        uas_telemetry = data_generator.getUasTelemetry(start_time)
+        uas_telemetry = data_generator.get_uas_telemetry(start_time)
         (latitude, longitude, altitude_msl, uas_heading) = uas_telemetry
         # Execute interop requests
         request = interop_comms.ServerInfoRequest()
-        interop_client.queueRequest(request)
+        interop_client.queue_request(request)
         request = interop_comms.ObstaclesRequest()
-        interop_client.queueRequest(request)
+        interop_client.queue_request(request)
         request = interop_comms.UasTelemetryRequest(
             latitude, longitude, altitude_msl, uas_heading)
-        interop_client.queueRequest(request)
+        interop_client.queue_request(request)
         # Delay for interop timing
         end_time = datetime.datetime.now()
         delay_time = interop_time - (end_time - start_time).total_seconds()
@@ -63,7 +61,7 @@ def executeInteroperability(
 def main():
     """Configures the interoperability binary."""
     # Setup signal handler
-    signal.signal(signal.SIGINT, signalHandler)
+    signal.signal(signal.SIGINT, signal_handler)
 
     # Setup logging
     logger = logging.getLogger()
@@ -115,8 +113,7 @@ def main():
     data_generator = interop_datagen.ZeroValueGenerator()
 
     # Launch interoperability client
-    executeInteroperability(
-        interop_client, data_generator, args.interop_time, args.username,
+    run(interop_client, data_generator, args.interop_time, args.username,
         args.password)
 
 

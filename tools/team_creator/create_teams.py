@@ -33,19 +33,19 @@ TeamData = collections.namedtuple(
     'TeamData', ['name', 'username', 'password', 'static_ip'])
 
 
-def createTeamsData(teams_filepath, competition_data):
+def create_teams_data(teams_filepath, competition_data):
     """Creates user accounts and prints Latex for a PDF."""
-    teams = getTeamInfo(
+    teams = get_team_info(
         teams_filepath, competition_data.team_static_range_min,
         competition_data.team_static_range_max)
-    createTeamAccounts(teams)
-    printLatexHeader()
-    printCompetitionDataLatex(competition_data)
-    printTeamDatasLatex(teams)
-    printLatexFooter()
+    create_team_accounts(teams)
+    print_latex_header()
+    print_competition_data_latex(competition_data)
+    print_team_datas_latex(teams)
+    print_latex_footer()
 
 
-def getTeamInfo(teams_filepath, static_min, static_max):
+def get_team_info(teams_filepath, static_min, static_max):
     """Gets the team information from the given file."""
     static_min_int = int(ipaddress.IPv4Address(unicode(static_min)))
     static_max_int = int(ipaddress.IPv4Address(unicode(static_max)))
@@ -68,7 +68,7 @@ def getTeamInfo(teams_filepath, static_min, static_max):
     return teams
 
 
-def createTeamAccounts(teams):
+def create_team_accounts(teams):
     """Creates team accounts."""
     for team in teams:
         get_user_model().objects.create_user(
@@ -76,20 +76,20 @@ def createTeamAccounts(teams):
             password=team.password)
 
 
-def printLatexHeader():
+def print_latex_header():
     """Prints the Latex header."""
     print '\\input{teams_data_base}'
     print '\\begin{document}'
 
 
-def printCompetitionDataLatex(data):
+def print_competition_data_latex(data):
     """Prints the competition data."""
     print('\\competition{%s}{%s}{%d}{%s}{%s}' %
           (data.interop_ip, data.interop_hostname, data.interop_port,
            data.team_dhcp_range_min, data.team_dhcp_range_max))
 
 
-def printTeamDatasLatex(teams):
+def print_team_datas_latex(teams):
     """Prints the team data."""
     for team in teams:
         print('\\team{%s}{%s}{%s}{%s}' % (
@@ -97,7 +97,7 @@ def printTeamDatasLatex(teams):
         ))
 
 
-def printLatexFooter():
+def print_latex_footer():
     """Prints the Latex footer."""
     print '\\end{document}'
 
@@ -166,7 +166,7 @@ def main():
     competition_data = CompetitionData(
         interop_ip, interop_hostname, interop_port, team_dhcp_range_min,
         team_dhcp_range_max, team_static_range_min, team_static_range_max)
-    createTeamsData(teams_filepath, competition_data)
+    create_teams_data(teams_filepath, competition_data)
 
 
 if __name__ == '__main__':

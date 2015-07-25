@@ -11,7 +11,7 @@ from django.http import HttpResponseBadRequest
 from django.http import HttpResponseServerError
 
 
-def getServerInfo(request):
+def server_info(request):
     """Gets the server information as JSON with a GET request."""
     # Validate user made a GET request
     if request.method != 'GET':

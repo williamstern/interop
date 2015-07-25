@@ -19,7 +19,7 @@ class KmlGenerator(DataGenerator):
     def start(self, start_time):
         self.time = start_time
 
-    def getUasTelemetry(self, new_time):
+    def get_uas_telemetry(self, new_time):
         delta_time = (new_time - self.time).total_seconds()
         self.time = new_time
         move_distance = self.speed * delta_time

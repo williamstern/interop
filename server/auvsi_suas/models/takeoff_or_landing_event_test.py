@@ -138,20 +138,20 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
 
     def test_user_in_air_no_logs(self):
         """Not in-air without logs."""
-        self.assertFalse(TakeoffOrLandingEvent.userInAir(self.user1))
+        self.assertFalse(TakeoffOrLandingEvent.user_in_air(self.user1))
 
     def test_user_in_air_before_landing(self):
         """In-air before landing."""
         self.create_event(self.year2000, True)
 
-        self.assertTrue(TakeoffOrLandingEvent.userInAir(self.user1))
+        self.assertTrue(TakeoffOrLandingEvent.user_in_air(self.user1))
 
     def test_user_in_air_after_landing(self):
         """Not in-air after landing."""
         self.create_event(self.year2000, True)
         self.create_event(self.year2000 + self.ten_minutes, False)
 
-        self.assertFalse(TakeoffOrLandingEvent.userInAir(self.user1))
+        self.assertFalse(TakeoffOrLandingEvent.user_in_air(self.user1))
 
     def test_user_in_air_second_flight(self):
         """In-air during second flight."""
@@ -160,7 +160,7 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
 
         self.create_event(self.year2001, True)
 
-        self.assertTrue(TakeoffOrLandingEvent.userInAir(self.user1))
+        self.assertTrue(TakeoffOrLandingEvent.user_in_air(self.user1))
 
     def test_user_in_air_time(self):
         """In-air base time check."""
@@ -169,4 +169,5 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
 
         time = self.year2000 + self.ten_minutes
 
-        self.assertTrue(TakeoffOrLandingEvent.userInAir(self.user1, time=time))
+        self.assertTrue(TakeoffOrLandingEvent.user_in_air(self.user1,
+                                                          time=time))

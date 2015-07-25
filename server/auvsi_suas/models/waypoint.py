@@ -17,11 +17,11 @@ class Waypoint(models.Model):
                        (str(self.pk), str(self.order),
                         self.position.__unicode__()))
 
-    def distanceTo(self, other):
+    def distance_to(self, other):
         """Computes distance to another waypoint.
         Args:
           other: The other waypoint.
         Returns:
           Distance in feet.
         """
-        return self.position.distanceTo(other.position)
+        return self.position.distance_to(other.position)

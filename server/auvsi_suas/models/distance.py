@@ -37,7 +37,7 @@ def haversine(lon1, lat1, lon2, lat2):
     return dist_km
 
 
-def distanceTo(
+def distance_to(
     latitude_1, longitude_1, altitude_1, latitude_2, longitude_2, altitude_2
 ):
     """Get the distance in feet between the two positions.
@@ -51,6 +51,6 @@ def distanceTo(
         altitude_2: The altitude in feet of the second position.
     """
     gps_dist_km = haversine(longitude_1, latitude_1, longitude_2, latitude_2)
-    gps_dist_ft = units.kilometersToFeet(gps_dist_km)
+    gps_dist_ft = units.kilometers_to_feet(gps_dist_km)
     alt_dist_ft = abs(altitude_1 - altitude_2)
     return math.hypot(gps_dist_ft, alt_dist_ft)

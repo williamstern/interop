@@ -11,7 +11,7 @@ from django.http import HttpResponseServerError
 
 
 @user_passes_test(lambda u: u.is_superuser)
-def getTeamEvaluationCsv(request):
+def team_evaluation_csv(request):
     """Evaluates the teams by forming a CSV containing useful stats."""
     logger.info('Admin downloaded team evaluation.')
     # Get the mission for evaluation
@@ -23,7 +23,7 @@ def getTeamEvaluationCsv(request):
         logger.warning('More than one mission defined, taking first.')
     mission = missions[0]
     # Get the eval data for the teams
-    user_eval_data = mission.evaluateTeams()
+    user_eval_data = mission.evaluate_teams()
     if not user_eval_data:
         logger.warning('No data for team evaluation.')
         return HttpResponseServerError('Could not get user evaluation data.')

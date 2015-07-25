@@ -1,7 +1,7 @@
 """Functions for converting between units."""
 
 
-def kilometersToFeet(kilometers):
+def kilometers_to_feet(kilometers):
     """Converts kilometers to feet.
 
     Args:
@@ -12,7 +12,7 @@ def kilometersToFeet(kilometers):
     return kilometers * 3280.8399
 
 
-def knotsToFeetPerSecond(knots):
+def knots_to_feet_per_second(knots):
     """Converts knots to feet per second.
 
     Args:

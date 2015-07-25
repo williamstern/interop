@@ -20,7 +20,7 @@ class StationaryObstacle(models.Model):
                                     str(self.cylinder_height),
                                     self.gps_position.__unicode__()))
 
-    def containsPos(self, aerial_pos):
+    def contains_pos(self, aerial_pos):
         """Whether the pos is contained within the obstacle.
 
         Args:
@@ -33,13 +33,13 @@ class StationaryObstacle(models.Model):
         if (aerial_alt < 0 or aerial_alt > self.cylinder_height):
             return False
         # Check lat/lon of position
-        dist_to_center = self.gps_position.distanceTo(aerial_pos.gps_position)
+        dist_to_center = self.gps_position.distance_to(aerial_pos.gps_position)
         if dist_to_center > self.cylinder_radius:
             return False
         # Both within altitude and radius bounds, inside cylinder
         return True
 
-    def evaluateCollisionWithUas(self, uas_telemetry_logs):
+    def evaluate_collision_with_uas(self, uas_telemetry_logs):
         """Evaluates whether the Uas logs indicate a collision.
 
         Args:
@@ -50,7 +50,7 @@ class StationaryObstacle(models.Model):
             obstacle.
         """
         for cur_log in uas_telemetry_logs:
-            if self.containsPos(cur_log.uas_position):
+            if self.contains_pos(cur_log.uas_position):
                 return True
         return False
 

@@ -122,7 +122,7 @@ class TestObstaclesViewCommon(TestCase):
 
 
 class TestObstaclesView(TestObstaclesViewCommon):
-    """Tests the getObstacles view."""
+    """Tests the obstacles view."""
 
     def test_post(self):
         """POST requests are not allowed."""
@@ -205,7 +205,7 @@ class TestObstaclesView(TestObstaclesViewCommon):
 
 
 class TestObstaclesViewSuperuser(TestObstaclesViewCommon):
-    """Tests the getObstacles view as superuser."""
+    """Tests the obstacles view as superuser."""
 
     def setUp(self):
         super(TestObstaclesViewSuperuser, self).setUp()

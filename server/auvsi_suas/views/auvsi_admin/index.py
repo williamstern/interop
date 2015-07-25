@@ -5,7 +5,7 @@ from django.shortcuts import render
 
 
 @user_passes_test(lambda u: u.is_superuser)
-def getIndex(request):
+def index(request):
     """Main view for users connecting via web browsers.
 
     This view downloads and displays a JS view. This view first logs in the

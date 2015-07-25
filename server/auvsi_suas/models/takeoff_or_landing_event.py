@@ -61,7 +61,7 @@ class TakeoffOrLandingEvent(AccessLog):
         return time_periods
 
     @classmethod
-    def userInAir(cls, user, time=None):
+    def user_in_air(cls, user, time=None):
         """Determine if given user is currently in-air
 
         Args:

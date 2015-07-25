@@ -9,7 +9,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 
 
-def postUasPosition(request):
+def post_uas_position(request):
     """Posts the UAS position with a POST request.
 
     User must send a POST request with the following paramters:

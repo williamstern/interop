@@ -16,11 +16,11 @@ class TestGpsPositionModel(TestCase):
 
     def assertDistanceEqual(self, pos1, pos2, dist, threshold=10):
         """GpsPosition distances are within threshold (ft)."""
-        self.assertAlmostEqual(pos1.distanceTo(pos2), dist, delta=threshold)
-        self.assertAlmostEqual(pos2.distanceTo(pos1), dist, delta=threshold)
+        self.assertAlmostEqual(pos1.distance_to(pos2), dist, delta=threshold)
+        self.assertAlmostEqual(pos2.distance_to(pos1), dist, delta=threshold)
 
     def evaluate_inputs(self, io_list):
-        """Evaluates the distanceTo calc with the given input list."""
+        """Evaluates the distance_to calc with the given input list."""
         for (lon1, lat1, lon2, lat2, dist_actual) in io_list:
             gps1 = GpsPosition(latitude=lat1, longitude=lon1)
             gps1.save()
