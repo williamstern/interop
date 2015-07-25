@@ -8,6 +8,10 @@
  * feet from the `home_pos`. The `y` axis represents the latitude direction,
  * with units of feet form the `home_pos`. The `z` axis represents altitude in
  * feet MSL.
+ *
+ * Nothing can be shared between canvases. Thus, only one renderer can use this
+ * service at a time. Whenever the renderer changes, the resources must be
+ * rebuilt via rebuildResources().
  */
 
 
@@ -43,13 +47,138 @@ MissionScene = function($rootScope, Distance, Units) {
     this.units_ = Units;
 
     /**
-     * @private @const {!Object} The sky light in the scene.
+     * @private @const {?Object} The sky light in the scene.
      */
-    this.skyLight_ = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.4);
+    this.skyLight_ = null;
 
     /**
-     * @private @const {!Object} The sun light in the scene.
+     * @private @const {?Object} The sun light in the scene.
      */
+    this.sunLight_ = null;
+
+    /**
+     * @private @const {?Object} The ground plane texture.
+     */
+    this.groundTexture_ = null;
+
+    /**
+     * @private @const {?Object} The ground plane material.
+     */
+    this.groundMaterial_ = null;
+
+    /**
+     * @private @const {?Object} The ground plane geometry.
+     */
+    this.groundGeometry_ = null;
+
+    /**
+     * @type @const {?Object} The ground plane mesh.
+     */
+    this.ground = null;
+
+    /**
+     * @private @const {!number} The radius to draw mission components.
+     */
+    this.missionComponentRadius_ = 20;
+
+    /**
+     * @private @const {?Object} The mission component geometry.
+     */
+    this.missionComponentGeometry_ = null;
+
+    /**
+     * @private @const {?Object} The mission component material.
+     */
+    this.missionComponentMaterial_ = null;
+
+    /**
+     * @private @const {?Object} The home position marker geometry.
+     */
+    this.homePosGeometry_ = null;
+
+    /**
+     * @private @const {?Object} The home position material.
+     */
+    this.homePosMaterial_ = null;
+
+    /**
+     * @private @const {?Object} The search grid marker geometry.
+     */
+    this.searchGridPtGeometry_ = null;
+
+    /**
+     * @private @const {?Object} The serach grid material.
+     */
+    this.searchGridPtMaterial_ = null;
+
+    /**
+     * @private @const {!number} The search grid line radius.
+     */
+    this.searchGridPtRadius_ = this.missionComponentRadius_;
+
+    /**
+     * @private @const {?Object} The search grid line material.
+     */
+    this.searchGridPtLineMaterial_ = null;
+
+    /**
+     * @private @const {?Object} The mission waypoint geometry.
+     */
+    this.missionWaypointGeometry_ = null;
+
+    /**
+     * @private @const {?Object} The mission waypoint material.
+     */
+    this.missionWaypointMaterial_ = null;
+
+    /**
+     * @private @const {?Object} The mission waypoint line material.
+     */
+    this.missionWaypointLineMaterial_ = null;
+
+    /**
+     * @private @const {?Object} The stationary obstacle geometry.
+     */
+    this.stationaryObstacleGeometry_ = null;
+
+    /**
+     * @private @const {?Object} The stationary obstacle material.
+     */
+    this.stationaryObstacleMaterial_ = null;
+
+    /**
+     * @private @const {?Object} The moving obstacle geometry.
+     */
+    this.movingObstacleGeometry_ = null;
+
+    /**
+     * @private @const {?Object} The moving obstacle material.
+     */
+    this.movingObstacleMaterial_ = null;
+
+    /**
+     * @private @const {?Object} The UAS telemetry geometry.
+     */
+    this.telemetryGeometry_ = null;
+
+    /**
+     * @private @const {!number} The UAS telemetry marker radius.
+     */
+    this.telemetryRadius_ = 20;
+
+    /**
+     * @private @const {?Object} The UAS telemetry material.
+     */
+    this.telemetryMaterial_ = null;
+};
+
+
+/**
+ * Rebuild the resources.
+ */
+MissionScene.prototype.rebuildResources = function() {
+    this.skyLight_ = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.4);
+
     this.sunLight_ = new THREE.DirectionalLight(0xffffff, 0.6);
     this.sunLight_.position.set(0, 0, 1000);
     this.sunLight_.castShadow = true;
@@ -63,9 +192,6 @@ MissionScene = function($rootScope, Distance, Units) {
     this.sunLight_.shadowDarkness = 0.5;
     this.sunLight_.shadowCameraVisible = true;
 
-    /**
-     * @private @const {!Object} The ground plane texture.
-     */
     this.groundTexture_ = THREE.ImageUtils.loadTexture(
             '/static/auvsi_suas/components/' +
             'mission-scene-service/img/ground.jpg');
@@ -74,124 +200,43 @@ MissionScene = function($rootScope, Distance, Units) {
     this.groundTexture_.magFilter = THREE.LinearFilter;
     this.groundTexture_.minFilter = THREE.LinearFilter;
     this.groundTexture_.repeat.set(1000, 1000);
-
-    /**
-     * @private @const {!Object} The ground plane material.
-     */
     this.groundMaterial_ = new THREE.MeshPhongMaterial(
             {color: 0x526f35,
              specular: 0xffffff,
              shininess: 0,
              map: this.groundTexture_});
-
-    /**
-     * @private @const {!Object} The ground plane geometry.
-     */
     this.groundGeometry_ = new THREE.PlaneBufferGeometry(1, 1);
+    this.ground = new THREE.Mesh(this.groundGeometry_, this.groundMaterial_);
+    this.ground.scale.set(100000, 100000, 100000);
+    this.ground.receiveShadow = true;
 
-    /**
-     * @type @const {?Object} The ground plane mesh.
-     */
-    this.ground = null;
 
-    /**
-     * @private @const {!number} The radius to draw mission components.
-     */
-    this.missionComponentRadius_ = 20;
-
-    /**
-     * @private @const {!Object} The mission component geometry.
-     */
     this.missionComponentGeometry_ = new THREE.SphereGeometry(1, 32, 32);
-
-    /**
-     * @private @const {!Object} The mission component material.
-     */
     this.missionComponentMaterial_ = new THREE.MeshPhongMaterial(
             {color: 0xffffff});
 
-    /**
-     * @private @const {!Object} The home position marker geometry.
-     */
     this.homePosGeometry_ = this.missionComponentGeometry_;
-
-    /**
-     * @private @const {!Object} The home position material.
-     */
     this.homePosMaterial_ = new THREE.MeshPhongMaterial({color: 0x00ff00});
 
-    /**
-     * @private @const {!Object} The search grid marker geometry.
-     */
     this.searchGridPtGeometry_ = this.missionComponentGeometry_;
-
-    /**
-     * @private @const {!Object} The serach grid material.
-     */
     this.searchGridPtMaterial_ = new THREE.MeshPhongMaterial({color: 0x00ffff});
-
-    /**
-     * @private @const {!number} The search grid line radius.
-     */
-    this.searchGridPtRadius_ = this.missionComponentRadius_;
-
-    /**
-     * @private @const {!Object} The search grid line material.
-     */
     this.searchGridPtLineMaterial_ = new THREE.LineDashedMaterial(
             {color: 0x00ffff});
 
-    /**
-     * @private @const {!Object} The mission waypoint geometry.
-     */
     this.missionWaypointGeometry_ = this.missionComponentGeometry_;
-
-    /**
-     * @private @const {!Object} The mission waypoint material.
-     */
     this.missionWaypointMaterial_ = new THREE.MeshPhongMaterial(
             {color: 0x0000ff, opacity: 0.7, transparent: true});
-
-    /**
-     * @private @const {!Object} The mission waypoint line material.
-     */
     this.missionWaypointLineMaterial_ = new THREE.LineDashedMaterial(
             {color: 0x0000ff});
 
-    /**
-     * @private @const {!Object} The stationary obstacle geometry.
-     */
     this.stationaryObstacleGeometry_ = new THREE.CylinderGeometry(1, 1, 1, 32);
-
-    /**
-     * @private @const {!Object} The stationary obstacle material.
-     */
     this.stationaryObstacleMaterial_ = new THREE.MeshPhongMaterial(
             {color: 0xff0000, opacity: 0.7, transparent: true});
 
-    /**
-     * @private @const {!Object} The moving obstacle geometry.
-     */
     this.movingObstacleGeometry_ = this.missionComponentGeometry_;
-
-    /**
-     * @private @const {!Object} The moving obstacle material.
-     */
     this.movingObstacleMaterial_ = this.stationaryObstacleMaterial_;
 
-    /**
-     * @private @const {!Object} The UAS telemetry geometry.
-     */
     this.telemetryGeometry_ = this.missionComponentGeometry_;
-
-    /**
-     * @private @const {!number} The UAS telemetry marker radius.
-     */
-    this.telemetryRadius_ = 20;
-
-    /**
-     * @private @const {!Object} The UAS telemetry material.
-     */
     this.telemetryMaterial_ = new THREE.MeshPhongMaterial(
             {color: 0xffff00});
 };
@@ -206,6 +251,11 @@ MissionScene = function($rootScope, Distance, Units) {
 MissionScene.prototype.rebuildScene = function(mission, obstacles, telemetry) {
     // Create fresh scene for rebuild.
     var scene = new THREE.Scene();
+
+    // Check that resources are built.
+    if (!this.groundGeometry_) {
+        this.rebuildResources();
+    }
 
     // Add the base scene elements.
     this.addBaseSceneElements_(scene);
@@ -231,11 +281,6 @@ MissionScene.prototype.rebuildScene = function(mission, obstacles, telemetry) {
  * @private
  */
 MissionScene.prototype.addBaseSceneElements_ = function(scene) {
-    // Create the ground plane mesh.
-    this.ground = new THREE.Mesh(this.groundGeometry_, this.groundMaterial_);
-    this.ground.scale.set(100000, 100000, 100000);
-    this.ground.receiveShadow = true;
-
     // Add the ground plane.
     scene.add(this.ground);
 

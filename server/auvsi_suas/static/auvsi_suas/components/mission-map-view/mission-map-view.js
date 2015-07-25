@@ -49,6 +49,11 @@ MissionMapView = function($window, MissionScene) {
     this.height_ = null;
 
     /**
+     * @private {!number} Whether the renderer is active.
+     */
+    this.renderActive_ = false;
+
+    /**
      * @private {?Object} The WebGL renderer.
      */
     this.renderer_ = null;
@@ -122,6 +127,9 @@ MissionMapView.prototype.link = function(scope, element, attrs) {
     // Set camera and renderer sizes.
     this.setCameraAndRendererSize_();
 
+    // Whenever the renderer is rebuilt, resources must be as well.
+    this.missionScene_.rebuildResources();
+
     // Whenever the window resizes, update the camera and renderer.
     angular.element(this.window_).on(
             'resize', angular.bind(this, this.setCameraAndRendererSize_));
@@ -137,7 +145,23 @@ MissionMapView.prototype.link = function(scope, element, attrs) {
             'mousewheel', angular.bind(this, this.mouseScrolled_));
 
     // Start render loop.
+    this.renderActive_ = true;
     this.render_();
+
+    // When directive destroyed, unlink.
+    scope.$on('$destroy', angular.bind(this, this.unlink_));
+};
+
+
+/**
+ * Stop the renderer and destroy instances.
+ * @private
+ */
+MissionMapView.prototype.unlink_ = function() {
+    console.log('unlink');
+    this.renderActive_ = false;
+    this.camera_ = null;
+    this.renderer_ = null;
 };
 
 
@@ -260,10 +284,12 @@ MissionMapView.prototype.mouseScrolled_ = function(event) {
  * @private
  */
 MissionMapView.prototype.render_ = function() {
-    requestAnimationFrame(angular.bind(this, this.render_));
-
     if (!!this.missionScene_.scene && !!this.camera_) {
         this.renderer_.render(this.missionScene_.scene, this.camera_);
+    }
+
+    if (this.renderActive_) {
+        requestAnimationFrame(angular.bind(this, this.render_));
     }
 };
 
