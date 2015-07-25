@@ -14,9 +14,9 @@
  */
 MissionListCtrl = function(Backend) {
     /**
-     * @private @const {!Object} The backend service.
+     * @export @const {!Object} The backend service.
      */
-    this.backend_ = Backend;
+    this.backend = Backend;
 };
 
 
@@ -26,7 +26,7 @@ MissionListCtrl = function(Backend) {
  * @export
  */
 MissionListCtrl.prototype.hasMissions = function() {
-    return !!this.backend_.missions && this.backend_.missions.length != 0;
+    return !!this.backend.missions && this.backend.missions.length != 0;
 };
 
 

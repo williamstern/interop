@@ -90,11 +90,9 @@ MissionScene = function($rootScope, Distance, Units) {
     this.groundGeometry_ = new THREE.PlaneBufferGeometry(1, 1);
 
     /**
-     * @type @const {!Object} The ground plane mesh.
+     * @type @const {?Object} The ground plane mesh.
      */
-    this.ground = new THREE.Mesh(this.groundGeometry_, this.groundMaterial_);
-    this.ground.scale.set(100000, 100000, 100000);
-    this.ground.receiveShadow = true;
+    this.ground = null;
 
     /**
      * @private @const {!number} The radius to draw mission components.
@@ -209,14 +207,10 @@ MissionScene.prototype.rebuildScene = function(mission, obstacles, telemetry) {
     // Create fresh scene for rebuild.
     var scene = new THREE.Scene();
 
-    // Add the ground plane.
-    scene.add(this.ground);
+    // Add the base scene elements.
+    this.addBaseSceneElements_(scene);
 
-    // Add the light.
-    scene.add(this.skyLight_);
-    scene.add(this.sunLight_);
-
-    // Build mission scene components. Requires a mission and home position.
+    // Build mission scene elements. Requires a mission and home position.
     if (!!mission && !!mission.home_pos) {
         this.addMissionSceneElements_(mission, scene);
         this.addObstacleSceneElements_(
@@ -228,6 +222,26 @@ MissionScene.prototype.rebuildScene = function(mission, obstacles, telemetry) {
     // Update the scene and notify others.
     this.scene = scene;
     this.rootScope_.$broadcast('MissionScene.sceneUpdated');
+};
+
+
+/**
+ * Creates and adds the base scene elements.
+ * @param {!Object} scene The scene to add elements to.
+ * @private
+ */
+MissionScene.prototype.addBaseSceneElements_ = function(scene) {
+    // Create the ground plane mesh.
+    this.ground = new THREE.Mesh(this.groundGeometry_, this.groundMaterial_);
+    this.ground.scale.set(100000, 100000, 100000);
+    this.ground.receiveShadow = true;
+
+    // Add the ground plane.
+    scene.add(this.ground);
+
+    // Add the light.
+    scene.add(this.skyLight_);
+    scene.add(this.sunLight_);
 };
 
 
