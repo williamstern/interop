@@ -1,5 +1,5 @@
 /**
- * Service to interact with backend.
+ * @fileoverview Service to interact with backend.
  * The data will be synced with the backend at a regular interval. You can
  * access the data via public fields of the service. When data is updated it
  * will broadcast an 'Backend.dataUpdated' event.
@@ -7,82 +7,88 @@
 
 
 /**
- * Service to interact with backend.
- * @param $resource The resource service.
- * @param $interval The interval service.
- * @param $rootScope The root scope service.
+ * Service to interact with the backend.
+ * @param {!angular.Scope} $rootScope The root scope service.
+ * @param {!angular.Resource} $resource The resource service.
+ * @param {!angular.$interval} $interval The interval service.
+ * @final
+ * @constructor
+ * @struct
+ * @ngInject
  */
-Backend = function($resource, $interval, $rootScope) {
+Backend = function($rootScope, $resource, $interval) {
     /**
-     * Missions backend interface.
-     */
-    this.Missions = $resource('/api/missions');
-
-    /**
-     * Teams backend interface.
-     */
-    this.Teams = $resource('/api/teams');
-
-    /**
-     * Obstacles backend interface.
-     */
-    this.Obstacles = $resource('/api/interop/obstacles', {log: false});
-
-    /**
-     * Telemetry backend interface.
-     */
-    this.Telemetry = $resource('/api/telemetry');
-
-    /**
-     * The missions. 
+     * @export {?Object} The missions data.
      */
     this.missions = null;
 
     /**
-     * The teams.
+     * @export {?Object} The teams data.
      */
     this.teams = null;
 
     /**
-     * The obstacles.
+     * @export {?Object} The obstacles data.
      */
     this.obstacles = null;
 
     /**
-     * The telemetry.
+     * @export {?Object} The telemetry data.
      */
     this.telemetry = null;
 
     /**
-     * The update which syncs with the backend periodically (1s).
-     */
-    this.updateInterval = $interval(angular.bind(this, this.update), 1000);
-
-    /**
-     * The root scope service.
+     * @private @const {!angular.Scope} The root scope service.
      */
     this.rootScope_ = $rootScope;
+
+    /**
+     * @private @const {!Object} Missions backend interface.
+     */
+    this.missionResource_ = $resource('/api/missions');
+
+    /**
+     * @private @const {!Object} Teams backend interface.
+     */
+    this.teamsResource_ = $resource('/api/teams');
+
+    /**
+     * @private @const {!Object} Obstacles backend interface.
+     */
+    this.obstaclesResource_ = $resource('/api/interop/obstacles', {log: false});
+
+    /**
+     * @private @const {!Object} Telemetry backend interface.
+     */
+    this.telemetryResource_ = $resource('/api/telemetry');
+
+    /**
+     * @private @const {!Object} The update which syncs with the backend (1s).
+     */
+    this.updateInterval_ = $interval(angular.bind(this, this.update_), 1000);
 };
 
 
 /**
  * Executes asynchronous updates with the backend.
+ * @private
  */
-Backend.prototype.update = function() {
+Backend.prototype.update_ = function() {
     // Execute all asynchronous background syncs.
-    this.Missions.query({}).$promise.then(
-            angular.bind(this, this.setMissions));
-    this.Teams.query({}).$promise.then(
-            angular.bind(this, this.setTeams));
-    this.Obstacles.get({}).$promise.then(
-            angular.bind(this, this.setObstacles));
-    this.Telemetry.query({limit: 1}).$promise.then(
-            angular.bind(this, this.setTelemetry));
+    this.missionResource_.query({}).$promise.then(
+            angular.bind(this, this.setMissions_));
+    this.teamsResource_.query({}).$promise.then(
+            angular.bind(this, this.setTeams_));
+    this.obstaclesResource_.get({}).$promise.then(
+            angular.bind(this, this.setObstacles_));
+    this.telemetryResource_.query({limit: 1}).$promise.then(
+            angular.bind(this, this.setTelemetry_));
 };
 
 
 /**
  * Notifies others of data change by broadcasting an event.
+ * @private
  */
 Backend.prototype.notifyDataUpdated_ = function() {
     this.rootScope_.$broadcast('Backend.dataUpdated');
@@ -91,9 +97,10 @@ Backend.prototype.notifyDataUpdated_ = function() {
 
 /**
  * Sets the missions.
- * @param missions The missions to set.
+ * @param {!Object} missions The missions to set.
+ * @private
  */
-Backend.prototype.setMissions = function(missions) {
+Backend.prototype.setMissions_ = function(missions) {
     this.missions = missions;
     this.notifyDataUpdated_();
 };
@@ -101,9 +108,10 @@ Backend.prototype.setMissions = function(missions) {
 
 /**
  * Sets the teams.
- * @param teams The teams to set.
+ * @param {!Object} teams The teams to set.
+ * @private
  */
-Backend.prototype.setTeams = function(teams) {
+Backend.prototype.setTeams_ = function(teams) {
     this.teams = teams;
     this.notifyDataUpdated_();
 };
@@ -111,9 +119,10 @@ Backend.prototype.setTeams = function(teams) {
 
 /**
  * Sets the obstacles.
- * @param obstacles The obstacles to set.
+ * @param {!Object} obstacles The obstacles to set.
+ * @private
  */
-Backend.prototype.setObstacles = function(obstacles) {
+Backend.prototype.setObstacles_ = function(obstacles) {
     this.obstacles = obstacles;
     this.notifyDataUpdated_();
 };
@@ -121,9 +130,10 @@ Backend.prototype.setObstacles = function(obstacles) {
 
 /**
  * Sets the telemetry.
- * @param telemetry The telemetry to set.
+ * @param {!Object} telemetry The telemetry to set.
+ * @private
  */
-Backend.prototype.setTelemetry = function(telemetry) {
+Backend.prototype.setTelemetry_ = function(telemetry) {
     this.telemetry = telemetry;
     this.notifyDataUpdated_();
 };
@@ -131,8 +141,8 @@ Backend.prototype.setTelemetry = function(telemetry) {
 
 // Register the service.
 angular.module('auvsiSuasApp').service('Backend', [
+    '$rootScope',
     '$resource',
     '$interval',
-    '$rootScope',
     Backend
 ]);

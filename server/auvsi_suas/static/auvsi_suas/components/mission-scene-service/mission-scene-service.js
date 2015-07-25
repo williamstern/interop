@@ -1,5 +1,5 @@
 /**
- * Service to build 3D scenes representing missions.
+ * @fileoverview Service to build 3D scenes representing missions.
  * The built scene can be accessed via public fields of the service. When the
  * scene is rebuilt it will broadcast an 'MissionScene.sceneUpdated' event.
  *
@@ -13,97 +13,187 @@
 
 /**
  * Service to build 3D scenes representing missions.
- * @param $rootScope The root scope service.
- * @param Distance The distance service.
- * @param Units The units service.
+ * @param {!angular.Scope} $rootScope The root scope service.
+ * @param {!Object} Distance The distance service.
+ * @param {!Object} Units The units service.
+ * @final
+ * @constructor
+ * @struct
+ * @ngInject
  */
 MissionScene = function($rootScope, Distance, Units) {
     /**
-     * The root scope service.
-     */
-    this.rootScope_ = $rootScope;
-
-    /**
-     * The distance service.
-     */
-    this.distance_ = Distance;
-
-    /**
-     * The units service.
-     */
-    this.units_ = Units;
-
-    /**
-     * The scene that is built by the service.
+     * @type {?Object} The scene that is built by the service.
      */
     this.scene = null;
 
     /**
-     * The light in the scene.
+     * @private @const {!angular.Scope} The root scope service.
      */
-    this.skyLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.4);
-    this.sunLight = new THREE.DirectionalLight(0xffffff, 0.6);
-    this.sunLight.position.set(0, 0, 1000);
-    this.sunLight.castShadow = true;
-    this.sunLight.shadowCameraFar = 10000;
-    this.sunLight.shadowCameraLeft = -5000;
-    this.sunLight.shadowCameraRight = 5000;
-    this.sunLight.shadowCameraTop = 5000;
-    this.sunLight.shadowCameraBottom = -5000;
-    this.sunLight.shadowMapWidth = 10000;
-    this.sunLight.shadowMapHeight = 10000;
-    this.sunLight.shadowDarkness = 0.5;
-    this.sunLight.shadowCameraVisible = true;
+    this.rootScope_ = $rootScope;
 
     /**
-     * The ground plane.
+     * @private @const {!Object} The distance service.
+     */
+    this.distance_ = Distance;
+
+    /**
+     * @private @const {!Object} The units service.
+     */
+    this.units_ = Units;
+
+    /**
+     * @private @const {!Object} The sky light in the scene.
+     */
+    this.skyLight_ = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.4);
+
+    /**
+     * @private @const {!Object} The sun light in the scene.
+     */
+    this.sunLight_ = new THREE.DirectionalLight(0xffffff, 0.6);
+    this.sunLight_.position.set(0, 0, 1000);
+    this.sunLight_.castShadow = true;
+    this.sunLight_.shadowCameraFar = 10000;
+    this.sunLight_.shadowCameraLeft = -5000;
+    this.sunLight_.shadowCameraRight = 5000;
+    this.sunLight_.shadowCameraTop = 5000;
+    this.sunLight_.shadowCameraBottom = -5000;
+    this.sunLight_.shadowMapWidth = 10000;
+    this.sunLight_.shadowMapHeight = 10000;
+    this.sunLight_.shadowDarkness = 0.5;
+    this.sunLight_.shadowCameraVisible = true;
+
+    /**
+     * @private @const {!Object} The ground plane texture.
      */
     this.groundTexture_ = THREE.ImageUtils.loadTexture(
-            '/static/auvsi_suas/components/mission-scene-service/img/ground.jpg');
+            '/static/auvsi_suas/components/' +
+            'mission-scene-service/img/ground.jpg');
     this.groundTexture_.wrapS = THREE.RepeatWrapping;
     this.groundTexture_.wrapT = THREE.RepeatWrapping;
     this.groundTexture_.magFilter = THREE.LinearFilter;
     this.groundTexture_.minFilter = THREE.LinearFilter;
     this.groundTexture_.repeat.set(1000, 1000);
-    this.groundMaterial_ = new THREE.MeshPhongMaterial({color: 0x526f35, specular: 0xffffff, shininess: 0, map: this.groundTexture_});
+
+    /**
+     * @private @const {!Object} The ground plane material.
+     */
+    this.groundMaterial_ = new THREE.MeshPhongMaterial(
+            {color: 0x526f35,
+             specular: 0xffffff,
+             shininess: 0,
+             map: this.groundTexture_});
+
+    /**
+     * @private @const {!Object} The ground plane geometry.
+     */
     this.groundGeometry_ = new THREE.PlaneBufferGeometry(1, 1);
+
+    /**
+     * @type @const {!Object} The ground plane mesh.
+     */
     this.ground = new THREE.Mesh(this.groundGeometry_, this.groundMaterial_);
     this.ground.scale.set(100000, 100000, 100000);
     this.ground.receiveShadow = true;
 
     /**
-     * The mission component geometries and materials.
+     * @private @const {!number} The radius to draw mission components.
      */
     this.missionComponentRadius_ = 20;
+
+    /**
+     * @private @const {!Object} The mission component geometry.
+     */
     this.missionComponentGeometry_ = new THREE.SphereGeometry(1, 32, 32);
-    this.missionComponentMaterial_ = new THREE.MeshPhongMaterial({color: 0xffffff});
+
+    /**
+     * @private @const {!Object} The mission component material.
+     */
+    this.missionComponentMaterial_ = new THREE.MeshPhongMaterial(
+            {color: 0xffffff});
+
+    /**
+     * @private @const {!Object} The home position marker geometry.
+     */
     this.homePosGeometry_ = this.missionComponentGeometry_;
+
+    /**
+     * @private @const {!Object} The home position material.
+     */
     this.homePosMaterial_ = new THREE.MeshPhongMaterial({color: 0x00ff00});
+
+    /**
+     * @private @const {!Object} The search grid marker geometry.
+     */
     this.searchGridPtGeometry_ = this.missionComponentGeometry_;
+
+    /**
+     * @private @const {!Object} The serach grid material.
+     */
     this.searchGridPtMaterial_ = new THREE.MeshPhongMaterial({color: 0x00ffff});
+
+    /**
+     * @private @const {!number} The search grid line radius.
+     */
     this.searchGridPtRadius_ = this.missionComponentRadius_;
+
+    /**
+     * @private @const {!Object} The search grid line material.
+     */
     this.searchGridPtLineMaterial_ = new THREE.LineDashedMaterial(
             {color: 0x00ffff});
+
+    /**
+     * @private @const {!Object} The mission waypoint geometry.
+     */
     this.missionWaypointGeometry_ = this.missionComponentGeometry_;
+
+    /**
+     * @private @const {!Object} The mission waypoint material.
+     */
     this.missionWaypointMaterial_ = new THREE.MeshPhongMaterial(
             {color: 0x0000ff, opacity: 0.7, transparent: true});
+
+    /**
+     * @private @const {!Object} The mission waypoint line material.
+     */
     this.missionWaypointLineMaterial_ = new THREE.LineDashedMaterial(
             {color: 0x0000ff});
 
     /**
-     * The obstacle geometries and materials.
+     * @private @const {!Object} The stationary obstacle geometry.
      */
     this.stationaryObstacleGeometry_ = new THREE.CylinderGeometry(1, 1, 1, 32);
+
+    /**
+     * @private @const {!Object} The stationary obstacle material.
+     */
     this.stationaryObstacleMaterial_ = new THREE.MeshPhongMaterial(
             {color: 0xff0000, opacity: 0.7, transparent: true});
+
+    /**
+     * @private @const {!Object} The moving obstacle geometry.
+     */
     this.movingObstacleGeometry_ = this.missionComponentGeometry_;
+
+    /**
+     * @private @const {!Object} The moving obstacle material.
+     */
     this.movingObstacleMaterial_ = this.stationaryObstacleMaterial_;
 
     /**
-     * The telemetry geometries and materials.
+     * @private @const {!Object} The UAS telemetry geometry.
      */
     this.telemetryGeometry_ = this.missionComponentGeometry_;
+
+    /**
+     * @private @const {!number} The UAS telemetry marker radius.
+     */
     this.telemetryRadius_ = 20;
+
+    /**
+     * @private @const {!Object} The UAS telemetry material.
+     */
     this.telemetryMaterial_ = new THREE.MeshPhongMaterial(
             {color: 0xffff00});
 };
@@ -111,8 +201,9 @@ MissionScene = function($rootScope, Distance, Units) {
 
 /**
  * Rebuild the scene with the given mission data.
- * @param mission The mission configuration.
- * @param obstacles The obstacles data.  * @param telemetry The UAS telemetry data.
+ * @param {!Object} mission The mission configuration.
+ * @param {!Object} obstacles The obstacles data.
+ * @param {!Object} telemetry The UAS telemetry data.
  */
 MissionScene.prototype.rebuildScene = function(mission, obstacles, telemetry) {
     // Create fresh scene for rebuild.
@@ -122,8 +213,8 @@ MissionScene.prototype.rebuildScene = function(mission, obstacles, telemetry) {
     scene.add(this.ground);
 
     // Add the light.
-    scene.add(this.skyLight);
-    scene.add(this.sunLight);
+    scene.add(this.skyLight_);
+    scene.add(this.sunLight_);
 
     // Build mission scene components. Requires a mission and home position.
     if (!!mission && !!mission.home_pos) {
@@ -142,8 +233,9 @@ MissionScene.prototype.rebuildScene = function(mission, obstacles, telemetry) {
 
 /**
  * Adds the mission elements to the scene.
- * @param mission The mission components to add.
- * @param scene The scene to add elements to.
+ * @param {!Object} mission The mission components to add.
+ * @param {!Object} scene The scene to add elements to.
+ * @private
  */
 MissionScene.prototype.addMissionSceneElements_ = function(mission, scene) {
     // Add home position.
@@ -227,19 +319,21 @@ MissionScene.prototype.addMissionSceneElements_ = function(mission, scene) {
 
 /**
  * Adds the obstacle elements to the scene.
- * @param mission The mission components to add.
- * @param obstacles The obstacles to add.
- * @param refPos A reference GPS position to convert GPS to reference frame.
- * @param scene The scene to add elements to.
+ * @param {!Object} mission The mission components to add.
+ * @param {!Object} obstacles The obstacles to add.
+ * @param {!Object} refPos A reference GPS position to convert GPS to reference
+ *      frame.
+ * @param {!Object} scene The scene to add elements to.
+ * @private
  */
 MissionScene.prototype.addObstacleSceneElements_ = function(
         mission, obstacles, refPos, scene) {
     for (var i = 0; i < obstacles.stationary_obstacles.length; i++) {
         var obstacle = obstacles.stationary_obstacles[i];
         var obstacleObj = this.createObject_(
-                this.stationaryObstacleGeometry_, this.stationaryObstacleMaterial_,
-                obstacle, obstacle.cylinder_height/2, mission.home_pos,
-                1, scene);
+                this.stationaryObstacleGeometry_,
+                this.stationaryObstacleMaterial_, obstacle,
+                obstacle.cylinder_height/2, mission.home_pos, 1, scene);
         obstacleObj.scale.set(
                 obstacle.cylinder_radius, obstacle.cylinder_height,
                 obstacle.cylinder_radius);
@@ -258,10 +352,12 @@ MissionScene.prototype.addObstacleSceneElements_ = function(
 
 /**
  * Adds the telemetry elements to the scene.
- * @param mission The mission components to add.
- * @param telemetry The telemetry to add.
- * @param refPos A reference GPS position to convert GPS to reference frame.
- * @param scene The scene to add elements to.
+ * @param {!Object} mission The mission components to add.
+ * @param {!Object} telemetry The telemetry to add.
+ * @param {!Object} refPos A reference GPS position to convert GPS to reference
+ *     frame.
+ * @param {!Object} scene The scene to add elements to.
+ * @private
  */
 MissionScene.prototype.addTelemetrySceneElements_ = function(
         mission, telemetry, refPos, scene) {
@@ -277,15 +373,19 @@ MissionScene.prototype.addTelemetrySceneElements_ = function(
 
 /**
  * Sets the position of the object to the given GPS position.
- * @param pos The gps position with latitude and longitude fields.
- * @param alt The altitude in feet.
- * @param refPos The reference GPS position to convert GPS to reference frame.
- * @param objPos The object position with x,y fields.
+ * @param {!Object} pos The gps position with latitude and longitude fields.
+ * @param {!number} alt The altitude in feet.
+ * @param {!Object} refPos The reference GPS position to convert GPS to
+ *     reference frame.
+ * @param {!Object} objPos The object position with x,y fields.
+ * @private
  */
 MissionScene.prototype.setObjectPosition_ = function(pos, alt, refPos, objPos) {
     // Compute distance components in lat/lon axis.
-    var distX = this.distance_.haversine(refPos.latitude, pos.longitude, refPos.latitude, refPos.longitude);
-    var distY = this.distance_.haversine(pos.latitude, refPos.longitude, refPos.latitude, refPos.longitude);
+    var distX = this.distance_.haversine(
+            refPos.latitude, pos.longitude, refPos.latitude, refPos.longitude);
+    var distY = this.distance_.haversine(
+            pos.latitude, refPos.longitude, refPos.latitude, refPos.longitude);
     // Set the position.
     objPos.x = Math.sign(pos.longitude - refPos.longitude) * distX;
     objPos.y = Math.sign(pos.latitude- refPos.latitude) * distY;
@@ -295,14 +395,15 @@ MissionScene.prototype.setObjectPosition_ = function(pos, alt, refPos, objPos) {
 
 /**
  * Creates a scene object with standard properties.
- * @param geometry The geometry to use.
- * @param material The material to use.
- * @param pos The position to use.
- * @param alt The latitude to use.
- * @param refPos The reference position for reference frame.
- * @param scale The object scale.
- * @param scene The scene to add the object to.
- * @return The object that was created and added to the scene.
+ * @param {!Object} geometry The geometry to use.
+ * @param {!Object} material The material to use.
+ * @param {!Object} pos The position to use.
+ * @param {!number} alt The latitude to use.
+ * @param {!Object} refPos The reference position for reference frame.
+ * @param {!number} scale The object scale.
+ * @param {!Object} scene The scene to add the object to.
+ * @return {!Object} The object that was created and added to the scene.
+ * @private
  */
 MissionScene.prototype.createObject_ = function(
         geometry, material, pos, alt ,refPos, scale, scene) {

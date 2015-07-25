@@ -1,11 +1,12 @@
 /**
- * Main application definition for frontend of the AUVSI SUAS server.
+ * @fileoverview Main application definition. This sets up the angular module
+ * and the routes.
  */
 
 
 
 /**
- * Application module.
+ * @export {!angular.Module} Application module.
  */
 var auvsiSuasApp = angular.module('auvsiSuasApp', [
     'ngResource',
@@ -14,7 +15,7 @@ var auvsiSuasApp = angular.module('auvsiSuasApp', [
 
 
 
-// Configure route to template and controller.
+// Configure routes to templates and controllers.
 auvsiSuasApp.config(['$routeProvider', function($routeProvider) {
     $routeProvider.
         when('/', {

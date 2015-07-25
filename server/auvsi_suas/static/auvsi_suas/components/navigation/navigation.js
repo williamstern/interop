@@ -1,11 +1,15 @@
 /**
- * Navigation controller for main application navigation.
+ * @fileoverview Navigation controller for main application navigation.
  */
 
 
 /**
  * Navigation controller for main application navigation.
- * @param $routeParams The routeParams service.
+ * @param {!angular.$routeParams} $routeParams The routeParams service.
+ * @final
+ * @constructor
+ * @struct
+ * @ngInject
  */
 NavigationCtrl = function($routeParams) {
     /**
@@ -17,7 +21,8 @@ NavigationCtrl = function($routeParams) {
 
 /**
  * Whether to show mission-specific links.
- * @returns Whether a mission is specified and links should be showed.
+ * @return {!boolean} Whether a mission is specified and links should be showed.
+ * @export
  */
 NavigationCtrl.prototype.shouldShowMissionLinks = function() {
     return !!this.routeParams['missionId'];

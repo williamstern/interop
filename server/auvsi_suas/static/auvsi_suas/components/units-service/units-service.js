@@ -1,10 +1,13 @@
 /**
- * Service to perform unit calculations.
+ * @fileoverview Service to perform unit calculations.
  */
 
 
 /**
  * Service to perform unit calculations.
+ * @final
+ * @constructor
+ * @struct
  */
 Units = function() {
 };
@@ -12,8 +15,8 @@ Units = function() {
 
 /**
  * Converts degrees to radians.
- * @param deg The degree to convert.
- * @return The value in radians.
+ * @param {!number} deg The degree to convert.
+ * @return {!number} The value in radians.
  */
 Units.prototype.degToRad = function(deg) {
     return deg * (Math.PI/180);
@@ -22,8 +25,8 @@ Units.prototype.degToRad = function(deg) {
 
 /**
  * Converts kilometers to feet.
- * @param km The distance in kilometers.
- * @return The distance in feet.
+ * @param {!number} km The distance in kilometers.
+ * @return {!number} The distance in feet.
  */
 Units.prototype.kmToFt = function(km) {
     return km * 3280.8399;

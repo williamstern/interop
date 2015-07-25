@@ -6,46 +6,52 @@
 
 /**
  * Controller for the Mission Dashboard page.
- * @param $rootScope The root scope to listen for events.
- * @param Backend The backend service.
- * @param MissionScene The mission scene building service.
+ * @param {!angular.Scope} $rootScope The root scope to listen for events.
+ * @param {!angular.$routeParams} $routeParams The route parameter service.
+ * @param {!Object} Backend The backend service.
+ * @param {!Object} MissionScene The mission scene building service.
+ * @final
+ * @constructor
+ * @struct
+ * @ngInject
  */
 MissionDashboardCtrl = function(
         $rootScope, $routeParams, Backend, MissionScene) {
     /**
-     * The route params service.
+     * @private @const {!angular.$routeParams} The route params service.
      */
     this.routeParams_ = $routeParams;
 
     /**
-     * The backend service.
+     * @private @const {!Object} The backend service.
      */
-    this.Backend = Backend;
+    this.backend_ = Backend;
 
     /**
-     * The mission scene buildling service.
+     * @private @const {!Object} The mission scene buildling service.
      */
-    this.MissionScene = MissionScene;
+    this.missionScene_ = MissionScene;
 
     // Whenever the backend data is updated, rebuild the scene.
     $rootScope.$on(
             'Backend.dataUpdated',
-            angular.bind(this, this.rebuildMissionScene));
+            angular.bind(this, this.rebuildMissionScene_));
 };
 
 
 /**
  * Gets the current mission.
- * @return The current mission.
+ * @return {?Object} The current mission.
+ * @private
  */
-MissionDashboardCtrl.prototype.getCurrentMission = function() {
+MissionDashboardCtrl.prototype.getCurrentMission_ = function() {
     var missionId = this.routeParams_['missionId'];
-    if (!missionId || !this.Backend.missions) {
+    if (!missionId || !this.backend_.missions) {
         return null;
     }
 
-    for (var i = 0; i < this.Backend.missions.length; i++) {
-        var mission = this.Backend.missions[i];
+    for (var i = 0; i < this.backend_.missions.length; i++) {
+        var mission = this.backend_.missions[i];
         if (mission.id == missionId) {
             return mission;
         }
@@ -57,29 +63,32 @@ MissionDashboardCtrl.prototype.getCurrentMission = function() {
 
 /**
  * Rebuild the mission scene using the backend data.
+ * @private
  */
-MissionDashboardCtrl.prototype.rebuildMissionScene = function() {
+MissionDashboardCtrl.prototype.rebuildMissionScene_ = function() {
     // Get the current mission.
-    this.MissionScene.rebuildScene(
-            this.getCurrentMission(), this.Backend.obstacles,
-            this.Backend.telemetry);
+    this.missionScene_.rebuildScene(
+            this.getCurrentMission_(), this.backend_.obstacles,
+            this.backend_.telemetry);
 };
 
 
 /**
  * Determines whether a team is active or in-air.
- * @param team The team to test.
- * @returns Whether team is active or in-air.
+ * @param {!Object} team The team to test.
+ * @return {!boolean} Whether team is active or in-air.
+ * @private
  */
-MissionDashboardCtrl.prototype.isTeamActiveOrInAir = function(team) {
+MissionDashboardCtrl.prototype.isTeamActiveOrInAir_ = function(team) {
     return team.active || team.in_air;
 };
 
 
 /**
  * Gets the class used to color a team's display on the dashboard.
- * @param team The team to get the color class for.
- * @returns The color class.
+ * @param {!Object} team The team to get the color class for.
+ * @return {!string} The color class.
+ * @export
  */
 MissionDashboardCtrl.prototype.getTeamColorClass = function(team) {
     if (team.active && team.in_air) {
@@ -97,19 +106,20 @@ MissionDashboardCtrl.prototype.getTeamColorClass = function(team) {
 
 /**
  * Gets a list of teams which are active or in-air.
- * @returns A list of teams which are active or in-air.
+ * @return {!Array} A list of teams which are active or in-air.
+ * @export
  */
 MissionDashboardCtrl.prototype.getActiveOrInAirTeams = function() {
     // Check that data has been loaded.
-    if (!this.Backend.teams || this.Backend.teams.length == 0) {
+    if (!this.backend_.teams || this.backend_.teams.length == 0) {
         return [];
     }
 
     // Get all teams which are relevant.
     teams = [];
-    for (var i = 0; i < this.Backend.teams.length; i++) {
-        if (this.isTeamActiveOrInAir(this.Backend.teams[i])) {
-            teams.push(this.Backend.teams[i]);
+    for (var i = 0; i < this.backend_.teams.length; i++) {
+        if (this.isTeamActiveOrInAir_(this.backend_.teams[i])) {
+            teams.push(this.backend_.teams[i]);
         }
     }
     return teams;

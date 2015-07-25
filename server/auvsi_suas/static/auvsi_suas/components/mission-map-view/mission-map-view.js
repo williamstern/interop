@@ -1,79 +1,86 @@
 /**
- * Directive for 3D map view of Mission Scene.
+ * @fileoverview Directive for 3D map view of Mission Scene.
  */
 
 
 /**
  * Directive for 3D map view of Mission Scene.
+ * @param {!angular.Window} $window The window service.
+ * @param {!Object} MissionScene The mission scene service.
+ * @final
+ * @constructor
+ * @struct
+ * @ngInject
  */
 MissionMapView = function($window, MissionScene) {
     /**
-     * The window service.
+     * @private @const {!angular.Window} The window service.
      */
     this.window_ = $window;
 
     /**
-     * The mission scene service.
+     * @private @const {!Object} The mission scene service.
      */
     this.missionScene_ = MissionScene;
 
     /**
-     * The element scope.
+     * @private {?angular.Scope} The element scope.
      */
     this.scope_ = null;
 
     /**
-     * The directive element where the map is drawn.
+     * @private {?Array} The directive element where the map is drawn.
      */
     this.element_ = null;
 
     /**
-     * The directive element attributes.
+     * @private {?Object} The directive element attributes.
      */
     this.attrs_ = null;
 
     /**
-     * The width of the view.
+     * @private {?number} The width of the view.
      */
     this.width_ = null;
 
     /**
-     * The height of the view.
+     * @private {?number} The height of the view.
      */
     this.height_ = null;
 
     /**
-     * The WebGL renderer.
+     * @private {?Object} The WebGL renderer.
      */
     this.renderer_ = null;
 
     /**
-     * The camera.
+     * @private {?Object} The camera.
      */
     this.camera_ = null;
 
     /**
-     * Raycaster for view, used to handle mouse interactions.
+     * @private @const {!Object} Raycaster for view, used to handle
+     *     mouse interactions.
      */
     this.raycaster_ = new THREE.Raycaster();
 
     /**
-     * The position on screen when mouse went down.
+     * @private @const {!Object} The position on screen when mouse went down.
      */
     this.mouseDownPos_ = new THREE.Vector2();
 
     /**
-     * The position on screen when mouse moved.
+     * @private @const {!Object} The position on screen when mouse moved.
      */
     this.mouseMovePos_ = new THREE.Vector2();
 
     /**
-     * The position in the world when mouse went down.
+     * @private @const {!Object} The position in the world when mouse went down.
      */
     this.mouseDownWorldPos_ = new THREE.Vector3();
 
     /**
-     * The position in the world when mouse was moved.
+     * @private @const {!Object} The position in the world when mouse was moved.
      */
     this.mouseMoveWorldPos_ = new THREE.Vector3();
 };
@@ -81,9 +88,9 @@ MissionMapView = function($window, MissionScene) {
 
 /**
  * Initialize the directive instance.
- * @param scope The directive scope.
- * @param element The directive element.
- * @param attrs The directive attributes.
+ * @param {!angular.Scope} scope The directive scope.
+ * @param {!Array} element The directive element.
+ * @param {!Object} attrs The directive attributes.
  */
 MissionMapView.prototype.link = function(scope, element, attrs) {
     // Store directive information.
@@ -104,7 +111,9 @@ MissionMapView.prototype.link = function(scope, element, attrs) {
     this.camera_.lookAt(new THREE.Vector3(0, 0, 0));
 
     // Create a renderer and configure it.
-    this.renderer_ = new THREE.WebGLRenderer({antialias: true, precision: 'highp', alpha: true});
+    this.renderer_ = new THREE.WebGLRenderer({antialias: true,
+                                              precision: 'highp',
+                                              alpha: true});
     this.renderer_.shadowMapEnabled = true;
     this.renderer_.shadowMapType = THREE.PCFSoftShadowMap;
     // Add renderer to DOM.
@@ -126,14 +135,15 @@ MissionMapView.prototype.link = function(scope, element, attrs) {
             'mousemove', angular.bind(this, this.mouseMoved_));
     angular.element(element).on(
             'mousewheel', angular.bind(this, this.mouseScrolled_));
-    
-    // Start render loop.    
+
+    // Start render loop.
     this.render_();
 };
 
 
 /**
  * Sets the camera and renderer to match the view.
+ * @private
  */
 MissionMapView.prototype.setCameraAndRendererSize_ = function() {
     this.width_ = this.element_[0].offsetWidth - this.scope_.offsetWidth;
@@ -148,23 +158,26 @@ MissionMapView.prototype.setCameraAndRendererSize_ = function() {
 
 /**
  * Gets the normalized device coordinates for the position.
- * @param offsetX The screen X coordinate.
- * @param offsetY The screen Y coordinate.
- * @return The normalized device coordinates.
+ * @param {!number} offsetX The screen X coordinate.
+ * @param {!number} offsetY The screen Y coordinate.
+ * @return {!Object} The normalized device coordinates.
+ * @private
  */
 MissionMapView.prototype.getNormalizedDeviceCoords_ = function(
         offsetX, offsetY, pos) {
     var pos = new THREE.Vector2();
-    pos.x = (event.offsetX / this.width_) * 2 - 1;
-    pos.y = (event.offsetY / this.height_) * -2 + 1;
+    pos.x = (offsetX / this.width_) * 2 - 1;
+    pos.y = (offsetY / this.height_) * -2 + 1;
     return pos;
 };
 
 
 /**
  * Gets the mouse world position for a click on the ground.
- * @param mousePos The mouse position.
- * @return The mouse world position, or null if no intersection was found.
+ * @param {!Object} mousePos The mouse position.
+ * @return {?Object} The mouse world position, or null if no
+ *     intersection was found.
+ * @private
  */
 MissionMapView.prototype.getMousePositionOnGround_ = function(
         mousePos, mouseWorldPos) {
@@ -179,7 +192,9 @@ MissionMapView.prototype.getMousePositionOnGround_ = function(
 
 /**
  * Updates the state of the mouse click.
- * @param mouseDown Whether the mouse is down.
+ * @param {!boolean} mouseDown Whether the mouse is down.
+ * @param {!Object} event THe mouse event.
+ * @private
  */
 MissionMapView.prototype.mouseUpDown_ = function(mouseDown, event) {
     this.mouseDown_ = mouseDown;
@@ -196,7 +211,8 @@ MissionMapView.prototype.mouseUpDown_ = function(mouseDown, event) {
 
 /**
  * Updates the mouse position and camera.
- * @param event The event containing mouse details.
+ * @param {!Object} event The event containing mouse details.
+ * @private
  */
 MissionMapView.prototype.mouseMoved_ = function(event) {
     event.preventDefault();
@@ -214,7 +230,8 @@ MissionMapView.prototype.mouseMoved_ = function(event) {
     // Apply offset to move position under mouse back to position at mouse down.
     if (!!this.mouseDownWorldPos_ && !!this.mouseMoveWorldPos_) {
         var mouseWorldMovement = new THREE.Vector3();
-        mouseWorldMovement.subVectors(this.mouseDownWorldPos_, this.mouseMoveWorldPos_);
+        mouseWorldMovement.subVectors(this.mouseDownWorldPos_,
+                                      this.mouseMoveWorldPos_);
         this.camera_.position.x += mouseWorldMovement.x;
         this.camera_.position.y += mouseWorldMovement.y;
         this.camera_.updateMatrixWorld();
@@ -224,7 +241,8 @@ MissionMapView.prototype.mouseMoved_ = function(event) {
 
 /**
  * Updates the mouse scroll and camera.
- * @param event The event containing mouse details.
+ * @param {!Object} event The event containing mouse details.
+ * @private
  */
 MissionMapView.prototype.mouseScrolled_ = function(event) {
     this.camera_.position.z += event.originalEvent.deltaY;
@@ -239,11 +257,12 @@ MissionMapView.prototype.mouseScrolled_ = function(event) {
 
 /**
  * Renders the mission scene in a render loop.
+ * @private
  */
 MissionMapView.prototype.render_ = function() {
     requestAnimationFrame(angular.bind(this, this.render_));
 
-    if (!!this.missionScene_.scene) {
+    if (!!this.missionScene_.scene && !!this.camera_) {
         this.renderer_.render(this.missionScene_.scene, this.camera_);
     }
 };
@@ -261,7 +280,8 @@ angular.module('auvsiSuasApp').directive('missionMapView', [
                 offsetWidth: '=',
                 offsetHeight: '='
             },
-            templateUrl: '/static/auvsi_suas/components/mission-map-view/mission-map-view.html',
+            templateUrl: ('/static/auvsi_suas/components/' +
+                          'mission-map-view/mission-map-view.html'),
             link: angular.bind(mapView, mapView.link)
         };
     }
