@@ -7,14 +7,14 @@ class auvsi_suas::server_install {
 
     # Install packages from apt.
     $package_deps = [
-        "python-numpy",
-        "python-scipy",
-        "python-matplotlib",
-        "python-psycopg2",
-        "npm",
+        'python-numpy',
+        'python-scipy',
+        'python-matplotlib',
+        'python-psycopg2',
+        'npm',
     ]
     package { $package_deps:
-        ensure => "latest",
+        ensure => 'latest',
     }
 
     # Create server virtualenv
@@ -29,9 +29,15 @@ class auvsi_suas::server_install {
     }
 
     # Install packages from NPM.
-    exec { 'npm install karma and jasmine':
-        command => "npm install -g karma karma-jasmine karma-chrome-launcher karma-cli",
-        cwd => "/interop/server",
+    exec { 'karma and jasmine':
+        command => 'npm install --force -g karma karma-jasmine karma-chrome-launcher karma-cli',
+        cwd => '/interop/server',
+        require => Package['npm'],
+    }
+    # Link NodeJS (installed as nodejs) so that Karma can use it as node.
+    file { '/usr/local/bin/node':
+        ensure => 'link',
+        target => '/usr/bin/nodejs',
         require => Package['npm'],
     }
 }
