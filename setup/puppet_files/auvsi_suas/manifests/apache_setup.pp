@@ -24,7 +24,7 @@ class auvsi_suas::apache_setup {
     }
     # Configure the python path
     class { 'apache::mod::wsgi':
-      wsgi_python_path   => '/interop/server/',
+      wsgi_python_path   => '/interop/server/:/interop/server/venv/lib/python2.7/site-packages/',
     }
     # Configure production via WSGI
     apache::vhost { 'interop_server':

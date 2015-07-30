@@ -14,6 +14,14 @@ components:
         the application. This includes creating databases, running the
         development server, etc.
 
+If the automated setup is utilized, this server is installed in a
+[virtualenv](https://virtualenv.pypa.io/en/latest/). Before running the
+commands below, you must activate the virtualenv with:
+
+```sh
+source venv/bin/activate
+```
+
 To start the development web server, execute:
 
 ``` sh

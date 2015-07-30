@@ -17,8 +17,15 @@ class auvsi_suas::server_install {
         ensure => "latest",
     }
 
-    # Install python server requirements.
-    python::requirements { '/interop/server/requirements.txt' :
+    # Create server virtualenv
+    python::virtualenv { '/interop/server/venv' :
+        ensure => 'present',
+        version => 'system',
+        requirements => '/interop/server/requirements.txt',
+        # We install some packages from apt since that is much faster.
+        systempkgs => true,
+        require => [ Package['python-numpy'], Package['python-scipy'],
+                     Package['python-matplotlib'], Package['python-psycopg2'] ]
     }
 
     # Install packages from NPM.
