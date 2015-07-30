@@ -25,5 +25,6 @@ class auvsi_suas::server_install {
     exec { 'npm install karma and jasmine':
         command => "npm install -g karma karma-jasmine karma-chrome-launcher karma-cli",
         cwd => "/interop/server",
+        require => Package['npm'],
     }
 }
