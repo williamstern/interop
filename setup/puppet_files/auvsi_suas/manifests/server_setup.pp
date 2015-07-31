@@ -12,17 +12,20 @@ class auvsi_suas::server_setup {
     exec { 'migrate':
         command => "python manage.py migrate --noinput",
         cwd => "/interop/server/",
+        path => "/interop/server/venv/bin",
     }
 
     # Copy all static files
     exec { 'collectstatic':
         command => "python manage.py collectstatic --noinput",
         cwd => "/interop/server/",
+        path => "/interop/server/venv/bin",
     }
 
     # Load initial testadmin superuser
     exec { 'testadmin superuser':
         command => "python manage.py loaddata fixtures/testadmin_superuser.yaml",
         cwd => "/interop/server/",
+        path => "/interop/server/venv/bin",
     }
 }
