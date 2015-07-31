@@ -35,3 +35,13 @@ The automated setup script performs the following actions:
   6. Backups any existing database
   7. Creates new database with initial test admin
      (username: testadmin, password: testpass)
+
+# Testing
+
+Run the `test.sh` script (found in the root of the repository) on a setup
+machine to run all server and client tests.  If you are using Vagrant, a single
+command on the host will run all tests.
+
+``` sh
+vagrant ssh -c "/interop/test.sh"
+```
