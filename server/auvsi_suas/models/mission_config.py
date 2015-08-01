@@ -1,5 +1,6 @@
 """Mission configuration model."""
 
+import itertools
 import logging
 from auvsi_suas.patches.simplekml_patch import Color
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
@@ -91,7 +92,7 @@ class MissionConfig(models.Model):
                         self.ir_secondary_target_pos.__unicode__(),
                         self.air_drop_pos.__unicode__()))
 
-    def satisified_waypoints(self, uas_telemetry_logs):
+    def satisfied_waypoints(self, uas_telemetry_logs):
         """Determines whether the UAS satisfied the waypoints.
 
         Args:
@@ -160,30 +161,32 @@ class MissionConfig(models.Model):
 
             # Find the user's flights.
             flight_periods = TakeoffOrLandingEvent.flights(user)
-
-            # TODO(prattmic): Only evaluate logs while in flight?
-            uas_telemetry_logs = UasTelemetry.by_user(user)
+            uas_period_logs = UasTelemetry.by_time_period(user, flight_periods)
+            uas_logs = list(itertools.chain.from_iterable(uas_period_logs))
 
             # Determine if the uas hit the waypoints
-            waypoints = self.satisified_waypoints(uas_telemetry_logs)
+            waypoints_hit = self.satisfied_waypoints(uas_logs)
             waypoints_keyed = dict()
-            for wpt_id in xrange(len(waypoints)):
-                waypoints_keyed[wpt_id + 1] = waypoints[wpt_id]
+            for i, hit in enumerate(waypoints_hit):
+                waypoints_keyed[i + 1] = hit
             eval_data['waypoints_satisfied'] = waypoints_keyed
 
-            # Determine if the uas went out of bounds
-            out_of_bounds_time = FlyZone.out_of_bounds(fly_zones,
-                                                       uas_telemetry_logs)
+            # Determine if the uas went out of bounds. This must be done for
+            # each period individually so time between periods isn't counted as
+            # out of bounds time.
+            out_of_bounds_time = 0
+            for logs in uas_period_logs:
+                out_of_bounds_time += FlyZone.out_of_bounds(fly_zones,
+                                                            logs)
             eval_data['out_of_bounds_time'] = out_of_bounds_time
 
             # Determine interop rates
             interop_times = eval_data.setdefault('interop_times', dict())
 
             server_info_times = ServerInfoAccessLog.rates(user, flight_periods)
-
             obstacle_times = ObstacleAccessLog.rates(user, flight_periods)
-
-            uas_telemetry_times = UasTelemetry.rates(user, flight_periods)
+            uas_telemetry_times = UasTelemetry.rates(
+                user, flight_periods, time_period_logs=uas_period_logs)
 
             interop_times['server_info'] = {
                 'max': server_info_times[0],
@@ -202,15 +205,13 @@ class MissionConfig(models.Model):
             stationary_collisions = eval_data.setdefault(
                 'stationary_obst_collision', dict())
             for obst in stationary_obstacles:
-                collision = obst.evaluate_collision_with_uas(
-                    uas_telemetry_logs)
+                collision = obst.evaluate_collision_with_uas(uas_logs)
                 stationary_collisions[obst.pk] = collision
 
             moving_collisions = eval_data.setdefault(
                 'moving_obst_collision', dict())
             for obst in moving_obstacles:
-                collision = obst.evaluate_collision_with_uas(
-                    uas_telemetry_logs)
+                collision = obst.evaluate_collision_with_uas(uas_logs)
                 moving_collisions[obst.pk] = collision
 
         return results

@@ -87,7 +87,7 @@ class AccessLog(models.Model):
         return ret
 
     @classmethod
-    def rates(cls, user, time_periods):
+    def rates(cls, user, time_periods, time_period_logs=None):
         """Gets the access log rates.
 
         Args:
@@ -95,17 +95,28 @@ class AccessLog(models.Model):
             time_periods: A list of TimePeriod objects. Note: to avoid
                 computing rates with duplicate logs, ensure that all
                 time periods are non-overlapping.
+            time_period_logs: Optional. A list of AccessLog lists, where each
+                AccessLog list contains all AccessLogs corresponding to the
+                related TimePeriod. If None, will obtain by calling
+                by_time_period().
         Returns:
             A (max, avg) tuple. The max is the max time between logs, and avg
             is the avg time between logs.
             """
-        all_logs = cls.by_time_period(user, time_periods)
+        # Check that time periods were provided.
+        if not time_periods:
+            return (None, None)
 
+        # If logs were not provided, obtain.
+        if not time_period_logs:
+            time_period_logs = cls.by_time_period(user, time_periods)
+
+        # Calculate time between log files.
         times_between_logs = []
         for i, period in enumerate(time_periods):
             # Get the logs for this period
             # Coerce the QuerySet into a list, so we can use negative indexing.
-            logs = list(all_logs[i])
+            logs = list(time_period_logs[i])
 
             # Account for a time period with no logs
             if len(logs) == 0:
@@ -132,11 +143,8 @@ class AccessLog(models.Model):
                 time_diff = (period.end - last_log.timestamp).total_seconds()
                 times_between_logs.append(time_diff)
 
-        # Compute log rates
-        if times_between_logs:
-            times_between_logs = np.array(times_between_logs)
-            times_between_max = np.max(times_between_logs)
-            times_between_avg = np.mean(times_between_logs)
-            return (times_between_max, times_between_avg)
-        else:
-            return (None, None, None)
+        # Compute rates using the time between log files.
+        times_between_logs = np.array(times_between_logs)
+        times_between_max = np.max(times_between_logs)
+        times_between_avg = np.mean(times_between_logs)
+        return (times_between_max, times_between_avg)

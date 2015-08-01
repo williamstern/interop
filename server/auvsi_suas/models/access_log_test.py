@@ -60,7 +60,7 @@ class TestAccessLogBasic(TestAccessLogCommon):
         self.assertEqual(len(logs), 0)
 
         log_rates = AccessLog.rates(self.user1, [])
-        self.assertTupleEqual(log_rates, (None, None, None))
+        self.assertTupleEqual(log_rates, (None, None))
 
     def test_basic_access(self):
         logs = self.create_logs(self.user1)
@@ -192,6 +192,19 @@ class TestAccessLogRates(TestAccessLogCommon):
         period = self.consistent_period(logs, delta)
 
         rates = AccessLog.rates(self.user1, [period])
+
+        self.assertSequenceEqual((1, 1), rates)
+
+    def test_provided_logs(self):
+        """Rates computed with provided logs."""
+        delta = datetime.timedelta(seconds=1)
+
+        used_logs = self.create_logs(self.user1, delta=delta)
+        unused_logs = self.create_logs(self.user1, delta=delta)
+        period = self.consistent_period(used_logs, delta)
+
+        rates = AccessLog.rates(self.user1, [period],
+                                time_period_logs=[used_logs])
 
         self.assertSequenceEqual((1, 1), rates)
 
