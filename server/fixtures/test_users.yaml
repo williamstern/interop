@@ -1,0 +1,30 @@
+- model: auth.user
+  pk: 1
+  fields:
+    username: testadmin
+    first_name: test
+    last_name: admin
+    email: testadmin@test.com
+    password: pbkdf2_sha256$20000$b1wK6sC01uOZ$OXpjiHaCKqJJgvxtq4Ds1rZJPI2iOEeea3lAZmyBJLI=
+    date_joined: "2015-05-25T17:01:28.183Z"
+    is_active: true
+    is_superuser: true
+    is_staff: true
+    last_login: null
+    groups: []
+    user_permissions: []
+- model: auth.user
+  pk: 2
+  fields:
+    date_joined: 2015-07-31 05:13:16.704351+00:00
+    email: ''
+    first_name: ''
+    groups: []
+    is_active: true
+    is_staff: false
+    is_superuser: false
+    last_login: 2015-07-31 05:13:44.875561+00:00
+    last_name: ''
+    password: pbkdf2_sha256$20000$6hErQuM8Gxni$zLDQHSFgpGUiPMfQqGJjIyp9Q1VcHzIhM7Z3P81SwaY=
+    user_permissions: []
+    username: testuser

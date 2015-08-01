@@ -22,9 +22,9 @@ class auvsi_suas::server_setup {
         path => "/interop/server/venv/bin",
     }
 
-    # Load initial testadmin superuser
-    exec { 'testadmin superuser':
-        command => "python manage.py loaddata fixtures/testadmin_superuser.yaml",
+    # Load initial test users
+    exec { 'test users':
+        command => "python manage.py loaddata fixtures/test_users.yaml",
         cwd => "/interop/server/",
         path => "/interop/server/venv/bin",
     }
