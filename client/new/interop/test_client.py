@@ -92,3 +92,23 @@ class TestClient(unittest.TestCase):
             # We only accept Telemetry objects (or objects that behave like
             # Telemetry, not dicts.
             self.client.post_telemetry(t)
+
+    def test_get_obstacles(self):
+        """Test getting obstacles."""
+        stationary, moving = self.client.get_obstacles()
+
+        # No exceptions is a good sign, let's see if the data matches the fixture.
+        self.assertEqual(2, len(stationary))
+        self.assertEqual(1, len(moving))
+
+        # Lat, lon, and altitude of the moving obstacles change, so we don't
+        # check those.
+        self.assertEqual(50, moving[0].sphere_radius)
+
+        radii = [o.cylinder_radius for o in stationary]
+        self.assertIn(50, radii)
+        self.assertIn(150, radii)
+
+        heights = [o.cylinder_height for o in stationary]
+        self.assertIn(300, heights)
+        self.assertIn(200, heights)
