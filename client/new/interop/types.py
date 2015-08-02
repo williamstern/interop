@@ -5,6 +5,8 @@ requires. They include input validation, making a best-effort to ensure
 values will be accepted by the server.
 """
 
+import collections
+
 
 class Serializable(object):
     """ Serializable is a simple base class which provides basic
@@ -62,3 +64,15 @@ class Telemetry(Serializable):
         if self.uas_heading < 0 or self.uas_heading > 360:
             raise ValueError("Heading (%f) out of range [0, 360]" %
                              self.uas_heading)
+
+
+class ServerInfo(collections.namedtuple(
+    "ServerInfo", ["message", "message_timestamp", "server_time"])):
+    """Server information to be displayed to judges.
+
+    Attributes:
+        message: Custom message from the server
+        message_timestamp: Message timestamp
+        server_time: Current server time
+    """
+    pass

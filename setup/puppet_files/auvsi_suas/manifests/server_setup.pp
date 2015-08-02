@@ -22,10 +22,11 @@ class auvsi_suas::server_setup {
         path => "/interop/server/venv/bin",
     }
 
-    # Load initial test users
-    exec { 'test users':
-        command => "python manage.py loaddata fixtures/test_users.yaml",
+    # Load initial test data
+    exec { 'test data':
+        command => "python manage.py loaddata fixtures/test_fixture.yaml",
         cwd => "/interop/server/",
         path => "/interop/server/venv/bin",
+        require => Exec['migrate'],
     }
 }

@@ -7,6 +7,7 @@ See README.md for more details."""
 import requests
 
 from .exceptions import InteropError
+from .types import ServerInfo
 
 
 class Client(object):
@@ -35,6 +36,22 @@ class Client(object):
                   data={'username': username,
                         'password': password})
 
+    def get(self, uri, **kwargs):
+        """GET request to server.
+
+        Args:
+            uri: Server URI to access (without base URL)
+            **kwargs: Arguments to requests.Session.get method
+
+        Raises:
+            InteropError: Error from server
+            requests.Timeout: Request timeout
+        """
+        r = self.session.get(self.url + uri, timeout=self.timeout, **kwargs)
+        if not r.ok:
+            raise InteropError(r)
+        return r
+
     def post(self, uri, **kwargs):
         """POST request to server.
 
@@ -50,10 +67,34 @@ class Client(object):
         if not r.ok:
             raise InteropError(r)
 
+    def get_server_info(self):
+        """GET server information, to be displayed to judges.
+
+        Returns:
+            ServerInfo object
+
+        Raises:
+            InteropError: Error from server. Note that you may receive this
+                error if the server has no message configured.
+            requests.Timeout: Request timeout
+            ValueError or AttributeError: Malformed response from server
+        """
+        r = self.get('/api/interop/server_info')
+        d = r.json()
+
+        return ServerInfo(
+            message=d['server_info']['message'],
+            message_timestamp=d['server_info']['message_timestamp'],
+            server_time=d['server_time'])
+
     def post_telemetry(self, telem):
         """POST new telemetry.
 
         Args:
             telem: Telemetry object containing telemetry state.
+
+        Raises:
+            InteropError: Error from server
+            requests.Timeout: Request timeout
         """
         self.post('/api/interop/uas_telemetry', data=telem.serialize())
