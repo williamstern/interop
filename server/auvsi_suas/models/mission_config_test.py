@@ -50,7 +50,7 @@ class TestMissionConfigModel(TestCase):
         config.save()
         self.assertTrue(config.__unicode__())
 
-    def test_satisified_waypoints(self):
+    def test_satisfied_waypoints(self):
         """Tests the evaluation of waypoints method."""
         (satisfy_dist, waypoint_details, uas_log_details,
          exp_satisfied) = TESTDATA_MISSIONCONFIG_EVALWAYPOINTS
@@ -110,7 +110,7 @@ class TestMissionConfigModel(TestCase):
             uas_logs.append(log)
 
         # Assert correct satisfied waypoints
-        wpts_satisfied = config.satisified_waypoints(uas_logs)
+        wpts_satisfied = config.satisfied_waypoints(uas_logs)
         self.assertEqual(wpts_satisfied, exp_satisfied)
 
 
