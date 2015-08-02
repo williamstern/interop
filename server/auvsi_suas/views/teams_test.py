@@ -126,13 +126,17 @@ class TestTeamsView(TestCase):
 
         data = json.loads(response.content)
 
-        self.assertEqual('user1', data[0]['name'])
-        self.assertEqual(True, data[0]['in_air'])
-        self.assertEqual(False, data[0]['active'])
+        names = [d['name'] for d in data]
+        self.assertIn('user1', names)
+        self.assertIn('user2', names)
 
-        self.assertEqual('user2', data[1]['name'])
-        self.assertEqual(False, data[1]['in_air'])
-        self.assertEqual(True, data[1]['active'])
+        user1 = data[names.index('user1')]
+        self.assertEqual(True, user1['in_air'])
+        self.assertEqual(False, user1['active'])
+
+        user2 = data[names.index('user2')]
+        self.assertEqual(False, user2['in_air'])
+        self.assertEqual(True, user2['active'])
 
 
 class TestTeamsIdViewLoggedOut(TestCase):
