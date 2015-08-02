@@ -28,3 +28,6 @@
     password: pbkdf2_sha256$20000$6hErQuM8Gxni$zLDQHSFgpGUiPMfQqGJjIyp9Q1VcHzIhM7Z3P81SwaY=
     user_permissions: []
     username: testuser
+- model: auvsi_suas.serverinfo
+  pk: 1
+  fields: {team_msg: Hello World!, timestamp: ! '2015-08-02 01:16:15.609002+00:00'}
