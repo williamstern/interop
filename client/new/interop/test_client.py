@@ -2,7 +2,7 @@ import os
 import requests
 import unittest
 
-from . import Client, Telemetry
+from . import Client, InteropError, Telemetry
 
 # These tests run against a real interop server.
 # Set these environmental variables to the proper values
@@ -25,7 +25,7 @@ class TestClient(unittest.TestCase):
 
     def test_bad_login(self):
         """Bad login raises exception"""
-        with self.assertRaises(requests.HTTPError):
+        with self.assertRaises(InteropError):
             Client(server, "foo", "bar")
 
     def test_timeout(self):
@@ -49,7 +49,7 @@ class TestClient(unittest.TestCase):
         """Test sending some (incorrect) telemetry."""
         c = Client(server, username, password)
 
-        with self.assertRaises(requests.HTTPError):
+        with self.assertRaises(InteropError):
             t = Telemetry(latitude=38,
                           longitude=76,
                           altitude_msl=100,

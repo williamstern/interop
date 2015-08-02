@@ -6,6 +6,8 @@ See README.md for more details."""
 
 import requests
 
+from .exceptions import InteropError
+
 
 class Client(object):
     """Client provides authenticated access to the endpoints of the
@@ -41,13 +43,12 @@ class Client(object):
             **kwargs: Arguments to requests.Session.post method
 
         Raises:
-            requests.HTTPError: Error from server
+            InteropError: Error from server
             requests.Timeout: Request timeout
         """
         r = self.session.post(self.url + uri, timeout=self.timeout, **kwargs)
-        # TODO(prattmic): Custom exception types, including the server error
-        # message.
-        r.raise_for_status()
+        if not r.ok:
+            raise InteropError(r)
 
     def post_telemetry(self, telem):
         """POST new telemetry.
