@@ -7,7 +7,7 @@ See README.md for more details."""
 import requests
 
 from .exceptions import InteropError
-from .types import ServerInfo
+from .types import ServerInfo, StationaryObstacle, MovingObstacle
 
 
 class Client(object):
@@ -98,3 +98,36 @@ class Client(object):
             requests.Timeout: Request timeout
         """
         self.post('/api/interop/uas_telemetry', data=telem.serialize())
+
+    def get_obstacles(self):
+        """GET obstacles.
+
+        Returns:
+            List of StationaryObstacles and list of MovingObstacles.
+                i.e., ([StationaryObstacle], [MovingObstacles])
+
+        Raises:
+            InteropError: Error from server
+            requests.Timeout: Request timeout
+            ValueError or AttributeError: Malformed response from server
+        """
+        r = self.get('/api/interop/obstacles')
+        d = r.json()
+
+        stationary = []
+        for o in d['stationary_obstacles']:
+            s = StationaryObstacle(latitude=o['latitude'],
+                                   longitude=o['longitude'],
+                                   cylinder_radius=o['cylinder_radius'],
+                                   cylinder_height=o['cylinder_height'])
+            stationary.append(s)
+
+        moving = []
+        for o in d['moving_obstacles']:
+            m = MovingObstacle(latitude=o['latitude'],
+                               longitude=o['longitude'],
+                               altitude_msl=o['altitude_msl'],
+                               sphere_radius=o['sphere_radius'])
+            moving.append(m)
+
+        return stationary, moving

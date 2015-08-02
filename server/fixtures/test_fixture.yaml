@@ -31,3 +31,48 @@
 - model: auvsi_suas.serverinfo
   pk: 1
   fields: {team_msg: Hello World!, timestamp: ! '2015-08-02 01:16:15.609002+00:00'}
+- model: auvsi_suas.stationaryobstacle
+  pk: 1
+  fields: {cylinder_height: 200.0, cylinder_radius: 150.0, gps_position: 1}
+- model: auvsi_suas.stationaryobstacle
+  pk: 2
+  fields: {cylinder_height: 300.0, cylinder_radius: 50.0, gps_position: 2}
+- model: auvsi_suas.movingobstacle
+  pk: 1
+  fields:
+    speed_avg: 30.0
+    sphere_radius: 50.0
+    waypoints: [1, 2, 3]
+- model: auvsi_suas.waypoint
+  pk: 1
+  fields: {order: 1, position: 1}
+- model: auvsi_suas.waypoint
+  pk: 2
+  fields: {order: 2, position: 2}
+- model: auvsi_suas.waypoint
+  pk: 3
+  fields: {order: 3, position: 3}
+- model: auvsi_suas.aerialposition
+  pk: 1
+  fields: {altitude_msl: 200.0, gps_position: 3}
+- model: auvsi_suas.aerialposition
+  pk: 2
+  fields: {altitude_msl: 300.0, gps_position: 4}
+- model: auvsi_suas.aerialposition
+  pk: 3
+  fields: {altitude_msl: 100.0, gps_position: 5}
+- model: auvsi_suas.gpsposition
+  pk: 1
+  fields: {latitude: 38.14792, longitude: -76.427995}
+- model: auvsi_suas.gpsposition
+  pk: 2
+  fields: {latitude: 38.145823, longitude: -76.422396}
+- model: auvsi_suas.gpsposition
+  pk: 3
+  fields: {latitude: 38.142544, longitude: -76.434088}
+- model: auvsi_suas.gpsposition
+  pk: 4
+  fields: {latitude: 38.141833, longitude: -76.425263}
+- model: auvsi_suas.gpsposition
+  pk: 5
+  fields: {latitude: 38.144678, longitude: -76.427995}
