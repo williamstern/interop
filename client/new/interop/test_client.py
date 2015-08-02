@@ -60,7 +60,7 @@ class TestClient(unittest.TestCase):
     def test_post_telemetry(self):
         """Test sending some telemetry."""
         t = Telemetry(latitude=38,
-                      longitude=76,
+                      longitude=-76,
                       altitude_msl=100,
                       uas_heading=90)
 
@@ -71,7 +71,7 @@ class TestClient(unittest.TestCase):
         """Test sending some (incorrect) telemetry."""
         with self.assertRaises(InteropError):
             t = Telemetry(latitude=38,
-                          longitude=76,
+                          longitude=-76,
                           altitude_msl=100,
                           uas_heading=90)
 
@@ -84,7 +84,7 @@ class TestClient(unittest.TestCase):
         with self.assertRaises(AttributeError):
             t = {
                 'latitude': 38,
-                'longitude': 76,
+                'longitude': -76,
                 'altitude_msl': 100,
                 'uas_heading': 90
             }
