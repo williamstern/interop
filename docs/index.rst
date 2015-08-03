@@ -28,7 +28,7 @@ perform the tasks in order. The contents of this Wiki are as follows:
    system. It also includes an example on perform the interoperability
    task. Note that this implementation is too inefficient to achieve a
    sufficient update rate.
-#. :doc:`spec/index`.
+#. :doc:`spec`.
    The documentation for the AUVSI SUAS Competition Interoperability
    interface.
 #. :doc:`hints`.
@@ -46,7 +46,7 @@ Contents:
    prerequisites/index
    setup/index
    management/index
-   spec/index
+   spec
    hints
    changelog
 
