@@ -101,7 +101,7 @@ class MissionConfig(models.Model):
             A list of booleans where each value indicates whether the UAS
             satisfied the waypoint for that index.
         """
-        waypoints_satisfied = list()
+        waypoints_satisfied = []
         waypoints = self.mission_waypoints.order_by('order')
         for waypoint in waypoints:
             satisfied = False
@@ -143,45 +143,47 @@ class MissionConfig(models.Model):
         moving_obstacles = MovingObstacle.objects.all()
 
         # Start a results map from user to evaluation data
-        results = dict()
+        results = {}
 
         # Fill in evaluation data for each user except admins
         users = User.objects.all()
         logger.info('Starting team evaluations.')
 
         for user in users:
-            # Ignore admins
+            # Ignore admins.
             if user.is_superuser:
                 continue
 
             logger.info('Evaluation starting for user: %s.' % user.username)
 
-            # Start the evaluation data structure
-            eval_data = results.setdefault(user, dict())
+            # Start the evaluation data structure.
+            eval_data = results.setdefault(user, {})
 
             # Find the user's flights.
             flight_periods = TakeoffOrLandingEvent.flights(user)
-            uas_period_logs = UasTelemetry.by_time_period(user, flight_periods)
+            uas_period_logs = UasTelemetry.dedupe(
+                    UasTelemetry.by_time_period(user, flight_periods))
             uas_logs = list(itertools.chain.from_iterable(uas_period_logs))
 
-            # Determine if the uas hit the waypoints
+            # Determine if the uas hit the waypoints.
             waypoints_hit = self.satisfied_waypoints(uas_logs)
-            waypoints_keyed = dict()
+            waypoints_keyed = {}
             for i, hit in enumerate(waypoints_hit):
                 waypoints_keyed[i + 1] = hit
             eval_data['waypoints_satisfied'] = waypoints_keyed
 
             # Determine if the uas went out of bounds. This must be done for
             # each period individually so time between periods isn't counted as
-            # out of bounds time.
+            # out of bounds time. Note that this calculates reported time out
+            # of bounds, not actual or possible time spent out of bounds.
             out_of_bounds_time = 0
             for logs in uas_period_logs:
                 out_of_bounds_time += FlyZone.out_of_bounds(fly_zones,
                                                             logs)
             eval_data['out_of_bounds_time'] = out_of_bounds_time
 
-            # Determine interop rates
-            interop_times = eval_data.setdefault('interop_times', dict())
+            # Determine interop rates.
+            interop_times = eval_data.setdefault('interop_times', {})
 
             server_info_times = ServerInfoAccessLog.rates(user, flight_periods)
             obstacle_times = ObstacleAccessLog.rates(user, flight_periods)
@@ -201,15 +203,15 @@ class MissionConfig(models.Model):
                 'avg': uas_telemetry_times[1]
             }
 
-            # Determine collisions with stationary and moving obstacles
+            # Determine collisions with stationary and moving obstacles.
             stationary_collisions = eval_data.setdefault(
-                'stationary_obst_collision', dict())
+                'stationary_obst_collision', {})
             for obst in stationary_obstacles:
                 collision = obst.evaluate_collision_with_uas(uas_logs)
                 stationary_collisions[obst.pk] = collision
 
             moving_collisions = eval_data.setdefault(
-                'moving_obst_collision', dict())
+                'moving_obst_collision', {})
             for obst in moving_obstacles:
                 collision = obst.evaluate_collision_with_uas(uas_logs)
                 moving_collisions[obst.pk] = collision

@@ -145,7 +145,7 @@ class TestFlyZone(TestCase):
     def setUp(self):
         """Creates test data."""
         # Form test set for contains position
-        self.testdata_containspos = list()
+        self.testdata_containspos = []
         for test_data in TESTDATA_FLYZONE_CONTAINSPOS:
             # Create the FlyZone
             zone = FlyZone()
@@ -168,7 +168,7 @@ class TestFlyZone(TestCase):
                 wpt.save()
                 zone.boundary_pts.add(wpt)
             # Form test set
-            test_pos = list()
+            test_pos = []
             for pos in test_data['inside_pos']:
                 test_pos.append((pos, True))
             for pos in test_data['outside_pos']:
@@ -214,8 +214,8 @@ class TestFlyZone(TestCase):
     def test_contains_many_pos(self):
         """Tests the contains_many_pos method."""
         for (zone, test_pos) in self.testdata_containspos:
-            aerial_pos_list = list()
-            expected_results = list()
+            aerial_pos_list = []
+            expected_results = []
             for ((lat, lon, alt), inside) in test_pos:
                 gpos = GpsPosition()
                 gpos.latitude = lat
@@ -233,7 +233,7 @@ class TestFlyZone(TestCase):
         """Tests the UAS out of bounds method."""
         (zone_details, uas_details) = TESTDATA_FLYZONE_EVALBOUNDS
         # Create FlyZone objects
-        zones = list()
+        zones = []
         for (alt_min, alt_max, wpts) in zone_details:
             zone = FlyZone()
             zone.altitude_msl_min = alt_min
@@ -272,7 +272,7 @@ class TestFlyZone(TestCase):
             user = User.objects.create_user('testuser%d' % user_id,
                                             'testemail@x.com', 'testpass')
             user_id += 1
-            uas_logs = list()
+            uas_logs = []
             for (lat, lon, alt, timestamp) in uas_log_details:
                 gpos = GpsPosition()
                 gpos.latitude = lat

@@ -45,6 +45,50 @@ class UasTelemetry(AccessLog):
         return super(UasTelemetry, cls).by_user(user) \
                 .select_related('uas_position__gps_position')
 
+    @classmethod
+    def dedupe(cls, logs):
+        """Dedupes a set of UAS telemetry logs.
+
+        For every set of sequential telemetry logs that are duplicates, it will
+        filter all but the first log. Sensors and autopilots are unlikely to
+        provide exactly the same data, even if the system is stationary, so
+        logs which have exactly the same values are likely duplicates. Duplicate
+        telemetry data is not allowed per the rules, so it is filtered.
+
+        Args:
+            logs: A sorted list of UasTelemetry logs.
+        Returns:
+            A list containing the non-duplicate logs in the original list.
+        """
+        # Check that logs were provided.
+        if not logs:
+            return logs
+
+        # For each log, compare to previous. If different, add to output.
+        filtered = []
+        prev_log = None
+        for log in logs:
+            if prev_log is None or not prev_log.duplicate(log):
+                # New unique log.
+                filtered.append(log)
+                prev_log = log
+
+        return filtered
+
+    def duplicate(self, other):
+        """Determines whether this UasTelemetry is equivalent to another.
+
+        This differs from the Django __eq__() method which simply compares
+        primary keys. This method compares the field values.
+
+        Args:
+            other: The other log for comparison.
+        Returns:
+            True if they are equal.
+        """
+        return (self.uas_position.duplicate(other.uas_position) and
+                self.uas_heading == other.uas_heading)
+
     def json(self):
         ret = {
             'id': self.pk,

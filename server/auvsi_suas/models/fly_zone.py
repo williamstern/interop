@@ -58,7 +58,7 @@ class FlyZone(models.Model):
         path = mplpath.Path(np.array(path_pts))
 
         # Test each aerial position for altitude
-        results = list()
+        results = []
         for aerial_pos in aerial_pos_list:
             # Check altitude bounds
             alt = aerial_pos.altitude_msl
