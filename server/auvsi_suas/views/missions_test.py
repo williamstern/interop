@@ -82,6 +82,9 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertIn('id', data[0])
         self.assertEqual(3, data[0]['id'])
 
+        self.assertIn('active', data[0])
+        self.assertEqual(True, data[0]['active'])
+
         self.assertIn('home_pos', data[0])
         self.assertIn('latitude', data[0]['home_pos'])
         self.assertIn('longitude', data[0]['home_pos'])

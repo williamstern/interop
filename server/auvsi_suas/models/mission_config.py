@@ -23,6 +23,9 @@ logger = logging.getLogger(__name__)
 
 class MissionConfig(models.Model):
     """The details for the active mission. There should only be one."""
+    # Whether the mission is active. Only one mission can be active at a time.
+    is_active = models.BooleanField(default=False)
+
     # The home position for use as a reference point. Should be the tents.
     home_pos = models.ForeignKey(GpsPosition,
                                  related_name="missionconfig_home_pos")
@@ -76,13 +79,14 @@ class MissionConfig(models.Model):
             ["%s" % wpt.__unicode__()
              for wpt in self.search_grid_points.all()])
 
-        return unicode("MissionConfig (pk:%s, home_pos:%s, "
+        return unicode("MissionConfig (pk:%s, is_active: %s, home_pos:%s, "
                        "mission_waypoints_dist_max:%s, "
                        "mission_waypoints:[%s], search_grid:[%s], "
                        "emergent_lkp:%s, off_axis:%s, "
                        "sric_pos:%s, ir_primary_pos:%s, ir_secondary_pos:%s, "
                        "air_drop_pos:%s)" %
-                       (str(self.pk), self.home_pos.__unicode__(),
+                       (str(self.pk), str(self.is_active),
+                        self.home_pos.__unicode__(),
                         str(self.mission_waypoints_dist_max),
                         mission_waypoints_str, search_grid_str,
                         self.emergent_last_known_pos.__unicode__(),
@@ -222,6 +226,7 @@ class MissionConfig(models.Model):
         """Return a dict, for conversion to JSON."""
         ret = {
             "id": self.pk,
+            "active": self.is_active,
             "home_pos": {
                 "latitude": self.home_pos.latitude,
                 "longitude": self.home_pos.longitude,
