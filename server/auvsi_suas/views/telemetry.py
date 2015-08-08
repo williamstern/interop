@@ -76,6 +76,6 @@ def telemetry(request):
 
     logs = query.order_by('-timestamp').all()[:limit]
 
-    response = [l.toJSON() for l in logs]
+    response = [l.json() for l in logs]
 
     return HttpResponse(json.dumps(response), content_type="application/json")

@@ -206,10 +206,10 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertEqual(False, teams[user1]['moving_obst_collision'][25])
         self.assertEqual(False, teams[user1]['moving_obst_collision'][26])
 
-    def test_toJSON(self):
+    def test_json(self):
         """Conversion to dict for JSON."""
         config = MissionConfig.objects.get()
-        data = config.toJSON()
+        data = config.json()
 
         self.assertIn('id', data)
         self.assertEqual(3, data['id'])

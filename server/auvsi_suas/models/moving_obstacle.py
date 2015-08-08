@@ -230,7 +230,7 @@ class MovingObstacle(models.Model):
                 return True
         return False
 
-    def toJSON(self, time=None):
+    def json(self, time=None):
         """Obtain a JSON style representation of object."""
         (latitude, longitude, altitude_msl) = self.get_position(cur_time=time)
         data = {

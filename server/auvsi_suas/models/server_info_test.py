@@ -21,7 +21,7 @@ class TestServerInfoModel(TestCase):
         time = timezone.now()
 
         info = ServerInfo(timestamp=time, team_msg=message)
-        json_data = info.toJSON()
+        json_data = info.json()
 
         self.assertTrue('message' in json_data)
         self.assertEqual(json_data['message'], message)

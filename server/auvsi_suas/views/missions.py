@@ -22,6 +22,6 @@ def missions(request):
     out = []
 
     for mission in missions:
-        out.append(mission.toJSON())
+        out.append(mission.json())
 
     return HttpResponse(json.dumps(out), content_type="application/json")

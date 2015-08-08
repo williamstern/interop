@@ -431,10 +431,10 @@ class TestMovingObstacle(TestCase):
                 self.assertEqual(obst.evaluate_collision_with_uas([log]),
                                  inside)
 
-    def test_toJSON(self):
+    def test_json(self):
         """Tests the JSON serialization method."""
         for cur_obst in self.obstacles:
-            json_data = cur_obst.toJSON()
+            json_data = cur_obst.json()
             self.assertTrue('latitude' in json_data)
             self.assertTrue('longitude' in json_data)
             self.assertTrue('altitude_msl' in json_data)
@@ -442,7 +442,7 @@ class TestMovingObstacle(TestCase):
             self.assertEqual(json_data['sphere_radius'],
                              cur_obst.sphere_radius)
         obst = self.obst_single_wpt
-        json_data = obst.toJSON()
+        json_data = obst.json()
 
         # yapf: disable
         self.assertEqual(json_data['latitude'],
@@ -511,18 +511,18 @@ class TestMovingObstacle(TestCase):
         log.save()
         return log
 
-    def test_toJSON_time_changes(self):
-        """toJSON, called at different times, causes different locations"""
+    def test_json_time_changes(self):
+        """json, called at different times, causes different locations"""
         for o in self.obstacles:
-            d1 = o.toJSON()
-            d2 = o.toJSON()
+            d1 = o.json()
+            d2 = o.json()
             self.assertNotEqual(d1, d2)
 
-    def test_toJSON_time_freeze(self):
-        """toJSON, called at the same time, causes same locations"""
+    def test_json_time_freeze(self):
+        """json, called at the same time, causes same locations"""
         time = timezone.now()
 
         for o in self.obstacles:
-            d1 = o.toJSON(time=time)
-            d2 = o.toJSON(time=time)
+            d1 = o.json(time=time)
+            d2 = o.json(time=time)
             self.assertEqual(d1, d2)
