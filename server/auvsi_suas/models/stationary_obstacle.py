@@ -54,7 +54,7 @@ class StationaryObstacle(models.Model):
                 return True
         return False
 
-    def toJSON(self):
+    def json(self):
         """Obtain a JSON style representation of object."""
         if self.gps_position is None:
             latitude = 0

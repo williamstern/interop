@@ -42,7 +42,7 @@ def server_info(request):
     else:
         # Form JSON response
         data = {
-            'server_info': info.toJSON(),
+            'server_info': info.json(),
             'server_time': str(datetime.datetime.now())
         }
         return HttpResponse(json.dumps(data), content_type="application/json")

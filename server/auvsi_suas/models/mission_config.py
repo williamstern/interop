@@ -216,7 +216,7 @@ class MissionConfig(models.Model):
 
         return results
 
-    def toJSON(self):
+    def json(self):
         """Return a dict, for conversion to JSON."""
         ret = {
             "id": self.pk,

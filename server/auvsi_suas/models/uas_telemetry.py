@@ -45,7 +45,7 @@ class UasTelemetry(AccessLog):
         return super(UasTelemetry, cls).by_user(user) \
                 .select_related('uas_position__gps_position')
 
-    def toJSON(self):
+    def json(self):
         ret = {
             'id': self.pk,
             'user': self.user.pk,

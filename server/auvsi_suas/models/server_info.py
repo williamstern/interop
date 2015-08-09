@@ -15,7 +15,7 @@ class ServerInfo(models.Model):
         return unicode("ServerInfo (pk:%s, msg:%s, timestamp:%s)" %
                        (str(self.pk), str(self.team_msg), str(self.timestamp)))
 
-    def toJSON(self):
+    def json(self):
         """Obtain a JSON style representation of object."""
         data = {
             'message': self.team_msg,

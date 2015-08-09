@@ -67,7 +67,7 @@ def obstacles(request):
     stationary_obstacles_json = list()
     for cur_obst in stationary_obstacles:
         # Add current obstacle
-        cur_obst_json = cur_obst.toJSON()
+        cur_obst_json = cur_obst.json()
         stationary_obstacles_json.append(cur_obst_json)
 
     # Form JSON response portion for moving obstacles
@@ -80,7 +80,7 @@ def obstacles(request):
     moving_obstacles_json = list()
     for cur_obst in moving_obstacles:
         # Add current obstacle
-        cur_obst_json = cur_obst.toJSON(time=time)
+        cur_obst_json = cur_obst.json(time=time)
         moving_obstacles_json.append(cur_obst_json)
 
     # Form final JSON response

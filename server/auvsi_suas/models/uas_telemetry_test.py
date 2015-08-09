@@ -36,9 +36,9 @@ class TestUasTelemetry(TestCase):
         """Tests the unicode method executes."""
         self.assertTrue(self.log.__unicode__())
 
-    def test_toJSON(self):
+    def test_json(self):
         """Tests JSON-style output."""
-        data = self.log.toJSON()
+        data = self.log.json()
 
         self.assertIn('id', data)
         self.assertIn('user', data)
