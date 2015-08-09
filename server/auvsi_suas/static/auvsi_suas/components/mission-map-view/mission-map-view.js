@@ -158,7 +158,6 @@ MissionMapView.prototype.link = function(scope, element, attrs) {
  * @private
  */
 MissionMapView.prototype.unlink_ = function() {
-    console.log('unlink');
     this.renderActive_ = false;
     this.camera_ = null;
     this.renderer_ = null;
