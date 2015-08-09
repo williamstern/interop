@@ -1,13 +1,99 @@
 """Tests for the missions module."""
 
 import json
+from auvsi_suas.models import GpsPosition
+from auvsi_suas.models import MissionConfig
+from auvsi_suas.views.missions import active_mission
+from auvsi_suas.views.missions import mission_for_request
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.http import HttpResponseBadRequest
+from django.http import HttpResponseServerError
 from django.test import TestCase
 from django.utils import timezone
 
 login_url = reverse('auvsi_suas:login')
 missions_url = reverse('auvsi_suas:missions')
+
+
+class TestMissionForRequest(TestCase):
+    """Tests for function mission_for_request."""
+
+    def create_config(self):
+        """Creates a dummy config for testing."""
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 10
+        pos.save()
+
+        config = MissionConfig()
+        config.is_active = False
+        config.home_pos = pos
+        config.mission_waypoints_dist_max = 10
+        config.emergent_last_known_pos = pos
+        config.off_axis_target_pos = pos
+        config.sric_pos = pos
+        config.ir_primary_target_pos = pos
+        config.ir_secondary_target_pos = pos
+        config.air_drop_pos = pos
+        return config
+
+    def test_noninteger_id(self):
+        """Tests a non-integer mission ID in request."""
+        params = {'mission': 'a'}
+        _, err = mission_for_request(params)
+        self.assertTrue(isinstance(err, HttpResponseBadRequest))
+
+    def test_config_doesnt_exist(self):
+        """Tests a mission ID for a mission that doesn't exist."""
+        params = {'mission': '1'}
+        _, err = mission_for_request(params)
+        self.assertTrue(isinstance(err, HttpResponseBadRequest))
+
+    def test_specified_mission(self):
+        """Tests getting the mission for a specified ID."""
+        config = self.create_config()
+        config.is_active = False
+        config.save()
+
+        params = {'mission': str(config.pk)}
+        recv_config, _ = mission_for_request(params)
+        self.assertEqual(config, recv_config)
+
+    def test_no_active_missions(self):
+        """Tests when there are no active missions."""
+        _, err = active_mission()
+        self.assertTrue(isinstance(err, HttpResponseServerError))
+
+        _, err = mission_for_request({})
+        self.assertTrue(isinstance(err, HttpResponseServerError))
+
+    def test_multiple_active_missions(self):
+        """Tests when too many active missions."""
+        config = self.create_config()
+        config.is_active = True
+        config.save()
+        config = self.create_config()
+        config.is_active = True
+        config.save()
+
+        _, err = active_mission()
+        self.assertTrue(isinstance(err, HttpResponseServerError))
+
+        _, err = mission_for_request({})
+        self.assertTrue(isinstance(err, HttpResponseServerError))
+
+    def test_active_mission(self):
+        """Tests getting the single active mission."""
+        config = self.create_config()
+        config.is_active = True
+        config.save()
+
+        recv_config, _ = active_mission()
+        self.assertEqual(config, recv_config)
+
+        recv_config, _ = mission_for_request({})
+        self.assertEqual(config, recv_config)
 
 
 class TestMissionsViewLoggedOut(TestCase):

@@ -74,16 +74,30 @@
       </li>
     </ul>
 
+    {% verbatim %}
     <section class="top-bar-section">
       <ul class="right" ng-if="navigationCtrl.shouldShowMissionLinks()">
-        <li><a target="_blank" href="/auvsi_admin/live.kml">Live View (KML)</a></li>
-        <li><a target="_blank" href="/auvsi_admin/evaluate_teams.csv">Evaluate Teams (CSV)</a></li>
-        <li><a target="_blank" href="/auvsi_admin/export_data.kml">Export Data (KML)</a></li>
+        <li class="has-dropdown">
+            <a>Mission</a>
+            <ul class="dropdown">
+                <li ng-repeat="link in navigationCtrl.getMissionLinks()">
+                    <a href="{{link.url}}" target="{{link.target}}">{{link.text}}</a>
+                </li>
+            </ul>
+        </li>
       </ul>
       <ul class="right">
-        <li><a target="_blank" href="/admin">Edit Data</a></li>
+        <li class="has-dropdown">
+            <a>System</a>
+            <ul class="dropdown">
+                <li ng-repeat="link in navigationCtrl.getLinks()">
+                    <a href="{{link.url}}" target="{{link.target}}">{{link.text}}</a>
+                </li>
+            </ul>
+        </li>
       </ul>
     </section>
+    {% endverbatim %}
   </nav>
 
   <!-- Route specific view --!>
