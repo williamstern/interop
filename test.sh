@@ -33,6 +33,16 @@ deactivate
 
 echo -e "\n=====================================================================\n"
 
+# Frontend
+cd /interop/server/auvsi_suas/static/auvsi_suas
+
+echo "Testing JavaScript Frontend..."
+
+./test.sh
+frontend=$?
+
+echo -e "\n=====================================================================\n"
+
 exit_code=0
 
 if [[ ${server} == "0" ]]; then
@@ -53,6 +63,13 @@ if [[ ${py3client} == "0" ]]; then
     echo "Python 3 client PASSED"
 else
     echo "Python 3 client FAILED"
+    exit_code=1
+fi
+
+if [[ ${frontend} == "0" ]]; then
+    echo "JavaScript Frontend PASSED"
+else
+    echo "JavaScript Frontend FAILED"
     exit_code=1
 fi
 
