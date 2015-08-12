@@ -94,8 +94,8 @@ class TestStationaryObstacleModel(TestCase):
                                   cylinder_height=cyl_height)
         obst.save()
 
-        inside_logs = list()
-        outside_logs = list()
+        inside_logs = []
+        outside_logs = []
         logs_to_create = [
             (inside_pos, inside_logs), (outside_pos, outside_logs)
         ]

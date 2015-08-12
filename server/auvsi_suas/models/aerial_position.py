@@ -30,3 +30,17 @@ class AerialPosition(models.Model):
             self.gps_position.latitude, self.gps_position.longitude,
             self.altitude_msl, other.gps_position.latitude,
             other.gps_position.longitude, other.altitude_msl)
+
+    def duplicate(self, other):
+        """Determines whether this AerialPosition is equivalent to another.
+
+        This differs from the Django __eq__() method which simply compares
+        primary keys. This method compares the field values.
+
+        Args:
+            other: The other position for comparison.
+        Returns:
+            True if they are equal.
+        """
+        return (self.gps_position.duplicate(other.gps_position) and
+                self.altitude_msl == other.altitude_msl)

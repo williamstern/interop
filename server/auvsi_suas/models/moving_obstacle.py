@@ -133,7 +133,7 @@ class MovingObstacle(models.Model):
 
         # Create spline representation
         spline_k = 3 if num_waypoints >= 3 else 2  # Cubic if enough points
-        spline_reps = list()
+        spline_reps = []
         for iter_dim in range(3):
             tck = splrep(pos_times, positions[:, iter_dim], k=spline_k, per=1)
             spline_reps.append(tck)

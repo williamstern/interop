@@ -636,6 +636,14 @@
     "pk": 162
 },
 {
+    "fields": {
+        "timestamp": "1970-01-01T00:00:03Z",
+        "user": 54
+    },
+    "model": "auvsi_suas.accesslog",
+    "pk": 163
+},
+{
     "fields": {},
     "model": "auvsi_suas.serverinfoaccesslog",
     "pk": 139
@@ -765,6 +773,14 @@
     },
     "model": "auvsi_suas.uastelemetry",
     "pk": 162
+},
+{
+    "fields": {
+        "uas_position": 184,
+        "uas_heading": 0.0
+    },
+    "model": "auvsi_suas.uastelemetry",
+    "pk": 163
 },
 {
     "fields": {

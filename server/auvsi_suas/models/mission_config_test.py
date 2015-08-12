@@ -90,7 +90,7 @@ class TestMissionConfigModel(TestCase):
         config.save()
 
         # Create UAS telemetry logs
-        uas_logs = list()
+        uas_logs = []
         user = User.objects.create_user(
             'testuser', 'testemail@x.com', 'testpass')
         for (lat, lon, alt) in uas_log_details:

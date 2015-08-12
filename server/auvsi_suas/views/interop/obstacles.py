@@ -64,7 +64,7 @@ def obstacles(request):
     if stationary_obstacles is None:
         stationary_obstacles = StationaryObstacle.objects.all()
         stationary_obstacles_cached = False
-    stationary_obstacles_json = list()
+    stationary_obstacles_json = []
     for cur_obst in stationary_obstacles:
         # Add current obstacle
         cur_obst_json = cur_obst.json()
@@ -77,7 +77,7 @@ def obstacles(request):
     if moving_obstacles is None:
         moving_obstacles = MovingObstacle.objects.all()
         moving_obstacles_cached = False
-    moving_obstacles_json = list()
+    moving_obstacles_json = []
     for cur_obst in moving_obstacles:
         # Add current obstacle
         cur_obst_json = cur_obst.json(time=time)

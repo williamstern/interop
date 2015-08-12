@@ -28,9 +28,9 @@ def team_evaluation_csv(request):
         logger.warning('No data for team evaluation.')
         return HttpResponseServerError('Could not get user evaluation data.')
     # Reformat to column oriented
-    user_col_data = dict()
+    user_col_data = {}
     for (user, eval_data) in user_eval_data.iteritems():
-        col_data = user_col_data.setdefault(user, dict())
+        col_data = user_col_data.setdefault(user, {})
         col_data['username'] = user.username
         work_queue = [([], eval_data)]
         while len(work_queue) > 0:

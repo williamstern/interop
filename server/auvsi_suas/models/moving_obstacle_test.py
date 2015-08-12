@@ -129,7 +129,7 @@ class TestMovingObstacle(TestCase):
         self.obst_single_wpt = obst_single_wpt
 
         # Obstacles with predefined path
-        self.obstacles = list()
+        self.obstacles = []
         for path in TESTDATA_MOVOBST_PATHS:
             cur_obst = MovingObstacle()
             cur_obst.speed_avg = 68
@@ -399,8 +399,8 @@ class TestMovingObstacle(TestCase):
                                        minute=0,
                                        second=0,
                                        microsecond=0)
-        inside_logs = list()
-        outside_logs = list()
+        inside_logs = []
+        outside_logs = []
         for (time_sec, inside_pos, outside_pos) in log_details:
             log_time = epoch + datetime.timedelta(seconds=time_sec)
             logs_pos = [(inside_pos, inside_logs), (outside_pos, outside_logs)]
