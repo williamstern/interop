@@ -7,4 +7,5 @@
 class auvsi_suas {
     include auvsi_suas::server_run
     include auvsi_suas::client_install
+    include auvsi_suas::docs_setup
 }
