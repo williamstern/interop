@@ -40,6 +40,19 @@ class TestEvaluateTeams(TestCase):
         response = client.get(eval_url)
         self.assertGreaterEqual(response.status_code, 300)
 
+    def test_invalid_mission(self):
+        """Tests that an invalid mission ID results in error."""
+        client = self.client
+        login_url = self.login_url
+        eval_url = self.eval_url
+        client.post(login_url,
+                    {'username': 'testuser',
+                     'password': 'testpass'})
+
+        response = client.get(eval_url,
+                              {'mission': 100000})
+        self.assertGreaterEqual(response.status_code, 300)
+
     def test_evaluate_teams(self):
         """Tests the CSV method."""
         client = self.client

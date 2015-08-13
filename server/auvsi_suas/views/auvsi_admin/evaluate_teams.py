@@ -5,6 +5,7 @@ import cStringIO
 import csv
 from auvsi_suas.models import MissionConfig
 from auvsi_suas.views import logger
+from auvsi_suas.views.missions import mission_for_request
 from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponse
 from django.http import HttpResponseServerError
@@ -14,19 +15,19 @@ from django.http import HttpResponseServerError
 def team_evaluation_csv(request):
     """Evaluates the teams by forming a CSV containing useful stats."""
     logger.info('Admin downloaded team evaluation.')
-    # Get the mission for evaluation
-    missions = MissionConfig.objects.all()
-    if not missions or not missions[0]:
-        logger.error('No mission defined for which to evaluate teams.')
-        return HttpResponseServerError('No mission defined.')
-    if len(missions) > 1:
-        logger.warning('More than one mission defined, taking first.')
-    mission = missions[0]
+
+    # Get the mission to evaluate a team for.
+    mission, error = mission_for_request(request.GET)
+    if error:
+        logger.warning('Could not get mission to evaluate teams.')
+        return error
+
     # Get the eval data for the teams
     user_eval_data = mission.evaluate_teams()
     if not user_eval_data:
         logger.warning('No data for team evaluation.')
         return HttpResponseServerError('Could not get user evaluation data.')
+
     # Reformat to column oriented
     user_col_data = {}
     for (user, eval_data) in user_eval_data.iteritems():
@@ -49,6 +50,7 @@ def team_evaluation_csv(request):
         for header in col_data.keys():
             col_headers.add(header)
     col_headers = sorted(col_headers)
+
     # Write output
     csv_output = cStringIO.StringIO()
     writer = csv.DictWriter(csv_output, fieldnames=col_headers)
