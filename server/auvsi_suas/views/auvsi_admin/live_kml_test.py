@@ -1,5 +1,7 @@
 """Tests for the live_kml module."""
 
+from auvsi_suas.models import GpsPosition
+from auvsi_suas.models import MissionConfig
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -29,6 +31,29 @@ class TestGenerateLiveKMLCommon(TestCase):
 
 
 class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
+    def setUp(self):
+        """Setup a single active mission to test live kml with."""
+        super(TestGenerateLiveKMLNoFixture, self).setUp()
+
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 10
+        pos.save()
+
+        config = MissionConfig()
+        config.is_active = True
+        config.home_pos = pos
+        config.mission_waypoints_dist_max = 10
+        config.emergent_last_known_pos = pos
+        config.off_axis_target_pos = pos
+        config.sric_pos = pos
+        config.ir_primary_target_pos = pos
+        config.ir_secondary_target_pos = pos
+        config.air_drop_pos = pos
+        config.save()
+        self.config = config
+
+
     def test_generate_live_kml_not_logged_in(self):
         """Tests the generate KML method."""
         response = self.client.get(self.eval_url)

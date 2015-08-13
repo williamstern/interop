@@ -281,14 +281,19 @@ class MissionConfig(models.Model):
         return ret
 
     @classmethod
-    def kml_all(cls, kml):
+    def kml_all(cls, kml, missions=None):
         """
         Appends kml nodes describing all mission configurations.
 
         Args:
             kml: A simpleKML Container to which the mission data will be added
+            missions: Optional list of mission for which to generate KML. If
+                None, it will use all missions.
         """
-        for mission in MissionConfig.objects.all():
+        if not missions:
+            missions = MissionConfig.objects.all()
+
+        for mission in missions:
             mission.kml(kml)
 
     def kml(self, kml):
@@ -346,7 +351,6 @@ class MissionConfig(models.Model):
 
         # Search Area
         search_area_folder = kml_folder.newfolder(name='Search Area')
-        pol = search_area_folder.newpolygon(name='Search Area')
         search_area = []
         search_area_num = 1
         for point in self.search_grid_points.all():
@@ -360,10 +364,12 @@ class MissionConfig(models.Model):
             wp.description = str(point)
             wp.visibility = False
             search_area_num += 1
-        search_area.append(search_area[0])
-        pol.outerboundaryis = search_area
-
-        # Search Area Style
-        pol.style.linestyle.color = Color.black
-        pol.style.linestyle.width = 2
-        pol.style.polystyle.color = Color.changealphaint(50, Color.blue)
+        if search_area:
+            # Create search area polygon.
+            pol = search_area_folder.newpolygon(name='Search Area')
+            search_area.append(search_area[0])
+            pol.outerboundaryis = search_area
+            # Search Area Style.
+            pol.style.linestyle.color = Color.black
+            pol.style.linestyle.width = 2
+            pol.style.polystyle.color = Color.changealphaint(50, Color.blue)
