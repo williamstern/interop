@@ -5,6 +5,7 @@ import json
 from auvsi_suas.models import ServerInfo
 from auvsi_suas.models import ServerInfoAccessLog
 from auvsi_suas.views import logger
+from auvsi_suas.views.missions import active_mission
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
@@ -13,34 +14,39 @@ from django.http import HttpResponseServerError
 
 def server_info(request):
     """Gets the server information as JSON with a GET request."""
-    # Validate user made a GET request
+    # Validate user made a GET request.
     if request.method != 'GET':
         logger.warning('Invalid request method for server info request.')
         logger.debug(request)
         return HttpResponseBadRequest('Request must be GET request.')
-    # Validate user is logged in to make request
+    # Validate user is logged in to make request.
     if not request.user.is_authenticated():
         logger.warning('User not authenticated for server info request.')
         logger.debug(request)
         return HttpResponseBadRequest('User not logged in. Login required.')
 
-    # Log user access to server information
+    # Log user access to server information.
     logger.info('User downloaded server info: %s.' % request.user.username)
     ServerInfoAccessLog(user=request.user).save()
 
-    # Form response
+    # Form response.
     try:
-        # Get the latest published server info
+        # Get the server info stored in the active mission.
         server_info_key = '/ServerInfo/latest'
         info = cache.get(server_info_key)
         if info is None:
-            info = ServerInfo.objects.latest('timestamp')
+            (mission, err) = active_mission()
+            if err:
+                return err
+            info = mission.server_info
+            if not info:
+                return HttpResponseServerError('No server info for mission.')
             cache.set(server_info_key, info)
     except ServerInfo.DoesNotExist:
-        # Failed to obtain server info
+        # Failed to obtain server info.
         return HttpResponseServerError('No server info available.')
     else:
-        # Form JSON response
+        # Form JSON response.
         data = {
             'server_info': info.json(),
             'server_time': str(datetime.datetime.now())

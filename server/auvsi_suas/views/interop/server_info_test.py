@@ -3,10 +3,14 @@
 import time
 import json
 import logging
+from auvsi_suas.models import AerialPosition
+from auvsi_suas.models import GpsPosition
+from auvsi_suas.models import MissionConfig
 from auvsi_suas.models import ServerInfo
 from auvsi_suas.models import ServerInfoAccessLog
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
@@ -17,12 +21,31 @@ class TestGetServerInfoView(TestCase):
 
     def setUp(self):
         """Sets up the client, server info URL, and user."""
+        cache.clear()
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
         self.user.save()
+
         self.info = ServerInfo()
         self.info.team_msg = 'test message'
         self.info.save()
+
+        gpos = GpsPosition(latitude=0, longitude=0)
+        gpos.save()
+
+        self.mission = MissionConfig()
+        self.mission.is_active = True
+        self.mission.home_pos = gpos
+        self.mission.mission_waypoints_dist_max = 0
+        self.mission.emergent_last_known_pos = gpos
+        self.mission.off_axis_target_pos = gpos
+        self.mission.sric_pos = gpos
+        self.mission.ir_primary_target_pos = gpos
+        self.mission.ir_secondary_target_pos = gpos
+        self.mission.air_drop_pos = gpos
+        self.mission.server_info = self.info
+        self.mission.save()
+
         self.client = Client()
         self.login_url = reverse('auvsi_suas:login')
         self.info_url = reverse('auvsi_suas:server_info')
@@ -47,6 +70,21 @@ class TestGetServerInfoView(TestCase):
                      'password': 'testpass'})
         response = client.post(info_url)
         self.assertEqual(response.status_code, 400)
+
+    def test_no_active_mission(self):
+        """Tests that no active mission returns 500."""
+        self.mission.is_active = False
+        self.mission.save()
+
+        client = self.client
+        login_url = self.login_url
+        info_url = self.info_url
+        client.post(login_url,
+                    {'username': 'testuser',
+                     'password': 'testpass'})
+
+        response = client.get(info_url)
+        self.assertEqual(response.status_code, 500)
 
     def test_correct_log_and_response(self):
         """Tests that access is logged and returns valid response."""

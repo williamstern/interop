@@ -1,8 +1,10 @@
 """Tests for the mission_config module."""
 
+import datetime
 from auvsi_suas.models import AerialPosition
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import MissionConfig
+from auvsi_suas.models import ServerInfo
 from auvsi_suas.models import UasTelemetry
 from auvsi_suas.models import Waypoint
 from auvsi_suas.patches.simplekml_patch import Kml
@@ -20,6 +22,13 @@ TESTDATA_MISSIONCONFIG_EVALWAYPOINTS = (
 
 class TestMissionConfigModel(TestCase):
     """Tests the MissionConfig model."""
+
+    def setUp(self):
+        info = ServerInfo()
+        info.timestamp = datetime.datetime.now()
+        info.message = "Hello World"
+        info.save()
+        self.info = info
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -44,6 +53,7 @@ class TestMissionConfigModel(TestCase):
         config.ir_primary_target_pos = pos
         config.ir_secondary_target_pos = pos
         config.air_drop_pos = pos
+        config.server_info = self.info
         config.save()
         config.mission_waypoints.add(wpt)
         config.search_grid_points.add(wpt)
@@ -69,6 +79,7 @@ class TestMissionConfigModel(TestCase):
         config.ir_primary_target_pos = gpos
         config.ir_secondary_target_pos = gpos
         config.air_drop_pos = gpos
+        config.server_info = self.info
         config.save()
 
         # Create waypoints for config

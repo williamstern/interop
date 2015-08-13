@@ -1,8 +1,10 @@
 """Tests for the missions module."""
 
+import datetime
 import json
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import MissionConfig
+from auvsi_suas.models import ServerInfo
 from auvsi_suas.views.missions import active_mission
 from auvsi_suas.views.missions import mission_for_request
 from django.contrib.auth.models import User
@@ -26,6 +28,11 @@ class TestMissionForRequest(TestCase):
         pos.longitude = 10
         pos.save()
 
+        info = ServerInfo()
+        info.timestamp = datetime.datetime.now()
+        info.message = "Hello World"
+        info.save()
+
         config = MissionConfig()
         config.is_active = False
         config.home_pos = pos
@@ -36,6 +43,7 @@ class TestMissionForRequest(TestCase):
         config.ir_primary_target_pos = pos
         config.ir_secondary_target_pos = pos
         config.air_drop_pos = pos
+        config.server_info = info
         return config
 
     def test_noninteger_id(self):
