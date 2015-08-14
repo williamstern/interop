@@ -8,6 +8,7 @@ from fly_zone import FlyZone
 from gps_position import GpsPosition
 from moving_obstacle import MovingObstacle
 from obstacle_access_log import ObstacleAccessLog
+from server_info import ServerInfo
 from server_info_access_log import ServerInfoAccessLog
 from stationary_obstacle import StationaryObstacle
 from takeoff_or_landing_event import TakeoffOrLandingEvent
@@ -71,6 +72,9 @@ class MissionConfig(models.Model):
     air_drop_pos = models.ForeignKey(GpsPosition,
                                      related_name="missionconfig_air_drop_pos")
 
+    # The server info
+    server_info = models.ForeignKey(ServerInfo)
+
     def __unicode__(self):
         """Descriptive text for use in displays."""
         mission_waypoints_str = ", ".join(
@@ -84,7 +88,7 @@ class MissionConfig(models.Model):
                        "mission_waypoints:[%s], search_grid:[%s], "
                        "emergent_lkp:%s, off_axis:%s, "
                        "sric_pos:%s, ir_primary_pos:%s, ir_secondary_pos:%s, "
-                       "air_drop_pos:%s)" %
+                       "air_drop_pos:%s, server_info:%s)" %
                        (str(self.pk), str(self.is_active),
                         self.home_pos.__unicode__(),
                         str(self.mission_waypoints_dist_max),
@@ -94,7 +98,8 @@ class MissionConfig(models.Model):
                         self.sric_pos.__unicode__(),
                         self.ir_primary_target_pos.__unicode__(),
                         self.ir_secondary_target_pos.__unicode__(),
-                        self.air_drop_pos.__unicode__()))
+                        self.air_drop_pos.__unicode__(),
+                        self.server_info.__unicode__()))
 
     def satisfied_waypoints(self, uas_telemetry_logs):
         """Determines whether the UAS satisfied the waypoints.

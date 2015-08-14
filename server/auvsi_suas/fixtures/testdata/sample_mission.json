@@ -868,6 +868,14 @@
 },
 {
     "fields": {
+        "timestamp": "1970-01-01T00:00:01Z",
+        "team_msg": "Hello World"
+    },
+    "model": "auvsi_suas.serverinfo",
+    "pk": 1
+},
+{
+    "fields": {
         "off_axis_target_pos": 324,
         "mission_waypoints_dist_max": 10.0,
         "mission_waypoints": [
@@ -883,7 +891,8 @@
         ],
         "home_pos": 324,
         "is_active": true,
-        "air_drop_pos": 324
+        "air_drop_pos": 324,
+        "server_info": 1
     },
     "model": "auvsi_suas.missionconfig",
     "pk": 3
