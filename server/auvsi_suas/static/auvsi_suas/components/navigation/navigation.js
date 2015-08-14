@@ -40,6 +40,11 @@ NavigationCtrl = function($routeParams) {
             text: "Edit Data (KML)",
             url: "/admin",
             target: "_blank"
+        },
+        {
+            text: "Clear Cache",
+            url: "/api/clear_cache",
+            target: "_blank"
         }
     ];
 

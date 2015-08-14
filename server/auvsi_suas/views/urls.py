@@ -1,3 +1,4 @@
+from auvsi_suas.views import clear_cache
 from auvsi_suas.views import missions
 from auvsi_suas.views import teams
 from auvsi_suas.views import telemetry
@@ -29,6 +30,7 @@ urlpatterns = patterns(
     url(r'^api/teams$', teams.teams, name='teams'),
     url(r'^api/teams/(?P<pk>\d+)$', teams.teams_id, name='teams_id'),
     url(r'^api/telemetry$', telemetry.telemetry, name='telemetry'),
+    url(r'^api/clear_cache$', clear_cache.clear_cache, name='clear_cache'),
     # Admin access views
     url(r'^$', index.index, name='index'),
     url(r'^auvsi_admin/evaluate_teams.csv$', evaluate_teams.team_evaluation_csv,
