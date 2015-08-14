@@ -8,6 +8,7 @@ from auvsi_suas.models import ServerInfo
 from auvsi_suas.views.missions import active_mission
 from auvsi_suas.views.missions import mission_for_request
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseServerError
@@ -20,6 +21,12 @@ missions_url = reverse('auvsi_suas:missions')
 
 class TestMissionForRequest(TestCase):
     """Tests for function mission_for_request."""
+
+    def setUp(self):
+        cache.clear()
+
+    def tearDown(self):
+        cache.clear()
 
     def create_config(self):
         """Creates a dummy config for testing."""
@@ -102,7 +109,6 @@ class TestMissionForRequest(TestCase):
 
         recv_config, _ = mission_for_request({})
         self.assertEqual(config, recv_config)
-
 
 class TestMissionsViewLoggedOut(TestCase):
     def test_not_authenticated(self):
