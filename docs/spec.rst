@@ -146,6 +146,9 @@ Server Information
 
    **Example Response**:
 
+   Note: This example reformatted for readability; actual response may be
+   entirely on one line.
+
    .. sourcecode:: http
 
       HTTP/1.1 200 OK
@@ -208,6 +211,9 @@ Obstacle Information
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
 
    **Example Response**:
+
+   Note: This example reformatted for readability; actual response may be
+   entirely on one line.
 
    .. sourcecode:: http
 
@@ -351,6 +357,232 @@ UAS Telemetry
    :status 403: User not authenticated. Login is required before using this
                 endpoint. Ensure :http:post:`/api/login` was successful, and
                 the login cookie was sent to this endpoint.
+
+Targets
+^^^^^^^
+
+.. http:post:: /api/targets
+
+   This endpoint is used to upload a new target for submission. All targets
+   uploaded at the end of the mission time will be evaluated by the judges.
+
+   Most of the target characteristics are optional; if not provided in this
+   initial POST request, they may be added in a future PUT request.
+   Characteristics not provided will be considered left blank. Note that some
+   characteristics must be submitted by the end of the mission to earn credit
+   for the target.
+
+   The fields that should be used depends on the type of target being submitted.
+   Refer to :py:data:`TargetTypes` for more detail.
+
+   **Example Request**:
+
+   .. sourcecode:: http
+
+      POST /api/targets HTTP/1.1
+      Host: 192.168.1.2:8000
+      Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
+      Content-Type: application/json
+
+      {
+          "type": "standard"
+          "latitude": 38.1478,
+          "longitude": -76.4275,
+          "orientation": "n",
+          "shape": "star",
+          "background_color": "orange",
+          "alphanumeric": "C",
+          "alphanumeric_color": "black",
+      }
+
+   **Example Response**:
+
+   Note: This example reformatted for readability; actual response may be
+   entirely on one line.
+
+   .. sourcecode:: http
+
+      HTTP/1.1 201 CREATED
+      Content-Type: application/json
+
+      {
+          "id": 1,
+          "user": 1
+          "type": "standard",
+          "latitude": 38.1478,
+          "longitude": -76.4275,
+          "orientation": "n",
+          "shape": "star",
+          "background_color": "orange",
+          "alphanumeric": "C",
+          "alphanumeric_color": "black",
+          "description": null,
+      }
+
+   :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
+                      must be sent to authenticate the request.
+
+   :reqheader Content-Type: The request should be sent as ``application/json``.
+
+   :<json string type: (required) Target type; must be one of
+                       :py:data:`TargetTypes`.
+
+   :<json float latitude: (optional) Target latitude (decimal degrees). If
+                          ``latitude`` is provided, ``longitude`` must also be
+                          provided.
+
+   :<json float longitude: (optional) Target longitude (decimal degrees). If
+                          ``longitude`` is provided, ``latitude`` must also be
+                          provided.
+
+   :<json string orientation: (optional) Target orientation; must be one of
+                              :py:data:`Orientations`.
+
+   :<json string shape: (optional) Target shape; must be one of
+                        :py:data:`Shapes`.
+
+   :<json string background_color: (optional) Target background color (portion
+                                   of the target outside the alphanumeric); must
+                                   be one of :py:data:`Colors`.
+
+   :<json string alphanumeric: (optional) Target alphanumeric; may consist of
+                               one or more of the characters ``0-9``, ``A-Z``,
+                               ``a-z``. It is case sensitive.
+
+   :<json string alphanumeric_color: (optional) Target alphanumeric color; must be
+                                     one of :py:data:`Colors`.
+
+   :<json string description: (optional) Free-form description of target. This
+                              should be used for describing certain target
+                              types (see :py:data:`TargetTypes`).
+
+   :resheader Content-Type: The response is ``application/json`` on success.
+
+   :>json int id: Unique identifier for this target. This is unique across
+                  all teams, it may not naturally increment 1-10.
+
+   :>json int user: Unique identifier for the team. Teams should not need to
+                    use this field.
+
+   :>json string type: Matches to request ``type``.
+
+   :>json float latitude: Matches to request ``latitude``,  or ``null`` if
+                          not specified.
+
+   :>json float longitude: Matches to request ``longitude``, or ``null`` if
+                           not specified.
+
+   :>json string orientation: Matches request ``orientation``, or ``null`` if
+                              not specified.
+
+   :>json string shape: Matches request ``shape``, or ``null`` if not specified.
+
+   :>json string background_color: Matches request ``background_color``, or
+                                   ``null`` if not specified.
+
+   :>json string alphanumeric: Matches request ``alphanumeric``, or ``null``
+                               if not specified.
+
+   :>json string alphanumeric_color: Matches request ``alphanumeric_color``,
+                                     or ``null`` if not specified.
+
+   :>json string description: Matches request ``description``, or ``null`` if
+                              not specified.
+
+   :status 201: The target has been accepted and a record has been created for
+                it. The record has been included in the response.
+
+   :status 400: Request was invalid. The request content may have been
+                malformed, missing required fields, or may have contained
+                invalid field values. The response includes a more detailed
+                error message.
+
+   :status 403: User not authenticated. Login is required before using this
+                endpoint. Ensure :http:post:`/api/login` was successful, and
+                the login cookie was sent to this endpoint.
+
+.. py:data:: TargetTypes
+
+   These are the valid types of targets which may be specified.
+
+   .. TODO(prattmic): Update with 2016 sections.
+
+   * ``standard`` - Standard targets are described in section 7.2.8 of the rules.
+
+   Use the :http:post:`/api/targets` ``latitude``, ``longitude``, ``orientation``,
+   ``shape``, ``background_color``, ``alphanumeric``, and ``alphanumeric_color``
+   fields to describe the target characteristics.
+
+   * ``qrc`` - Quick Response Code (QRC) targets are described in section
+     7.2.9 of the rules.
+
+   Use the :http:post:`/api/targets` ``latitude``, ``longitude``, and
+   ``description`` fields to describe the target. ``description`` should contain
+   the exact QRC message.
+
+   * ``off_axis`` - Off-axis targets are described in section 7.5 of the rules.
+
+   Use the :http:post:`/api/targets` ``orientation``, ``shape``,
+   ``background_color``, ``alphanumeric``, and ``alphanumeric_color`` fields to
+   describe the target characteristics.
+
+   * ``emergent`` - Emergent targets are described in section 7.6 of the rules.
+
+   Use the :http:post:`/api/targets` ``latitude``, ``longitude``, and
+   ``description`` fields to describe the emergent target. ``description``
+   should contain a description of the emergent target.
+
+   * ``ir`` - IR targets are described in section 7.8 of the rules.
+
+   Use the :http:post:`/api/targets` ``latitude``, ``longitude``,
+   ``alphanumeric`` and ``orientation`` fields to describe the target
+   characteristics.
+
+.. py:data:: Orientations
+
+   These are the valid orientations that may be specified for a target.
+
+   * ``N`` - North
+   * ``NE`` - Northeast
+   * ``E`` - East
+   * ``SE`` - Southeast
+   * ``S`` - South
+   * ``SW`` - Southwest
+   * ``W`` - West
+   * ``NW`` - Northwest
+
+.. py:data:: Shapes
+
+   These are the valid shapes that may be specified for a target.
+
+   * ``circle``
+   * ``semicircle``
+   * ``quarter_circle``
+   * ``triangle``
+   * ``square``
+   * ``rectangle``
+   * ``trapezoid``
+   * ``pentagon``
+   * ``hexagon``
+   * ``heptagon``
+   * ``octagon``
+   * ``star``
+   * ``cross``
+
+.. py:data:: Colors
+
+   These are the valid colors that may be specified for a target.
+
+   * ``white``
+   * ``black``
+   * ``gray``
+   * ``red``
+   * ``blue``
+   * ``green``
+   * ``yellow``
+   * ``purple``
+   * ``brown``
+   * ``orange``
 
 --------------
 
