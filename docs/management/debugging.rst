@@ -36,4 +36,4 @@ CSV file, first login using Django's admin interface, and then navigate to
 
 --------------
 
-Next: :doc:`/spec/index`
+Next: :doc:`/spec`
