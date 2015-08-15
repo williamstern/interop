@@ -7,7 +7,11 @@ from django.db import models
 
 
 class Choices(enum.IntEnum):
-    """Base class for enums used to limit Django field choices."""
+    """Base class for enums used to limit Django field choices,
+    plus other helper methods.
+
+    Item names should be lowercase to work properly with lookup().
+    """
 
     @classmethod
     def choices(cls):
@@ -19,6 +23,30 @@ class Choices(enum.IntEnum):
             description.
         """
         return [(int(v), k) for k, v in cls.__members__.items()]
+
+    @classmethod
+    def lookup(cls, s):
+        """Lookup value from name.
+
+        Args:
+            s: name to lookup; case insensitive
+
+        Returns:
+            Value associated with name
+
+        Raises:
+            KeyError: name not valid
+        """
+        return cls.__members__[str(s).lower()]
+
+    @classmethod
+    def names(cls):
+        """Names of choices
+
+        Returns:
+            List of names of values
+        """
+        return cls.__members__.keys()
 
 
 @enum.unique
