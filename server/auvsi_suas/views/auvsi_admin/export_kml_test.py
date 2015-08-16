@@ -58,7 +58,7 @@ class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
     def test_generateKML_not_logged_in(self):
         """Tests the generate KML method."""
         response = self.client.get(self.eval_url)
-        self.assertGreaterEqual(response.status_code, 300)
+        self.assertEqual(403, response.status_code)
 
     def test_generateKML_nonadmin(self):
         """Tests the generate KML method."""
@@ -66,7 +66,7 @@ class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
                          {'username': 'testuser',
                           'password': 'testpass'})
         response = self.client.get(self.eval_url)
-        self.assertGreaterEqual(response.status_code, 300)
+        self.assertEqual(403, response.status_code)
 
     def test_generateKML(self):
         """Tests the generate KML method."""
@@ -74,7 +74,7 @@ class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
                          {'username': 'testuser2',
                           'password': 'testpass'})
         response = self.client.get(self.eval_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(200, response.status_code)
 
         kml_data = response.content
         self.validate_kml(kml_data, self.folders, self.users, self.coordinates)
@@ -101,7 +101,7 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
     def test_generateKML_not_logged_in(self):
         """Tests the generate KML method."""
         response = self.client.get(self.eval_url)
-        self.assertGreaterEqual(response.status_code, 300)
+        self.assertEqual(403, response.status_code)
 
     def test_generateKML_nonadmin(self):
         """Tests the generate KML method."""
@@ -109,7 +109,7 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
                          {'username': 'testuser',
                           'password': 'testpass'})
         response = self.client.get(self.eval_url)
-        self.assertGreaterEqual(response.status_code, 300)
+        self.assertEqual(403, response.status_code)
 
     def test_generateKML(self):
         """Tests the generate KML method."""
@@ -117,7 +117,7 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
                          {'username': 'testuser2',
                           'password': 'testpass'})
         response = self.client.get(self.eval_url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(200, response.status_code)
 
         kml_data = response.content
         self.validate_kml(kml_data, self.folders, self.users, self.coordinates)

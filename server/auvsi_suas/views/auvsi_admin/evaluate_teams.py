@@ -5,13 +5,13 @@ import cStringIO
 import csv
 from auvsi_suas.models import MissionConfig
 from auvsi_suas.views import logger
+from auvsi_suas.views.decorators import require_superuser
 from auvsi_suas.views.missions import mission_for_request
-from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponse
 from django.http import HttpResponseServerError
 
 
-@user_passes_test(lambda u: u.is_superuser)
+@require_superuser
 def team_evaluation_csv(request):
     """Evaluates the teams by forming a CSV containing useful stats."""
     logger.info('Admin downloaded team evaluation.')

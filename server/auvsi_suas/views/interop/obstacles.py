@@ -7,12 +7,14 @@ from auvsi_suas.models import ObstacleAccessLog
 from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.views import boolean_param
 from auvsi_suas.views import logger
+from auvsi_suas.views.decorators import require_login
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.utils import timezone
 
 
+@require_login
 def obstacles(request):
     """Gets the obstacle information as JSON with a GET request."""
     # Validate user made a GET request
@@ -20,11 +22,6 @@ def obstacles(request):
         logger.warning('Invalid request method for obstacle info request.')
         logger.debug(request)
         return HttpResponseBadRequest('Request must be GET request.')
-    # Validate user is logged in to make request
-    if not request.user.is_authenticated():
-        logger.warning('User not authenticated for obstacle info request.')
-        logger.debug(request)
-        return HttpResponseBadRequest('User not logged in. Login required.')
 
     log_access = True
     time = timezone.now()

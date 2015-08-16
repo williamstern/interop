@@ -13,7 +13,6 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from django.test.client import Client
 
 
 class TestGetServerInfoView(TestCase):
@@ -46,7 +45,6 @@ class TestGetServerInfoView(TestCase):
         self.mission.server_info = self.info
         self.mission.save()
 
-        self.client = Client()
         self.login_url = reverse('auvsi_suas:login')
         self.info_url = reverse('auvsi_suas:server_info')
         logging.disable(logging.CRITICAL)
@@ -57,7 +55,7 @@ class TestGetServerInfoView(TestCase):
         info_url = self.info_url
 
         response = client.get(info_url)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(403, response.status_code)
 
     def test_invalid_request(self):
         """Tests an invalid request by mis-specifying parameters."""

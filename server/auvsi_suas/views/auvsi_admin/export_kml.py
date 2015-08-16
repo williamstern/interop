@@ -1,14 +1,13 @@
 from auvsi_suas.models import FlyZone
 from auvsi_suas.models import MissionConfig
 from auvsi_suas.models import UasTelemetry
-from django.contrib.auth.decorators import user_passes_test
+from auvsi_suas.views.decorators import require_superuser
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from auvsi_suas.patches.simplekml_patch import Kml
 
 
-# Require admin access
-@user_passes_test(lambda u: u.is_superuser)
+@require_superuser
 def generate_kml(_):
     """ Generates a KML file HttpResponse"""
 

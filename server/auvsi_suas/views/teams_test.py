@@ -20,7 +20,7 @@ class TestTeamsViewLoggedOut(TestCase):
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
         response = self.client.get(teams_url)
-        self.assertGreaterEqual(response.status_code, 300)
+        self.assertEqual(403, response.status_code)
 
 
 class TestTeamsView(TestCase):
@@ -86,7 +86,7 @@ class TestTeamsView(TestCase):
         self.assertEqual(200, response.status_code)
 
         response = self.client.get(teams_url)
-        self.assertGreaterEqual(response.status_code, 300)
+        self.assertEqual(403, response.status_code)
 
     def test_no_users(self):
         """No users results in empty list, no superusers."""
@@ -143,7 +143,7 @@ class TestTeamsIdViewLoggedOut(TestCase):
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
         response = self.client.get(teams_id_url(args=[1]))
-        self.assertGreaterEqual(response.status_code, 300)
+        self.assertEqual(403, response.status_code)
 
 
 class TestTeamsIdView(TestCase):
@@ -173,7 +173,7 @@ class TestTeamsIdView(TestCase):
     def test_correct_user(self):
         """User requested is correct"""
         response = self.client.get(teams_id_url(args=[self.user1.pk]))
-        self.assertGreaterEqual(200, response.status_code)
+        self.assertEqual(200, response.status_code)
 
         data = json.loads(response.content)
 
