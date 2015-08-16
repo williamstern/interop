@@ -4,6 +4,7 @@ from auvsi_suas.models import MovingObstacle
 from auvsi_suas.models import UasTelemetry
 from auvsi_suas.patches.simplekml_patch import Kml
 from auvsi_suas.patches.simplekml_patch import RefreshMode
+from auvsi_suas.views.missions import active_mission
 from datetime import timedelta
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import user_passes_test
@@ -21,7 +22,12 @@ def generate_kml(request):
     """
     kml = Kml(name='AUVSI SUAS LIVE Flight Data')
     kml_mission = kml.newfolder(name='Missions')
-    MissionConfig.kml_all(kml_mission)
+
+    (mission, err) = active_mission()
+    if err:
+        return err
+    MissionConfig.kml_all(kml_mission, [mission])
+
     kml_flyzone = kml.newfolder(name='Fly Zones')
     FlyZone.kml_all(kml_flyzone)
 
