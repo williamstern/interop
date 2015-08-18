@@ -19,7 +19,7 @@ class TestTelemetryViewLoggedOut(TestCase):
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
         response = self.client.get(telemetry_url)
-        self.assertGreaterEqual(response.status_code, 300)
+        self.assertEqual(403, response.status_code)
 
 
 class TestTelemetryView(TestCase):
@@ -92,7 +92,7 @@ class TestTelemetryView(TestCase):
         self.assertEqual(200, response.status_code)
 
         response = self.client.get(telemetry_url)
-        self.assertGreaterEqual(response.status_code, 300)
+        self.assertEqual(403, response.status_code)
 
     def test_post(self):
         """POST not allowed"""

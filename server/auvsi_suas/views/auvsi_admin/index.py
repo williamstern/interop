@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render
 
 
+# We want a real redirect to the login page rather than a 403, so
+# we use user_passes_test directly.
 @user_passes_test(lambda u: u.is_superuser)
 def index(request):
     """Main view for users connecting via web browsers.

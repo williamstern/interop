@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from django.test.client import Client
 
 
 class TestPostUasPosition(TestCase):
@@ -18,7 +17,6 @@ class TestPostUasPosition(TestCase):
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
         self.user.save()
-        self.client = Client()
         self.login_url = reverse('auvsi_suas:login')
         self.uas_url = reverse('auvsi_suas:uas_telemetry')
         logging.disable(logging.CRITICAL)
@@ -28,7 +26,7 @@ class TestPostUasPosition(TestCase):
         client = self.client
         uas_url = self.uas_url
         response = client.get(uas_url)
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(403, response.status_code)
 
     def test_invalid_request(self):
         """Tests an invalid request by mis-specifying parameters."""

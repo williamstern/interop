@@ -4,18 +4,17 @@ from auvsi_suas.models import MovingObstacle
 from auvsi_suas.models import UasTelemetry
 from auvsi_suas.patches.simplekml_patch import Kml
 from auvsi_suas.patches.simplekml_patch import RefreshMode
+from auvsi_suas.views.decorators import require_superuser
 from auvsi_suas.views.missions import active_mission
 from datetime import timedelta
 from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth.decorators import user_passes_test
 from django.contrib.sessions.models import Session
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 
 
-# Require admin access
-@user_passes_test(lambda u: u.is_superuser)
+@require_superuser
 def generate_kml(request):
     """ Generates a KML for live display.
     This KML uses a network link to update via the update.kml endpoint
@@ -68,9 +67,8 @@ def set_request_session_from_cookie(func):
     return wrapper
 
 
-# Require admin access
 @set_request_session_from_cookie
-@user_passes_test(lambda u: u.is_superuser)
+@require_superuser
 def generate_live_kml(_):
     """ Generates a KML file HttpResponse"""
     kml = Kml(name='LIVE Data')

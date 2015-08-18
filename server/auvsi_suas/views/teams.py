@@ -3,7 +3,7 @@ import json
 from auvsi_suas.models import UasTelemetry
 from auvsi_suas.models import TakeoffOrLandingEvent
 from auvsi_suas.views import logger
-from django.contrib.auth.decorators import user_passes_test
+from auvsi_suas.views.decorators import require_superuser
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
@@ -19,8 +19,7 @@ def user_json(user):
     }
 
 
-# Require admin access
-@user_passes_test(lambda u: u.is_superuser)
+@require_superuser
 def teams(request):
     """Gets a list of all teams."""
     # Only GET requests
@@ -40,8 +39,7 @@ def teams(request):
     return HttpResponse(json.dumps(teams), content_type="application/json")
 
 
-# Require admin access
-@user_passes_test(lambda u: u.is_superuser)
+@require_superuser
 def teams_id(request, pk):
     """GET/PUT specific team."""
     # Only GET/PUT requests

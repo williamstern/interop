@@ -5,10 +5,12 @@ from auvsi_suas.models import AerialPosition
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import UasTelemetry
 from auvsi_suas.views import logger
+from auvsi_suas.views.decorators import require_login
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 
 
+@require_login
 def post_uas_position(request):
     """Posts the UAS position with a POST request.
 
@@ -23,11 +25,6 @@ def post_uas_position(request):
         logger.warning('Invalid request method for uas telemetry request.')
         logger.debug(request)
         return HttpResponseBadRequest('Request must be POST request.')
-    # Validate user is logged in to make request
-    if not request.user.is_authenticated():
-        logger.warning('User not authenticated for uas telemetry request.')
-        logger.debug(request)
-        return HttpResponseBadRequest('User not logged in. Login required.')
 
     try:
         # Get the parameters

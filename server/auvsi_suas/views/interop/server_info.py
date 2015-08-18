@@ -5,6 +5,7 @@ import json
 from auvsi_suas.models import ServerInfo
 from auvsi_suas.models import ServerInfoAccessLog
 from auvsi_suas.views import logger
+from auvsi_suas.views.decorators import require_login
 from auvsi_suas.views.missions import active_mission
 from django.core.cache import cache
 from django.http import HttpResponse
@@ -12,6 +13,7 @@ from django.http import HttpResponseBadRequest
 from django.http import HttpResponseServerError
 
 
+@require_login
 def server_info(request):
     """Gets the server information as JSON with a GET request."""
     # Validate user made a GET request.
@@ -19,11 +21,6 @@ def server_info(request):
         logger.warning('Invalid request method for server info request.')
         logger.debug(request)
         return HttpResponseBadRequest('Request must be GET request.')
-    # Validate user is logged in to make request.
-    if not request.user.is_authenticated():
-        logger.warning('User not authenticated for server info request.')
-        logger.debug(request)
-        return HttpResponseBadRequest('User not logged in. Login required.')
 
     # Log user access to server information.
     logger.info('User downloaded server info: %s.' % request.user.username)

@@ -38,7 +38,7 @@ class TestEvaluateTeams(TestCase):
                     {'username': 'testuser',
                      'password': 'testpass'})
         response = client.get(eval_url)
-        self.assertGreaterEqual(response.status_code, 300)
+        self.assertEqual(403, response.status_code)
 
     def test_invalid_mission(self):
         """Tests that an invalid mission ID results in error."""
@@ -51,7 +51,7 @@ class TestEvaluateTeams(TestCase):
 
         response = client.get(eval_url,
                               {'mission': 100000})
-        self.assertGreaterEqual(response.status_code, 300)
+        self.assertGreaterEqual(response.status_code, 400)
 
     def test_evaluate_teams(self):
         """Tests the CSV method."""

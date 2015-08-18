@@ -177,9 +177,11 @@ Server Information
                 display. The format for the JSON data is given below.
 
    :status 400: Invalid requests will return a response code of 400. A request
-                will be invalid if the user is not authenticated (did not made
-                previous login request or did not forwarded cookies), or if the
-                user did not make a GET request.
+                will be invalid if the user did not make a GET request.
+
+   :status 403: User not authenticated. Login is required before using this
+                endpoint. Ensure :http:post:`/api/login` was successful, and
+                the login cookie was sent to this endpoint.
 
    :status 404: The request was made to an invalid URL, the server does
                 not know how to respond to such a request.
@@ -285,9 +287,11 @@ Obstacle Information
                 the obstacles. The format for the JSON data is given below.
 
    :status 400: Invalid requests will return a response code of 400. A request
-                will be invalid if the user is not authenticated (did not made
-                previous login request or did not forwarded cookies), or if the
-                user did not make a GET request.
+                will be invalid if the user did not make a GET request.
+
+   :status 403: User not authenticated. Login is required before using this
+                endpoint. Ensure :http:post:`/api/login` was successful, and
+                the login cookie was sent to this endpoint.
 
    :status 404: The request was made to an invalid URL, the server does
                 not know how to respond to such a request.
@@ -347,12 +351,14 @@ UAS Telemetry
                 message.
 
    :status 400: Invalid requests will return a response code of 400. A request
-                will be invalid if the user is not authenticated (did not made
-                previous login request or did not forwarded cookies), if the
-                user did not make a POST request, if the user did not specify a
-                parameter, or if the user specified an invalid value for a
-                parameter. The content of the response will have an error
-                message indicating what went wrong.
+                will be invalid if the user did not make a POST request, if the
+                user did not specify a parameter, or if the user specified an
+                invalid value for a parameter. The content of the response will
+                have an error message indicating what went wrong.
+
+   :status 403: User not authenticated. Login is required before using this
+                endpoint. Ensure :http:post:`/api/login` was successful, and
+                the login cookie was sent to this endpoint.
 
    :status 404: The request was made to an invalid URL, the server does
                 not know how to respond to such a request.

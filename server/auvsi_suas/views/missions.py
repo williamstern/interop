@@ -4,7 +4,7 @@ import json
 import logging
 from auvsi_suas.models import MissionConfig
 from auvsi_suas.views import logger
-from django.contrib.auth.decorators import user_passes_test
+from auvsi_suas.views.decorators import require_superuser
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
@@ -59,8 +59,7 @@ def mission_for_request(request_params):
     return active_mission()
 
 
-# Require admin access
-@user_passes_test(lambda u: u.is_superuser)
+@require_superuser
 def missions(request):
     """Gets a list of all missions."""
     # Only GET requests

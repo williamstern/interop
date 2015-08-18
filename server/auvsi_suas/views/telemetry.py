@@ -4,14 +4,13 @@ import iso8601
 import json
 from auvsi_suas.models import UasTelemetry
 from auvsi_suas.views import logger
-from django.contrib.auth.decorators import user_passes_test
+from auvsi_suas.views.decorators import require_superuser
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 
 
-# Require admin access
-@user_passes_test(lambda u: u.is_superuser)
+@require_superuser
 def telemetry(request):
     """Gets a list of all telemetry."""
     # Only GET requests

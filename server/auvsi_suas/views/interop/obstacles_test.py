@@ -24,7 +24,7 @@ class TestObstaclesViewLoggedOut(TestCase):
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
         response = self.client.get(obstacle_url)
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(403, response.status_code)
 
 
 class TestObstaclesViewCommon(TestCase):
