@@ -2,9 +2,11 @@
 
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import MissionConfig
+from auvsi_suas.models import ServerInfo
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.utils import timezone
 import logging
 
 
@@ -40,6 +42,11 @@ class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
         pos.longitude = 10
         pos.save()
 
+        info = ServerInfo()
+        info.timestamp = timezone.now()
+        info.message = "Hello World"
+        info.save()
+
         config = MissionConfig()
         config.is_active = True
         config.home_pos = pos
@@ -50,6 +57,7 @@ class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
         config.ir_primary_target_pos = pos
         config.ir_secondary_target_pos = pos
         config.air_drop_pos = pos
+        config.server_info = info
         config.save()
         self.config = config
 
