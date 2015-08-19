@@ -8,73 +8,75 @@ from auvsi_suas.views.decorators import require_superuser
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
+from django.utils.decorators import method_decorator
+from django.views.generic import View
 
 
-@require_superuser
-def telemetry(request):
+class Telemetry(View):
     """Gets a list of all telemetry."""
-    # Only GET requests
-    if request.method != 'GET':
-        logger.warning('Invalid request method for telemetry request.')
-        logger.debug(request)
-        return HttpResponseBadRequest('Request must be GET request.')
 
-    limit = 100
-    user = None
-    since = None
-    before = None
+    @method_decorator(require_superuser)
+    def dispatch(self, *args, **kwargs):
+        return super(Telemetry, self).dispatch(*args, **kwargs)
 
-    if 'limit' in request.GET:
-        try:
-            limit = int(request.GET['limit'])
-        except (TypeError, ValueError):
-            return HttpResponseBadRequest("Invalid limit '%s'" % \
-                                            request.GET['limit'])
+    def get(self, request):
+        limit = 100
+        user = None
+        since = None
+        before = None
 
-    if 'user' in request.GET:
-        try:
-            user_id = int(request.GET['user'])
-        except (TypeError, ValueError):
-            return HttpResponseBadRequest("Invalid user '%s'" % \
-                                            request.GET['user'])
-        try:
-            user = User.objects.filter(pk=user_id).get()
-        except User.DoesNotExist:
-            return HttpResponseBadRequest("Unknown user '%s'" % \
-                                            request.GET['user'])
+        if 'limit' in request.GET:
+            try:
+                limit = int(request.GET['limit'])
+            except (TypeError, ValueError):
+                return HttpResponseBadRequest("Invalid limit '%s'" % \
+                                                request.GET['limit'])
 
-    # since is non-inclusive
-    if 'since' in request.GET:
-        try:
-            since = iso8601.parse_date(request.GET['since'])
-        except iso8601.ParseError:
-            return HttpResponseBadRequest("Bad timestamp '%s'" % \
-                                            request.GET['since'])
+        if 'user' in request.GET:
+            try:
+                user_id = int(request.GET['user'])
+            except (TypeError, ValueError):
+                return HttpResponseBadRequest("Invalid user '%s'" % \
+                                                request.GET['user'])
+            try:
+                user = User.objects.filter(pk=user_id).get()
+            except User.DoesNotExist:
+                return HttpResponseBadRequest("Unknown user '%s'" % \
+                                                request.GET['user'])
 
-    # before is non-inclusive
-    if 'before' in request.GET:
-        try:
-            before = iso8601.parse_date(request.GET['before'])
-        except iso8601.ParseError:
-            return HttpResponseBadRequest("Bad timestamp '%s'" % \
-                                            request.GET['before'])
+        # since is non-inclusive
+        if 'since' in request.GET:
+            try:
+                since = iso8601.parse_date(request.GET['since'])
+            except iso8601.ParseError:
+                return HttpResponseBadRequest("Bad timestamp '%s'" % \
+                                                request.GET['since'])
 
-    # Prefetch data from all ForeignKeys (e.g., AerialPosition) when
-    # evaluating the query.  This allows us to avoid making hundreds
-    # of other queries as we access all of those fields.
-    query = UasTelemetry.objects.select_related()
+        # before is non-inclusive
+        if 'before' in request.GET:
+            try:
+                before = iso8601.parse_date(request.GET['before'])
+            except iso8601.ParseError:
+                return HttpResponseBadRequest("Bad timestamp '%s'" % \
+                                                request.GET['before'])
 
-    if user:
-        query = query.filter(user=user)
+        # Prefetch data from all ForeignKeys (e.g., AerialPosition) when
+        # evaluating the query.  This allows us to avoid making hundreds
+        # of other queries as we access all of those fields.
+        query = UasTelemetry.objects.select_related()
 
-    if since:
-        query = query.filter(timestamp__gt=since)
+        if user:
+            query = query.filter(user=user)
 
-    if before:
-        query = query.filter(timestamp__lt=before)
+        if since:
+            query = query.filter(timestamp__gt=since)
 
-    logs = query.order_by('-timestamp').all()[:limit]
+        if before:
+            query = query.filter(timestamp__lt=before)
 
-    response = [l.json() for l in logs]
+        logs = query.order_by('-timestamp').all()[:limit]
 
-    return HttpResponse(json.dumps(response), content_type="application/json")
+        response = [l.json() for l in logs]
+
+        return HttpResponse(json.dumps(response),
+                            content_type="application/json")

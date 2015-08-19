@@ -14,8 +14,20 @@ from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
+login_url = reverse('auvsi_suas:login')
+info_url = reverse('auvsi_suas:server_info')
 
-class TestGetServerInfoView(TestCase):
+
+class TestServerInfoLoggedOut(TestCase):
+    """Tests the ServerInfo view logged out."""
+
+    def test_not_authenticated(self):
+        """Tests requests that have not yet been authenticated."""
+        response = self.client.get(info_url)
+        self.assertEqual(403, response.status_code)
+
+
+class TestServerInfoView(TestCase):
     """Tests the server_info view."""
 
     def setUp(self):
@@ -24,6 +36,12 @@ class TestGetServerInfoView(TestCase):
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
         self.user.save()
+
+        response = self.client.post(login_url, {
+            'username': 'testuser',
+            'password': 'testpass',
+        })
+        self.assertEqual(200, response.status_code)
 
         self.info = ServerInfo()
         self.info.team_msg = 'test message'
@@ -45,59 +63,30 @@ class TestGetServerInfoView(TestCase):
         self.mission.server_info = self.info
         self.mission.save()
 
-        self.login_url = reverse('auvsi_suas:login')
-        self.info_url = reverse('auvsi_suas:server_info')
         logging.disable(logging.CRITICAL)
-
-    def test_not_authenticated(self):
-        """Tests requests that have not yet been authenticated."""
-        client = self.client
-        info_url = self.info_url
-
-        response = client.get(info_url)
-        self.assertEqual(403, response.status_code)
 
     def test_invalid_request(self):
         """Tests an invalid request by mis-specifying parameters."""
-        client = self.client
-        login_url = self.login_url
-        info_url = self.info_url
-
-        client.post(login_url,
-                    {'username': 'testuser',
-                     'password': 'testpass'})
-        response = client.post(info_url)
-        self.assertEqual(response.status_code, 400)
+        response = self.client.post(info_url)
+        self.assertEqual(405, response.status_code)
 
     def test_no_active_mission(self):
         """Tests that no active mission returns 500."""
         self.mission.is_active = False
         self.mission.save()
 
-        client = self.client
-        login_url = self.login_url
-        info_url = self.info_url
-        client.post(login_url,
-                    {'username': 'testuser',
-                     'password': 'testpass'})
-
-        response = client.get(info_url)
-        self.assertEqual(response.status_code, 500)
+        response = self.client.get(info_url)
+        self.assertEqual(500, response.status_code)
 
     def test_correct_log_and_response(self):
         """Tests that access is logged and returns valid response."""
-        client = self.client
-        login_url = self.login_url
-        info_url = self.info_url
-        client.post(login_url,
-                    {'username': 'testuser',
-                     'password': 'testpass'})
-
-        response = client.get(info_url)
-        self.assertEqual(response.status_code, 200)
+        response = self.client.get(info_url)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(len(ServerInfoAccessLog.objects.all()), 1)
+
         access_log = ServerInfoAccessLog.objects.all()[0]
         self.assertEqual(access_log.user, self.user)
+
         json_data = json.loads(response.content)
         self.assertTrue('server_info' in json_data)
         self.assertTrue('server_time' in json_data)
@@ -107,17 +96,10 @@ class TestGetServerInfoView(TestCase):
         if not settings.TEST_ENABLE_LOADTEST:
             return
 
-        client = self.client
-        login_url = self.login_url
-        info_url = self.info_url
-        client.post(login_url,
-                    {'username': 'testuser',
-                     'password': 'testpass'})
-
         total_ops = 0
         start_t = time.clock()
         while time.clock() - start_t < settings.TEST_LOADTEST_TIME:
-            client.get(info_url)
+            self.client.get(info_url)
             total_ops += 1
         end_t = time.clock()
         total_t = end_t - start_t

@@ -97,7 +97,7 @@ class TestTelemetryView(TestCase):
     def test_post(self):
         """POST not allowed"""
         response = self.client.post(telemetry_url)
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(405, response.status_code)
 
     def test_no_telemetry(self):
         """No telemetry results in empty list."""

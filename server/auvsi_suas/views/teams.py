@@ -7,6 +7,8 @@ from auvsi_suas.views.decorators import require_superuser
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
+from django.utils.decorators import method_decorator
+from django.views.generic import View
 
 
 def user_json(user):
@@ -19,42 +21,48 @@ def user_json(user):
     }
 
 
-@require_superuser
-def teams(request):
+class Teams(View):
     """Gets a list of all teams."""
-    # Only GET requests
-    if request.method != 'GET':
-        logger.warning('Invalid request method for teams request.')
-        logger.debug(request)
-        return HttpResponseBadRequest('Request must be GET request.')
 
-    users = User.objects.all()
-    teams = []
+    @method_decorator(require_superuser)
+    def dispatch(self, *args, **kwargs):
+        return super(Teams, self).dispatch(*args, **kwargs)
 
-    for user in users:
-        # Only standard users are exported
-        if not user.is_superuser:
-            teams.append(user_json(user))
+    def get(self, request):
+        users = User.objects.all()
+        teams = []
 
-    return HttpResponse(json.dumps(teams), content_type="application/json")
+        for user in users:
+            # Only standard users are exported
+            if not user.is_superuser:
+                teams.append(user_json(user))
+
+        return HttpResponse(json.dumps(teams), content_type="application/json")
 
 
-@require_superuser
-def teams_id(request, pk):
+class TeamsId(View):
     """GET/PUT specific team."""
-    # Only GET/PUT requests
-    if request.method not in ['GET', 'PUT']:
-        logger.warning('Invalid request method for teams request.')
-        logger.debug(request)
-        return HttpResponseBadRequest('Request must be GET or PUT request.')
 
-    try:
-        user = User.objects.get(pk=int(pk))
-    except User.DoesNotExist:
-        return HttpResponseBadRequest('Unknown team %s' % pk)
+    @method_decorator(require_superuser)
+    def dispatch(self, *args, **kwargs):
+        return super(TeamsId, self).dispatch(*args, **kwargs)
 
-    # PUT allows updating in-air status
-    if request.method == 'PUT':
+    def get(self, request, pk):
+        try:
+            user = User.objects.get(pk=int(pk))
+        except User.DoesNotExist:
+            return HttpResponseBadRequest('Unknown team %s' % pk)
+
+        return HttpResponse(json.dumps(user_json(user)),
+                            content_type="application/json")
+
+    def put(self, request, pk):
+        """PUT allows updating in-air status."""
+        try:
+            user = User.objects.get(pk=int(pk))
+        except User.DoesNotExist:
+            return HttpResponseBadRequest('Unknown team %s' % pk)
+
         try:
             data = json.loads(request.body)
         except ValueError:
@@ -74,5 +82,5 @@ def teams_id(request, pk):
                 event = TakeoffOrLandingEvent(user=user, uas_in_air=in_air)
                 event.save()
 
-    return HttpResponse(json.dumps(user_json(user)),
-                        content_type="application/json")
+        return HttpResponse(json.dumps(user_json(user)),
+                            content_type="application/json")

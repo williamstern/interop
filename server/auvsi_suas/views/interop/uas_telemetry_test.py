@@ -8,62 +8,76 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
+login_url = reverse('auvsi_suas:login')
+uas_url = reverse('auvsi_suas:uas_telemetry')
 
-class TestPostUasPosition(TestCase):
-    """Tests the post_uas_position view."""
+
+class TestUasTelemetryLoggedOut(TestCase):
+    """Tests the UasTelemetry view logged out."""
+
+    def test_not_authenticated(self):
+        """Tests requests that have not yet been authenticated."""
+        response = self.client.post(uas_url)
+        self.assertEqual(403, response.status_code)
+
+
+class TestUasTelemetry(TestCase):
+    """Tests the UasTelemetry view."""
 
     def setUp(self):
         """Sets up the client, server info URL, and user."""
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
         self.user.save()
-        self.login_url = reverse('auvsi_suas:login')
-        self.uas_url = reverse('auvsi_suas:uas_telemetry')
+
+        response = self.client.post(login_url, {
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+        self.assertEqual(200, response.status_code)
+
         logging.disable(logging.CRITICAL)
 
-    def test_not_authenticated(self):
-        """Tests requests that have not yet been authenticated."""
-        client = self.client
-        uas_url = self.uas_url
-        response = client.get(uas_url)
-        self.assertEqual(403, response.status_code)
+    def test_invalid_method(self):
+        """Only POST supported."""
+        response = self.client.get(uas_url)
+        self.assertEqual(405, response.status_code)
 
     def test_invalid_request(self):
         """Tests an invalid request by mis-specifying parameters."""
-        client = self.client
-        login_url = self.login_url
-        uas_url = self.uas_url
+        response = self.client.post(uas_url)
+        self.assertEqual(400, response.status_code)
 
-        client.post(login_url,
-                    {'username': 'testuser',
-                     'password': 'testpass'})
-        response = client.post(uas_url)
-        self.assertEqual(response.status_code, 400)
-        response = client.post(
-            uas_url, {'longitude': 0,
-                      'altitude_msl': 0,
-                      'uas_heading': 0})
-        self.assertEqual(response.status_code, 400)
-        response = client.post(
-            uas_url, {'latitude': 0,
-                      'altitude_msl': 0,
-                      'uas_heading': 0})
-        self.assertEqual(response.status_code, 400)
-        response = client.post(
-            uas_url, {'latitude': 0,
-                      'longitude': 0,
-                      'uas_heading': 0})
-        self.assertEqual(response.status_code, 400)
-        response = client.post(
-            uas_url, {'latitude': 0,
-                      'longitude': 0,
-                      'altitude_msl': 0})
-        self.assertEqual(response.status_code, 400)
+        response = self.client.post(uas_url, {
+            'longitude': 0,
+            'altitude_msl': 0,
+            'uas_heading': 0,
+        })
+        self.assertEqual(400, response.status_code)
+
+        response = self.client.post(uas_url, {
+            'latitude': 0,
+            'altitude_msl': 0,
+            'uas_heading': 0,
+        })
+        self.assertEqual(400, response.status_code)
+
+        response = self.client.post(uas_url, {
+            'latitude': 0,
+            'longitude': 0,
+            'uas_heading': 0,
+        })
+        self.assertEqual(400, response.status_code)
+
+        response = self.client.post(uas_url, {
+            'latitude': 0,
+            'longitude': 0,
+            'altitude_msl': 0,
+        })
+        self.assertEqual(400, response.status_code)
 
     def eval_request_values(self, lat, lon, alt, heading):
-        client = self.client
-        uas_url = self.uas_url
-        response = client.post(uas_url, {
+        response = self.client.post(uas_url, {
             'latitude': lat,
             'longitude': lon,
             'altitude_msl': alt,
@@ -73,12 +87,6 @@ class TestPostUasPosition(TestCase):
 
     def test_invalid_request_values(self):
         """Tests by specifying correct parameters with invalid values."""
-        client = self.client
-        login_url = self.login_url
-        client.post(login_url,
-                    {'username': 'testuser',
-                     'password': 'testpass'})
-
         TEST_DATA = [
             (-100, 0, 0, 0),
             (100, 0, 0, 0),
@@ -93,24 +101,17 @@ class TestPostUasPosition(TestCase):
 
     def test_upload_and_store(self):
         """Tests correct upload and storage of data."""
-        client = self.client
-        login_url = self.login_url
-        client.post(login_url,
-                    {'username': 'testuser',
-                     'password': 'testpass'})
-        uas_url = self.uas_url
-
         lat = 10
         lon = 20
         alt = 30
         heading = 40
-        response = client.post(uas_url, {
+        response = self.client.post(uas_url, {
             'latitude': lat,
             'longitude': lon,
             'altitude_msl': alt,
             'uas_heading': heading
         })
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(len(UasTelemetry.objects.all()), 1)
         obj = UasTelemetry.objects.all()[0]
         self.assertEqual(obj.user, self.user)
@@ -124,13 +125,6 @@ class TestPostUasPosition(TestCase):
         if not settings.TEST_ENABLE_LOADTEST:
             return
 
-        client = self.client
-        login_url = self.login_url
-        uas_url = self.uas_url
-        client.post(login_url,
-                    {'username': 'testuser',
-                     'password': 'testpass'})
-
         lat = 10
         lon = 20
         alt = 30
@@ -138,7 +132,7 @@ class TestPostUasPosition(TestCase):
         total_ops = 0
         start_t = time.clock()
         while time.clock() - start_t < settings.TEST_LOADTEST_TIME:
-            client.post(uas_url, {
+            self.client.post(uas_url, {
                 'latitude': lat,
                 'longiutde': lon,
                 'altitude_msl': alt,

@@ -12,37 +12,46 @@ from django.contrib.sessions.models import Session
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
+from django.utils.decorators import method_decorator
+from django.views.generic import View
 
 
-@require_superuser
-def generate_kml(request):
+class LiveKml(View):
     """ Generates a KML for live display.
     This KML uses a network link to update via the update.kml endpoint
     """
-    kml = Kml(name='AUVSI SUAS LIVE Flight Data')
-    kml_mission = kml.newfolder(name='Missions')
 
-    (mission, err) = active_mission()
-    if err:
-        return err
-    MissionConfig.kml_all(kml_mission, [mission])
+    @method_decorator(require_superuser)
+    def dispatch(self, *args, **kwargs):
+        return super(LiveKml, self).dispatch(*args, **kwargs)
 
-    kml_flyzone = kml.newfolder(name='Fly Zones')
-    FlyZone.kml_all(kml_flyzone)
+    def get(self, request):
+        kml = Kml(name='AUVSI SUAS LIVE Flight Data')
+        kml_mission = kml.newfolder(name='Missions')
 
-    parameters = '?sessionid={}'.format(request.COOKIES['sessionid'])
-    uri = request.build_absolute_uri('/auvsi_admin/update.kml') + parameters
+        (mission, err) = active_mission()
+        if err:
+            return err
+        MissionConfig.kml_all(kml_mission, [mission])
 
-    netlink = kml.newnetworklink(name="Live Data")
-    netlink.link.href = uri
-    netlink.link.refreshmode = RefreshMode.oninterval
-    netlink.link.refreshinterval = 0.5
+        kml_flyzone = kml.newfolder(name='Fly Zones')
+        FlyZone.kml_all(kml_flyzone)
 
-    response = HttpResponse(kml.kml())
-    response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
-    response['Content-Disposition'] = 'attachment; filename=%s.kml' % 'live'
-    response['Content-Length'] = str(len(response.content))
-    return response
+        parameters = '?sessionid={}'.format(request.COOKIES['sessionid'])
+        uri = request.build_absolute_uri(
+            '/auvsi_admin/update.kml') + parameters
+
+        netlink = kml.newnetworklink(name="Live Data")
+        netlink.link.href = uri
+        netlink.link.refreshmode = RefreshMode.oninterval
+        netlink.link.refreshinterval = 0.5
+
+        response = HttpResponse(kml.kml())
+        response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
+        response['Content-Disposition'
+                 ] = 'attachment; filename=%s.kml' % 'live'
+        response['Content-Length'] = str(len(response.content))
+        return response
 
 
 def set_request_session_from_cookie(func):
@@ -67,16 +76,22 @@ def set_request_session_from_cookie(func):
     return wrapper
 
 
-@set_request_session_from_cookie
-@require_superuser
-def generate_live_kml(_):
-    """ Generates a KML file HttpResponse"""
-    kml = Kml(name='LIVE Data')
-    MovingObstacle.live_kml(kml, timedelta(seconds=5))
-    UasTelemetry.live_kml(kml, timedelta(seconds=5))
+class LiveKmlUpdate(View):
+    """Generates the live update portion of LiveKml"""
 
-    response = HttpResponse(kml.kml())
-    response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
-    response['Content-Disposition'] = 'attachment; filename=%s.kml' % 'update'
-    response['Content-Length'] = str(len(response.content))
-    return response
+    @method_decorator(set_request_session_from_cookie)
+    @method_decorator(require_superuser)
+    def dispatch(self, *args, **kwargs):
+        return super(LiveKmlUpdate, self).dispatch(*args, **kwargs)
+
+    def get(self, request):
+        kml = Kml(name='LIVE Data')
+        MovingObstacle.live_kml(kml, timedelta(seconds=5))
+        UasTelemetry.live_kml(kml, timedelta(seconds=5))
+
+        response = HttpResponse(kml.kml())
+        response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
+        response['Content-Disposition'
+                 ] = 'attachment; filename=%s.kml' % 'update'
+        response['Content-Length'] = str(len(response.content))
+        return response

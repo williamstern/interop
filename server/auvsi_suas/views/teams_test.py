@@ -98,7 +98,7 @@ class TestTeamsView(TestCase):
     def test_post(self):
         """POST not allowed"""
         response = self.client.post(teams_url)
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(405, response.status_code)
 
     def test_correct_json(self):
         """Response JSON is properly formatted."""
