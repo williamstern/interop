@@ -49,8 +49,7 @@ class TestEvaluateTeams(TestCase):
                     {'username': 'testuser',
                      'password': 'testpass'})
 
-        response = client.get(eval_url,
-                              {'mission': 100000})
+        response = client.get(eval_url, {'mission': 100000})
         self.assertGreaterEqual(response.status_code, 400)
 
     def test_evaluate_teams(self):

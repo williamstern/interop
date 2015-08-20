@@ -61,7 +61,8 @@ def mission_for_request(request_params):
             mission = MissionConfig.objects.get(pk=mission_id)
             return (mission, None)
         except ValueError:
-            logging.warning('Invalid mission ID given. ID: %d.', mission_id_str)
+            logging.warning('Invalid mission ID given. ID: %d.',
+                            mission_id_str)
             return (None,
                     HttpResponseBadRequest('Mission ID is not an integer.'))
         except MissionConfig.DoesNotExist:

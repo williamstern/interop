@@ -110,6 +110,7 @@ class TestMissionForRequest(TestCase):
         recv_config, _ = mission_for_request({})
         self.assertEqual(config, recv_config)
 
+
 class TestMissionsViewLoggedOut(TestCase):
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
