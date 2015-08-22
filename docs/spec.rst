@@ -678,34 +678,61 @@ Targets
 
    * ``standard`` - Standard targets are described in section 7.2.8 of the rules.
 
-   Use the :http:post:`/api/targets` ``latitude``, ``longitude``, ``orientation``,
-   ``shape``, ``background_color``, ``alphanumeric``, and ``alphanumeric_color``
-   fields to describe the target characteristics.
+   Describe the target characteristics with these fields (see
+   :http:post:`/api/targets`):
+
+      * ``latitude``
+      * ``longitude``
+      * ``orientation``
+      * ``shape``
+      * ``background_color``
+      * ``alphanumeric``
+      * ``alphanumeric_color``
 
    * ``qrc`` - Quick Response Code (QRC) targets are described in section
      7.2.9 of the rules.
 
-   Use the :http:post:`/api/targets` ``latitude``, ``longitude``, and
-   ``description`` fields to describe the target. ``description`` should contain
-   the exact QRC message.
+   Describe the target characteristics with these fields (see
+   :http:post:`/api/targets`):
+
+      * ``latitude``
+      * ``longitude``
+      * ``description``
+
+         * This field should contain the exact QRC message.
 
    * ``off_axis`` - Off-axis targets are described in section 7.5 of the rules.
 
-   Use the :http:post:`/api/targets` ``orientation``, ``shape``,
-   ``background_color``, ``alphanumeric``, and ``alphanumeric_color`` fields to
-   describe the target characteristics.
+   Describe the target characteristics with these fields (see
+   :http:post:`/api/targets`):
+
+      * ``orientation``
+      * ``shape``
+      * ``background_color``
+      * ``alphanumeric``
+      * ``alphanumeric_color``
 
    * ``emergent`` - Emergent targets are described in section 7.6 of the rules.
 
-   Use the :http:post:`/api/targets` ``latitude``, ``longitude``, and
-   ``description`` fields to describe the emergent target. ``description``
-   should contain a description of the emergent target.
+   Describe the target characteristics with these fields (see
+   :http:post:`/api/targets`):
+
+      * ``latitude``
+      * ``longitude``
+      * ``description``
+
+         * This field should contain a general description of the emergent
+           target.
 
    * ``ir`` - IR targets are described in section 7.8 of the rules.
 
-   Use the :http:post:`/api/targets` ``latitude``, ``longitude``,
-   ``alphanumeric`` and ``orientation`` fields to describe the target
-   characteristics.
+   Describe the target characteristics with these fields (see
+   :http:post:`/api/targets`):
+
+      * ``latitude``
+      * ``longitude``
+      * ``orientation``
+      * ``alphanumeric``
 
 .. py:data:: Orientations
 
