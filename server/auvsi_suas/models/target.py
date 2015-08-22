@@ -130,26 +130,31 @@ class Target(models.Model):
     target_type = models.IntegerField(choices=TargetType.choices())
 
     # Target location.
-    location = models.ForeignKey(GpsPosition, null=True)
+    location = models.ForeignKey(GpsPosition, null=True, blank=True)
 
     # Target orientation.
-    orientation = models.IntegerField(choices=Orientation.choices(), null=True)
+    orientation = models.IntegerField(choices=Orientation.choices(),
+                                      null=True,
+                                      blank=True)
 
     # Target shape.
-    shape = models.IntegerField(choices=Shape.choices(), null=True)
+    shape = models.IntegerField(choices=Shape.choices(), null=True, blank=True)
 
     # Target background color.
-    background_color = models.IntegerField(choices=Color.choices(), null=True)
+    background_color = models.IntegerField(choices=Color.choices(),
+                                           null=True,
+                                           blank=True)
 
     # Target alphanumeric.
-    alphanumeric = models.TextField(default='')
+    alphanumeric = models.TextField(default='', blank=True)
 
     # Target alphanumeric color.
     alphanumeric_color = models.IntegerField(choices=Color.choices(),
-                                             null=True)
+                                             null=True,
+                                             blank=True)
 
     # Free-form target description.
-    description = models.TextField(default='')
+    description = models.TextField(default='', blank=True)
 
     # TODO(prattmic): thumbnail field
 
