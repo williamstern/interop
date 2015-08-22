@@ -14,14 +14,21 @@ from django.core.cache import cache
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.views.generic import View
 
 
-@require_superuser
-def clear_cache(request):
+class ClearCache(View):
     """Clears the cache on admin's request."""
-    logger.info('Admin requested to clear the cache.')
-    cache.clear()
-    return HttpResponse("Cache cleared.")
+
+    @method_decorator(require_superuser)
+    def dispatch(self, *args, **kwargs):
+        return super(ClearCache, self).dispatch(*args, **kwargs)
+
+    def get(self, request):
+        logger.info('Admin requested to clear the cache.')
+        cache.clear()
+        return HttpResponse("Cache cleared.")
 
 
 @receiver(post_save, sender=FlyZone)

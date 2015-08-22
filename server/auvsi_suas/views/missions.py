@@ -10,6 +10,8 @@ from django.core.cache import cache
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseServerError
+from django.utils.decorators import method_decorator
+from django.views.generic import View
 
 
 def active_mission():
@@ -73,19 +75,18 @@ def mission_for_request(request_params):
     return active_mission()
 
 
-@require_superuser
-def missions(request):
+class Missions(View):
     """Gets a list of all missions."""
-    # Only GET requests
-    if request.method != 'GET':
-        logger.warning('Invalid request method for missions request.')
-        logger.debug(request)
-        return HttpResponseBadRequest('Request must be GET request.')
 
-    missions = MissionConfig.objects.all()
-    out = []
+    @method_decorator(require_superuser)
+    def dispatch(self, *args, **kwargs):
+        return super(Missions, self).dispatch(*args, **kwargs)
 
-    for mission in missions:
-        out.append(mission.json())
+    def get(self, request):
+        missions = MissionConfig.objects.all()
+        out = []
 
-    return HttpResponse(json.dumps(out), content_type="application/json")
+        for mission in missions:
+            out.append(mission.json())
+
+        return HttpResponse(json.dumps(out), content_type="application/json")

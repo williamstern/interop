@@ -1,15 +1,15 @@
-from auvsi_suas.views import clear_cache
-from auvsi_suas.views import missions
-from auvsi_suas.views import teams
-from auvsi_suas.views import telemetry
-from auvsi_suas.views.auvsi_admin import evaluate_teams
-from auvsi_suas.views.auvsi_admin import export_kml
-from auvsi_suas.views.auvsi_admin import live_kml
-from auvsi_suas.views.auvsi_admin import index
-from auvsi_suas.views.interop import login
-from auvsi_suas.views.interop import obstacles
-from auvsi_suas.views.interop import server_info
-from auvsi_suas.views.interop import uas_telemetry
+from auvsi_suas.views.clear_cache import ClearCache
+from auvsi_suas.views.missions import Missions
+from auvsi_suas.views.teams import Teams, TeamsId
+from auvsi_suas.views.telemetry import Telemetry
+from auvsi_suas.views.auvsi_admin.evaluate_teams import EvaluateTeams
+from auvsi_suas.views.auvsi_admin.export_kml import ExportKml
+from auvsi_suas.views.auvsi_admin.index import Index
+from auvsi_suas.views.auvsi_admin.live_kml import LiveKml, LiveKmlUpdate
+from auvsi_suas.views.interop.login import Login
+from auvsi_suas.views.interop.obstacles import Obstacles
+from auvsi_suas.views.interop.server_info import ServerInfo
+from auvsi_suas.views.interop.uas_telemetry import UasTelemetry
 from django.conf.urls import patterns, url
 from django.conf import settings
 from django.conf.urls.static import static
@@ -19,36 +19,25 @@ from django.conf.urls.static import static
 urlpatterns = patterns(
     '',
     # Team interoperability
-    url(r'^api/login$', login.login_user, name='login'),
-    url(r'^api/interop/server_info$', server_info.server_info,
-        name='server_info'),
-    url(r'^api/interop/obstacles$', obstacles.obstacles, name='obstacles'),
-    url(r'^api/interop/uas_telemetry$', uas_telemetry.post_uas_position,
+    url(r'^api/login$', Login.as_view(), name='login'),
+    url(r'^api/interop/server_info$', ServerInfo.as_view(), name='server_info'),
+    url(r'^api/interop/obstacles$', Obstacles.as_view(), name='obstacles'),
+    url(r'^api/interop/uas_telemetry$', UasTelemetry.as_view(),
         name='uas_telemetry'),
     # Admin API
-    url(r'^api/missions$', missions.missions, name='missions'),
-    url(r'^api/teams$', teams.teams, name='teams'),
-    url(r'^api/teams/(?P<pk>\d+)$', teams.teams_id, name='teams_id'),
-    url(r'^api/telemetry$', telemetry.telemetry, name='telemetry'),
-    url(r'^api/clear_cache$', clear_cache.clear_cache, name='clear_cache'),
+    url(r'^api/missions$', Missions.as_view(), name='missions'),
+    url(r'^api/teams$', Teams.as_view(), name='teams'),
+    url(r'^api/teams/(?P<pk>\d+)$', TeamsId.as_view(), name='teams_id'),
+    url(r'^api/telemetry$', Telemetry.as_view(), name='telemetry'),
+    url(r'^api/clear_cache$', ClearCache.as_view(), name='clear_cache'),
     # Admin access views
-    url(r'^$', index.index, name='index'),
-    url(r'^auvsi_admin/evaluate_teams.csv$', evaluate_teams.team_evaluation_csv,
+    url(r'^$', Index.as_view(), name='index'),
+    url(r'^auvsi_admin/evaluate_teams.csv$', EvaluateTeams.as_view(),
         name='evaluate_teams'),
-    url(
-        r'^auvsi_admin/export_data.kml$',
-        export_kml.generate_kml,
-        name='export_data',
-    ),
-    url(
-        r'^auvsi_admin/live.kml$',
-        live_kml.generate_kml,
-        name='live_kml',
-    ),
-    url(
-        r'^auvsi_admin/update.kml$',
-        live_kml.generate_live_kml,
-        name='update_kml',
-    ),
+    url(r'^auvsi_admin/export_data.kml$', ExportKml.as_view(),
+        name='export_data'),
+    url(r'^auvsi_admin/live.kml$', LiveKml.as_view(), name='live_kml'),
+    url(r'^auvsi_admin/update.kml$', LiveKmlUpdate.as_view(),
+        name='update_kml'),
 ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 # yapf: enable

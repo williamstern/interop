@@ -156,7 +156,7 @@ class TestMissionsViewBasic(TestMissionsViewCommon):
     def test_post(self):
         """POST not allowed"""
         response = self.client.post(missions_url)
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(405, response.status_code)
 
     def test_no_missions(self):
         """No missions results in empty list."""

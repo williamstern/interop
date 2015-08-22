@@ -9,43 +9,45 @@ from auvsi_suas.views.decorators import require_login
 from auvsi_suas.views.missions import active_mission
 from django.core.cache import cache
 from django.http import HttpResponse
-from django.http import HttpResponseBadRequest
 from django.http import HttpResponseServerError
+from django.utils.decorators import method_decorator
+from django.views.generic import View
 
 
-@require_login
-def server_info(request):
+class ServerInfo(View):
     """Gets the server information as JSON with a GET request."""
-    # Validate user made a GET request.
-    if request.method != 'GET':
-        logger.warning('Invalid request method for server info request.')
-        logger.debug(request)
-        return HttpResponseBadRequest('Request must be GET request.')
 
-    # Log user access to server information.
-    logger.info('User downloaded server info: %s.' % request.user.username)
-    ServerInfoAccessLog(user=request.user).save()
+    @method_decorator(require_login)
+    def dispatch(self, *args, **kwargs):
+        return super(ServerInfo, self).dispatch(*args, **kwargs)
 
-    # Form response.
-    try:
-        # Get the server info stored in the active mission.
-        server_info_key = '/ServerInfo/latest'
-        info = cache.get(server_info_key)
-        if info is None:
-            (mission, err) = active_mission()
-            if err:
-                return err
-            info = mission.server_info
-            if not info:
-                return HttpResponseServerError('No server info for mission.')
-            cache.set(server_info_key, info)
-    except ServerInfo.DoesNotExist:
-        # Failed to obtain server info.
-        return HttpResponseServerError('No server info available.')
-    else:
-        # Form JSON response.
-        data = {
-            'server_info': info.json(),
-            'server_time': str(datetime.datetime.now())
-        }
-        return HttpResponse(json.dumps(data), content_type="application/json")
+    def get(self, request):
+        # Log user access to server information.
+        logger.info('User downloaded server info: %s.' % request.user.username)
+        ServerInfoAccessLog(user=request.user).save()
+
+        # Form response.
+        try:
+            # Get the server info stored in the active mission.
+            server_info_key = '/ServerInfo/latest'
+            info = cache.get(server_info_key)
+            if info is None:
+                (mission, err) = active_mission()
+                if err:
+                    return err
+                info = mission.server_info
+                if not info:
+                    return HttpResponseServerError(
+                        'No server info for mission.')
+                cache.set(server_info_key, info)
+        except ServerInfo.DoesNotExist:
+            # Failed to obtain server info.
+            return HttpResponseServerError('No server info available.')
+        else:
+            # Form JSON response.
+            data = {
+                'server_info': info.json(),
+                'server_time': str(datetime.datetime.now())
+            }
+            return HttpResponse(json.dumps(data),
+                                content_type="application/json")

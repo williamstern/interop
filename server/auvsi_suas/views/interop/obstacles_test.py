@@ -127,7 +127,7 @@ class TestObstaclesView(TestObstaclesViewCommon):
     def test_post(self):
         """POST requests are not allowed."""
         response = self.client.post(obstacle_url)
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(405, response.status_code)
 
     def test_correct_json(self):
         """Tests that access is logged and returns valid response."""

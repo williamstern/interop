@@ -55,6 +55,22 @@ A quick summary of the endpoints:
   telemetry information to the competition server. Uploading telemetry to this
   endpoint is required by the competition rules.
 
+Errors
+^^^^^^
+
+Some of the HTTP request errors you may receive when using this API:
+
+* :http:statuscode:`404`: The request was made to an invalid URL, the server
+  does not know how to respond to such a request.  Check the endpoint URL.
+
+* :http:statuscode:`405`: The request used an invalid method (e.g.,
+  :http:method:`GET` when only :http:method:`POST` is supported). Double check
+  the documentation below for the methods supported by each endpoint.
+
+* :http:statuscode:`500`: The server encountered an internal error and was
+  unable to process the request. This indicates a configuration error on the
+  server side.
+
 
 User Login
 ^^^^^^^^^^
@@ -108,14 +124,8 @@ User Login
    :status 400: Unsuccessful logins will have a response status code of
                 400. The content of the response will be an error message
                 indicating why the request failed. Requests can fail because
-                the request was not a POST request, was missing one of the
-                required parameters, or had invalid login information.
-
-   :status 404: The request was made to an invalid URL, the server does
-                not know how to respond to such a request.
-
-   :status 500: The server encountered an internal error and was unable to
-                process the request.
+                the request was missing one of the required parameters, or
+                had invalid login information.
 
 Server Information
 ^^^^^^^^^^^^^^^^^^
@@ -176,18 +186,9 @@ Server Information
                 format. This JSON data is the server information that teams must
                 display. The format for the JSON data is given below.
 
-   :status 400: Invalid requests will return a response code of 400. A request
-                will be invalid if the user did not make a GET request.
-
    :status 403: User not authenticated. Login is required before using this
                 endpoint. Ensure :http:post:`/api/login` was successful, and
                 the login cookie was sent to this endpoint.
-
-   :status 404: The request was made to an invalid URL, the server does
-                not know how to respond to such a request.
-
-   :status 500: The server encountered an internal error and was unable to
-                process the request.
 
 Obstacle Information
 ^^^^^^^^^^^^^^^^^^^^
@@ -286,18 +287,9 @@ Obstacle Information
                 must display, and it contains data which can be used to avoid
                 the obstacles. The format for the JSON data is given below.
 
-   :status 400: Invalid requests will return a response code of 400. A request
-                will be invalid if the user did not make a GET request.
-
    :status 403: User not authenticated. Login is required before using this
                 endpoint. Ensure :http:post:`/api/login` was successful, and
                 the login cookie was sent to this endpoint.
-
-   :status 404: The request was made to an invalid URL, the server does
-                not know how to respond to such a request.
-
-   :status 500: The server encountered an internal error and was unable to
-                process the request.
 
 UAS Telemetry
 ^^^^^^^^^^^^^
@@ -351,20 +343,14 @@ UAS Telemetry
                 message.
 
    :status 400: Invalid requests will return a response code of 400. A request
-                will be invalid if the user did not make a POST request, if the
-                user did not specify a parameter, or if the user specified an
-                invalid value for a parameter. The content of the response will
-                have an error message indicating what went wrong.
+                will be invalid if the user did not specify a parameter, or
+                if the user specified an invalid value for a parameter. The
+                content of the response will have an error message indicating
+                what went wrong.
 
    :status 403: User not authenticated. Login is required before using this
                 endpoint. Ensure :http:post:`/api/login` was successful, and
                 the login cookie was sent to this endpoint.
-
-   :status 404: The request was made to an invalid URL, the server does
-                not know how to respond to such a request.
-
-   :status 500: The server encountered an internal error and was unable to
-                process the request.
 
 --------------
 
