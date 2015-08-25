@@ -156,7 +156,8 @@ class Target(models.Model):
     # Free-form target description.
     description = models.TextField(default='', blank=True)
 
-    # TODO(prattmic): thumbnail field
+    # Uploaded target image thumbnail.
+    thumbnail = models.ImageField(upload_to='targets', blank=True)
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
@@ -171,8 +172,10 @@ class Target(models.Model):
             "background_color={background_color}, "
             "alphanumeric='{alphanumeric}', "
             "alphanumeric_color={alphanumeric_color}, "
-            "description='{description}')".format(
-                name=self.__class__.__name__, **d))
+            "description='{description}', "
+            "thumbnail='{thumbnail}')".format(
+                name=self.__class__.__name__,
+                thumbnail=self.thumbnail, **d))
 
     def json(self):
         """Target as dict, for JSON."""

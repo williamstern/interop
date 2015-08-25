@@ -5,6 +5,7 @@ django-sendfile
 iso8601
 matplotlib
 numpy
+pillow
 psycopg2
 scipy
 simplekml==1.2.7
