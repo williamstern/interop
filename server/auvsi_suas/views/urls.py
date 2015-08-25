@@ -1,6 +1,6 @@
 from auvsi_suas.views.clear_cache import ClearCache
 from auvsi_suas.views.missions import Missions
-from auvsi_suas.views.targets import Targets
+from auvsi_suas.views.targets import Targets, TargetsId
 from auvsi_suas.views.teams import Teams, TeamsId
 from auvsi_suas.views.telemetry import Telemetry
 from auvsi_suas.views.auvsi_admin.evaluate_teams import EvaluateTeams
@@ -26,6 +26,7 @@ urlpatterns = patterns(
     url(r'^api/interop/uas_telemetry$', UasTelemetry.as_view(),
         name='uas_telemetry'),
     url(r'^api/targets$', Targets.as_view(), name='targets'),
+    url(r'^api/targets/(?P<pk>\d+)$', TargetsId.as_view(), name='targets_id'),
     # Admin API
     url(r'^api/missions$', Missions.as_view(), name='missions'),
     url(r'^api/teams$', Teams.as_view(), name='teams'),

@@ -9,6 +9,7 @@ from auvsi_suas.models import ServerInfo
 from auvsi_suas.models import ServerInfoAccessLog
 from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.models import TakeoffOrLandingEvent
+from auvsi_suas.models import Target
 from auvsi_suas.models import UasTelemetry
 from auvsi_suas.models import Waypoint
 
@@ -29,4 +30,5 @@ admin.site.register(ServerInfoAccessLog, LargeDataModelAdmin)
 admin.site.register(StationaryObstacle)
 admin.site.register(UasTelemetry, LargeDataModelAdmin)
 admin.site.register(TakeoffOrLandingEvent)
+admin.site.register(Target)
 admin.site.register(Waypoint)

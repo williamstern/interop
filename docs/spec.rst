@@ -46,14 +46,25 @@ A quick summary of the endpoints:
 * :http:post:`/api/login`: Used to authenticate with the competition server so
   that future requests will be authenticated. Teams cannot make other requests
   without logging in successfully.
+
 * :http:get:`/api/interop/server_info`: Used to download server
   information from the competition server for purpose of displaying it.
+
 * :http:get:`/api/interop/obstacles`: Used to download
   obstacle information from the competition server for purpose of
   displaying it and avoiding the obstacles.
+
 * :http:post:`/api/interop/uas_telemetry`: Used to upload UAS
   telemetry information to the competition server. Uploading telemetry to this
   endpoint is required by the competition rules.
+
+* :http:post:`/api/targets`: Used to upload targets for submission.
+
+* :http:get:`/api/targets/(int:id)`: Used to get details about submitted
+  targets.
+
+* :http:put:`/api/targets/(int:id)`: Used to update characteristics of
+  submitted targets.
 
 Errors
 ^^^^^^
@@ -385,7 +396,7 @@ Targets
       Content-Type: application/json
 
       {
-          "type": "standard"
+          "type": "standard",
           "latitude": 38.1478,
           "longitude": -76.4275,
           "orientation": "n",
@@ -407,7 +418,7 @@ Targets
 
       {
           "id": 1,
-          "user": 1
+          "user": 1,
           "type": "standard",
           "latitude": 38.1478,
           "longitude": -76.4275,
@@ -418,6 +429,9 @@ Targets
           "alphanumeric_color": "black",
           "description": null,
       }
+
+   The response format is the same as :http:get:`/api/targets/(int:id)` and
+   is described in detail there.
 
    :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
                       must be sent to authenticate the request.
@@ -458,37 +472,6 @@ Targets
 
    :resheader Content-Type: The response is ``application/json`` on success.
 
-   :>json int id: Unique identifier for this target. This is unique across
-                  all teams, it may not naturally increment 1-10.
-
-   :>json int user: Unique identifier for the team. Teams should not need to
-                    use this field.
-
-   :>json string type: Matches to request ``type``.
-
-   :>json float latitude: Matches to request ``latitude``,  or ``null`` if
-                          not specified.
-
-   :>json float longitude: Matches to request ``longitude``, or ``null`` if
-                           not specified.
-
-   :>json string orientation: Matches request ``orientation``, or ``null`` if
-                              not specified.
-
-   :>json string shape: Matches request ``shape``, or ``null`` if not specified.
-
-   :>json string background_color: Matches request ``background_color``, or
-                                   ``null`` if not specified.
-
-   :>json string alphanumeric: Matches request ``alphanumeric``, or ``null``
-                               if not specified.
-
-   :>json string alphanumeric_color: Matches request ``alphanumeric_color``,
-                                     or ``null`` if not specified.
-
-   :>json string description: Matches request ``description``, or ``null`` if
-                              not specified.
-
    :status 201: The target has been accepted and a record has been created for
                 it. The record has been included in the response.
 
@@ -501,6 +484,192 @@ Targets
                 endpoint. Ensure :http:post:`/api/login` was successful, and
                 the login cookie was sent to this endpoint.
 
+.. http:get:: /api/targets/(int:id)
+
+   Details about a target id ``id``. This simple endpoint allows you to verify
+   the uploaded characteristics of a target.
+
+   ``id`` is the unique identifier of a target, as returned by
+   :http:post:`/api/targets`. When you first upload your target to
+   :http:post:`/api/targets`, the response includes an ``id`` field, whose value
+   you use to access this endpoint. Note that this id is unique to all teams
+   and will not necessarily start at 1 or increase linearly with additional
+   targets.
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/targets/1 HTTP/1.1
+      Host: 192.168.1.2:8000
+      Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
+
+   **Example response**:
+
+   Note: This example reformatted for readability; actual response may be
+   entirely on one line.
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+          "id": 1,
+          "user": 1,
+          "type": "standard",
+          "latitude": 38.1478,
+          "longitude": -76.4275,
+          "orientation": "n",
+          "shape": "star",
+          "background_color": "orange",
+          "alphanumeric": "C",
+          "alphanumeric_color": "black",
+          "description": null,
+      }
+
+   :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
+                      must be sent to authenticate the request.
+
+   :resheader Content-Type: The response is ``application/json`` on success.
+
+   :>json int id: Unique identifier for this target. This is unique across
+                  all teams, it may not naturally increment 1-10. Used to
+                  reference specific targets in various endpoints. The target
+                  ID does not change when a target is updated.
+
+   :>json int user: Unique identifier for the team. Teams should not need to
+                    use this field.
+
+   :>json string type: Target type; one of :py:data:`TargetTypes`.
+
+   :>json float latitude: Target latitude in decimal degrees,  or ``null`` if
+                          no latitude specified yet.
+
+   :>json float longitude: Target longitude in decimal degrees,  or ``null`` if
+                          no longitude specified yet.
+
+   :>json string orientation: Target orientation; one of :py:data:`Orientations`,
+                              or ``null`` if no orientation specified yet.
+
+   :>json string shape: Target shape; one of :py:data:`Shapes`, or ``null`` if no
+                        shape specified yet.
+
+   :>json string background_color: Target background color; one of
+                                   :py:data:`Colors`, or ``null`` if no
+                                   background color specified yet.
+
+   :>json string alphanumeric: Target alphanumeric; ``null`` if no alphanumeric
+                               specified yet.
+
+   :>json string alphanumeric_color: Target alphanumeric color; one of
+                                     :py:data:`Colors`, or ``null`` if no
+                                     alphanumeric color specified yet.
+
+   :>json string description: Target description; ``null`` if no description
+                              specified yet.
+
+   :status 200: Success. Response contains target details.
+
+   :status 403: * User not authenticated. Login is required before using this
+                  endpoint.  Ensure :http:post:`/api/login` was successful, and
+                  the login cookie was sent to this endpoint.
+
+                * The specified target was found but is not accessible by your
+                  user (i.e., another team created this target). Check target
+                  ID.
+
+                * Check response for detailed error message.
+
+   :status 404: Target not found. Check target ID.
+
+.. http:put:: /api/targets/(int:id)
+
+   Update target id ``id``. This endpoint allows you to specify characteristics
+   that were omitted in :http:post:`/api/targets`, or update those that were
+   specified.
+
+   ``id`` is the unique identifier of a target, as returned by
+   :http:post:`/api/targets`. See :http:get:`/api/targets/(int:id)` for more
+   information about the target ID.
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      PUT /api/targets/1 HTTP/1.1
+      Host: 192.168.1.2:8000
+      Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
+      Content-Type: application/json
+
+      {
+          "alphanumeric": "O"
+      }
+
+   **Example response**:
+
+   Note: This example reformatted for readability; actual response may be
+   entirely on one line.
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+          "id": 1,
+          "user": 1,
+          "type": "standard",
+          "latitude": 38.1478,
+          "longitude": -76.4275,
+          "orientation": "n",
+          "shape": "star",
+          "background_color": "orange",
+          "alphanumeric": "O",
+          "alphanumeric_color": "black",
+          "description": null,
+      }
+
+   This endpoint accepts all fields described in :http:post:`/api/targets` in
+   its request. Any fields that are specified will be updated, overwriting the
+   old value. Any fields omitted will not be changed. Specifying a field with
+   a ``null`` value will clear that field (except ``type``, which may never be
+   ``null``).
+
+   In the example above, only the ``alphanumeric`` field was sent to in the
+   request. As can be seen in the response, the ``alphanumeric`` field has
+   the new value, but all other fields have been left unchanged.
+
+   The response format is the same as :http:get:`/api/targets/(int:id)` and
+   is described in detail there.
+
+   :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
+                      must be sent to authenticate the request.
+
+   :reqheader Content-Type: The request should be sent as ``application/json``.
+
+   :resheader Content-Type: The response is ``application/json`` on success.
+
+   :status 200: The target has been successfully updated, and the updated
+                target is included in the response.
+
+   :status 400: Request was invalid. The request content may have been
+                malformed or it may have contained invalid field values. The
+                response includes a more detailed error message.
+
+   :status 403: * User not authenticated. Login is required before using this
+                  endpoint.  Ensure :http:post:`/api/login` was successful, and
+                  the login cookie was sent to this endpoint.
+
+                * The specified target was found but is not accessible by your
+                  user (i.e., another team created this target). Check target
+                  ID.
+
+                * Check response for detailed error message.
+
+   :status 404: Target not found. Check target ID.
+
+
 .. py:data:: TargetTypes
 
    These are the valid types of targets which may be specified.
@@ -509,34 +678,61 @@ Targets
 
    * ``standard`` - Standard targets are described in section 7.2.8 of the rules.
 
-   Use the :http:post:`/api/targets` ``latitude``, ``longitude``, ``orientation``,
-   ``shape``, ``background_color``, ``alphanumeric``, and ``alphanumeric_color``
-   fields to describe the target characteristics.
+   Describe the target characteristics with these fields (see
+   :http:post:`/api/targets`):
+
+      * ``latitude``
+      * ``longitude``
+      * ``orientation``
+      * ``shape``
+      * ``background_color``
+      * ``alphanumeric``
+      * ``alphanumeric_color``
 
    * ``qrc`` - Quick Response Code (QRC) targets are described in section
      7.2.9 of the rules.
 
-   Use the :http:post:`/api/targets` ``latitude``, ``longitude``, and
-   ``description`` fields to describe the target. ``description`` should contain
-   the exact QRC message.
+   Describe the target characteristics with these fields (see
+   :http:post:`/api/targets`):
+
+      * ``latitude``
+      * ``longitude``
+      * ``description``
+
+         * This field should contain the exact QRC message.
 
    * ``off_axis`` - Off-axis targets are described in section 7.5 of the rules.
 
-   Use the :http:post:`/api/targets` ``orientation``, ``shape``,
-   ``background_color``, ``alphanumeric``, and ``alphanumeric_color`` fields to
-   describe the target characteristics.
+   Describe the target characteristics with these fields (see
+   :http:post:`/api/targets`):
+
+      * ``orientation``
+      * ``shape``
+      * ``background_color``
+      * ``alphanumeric``
+      * ``alphanumeric_color``
 
    * ``emergent`` - Emergent targets are described in section 7.6 of the rules.
 
-   Use the :http:post:`/api/targets` ``latitude``, ``longitude``, and
-   ``description`` fields to describe the emergent target. ``description``
-   should contain a description of the emergent target.
+   Describe the target characteristics with these fields (see
+   :http:post:`/api/targets`):
+
+      * ``latitude``
+      * ``longitude``
+      * ``description``
+
+         * This field should contain a general description of the emergent
+           target.
 
    * ``ir`` - IR targets are described in section 7.8 of the rules.
 
-   Use the :http:post:`/api/targets` ``latitude``, ``longitude``,
-   ``alphanumeric`` and ``orientation`` fields to describe the target
-   characteristics.
+   Describe the target characteristics with these fields (see
+   :http:post:`/api/targets`):
+
+      * ``latitude``
+      * ``longitude``
+      * ``orientation``
+      * ``alphanumeric``
 
 .. py:data:: Orientations
 
