@@ -66,6 +66,12 @@ A quick summary of the endpoints:
 * :http:put:`/api/targets/(int:id)`: Used to update characteristics of
   submitted targets.
 
+* :http:get:`/api/targets/(int:id)/image`: Used to get target image previously
+  submitted.
+
+* :http:post:`/api/targets/(int:id)/image`: Used to submit or update target
+  image thumbnail.
+
 Errors
 ^^^^^^
 
@@ -668,6 +674,125 @@ Targets
                 * Check response for detailed error message.
 
    :status 404: Target not found. Check target ID.
+
+
+.. http:get:: /api/targets/(int:id)/image
+
+   Download previously uploaded target thumbnail. This simple endpoint returns
+   the target thumbnail uploaded with a
+   :http:post:`/api/targets/(int:id)/image` request.
+
+   ``id`` is the unique identifier of a target, as returned by
+   :http:post:`/api/targets`. See :http:get:`/api/targets/(int:id)` for more
+   information about the target ID.
+
+   The response content is the image content itself on success.
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/targets/2/image HTTP/1.1
+      Host: 192.168.1.2:8000
+      Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: image/jpeg
+
+      <binary image content ...>
+
+   :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
+                      must be sent to authenticate the request.
+
+   :resheader Content-Type: Matches content type of uploaded image. For
+                            example, JPEG is ``image/jpeg``.
+
+   :status 200: Target image found and included in response.
+
+   :status 403: * User not authenticated. Login is required before using this
+                  endpoint.  Ensure :http:post:`/api/login` was successful, and
+                  the login cookie was sent to this endpoint.
+
+                * The specified target was found but is not accessible by your
+                  user (i.e., another team created this target). Check target
+                  ID.
+
+                * Check response for detailed error message.
+
+   :status 404: * Target not found. Check target ID.
+
+                * Target does not have associated image. One must first be
+                  uploaded with :http:post:`/api/targets/(int:id)/image`.
+
+
+.. http:post:: /api/targets/(int:id)/image
+
+   Add or update target image thumbnail.
+
+   ``id`` is the unique identifier of a target, as returned by
+   :http:post:`/api/targets`. See :http:get:`/api/targets/(int:id)` for more
+   information about the target ID.
+
+   This endpoint is used to submit an image of the associated target. This
+   image should be a clear, close crop of the target. Subsequent calls to this
+   endpoint replace the target image.
+
+   The request body contains the raw binary content of the image. The image
+   should be in either JPEG or PNG format. The request must not exceed 1 MB in
+   size.
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      POST /api/targets/2/image HTTP/1.1
+      Host: 192.168.1.2:8000
+      Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
+
+      <binary image content ...>
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: image/jpeg
+
+      Image uploaded.
+
+   :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
+                      must be sent to authenticate the request.
+
+   :reqheader Content-Type: JPEG images should be ``image/jpeg`. PNG images
+                            should be ``image/png``.
+
+   :status 200: The target image has been successfully uploaded.
+
+   :status 400: Request was not a valid JPEG or PNG image. The response
+                includes a more detailed error message.
+
+   :status 403: * User not authenticated. Login is required before using this
+                  endpoint.  Ensure :http:post:`/api/login` was successful, and
+                  the login cookie was sent to this endpoint.
+
+                * The specified target was found but is not accessible by your
+                  user (i.e., another team created this target). Check target
+                  ID.
+
+                * Check response for detailed error message.
+
+   :status 404: Target not found. Check target ID.
+
+   :status 413: Image exceeded 1MB in size.
+
+
+.. http:put:: /api/targets/(int:id)/image
+
+   Equivalent to :http:post:`/api/targets/(int:id)/image`.
 
 
 .. py:data:: TargetTypes
