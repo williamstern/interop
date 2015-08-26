@@ -37,6 +37,11 @@ class auvsi_suas::apache_setup {
         content => "XSendFile On\nXSendFilePath /var/www/media",
     }
 
+    # Limit uploads to 1MB
+    file { '/etc/apache2/conf.d/limit_upload.conf' :
+        content => "LimitRequestBody 1048576",
+    }
+
     # Configure production via WSGI
     apache::vhost { 'interop_server':
         port => '80',
@@ -60,8 +65,14 @@ class auvsi_suas::apache_setup {
               path => '/interop/server/auvsi_suas/static',
             },
         ],
-        additional_includes => [ '/etc/apache2/conf.d/xsendfile.conf', ],
-        require => File['/etc/apache2/conf.d/xsendfile.conf'],
+        additional_includes => [
+            '/etc/apache2/conf.d/xsendfile.conf',
+            '/etc/apache2/conf.d/limit_upload.conf',
+        ],
+        require => [
+            File['/etc/apache2/conf.d/xsendfile.conf'],
+            File['/etc/apache2/conf.d/limit_upload.conf'],
+        ],
     }
 
     # Ensure media directory exists
