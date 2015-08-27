@@ -29,7 +29,6 @@ class TestGenerateLiveKMLCommon(TestCase):
         self.login_url = reverse('auvsi_suas:login')
         self.eval_url = reverse('auvsi_suas:live_kml')
         self.update_url = reverse('auvsi_suas:update_kml')
-        logging.disable(logging.CRITICAL)
 
 
 class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
@@ -60,7 +59,6 @@ class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
         config.server_info = info
         config.save()
         self.config = config
-
 
     def test_generate_live_kml_not_logged_in(self):
         """Tests the generate KML method."""

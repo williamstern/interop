@@ -29,7 +29,6 @@ class TestGenerateKMLCommon(TestCase):
         # Create URLs for testing
         self.login_url = reverse('auvsi_suas:login')
         self.eval_url = reverse('auvsi_suas:export_data')
-        logging.disable(logging.CRITICAL)
 
     def validate_kml(self, kml_data, folders, users, coordinates):
         ElementTree.fromstring(kml_data)
