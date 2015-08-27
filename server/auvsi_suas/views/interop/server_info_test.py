@@ -63,8 +63,6 @@ class TestServerInfoView(TestCase):
         self.mission.server_info = self.info
         self.mission.save()
 
-        logging.disable(logging.CRITICAL)
-
     def test_invalid_request(self):
         """Tests an invalid request by mis-specifying parameters."""
         response = self.client.post(info_url)

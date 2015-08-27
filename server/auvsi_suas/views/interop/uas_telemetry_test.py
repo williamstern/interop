@@ -36,8 +36,6 @@ class TestUasTelemetry(TestCase):
         })
         self.assertEqual(200, response.status_code)
 
-        logging.disable(logging.CRITICAL)
-
     def test_invalid_method(self):
         """Only POST supported."""
         response = self.client.get(uas_url)

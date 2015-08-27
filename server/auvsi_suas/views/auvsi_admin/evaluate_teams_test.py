@@ -27,7 +27,6 @@ class TestEvaluateTeams(TestCase):
         # Create URLs for testing
         self.login_url = reverse('auvsi_suas:login')
         self.eval_url = reverse('auvsi_suas:evaluate_teams')
-        logging.disable(logging.CRITICAL)
 
     def test_evaluate_teams_nonadmin(self):
         """Tests that you can only access data as admin."""
