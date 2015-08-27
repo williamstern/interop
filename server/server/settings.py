@@ -148,6 +148,12 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'auvsi_suas/static')
 
+# User uploaded files
+
+MEDIA_ROOT = '/var/www/media'
+# Send with X-SENDFILE in apache
+SENDFILE_BACKEND = 'sendfile.backends.xsendfile'
+
 # Login URL
 
 LOGIN_URL = '/admin/login/?next=/'

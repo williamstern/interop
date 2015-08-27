@@ -2,7 +2,10 @@
 
 import functools
 import json
+import os.path
 from auvsi_suas.models import GpsPosition, Target, TargetType, Color, Shape, Orientation
+from auvsi_suas.views.targets import absolute_media_path
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -10,6 +13,8 @@ from django.test import TestCase
 login_url = reverse('auvsi_suas:login')
 targets_url = reverse('auvsi_suas:targets')
 targets_id_url = functools.partial(reverse, 'auvsi_suas:targets_id')
+targets_id_image_url = functools.partial(reverse,
+                                         'auvsi_suas:targets_id_image')
 
 
 class TestTargetsLoggedOut(TestCase):
@@ -470,3 +475,137 @@ class TestTargetId(TestCase):
         response = self.client.put(targets_id_url(args=[t.pk]),
                                    data=json.dumps(data))
         self.assertEqual(400, response.status_code)
+
+
+def test_image(name):
+    """Compute path of test image"""
+    return os.path.join(settings.BASE_DIR, 'auvsi_suas/fixtures/testdata',
+                        name)
+
+
+class TestTargetIdImage(TestCase):
+    """Tests GET/PUT target image."""
+
+    def setUp(self):
+        """Creates user and logs in."""
+        self.user = User.objects.create_user('testuser', 'testemail@x.com',
+                                             'testpass')
+
+        response = self.client.post(login_url, {
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+        self.assertEqual(200, response.status_code)
+
+        # Create a target
+        response = self.client.post(targets_url,
+                                    data=json.dumps({'type': 'standard'}),
+                                    content_type='application/json')
+        self.assertEqual(201, response.status_code)
+        self.target_id = json.loads(response.content)['id']
+
+    def test_no_image(self):
+        """404 when GET image before upload."""
+        response = self.client.get(targets_id_image_url(args=[self.target_id]))
+        self.assertEqual(404, response.status_code)
+
+    def test_get_other_user(self):
+        """Test GETting a thumbnail owned by a different user."""
+        user2 = User.objects.create_user('testuser2', 'testemail@x.com',
+                                         'testpass')
+        t = Target(user=user2, target_type=TargetType.standard)
+        t.save()
+
+        response = self.client.get(targets_id_image_url(args=[t.pk]))
+        self.assertEqual(403, response.status_code)
+
+    def test_post_bad_image(self):
+        """Try to upload bad image"""
+        response = self.client.post(
+            targets_id_image_url(args=[self.target_id]),
+            data='Hahaha',
+            content_type='image/jpeg')
+        self.assertEqual(400, response.status_code)
+
+    def post_image(self, name, content_type='image/jpeg'):
+        """POST image, assert that it worked"""
+        with open(test_image(name)) as f:
+            response = self.client.post(
+                targets_id_image_url(args=[self.target_id]),
+                data=f.read(),
+                content_type=content_type)
+            self.assertEqual(200, response.status_code)
+
+    def test_post_jpg(self):
+        """Successfully upload jpg"""
+        self.post_image('S.jpg')
+
+    def test_post_png(self):
+        """Successfully upload png"""
+        self.post_image('A.png', content_type='image/png')
+
+    def test_post_gif(self):
+        """GIF upload not allowed"""
+        with open(test_image('A.gif')) as f:
+            response = self.client.post(
+                targets_id_image_url(args=[self.target_id]),
+                data=f.read(),
+                content_type='image/gif')
+            self.assertEqual(400, response.status_code)
+
+    def test_get_image(self):
+        """Successfully GET uploaded image"""
+        self.post_image('S.jpg')
+
+        response = self.client.get(targets_id_image_url(args=[self.target_id]))
+        self.assertEqual(200, response.status_code)
+        self.assertEqual('image/jpeg', response['Content-Type'])
+
+        data = ''.join(response.streaming_content)
+
+        # Did we get back what we uploaded?
+        with open(test_image('S.jpg')) as f:
+            self.assertEqual(f.read(), data)
+
+    def test_replace_image(self):
+        """Successfully replace uploaded image"""
+        self.post_image('S.jpg')
+        self.post_image('A.jpg')
+
+        response = self.client.get(targets_id_image_url(args=[self.target_id]))
+        self.assertEqual(200, response.status_code)
+
+        data = ''.join(response.streaming_content)
+
+        # Did we replace it?
+        with open(test_image('A.jpg')) as f:
+            self.assertEqual(f.read(), data)
+
+    def test_put_image(self):
+        """PUT works just like POST"""
+        with open(test_image('S.jpg')) as f:
+            response = self.client.put(
+                targets_id_image_url(args=[self.target_id]),
+                data=f.read(),
+                content_type='image/jpeg')
+            self.assertEqual(200, response.status_code)
+
+        response = self.client.get(targets_id_image_url(args=[self.target_id]))
+        self.assertEqual(200, response.status_code)
+
+        data = ''.join(response.streaming_content)
+
+        # Did we get back what we uploaded?
+        with open(test_image('S.jpg')) as f:
+            self.assertEqual(f.read(), data)
+
+    def test_delete_old(self):
+        """Old image deleted when new doesn't overwrite."""
+        self.post_image('A.jpg')
+
+        t = Target.objects.get(pk=self.target_id)
+        jpg_name = t.thumbnail.name
+        self.assertTrue(os.path.exists(absolute_media_path(jpg_name)))
+
+        self.post_image('A.png', content_type='image/png')
+        self.assertFalse(os.path.exists(absolute_media_path(jpg_name)))

@@ -1,12 +1,15 @@
 """Tests for the target module."""
 
+import os.path
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import Target
 from auvsi_suas.models import TargetType
 from auvsi_suas.models import Color
 from auvsi_suas.models import Shape
 from auvsi_suas.models import Orientation
+from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils import timezone
 
@@ -21,6 +24,10 @@ class TestTarget(TestCase):
 
     def test_valid(self):
         """Test creating a valid target."""
+        with open(os.path.join(settings.BASE_DIR,
+                               'auvsi_suas/fixtures/testdata/S.jpg')) as f:
+            thumb = SimpleUploadedFile('thumb.jpg', f.read())
+
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
@@ -33,11 +40,16 @@ class TestTarget(TestCase):
             background_color=Color.white,
             alphanumeric='ABC',
             alphanumeric_color=Color.black,
-            description='Test target')
+            description='Test target',
+            thumbnail=thumb)
         t.save()
 
     def test_unicode(self):
         """Test unicode conversion."""
+        with open(os.path.join(settings.BASE_DIR,
+                               'auvsi_suas/fixtures/testdata/S.jpg')) as f:
+            thumb = SimpleUploadedFile('thumb.jpg', f.read())
+
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
@@ -50,7 +62,8 @@ class TestTarget(TestCase):
             background_color=Color.white,
             alphanumeric='ABC',
             alphanumeric_color=Color.black,
-            description='Test target')
+            description='Test target',
+            thumbnail=thumb)
         t.save()
 
         self.assertTrue(t.__unicode__())

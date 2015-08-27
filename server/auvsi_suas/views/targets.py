@@ -1,8 +1,16 @@
 """Targets view."""
+import io
 import json
+from PIL import Image
+import os
+import os.path
+
 from auvsi_suas.models import GpsPosition, Target, TargetType, Color, Shape, Orientation
 from auvsi_suas.views import logger
 from auvsi_suas.views.decorators import require_login
+from django.conf import settings
+from django.core.files.images import ImageFile
+from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseNotAllowed
@@ -10,6 +18,7 @@ from django.http import HttpResponseNotFound
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
+from sendfile import sendfile
 
 
 def normalize_data(data):
@@ -146,6 +155,28 @@ class Targets(View):
         return JsonResponse(t.json(), status=201)
 
 
+def find_target(request, pk):
+    """Lookup requested Target model.
+
+    Only the request's user's targets will be returned.
+
+    Args:
+        request: Request object
+        pk: Target primary key
+
+    Raises:
+        Target.DoesNotExist: pk not found
+        ValueError: Target not owned by this user.
+    """
+    target = Target.objects.get(pk=pk)
+
+    # We only let users get their own targets
+    if target.user != request.user:
+        raise ValueError("Accessing target %d not allowed" % pk)
+
+    return target
+
+
 class TargetsId(View):
     """Get or update a specific target."""
 
@@ -153,30 +184,9 @@ class TargetsId(View):
     def dispatch(self, *args, **kwargs):
         return super(TargetsId, self).dispatch(*args, **kwargs)
 
-    def find_target(self, request, pk):
-        """Lookup requested Target model.
-
-        Only the request's user's targets will be returned.
-
-        Args:
-            request: Request object
-            pk: Target primary key
-
-        Raises:
-            Target.DoesNotExist: pk not found
-            ValueError: Target not owned by this user.
-        """
-        target = Target.objects.get(pk=pk)
-
-        # We only let users get their own targets
-        if target.user != request.user:
-            raise ValueError("Accessing target %d not allowed" % pk)
-
-        return target
-
     def get(self, request, pk):
         try:
-            target = self.find_target(request, int(pk))
+            target = find_target(request, int(pk))
         except Target.DoesNotExist:
             return HttpResponseNotFound('Target %s not found' % pk)
         except ValueError as e:
@@ -186,7 +196,7 @@ class TargetsId(View):
 
     def put(self, request, pk):
         try:
-            target = self.find_target(request, int(pk))
+            target = find_target(request, int(pk))
         except Target.DoesNotExist:
             return HttpResponseNotFound('Target %s not found' % pk)
         except ValueError as e:
@@ -267,3 +277,71 @@ class TargetsId(View):
         target.save()
 
         return JsonResponse(target.json())
+
+
+def absolute_media_path(media_path):
+    """Compute absolute path in MEDIA_ROOT, from relative."""
+    return os.path.join(settings.MEDIA_ROOT, media_path)
+
+
+class TargetsIdImage(View):
+    """Get or add/update target image."""
+
+    @method_decorator(require_login)
+    def dispatch(self, *args, **kwargs):
+        return super(TargetsIdImage, self).dispatch(*args, **kwargs)
+
+    def get(self, request, pk):
+        try:
+            target = find_target(request, int(pk))
+        except Target.DoesNotExist:
+            return HttpResponseNotFound('Target %s not found' % pk)
+        except ValueError as e:
+            return HttpResponseForbidden(str(e))
+
+        if not target.thumbnail.name:
+            return HttpResponseNotFound('Target %s has no image' % pk)
+
+        # Tell Apache to serve the thumbnail.
+        return sendfile(request, absolute_media_path(target.thumbnail.name))
+
+    def post(self, request, pk):
+        try:
+            target = find_target(request, int(pk))
+        except Target.DoesNotExist:
+            return HttpResponseNotFound('Target %s not found' % pk)
+        except ValueError as e:
+            return HttpResponseForbidden(str(e))
+
+        # Request body is the file
+        f = io.BytesIO(request.body)
+
+        # Verify that this is a valid image
+        try:
+            i = Image.open(f)
+            i.verify()
+        except IOError as e:
+            return HttpResponseBadRequest(str(e))
+
+        if i.format not in ['JPEG', 'PNG']:
+            return HttpResponseBadRequest(
+                'Invalid image format %s, only JPEG and PNG allowed' %
+                i.format)
+
+        old_thumbnail = target.thumbnail.name
+
+        target.thumbnail.save('%d.%s' % (target.pk, i.format), ImageFile(f))
+
+        if target.thumbnail.name != old_thumbnail:
+            # We didn't overwrite the old thumbnail, we should delete it,
+            # but ignore deletion errors.
+            try:
+                os.remove(absolute_media_path(old_thumbnail))
+            except OSError as e:
+                logger.warning("Unable to delete old thumbnail: %s", e)
+
+        return HttpResponse("Image uploaded.")
+
+    def put(self, request, pk):
+        """We simply make PUT do the same as POST."""
+        return self.post(request, pk)
