@@ -4,20 +4,26 @@
 
 
 describe("MissionListCtrl controller", function() {
+    var backend, missionListCtrl;
 
-    beforeEach(function() {
-        // TODO
-    });
+    beforeEach(module('auvsiSuasApp'));
+
+    beforeEach(inject(function($controller) {
+        backend = {missions: null};
+        missionListCtrl = $controller('MissionListCtrl', {Backend: backend});
+    }));
 
     it("Shouldn't have missions with null list", function() {
-        // TODO
+        expect(missionListCtrl.hasMissions()).toBe(false);
     });
 
     it("Shouldn't have missions with empty list", function() {
-        // TODO
+        backend.missions = [];
+        expect(missionListCtrl.hasMissions()).toBe(false);
     });
 
     it("Should have missions with non-empty list", function() {
-        // TODO
+        backend.missions = [{id: 1}];
+        expect(missionListCtrl.hasMissions()).toBe(true);
     });
 });

@@ -37,8 +37,8 @@ module.exports = function(config) {
       // Test files.
       'components/navigation/navigation_test.js',
       'components/backend-service/backend-service_test.js',
-      'components/units-service/units-service.js',
-      'components/distance-service/distance-service.js',
+      'components/units-service/units-service_test.js',
+      'components/distance-service/distance-service_test.js',
       'pages/mission-dashboard/mission-dasboard-controller_test.js',
       'pages/mission-list/mission-list-controller_test.js',
     ],

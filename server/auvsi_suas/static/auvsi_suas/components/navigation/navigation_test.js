@@ -4,16 +4,22 @@
 
 
 describe("Navigation service", function() {
+    var routeParams, navigationCtrl;
 
-    beforeEach(function() {
-        // TODO
-    });
+    beforeEach(module('auvsiSuasApp'));
+
+    beforeEach(inject(function($controller) {
+        routeParams = {};
+        navigationCtrl = $controller('NavigationCtrl',
+                                     {$routeParams: routeParams});
+    }));
 
     it("Shouldn't show mission links with no ID", function() {
-        // TODO
+        expect(navigationCtrl.shouldShowMissionLinks()).toBe(false);
     });
 
     it("Should show mission links with an ID", function() {
-        // TODO
+        routeParams.missionId = 1;
+        expect(navigationCtrl.shouldShowMissionLinks()).toBe(true);
     });
 });

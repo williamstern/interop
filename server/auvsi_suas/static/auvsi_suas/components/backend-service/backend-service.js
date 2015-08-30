@@ -63,9 +63,14 @@ Backend = function($rootScope, $resource, $interval) {
     this.telemetryResource_ = $resource('/api/telemetry');
 
     /**
+     * @private @const {!Number} The update period in ms.
+     */
+    this.updatePeriodMs_ = 1000;
+    /**
      * @private @const {!Object} The update which syncs with the backend (1s).
      */
-    this.updateInterval_ = $interval(angular.bind(this, this.update_), 1000);
+    this.updateInterval_ = $interval(angular.bind(this, this.update_),
+                                     this.updatePeriodMs_);
 };
 
 
