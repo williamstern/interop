@@ -29,6 +29,64 @@ class TestTargetsLoggedOut(TestCase):
                                     content_type='application/json')
         self.assertEqual(403, response.status_code)
 
+        response = self.client.get(targets_url)
+        self.assertEqual(403, response.status_code)
+
+
+class TestGetTarget(TestCase):
+    """Tests GETing the targets view."""
+
+    def setUp(self):
+        """Creates user and logs in."""
+        self.user = User.objects.create_user('testuser', 'testemail@x.com',
+                                             'testpass')
+
+        response = self.client.post(login_url, {
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+        self.assertEqual(200, response.status_code)
+
+    def test_no_targets(self):
+        """We get back an empty list if we have no targets."""
+        response = self.client.get(targets_url)
+        self.assertEqual(200, response.status_code)
+
+        self.assertEqual([], json.loads(response.content))
+
+    def test_get_targets(self):
+        """We get back the targets we own."""
+        t1 = Target(user=self.user, target_type=TargetType.standard)
+        t1.save()
+
+        t2 = Target(user=self.user, target_type=TargetType.qrc)
+        t2.save()
+
+        response = self.client.get(targets_url)
+        self.assertEqual(200, response.status_code)
+
+        d = json.loads(response.content)
+
+        self.assertItemsEqual([t1.json(), t2.json()], d)
+
+    def test_not_others(self):
+        """We don't get targets owned by other users."""
+        user2 = User.objects.create_user('testuser2', 'testemail@x.com',
+                                         'testpass')
+
+        mine = Target(user=self.user, target_type=TargetType.standard)
+        mine.save()
+
+        theirs = Target(user=user2, target_type=TargetType.qrc)
+        theirs.save()
+
+        response = self.client.get(targets_url)
+        self.assertEqual(200, response.status_code)
+
+        d = json.loads(response.content)
+
+        self.assertItemsEqual([mine.json()], d)
+
 
 class TestPostTarget(TestCase):
     """Tests POSTing the targets view."""
@@ -43,11 +101,6 @@ class TestPostTarget(TestCase):
             'password': 'testpass'
         })
         self.assertEqual(200, response.status_code)
-
-    def test_get(self):
-        """GET not yet supported."""
-        response = self.client.get(targets_url)
-        self.assertEqual(405, response.status_code)
 
     def test_complete(self):
         """Send complete target with all fields."""

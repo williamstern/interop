@@ -60,6 +60,8 @@ A quick summary of the endpoints:
 
 * :http:post:`/api/targets`: Used to upload targets for submission.
 
+* :http:get:`/api/targets`: Used to retrieve targets uploaded for submission.
+
 * :http:get:`/api/targets/(int:id)`: Used to get details about submitted
   targets.
 
@@ -488,6 +490,84 @@ Targets
 
    :status 403: User not authenticated. Login is required before using this
                 endpoint. Ensure :http:post:`/api/login` was successful, and
+                the login cookie was sent to this endpoint.
+
+.. http:get:: /api/targets
+
+   This endpoint is used to retrieve a list of targets uploaded for submission.
+
+   The targets returned by this endpoint are those that have been uploaded with
+   :http:post:`/api/targets` and possibly updated with
+   :http:put:`/api/targets/(int:id)`.
+
+   .. note::
+
+        This endpoint will only return up to 100 targets. It is recommended to
+        remain below 100 targets total (there certainly won't be that many at
+        competition!). If you do have more than 100 targets, individual targets
+        may be queried with :http:get:`/api/targets/(int:id)`.
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/targets HTTP/1.1
+      Host: 192.168.1.2:8000
+      Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
+
+   **Example response**:
+
+   Note: This example reformatted for readability; actual response may be
+   entirely on one line.
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      [
+          {
+              "id": 1,
+              "user": 1,
+              "type": "standard",
+              "latitude": 38.1478,
+              "longitude": -76.4275,
+              "orientation": "n",
+              "shape": "star",
+              "background_color": "orange",
+              "alphanumeric": "C",
+              "alphanumeric_color": "black",
+              "description": null,
+          },
+          {
+              "id": 2,
+              "user": 1,
+              "type": "qrc",
+              "latitude": 38.1878,
+              "longitude": -76.4075,
+              "orientation": null,
+              "shape": null,
+              "background_color": null,
+              "alphanumeric": null,
+              "alphanumeric_color": null,
+              "description": "http://auvsi-seafarer.org",
+          }
+      ]
+
+   The response format is a list of target objects. Each is in the same as
+   :http:get:`/api/targets/(int:id)` and is described in detail there.
+
+   If no targets have been uploaded, the response will contain an empty list.
+
+   :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
+                      must be sent to authenticate the request.
+
+   :resheader Content-Type: The response is ``application/json`` on success.
+
+   :status 200: Success. Response contains targets.
+
+   :status 403: User not authenticated. Login is required before using this
+                endpoint.  Ensure :http:post:`/api/login` was successful, and
                 the login cookie was sent to this endpoint.
 
 .. http:get:: /api/targets/(int:id)

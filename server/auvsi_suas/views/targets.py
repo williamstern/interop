@@ -113,6 +113,18 @@ class Targets(View):
     def dispatch(self, *args, **kwargs):
         return super(Targets, self).dispatch(*args, **kwargs)
 
+    def get(self, request):
+        # We only support getting up to 100 targets for now.
+        # Additional limit and pagination options may be added in the future,
+        # but for now 100 targets ought to be enough for anyone.
+        targets = Target.objects.filter(user=request.user).all()[:100]
+
+        targets = [t.json() for t in targets]
+
+        # Older versions of JS allow hijacking the Array constructor to steal
+        # JSON data. It is not a problem in recent versions.
+        return JsonResponse(targets, safe=False)
+
     def post(self, request):
         data = json.loads(request.body)
 
