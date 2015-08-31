@@ -4,7 +4,6 @@
  */
 
 
-
 /**
  * @export {!angular.Module} Application module.
  */
@@ -12,7 +11,6 @@ var auvsiSuasApp = angular.module('auvsiSuasApp', [
     'ngResource',
     'ngRoute'
 ]);
-
 
 
 // Configure routes to templates and controllers.

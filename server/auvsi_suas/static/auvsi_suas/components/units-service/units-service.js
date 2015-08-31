@@ -19,7 +19,7 @@ Units = function() {
  * @return {!number} The value in radians.
  */
 Units.prototype.degToRad = function(deg) {
-    return deg * (Math.PI/180);
+    return deg * (Math.PI/180.0);
 };
 
 

@@ -34,6 +34,13 @@ module.exports = function(config) {
       'components/mission-map-view/mission-map-view.js',
       'pages/mission-dashboard/mission-dashboard-controller.js',
       'pages/mission-list/mission-list-controller.js',
+      // Test files.
+      'components/navigation/navigation_test.js',
+      'components/backend-service/backend-service_test.js',
+      'components/units-service/units-service_test.js',
+      'components/distance-service/distance-service_test.js',
+      'pages/mission-dashboard/mission-dasboard-controller_test.js',
+      'pages/mission-list/mission-list-controller_test.js',
     ],
 
 

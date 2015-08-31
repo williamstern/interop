@@ -42,9 +42,9 @@ MissionDashboardCtrl = function(
 /**
  * Gets the current mission.
  * @return {?Object} The current mission.
- * @private
+ * @export
  */
-MissionDashboardCtrl.prototype.getCurrentMission_ = function() {
+MissionDashboardCtrl.prototype.getCurrentMission = function() {
     var missionId = this.routeParams_['missionId'];
     if (!missionId || !this.backend_.missions) {
         return null;
@@ -68,7 +68,7 @@ MissionDashboardCtrl.prototype.getCurrentMission_ = function() {
 MissionDashboardCtrl.prototype.rebuildMissionScene_ = function() {
     // Get the current mission.
     this.missionScene_.rebuildScene(
-            this.getCurrentMission_(), this.backend_.obstacles,
+            this.getCurrentMission(), this.backend_.obstacles,
             this.backend_.telemetry);
 };
 
