@@ -74,6 +74,9 @@ A quick summary of the endpoints:
 * :http:post:`/api/targets/(int:id)/image`: Used to submit or update target
   image thumbnail.
 
+* :http:delete:`/api/targets/(int:id)/image`: Used to delete target image
+  thumbnail.
+
 Errors
 ^^^^^^
 
@@ -832,6 +835,7 @@ Targets
       POST /api/targets/2/image HTTP/1.1
       Host: 192.168.1.2:8000
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
+      Content-Type: image/jpeg
 
       <binary image content ...>
 
@@ -840,7 +844,6 @@ Targets
    .. sourcecode:: http
 
       HTTP/1.1 200 OK
-      Content-Type: image/jpeg
 
       Image uploaded.
 
@@ -873,6 +876,56 @@ Targets
 .. http:put:: /api/targets/(int:id)/image
 
    Equivalent to :http:post:`/api/targets/(int:id)/image`.
+
+.. http:delete:: /api/targets/(int:id)/image
+
+   Delete target image thumbnail.
+
+   ``id`` is the unique identifier of a target, as returned by
+   :http:post:`/api/targets`. See :http:get:`/api/targets/(int:id)` for more
+   information about the target ID.
+
+   This endpoint is used to delete the image associated with a target. A deleted
+   image will not be used in scoring.
+
+   Note: You do not need to delete the target image before uploading a new
+   image. A call to :http:post:`/api/targets/(int:id)/image` or
+   :http:put:`/api/targets/(int:id)/image` will overwrite the existing image.
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      DELETE /api/targets/2/image HTTP/1.1
+      Host: 192.168.1.2:8000
+      Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+
+      Image deleted.
+
+   :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
+                      must be sent to authenticate the request.
+
+   :status 200: The target image has been successfully deleted.
+
+   :status 403: * User not authenticated. Login is required before using this
+                  endpoint.  Ensure :http:post:`/api/login` was successful, and
+                  the login cookie was sent to this endpoint.
+
+                * The specified target was found but is not accessible by your
+                  user (i.e., another team created this target). Check target
+                  ID.
+
+                * Check response for detailed error message.
+
+   :status 404: * Target not found. Check target ID.
+
+                * The specified target had no existing image to delete.
 
 
 .. py:data:: TargetTypes

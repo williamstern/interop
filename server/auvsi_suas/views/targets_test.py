@@ -557,9 +557,15 @@ class TestTargetIdImage(TestCase):
         self.assertEqual(201, response.status_code)
         self.target_id = json.loads(response.content)['id']
 
-    def test_no_image(self):
+    def test_get_no_image(self):
         """404 when GET image before upload."""
         response = self.client.get(targets_id_image_url(args=[self.target_id]))
+        self.assertEqual(404, response.status_code)
+
+    def test_delete_no_image(self):
+        """404 when DELETE image before upload."""
+        response = self.client.delete(
+            targets_id_image_url(args=[self.target_id]))
         self.assertEqual(404, response.status_code)
 
     def test_get_other_user(self):
@@ -652,7 +658,7 @@ class TestTargetIdImage(TestCase):
         with open(test_image('S.jpg')) as f:
             self.assertEqual(f.read(), data)
 
-    def test_delete_old(self):
+    def test_post_delete_old(self):
         """Old image deleted when new doesn't overwrite."""
         self.post_image('A.jpg')
 
@@ -662,3 +668,28 @@ class TestTargetIdImage(TestCase):
 
         self.post_image('A.png', content_type='image/png')
         self.assertFalse(os.path.exists(absolute_media_path(jpg_name)))
+
+    def test_delete(self):
+        """Image deleted on DELETE"""
+        self.post_image('A.jpg')
+
+        t = Target.objects.get(pk=self.target_id)
+        jpg_name = t.thumbnail.name
+        self.assertTrue(os.path.exists(absolute_media_path(jpg_name)))
+
+        response = self.client.delete(
+            targets_id_image_url(args=[self.target_id]))
+        self.assertEqual(200, response.status_code)
+
+        self.assertFalse(os.path.exists(absolute_media_path(jpg_name)))
+
+    def test_get_after_delete(self):
+        """GET returns 404 after DELETE"""
+        self.post_image('A.jpg')
+
+        response = self.client.delete(
+            targets_id_image_url(args=[self.target_id]))
+        self.assertEqual(200, response.status_code)
+
+        response = self.client.get(targets_id_image_url(args=[self.target_id]))
+        self.assertEqual(404, response.status_code)
