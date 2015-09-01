@@ -68,6 +68,8 @@ A quick summary of the endpoints:
 * :http:put:`/api/targets/(int:id)`: Used to update characteristics of
   submitted targets.
 
+* :http:delete:`/api/targets/(int:id)`: Used to delete a submitted target.
+
 * :http:get:`/api/targets/(int:id)/image`: Used to get target image previously
   submitted.
 
@@ -745,6 +747,51 @@ Targets
    :status 400: Request was invalid. The request content may have been
                 malformed or it may have contained invalid field values. The
                 response includes a more detailed error message.
+
+   :status 403: * User not authenticated. Login is required before using this
+                  endpoint.  Ensure :http:post:`/api/login` was successful, and
+                  the login cookie was sent to this endpoint.
+
+                * The specified target was found but is not accessible by your
+                  user (i.e., another team created this target). Check target
+                  ID.
+
+                * Check response for detailed error message.
+
+   :status 404: Target not found. Check target ID.
+
+.. http:delete:: /api/targets/(int:id)
+
+   Delete target id ``id``. This endpoint allows you to remove a target from
+   the server entirely (including its image). Targets deleted with this
+   endpoint will not be scored, and cannot be recovered. If a target is deleted
+   accidentally, reupload it as a new target.
+
+   ``id`` is the unique identifier of a target, as returned by
+   :http:post:`/api/targets`. See :http:get:`/api/targets/(int:id)` for more
+   information about the target ID.
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      DELETE /api/targets/1 HTTP/1.1
+      Host: 192.168.1.2:8000
+      Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
+
+   **Example response**:
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+
+      Target deleted.
+
+   :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
+                      must be sent to authenticate the request.
+
+   :status 200: The target has been successfully deleted. It will not be
+                scored.
 
    :status 403: * User not authenticated. Login is required before using this
                   endpoint.  Ensure :http:post:`/api/login` was successful, and

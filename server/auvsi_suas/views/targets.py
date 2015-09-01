@@ -290,6 +290,27 @@ class TargetsId(View):
 
         return JsonResponse(target.json())
 
+    def delete(self, request, pk):
+        try:
+            target = find_target(request, int(pk))
+        except Target.DoesNotExist:
+            return HttpResponseNotFound('Target %s not found' % pk)
+        except ValueError as e:
+            return HttpResponseForbidden(str(e))
+
+        # Remember the thumbnail path so we can delete it from disk.
+        thumbnail = target.thumbnail.name
+
+        target.delete()
+
+        if thumbnail:
+            try:
+                os.remove(absolute_media_path(thumbnail))
+            except OSError as e:
+                logger.warning("Unable to delete thumbnail: %s", e)
+
+        return HttpResponse("Target deleted.")
+
 
 def absolute_media_path(media_path):
     """Compute absolute path in MEDIA_ROOT, from relative."""
