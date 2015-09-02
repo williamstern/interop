@@ -37,7 +37,7 @@ NavigationCtrl = function($routeParams) {
             target: "_blank"
         },
         {
-            text: "Edit Data (KML)",
+            text: "Edit Data",
             url: "/admin",
             target: "_blank"
         },
