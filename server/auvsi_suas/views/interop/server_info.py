@@ -8,8 +8,8 @@ from auvsi_suas.views import logger
 from auvsi_suas.views.decorators import require_login
 from auvsi_suas.views.missions import active_mission
 from django.core.cache import cache
-from django.http import HttpResponse
 from django.http import HttpResponseServerError
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
@@ -43,11 +43,8 @@ class ServerInfo(View):
         except ServerInfo.DoesNotExist:
             # Failed to obtain server info.
             return HttpResponseServerError('No server info available.')
-        else:
-            # Form JSON response.
-            data = {
-                'server_info': info.json(),
-                'server_time': str(datetime.datetime.now())
-            }
-            return HttpResponse(json.dumps(data),
-                                content_type="application/json")
+
+        # Form JSON response.
+        data = info.json()
+        data['server_time'] = datetime.datetime.now().isoformat()
+        return JsonResponse(data)

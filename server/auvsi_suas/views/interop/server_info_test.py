@@ -86,7 +86,8 @@ class TestServerInfoView(TestCase):
         self.assertEqual(access_log.user, self.user)
 
         json_data = json.loads(response.content)
-        self.assertTrue('server_info' in json_data)
+        self.assertTrue('message' in json_data)
+        self.assertTrue('message_timestamp' in json_data)
         self.assertTrue('server_time' in json_data)
 
     def test_loadtest(self):

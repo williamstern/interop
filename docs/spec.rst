@@ -179,10 +179,8 @@ Server Information
       Content-Type: application/json
 
       {
-          "server_info": {
-              "message": "Fly Safe",
-              "message_timestamp": "2015-06-14 18:18:55.642000+00:00"
-          },
+          "message": "Fly Safe",
+          "message_timestamp": "2015-06-14 18:18:55.642000+00:00",
           "server_time": "2015-08-14 03:37:13.331402"
       }
 
@@ -192,20 +190,19 @@ Server Information
 
    :resheader Content-Type: The response ``application/json`` on success.
 
-   :>json object server_info: Object containing server info details.
+   :>json string message: A unique message stored on the server that proves the
+                          team has correctly downloaded the server information.
+                          This information must be displayed as part of
+                          interoperability.
 
-   :>json string message: (member of ``server_info``) A unique message stored
-                          on the server that proves the team has correctly
-                          downloaded the server information.  This information
-                          must be displayed as part of interoperability.
-
-   :>json string message_timestamp: (member of ``server_info``) The time the
-                                    unique message was created.  This
+   :>json string message_timestamp: The time that the unique message was
+                                    created, in ISO 8601 format.  This
                                     information must be displayed as part of
                                     interoperability.
 
-   :>json string server_time: The current time on the server. This information
-                              must be displayed as part of interoperability.
+   :>json string server_time: The current time on the server, in ISO 8601
+                              format. This information must be displayed as
+                              part of interoperability.
 
    :status 200: The team made a valid request. The request will be logged to
                 later evaluate request rates. The response will have status code

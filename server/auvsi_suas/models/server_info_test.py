@@ -26,4 +26,4 @@ class TestServerInfoModel(TestCase):
         self.assertTrue('message' in json_data)
         self.assertEqual(json_data['message'], message)
         self.assertTrue('message_timestamp' in json_data)
-        self.assertEqual(json_data['message_timestamp'], str(time))
+        self.assertEqual(json_data['message_timestamp'], time.isoformat())
