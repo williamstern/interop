@@ -76,3 +76,18 @@
 - model: auvsi_suas.gpsposition
   pk: 5
   fields: {latitude: 38.144678, longitude: -76.427995}
+- model: auvsi_suas.missionconfig
+  pk: 1
+  fields:
+    air_drop_pos: 4
+    emergent_last_known_pos: 2
+    home_pos: 1
+    ir_primary_target_pos: 5
+    ir_secondary_target_pos: 3
+    is_active: true
+    mission_waypoints: [1]
+    mission_waypoints_dist_max: 100.0
+    off_axis_target_pos: 3
+    search_grid_points: [1]
+    server_info: 1
+    sric_pos: 4
