@@ -5,7 +5,7 @@ requires. They include input validation, making a best-effort to ensure
 values will be accepted by the server.
 """
 
-import collections
+import dateutil.parser
 
 
 def check_latitude(lat):
@@ -81,16 +81,25 @@ class Telemetry(Serializable):
                              self.uas_heading)
 
 
-class ServerInfo(collections.namedtuple(
-    "ServerInfo", ["message", "message_timestamp", "server_time"])):
+class ServerInfo(Serializable):
     """Server information to be displayed to judges.
 
     Attributes:
         message: Custom message from the server
-        message_timestamp: Message timestamp
-        server_time: Current server time
+        message_timestamp (datetime.datetime): Message timestamp
+        server_time (datetime.datetime): Current server time
+
+    Raises:
+        TypeError, ValueError: Message or server timestamp could not be parsed.
     """
-    pass
+
+    def __init__(self, message, message_timestamp, server_time):
+        super(ServerInfo, self).__init__(
+            ["message", "message_timestamp", "server_time"])
+
+        self.message = message
+        self.message_timestamp = dateutil.parser.parse(message_timestamp)
+        self.server_time = dateutil.parser.parse(server_time)
 
 
 class StationaryObstacle(Serializable):

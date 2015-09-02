@@ -1,4 +1,5 @@
 import os
+import dateutil.parser
 import requests
 import unittest
 
@@ -63,10 +64,11 @@ class TestClient(unittest.TestCase):
         self.assertEqual("Hello World!", info.message)
         self.assertEqual("Hello World!", async_info.message)
 
-        # TODO(prattmic): check these values once the timestamps come
-        # in a defined format.
-        self.assertIsNotNone(info.message_timestamp)
-        self.assertIsNotNone(async_info.message_timestamp)
+        expected_message_time = \
+            dateutil.parser.parse('2015-08-02T01:16:15.609002+00:00')
+
+        self.assertEqual(expected_message_time, info.message_timestamp)
+        self.assertEqual(expected_message_time, async_info.message_timestamp)
 
         self.assertIsNotNone(info.server_time)
         self.assertIsNotNone(async_info.server_time)
@@ -85,9 +87,9 @@ class TestClient(unittest.TestCase):
     def test_post_bad_telemetry(self):
         """Test sending some (incorrect) telemetry."""
         t0 = Telemetry(latitude=38,
-                      longitude=-76,
-                      altitude_msl=100,
-                      uas_heading=90)
+                       longitude=-76,
+                       altitude_msl=100,
+                       uas_heading=90)
         # The Telemetry constructor prevents us from passing invalid
         # values, but we can still screw things up in an update
         t0.latitude = 'baz'
