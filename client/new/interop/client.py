@@ -91,10 +91,9 @@ class Client(object):
         r = self.get('/api/interop/server_info')
         d = r.json()
 
-        return ServerInfo(
-            message=d['server_info']['message'],
-            message_timestamp=d['server_info']['message_timestamp'],
-            server_time=d['server_time'])
+        return ServerInfo(message=d['message'],
+                          message_timestamp=d['message_timestamp'],
+                          server_time=d['server_time'])
 
     def post_telemetry(self, telem):
         """POST new telemetry.

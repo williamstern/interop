@@ -19,6 +19,6 @@ class ServerInfo(models.Model):
         """Obtain a JSON style representation of object."""
         data = {
             'message': self.team_msg,
-            'message_timestamp': str(self.timestamp)
+            'message_timestamp': self.timestamp.isoformat()
         }
         return data
