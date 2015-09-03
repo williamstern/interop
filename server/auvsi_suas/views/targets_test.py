@@ -529,6 +529,67 @@ class TestTargetId(TestCase):
                                    data=json.dumps(data))
         self.assertEqual(400, response.status_code)
 
+    def test_delete_own(self):
+        """Test DELETEing a target owned by the correct user."""
+        t = Target(user=self.user, target_type=TargetType.standard)
+        t.save()
+
+        pk = t.pk
+
+        self.assertTrue(Target.objects.get(pk=pk))
+
+        response = self.client.delete(targets_id_url(args=[pk]))
+        self.assertEqual(200, response.status_code)
+
+        with self.assertRaises(Target.DoesNotExist):
+            Target.objects.get(pk=pk)
+
+    def test_delete_other(self):
+        """Test DELETEing a target owned by another user."""
+        user2 = User.objects.create_user('testuser2', 'testemail@x.com',
+                                         'testpass')
+        t = Target(user=user2, target_type=TargetType.standard)
+        t.save()
+
+        response = self.client.delete(targets_id_url(args=[t.pk]))
+        self.assertEqual(403, response.status_code)
+
+    def test_get_after_delete_own(self):
+        """Test GETting a target after DELETE."""
+        t = Target(user=self.user, target_type=TargetType.standard)
+        t.save()
+
+        pk = t.pk
+
+        response = self.client.delete(targets_id_url(args=[pk]))
+        self.assertEqual(200, response.status_code)
+
+        response = self.client.get(targets_id_url(args=[pk]))
+        self.assertEqual(404, response.status_code)
+
+    def test_delete_thumb(self):
+        """Test DELETEing a target with thumbnail."""
+        t = Target(user=self.user, target_type=TargetType.standard)
+        t.save()
+
+        pk = t.pk
+
+        with open(test_image("A.jpg")) as f:
+            response = self.client.post(
+                targets_id_image_url(args=[pk]),
+                data=f.read(),
+                content_type="image/jpeg")
+            self.assertEqual(200, response.status_code)
+
+        t.refresh_from_db()
+        thumb = t.thumbnail.name
+        self.assertTrue(os.path.exists(absolute_media_path(thumb)))
+
+        response = self.client.delete(targets_id_url(args=[pk]))
+        self.assertEqual(200, response.status_code)
+
+        self.assertFalse(os.path.exists(absolute_media_path(thumb)))
+
 
 def test_image(name):
     """Compute path of test image"""
@@ -557,9 +618,15 @@ class TestTargetIdImage(TestCase):
         self.assertEqual(201, response.status_code)
         self.target_id = json.loads(response.content)['id']
 
-    def test_no_image(self):
+    def test_get_no_image(self):
         """404 when GET image before upload."""
         response = self.client.get(targets_id_image_url(args=[self.target_id]))
+        self.assertEqual(404, response.status_code)
+
+    def test_delete_no_image(self):
+        """404 when DELETE image before upload."""
+        response = self.client.delete(
+            targets_id_image_url(args=[self.target_id]))
         self.assertEqual(404, response.status_code)
 
     def test_get_other_user(self):
@@ -652,7 +719,7 @@ class TestTargetIdImage(TestCase):
         with open(test_image('S.jpg')) as f:
             self.assertEqual(f.read(), data)
 
-    def test_delete_old(self):
+    def test_post_delete_old(self):
         """Old image deleted when new doesn't overwrite."""
         self.post_image('A.jpg')
 
@@ -662,3 +729,28 @@ class TestTargetIdImage(TestCase):
 
         self.post_image('A.png', content_type='image/png')
         self.assertFalse(os.path.exists(absolute_media_path(jpg_name)))
+
+    def test_delete(self):
+        """Image deleted on DELETE"""
+        self.post_image('A.jpg')
+
+        t = Target.objects.get(pk=self.target_id)
+        jpg_name = t.thumbnail.name
+        self.assertTrue(os.path.exists(absolute_media_path(jpg_name)))
+
+        response = self.client.delete(
+            targets_id_image_url(args=[self.target_id]))
+        self.assertEqual(200, response.status_code)
+
+        self.assertFalse(os.path.exists(absolute_media_path(jpg_name)))
+
+    def test_get_after_delete(self):
+        """GET returns 404 after DELETE"""
+        self.post_image('A.jpg')
+
+        response = self.client.delete(
+            targets_id_image_url(args=[self.target_id]))
+        self.assertEqual(200, response.status_code)
+
+        response = self.client.get(targets_id_image_url(args=[self.target_id]))
+        self.assertEqual(404, response.status_code)

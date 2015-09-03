@@ -290,6 +290,27 @@ class TargetsId(View):
 
         return JsonResponse(target.json())
 
+    def delete(self, request, pk):
+        try:
+            target = find_target(request, int(pk))
+        except Target.DoesNotExist:
+            return HttpResponseNotFound('Target %s not found' % pk)
+        except ValueError as e:
+            return HttpResponseForbidden(str(e))
+
+        # Remember the thumbnail path so we can delete it from disk.
+        thumbnail = target.thumbnail.name
+
+        target.delete()
+
+        if thumbnail:
+            try:
+                os.remove(absolute_media_path(thumbnail))
+            except OSError as e:
+                logger.warning("Unable to delete thumbnail: %s", e)
+
+        return HttpResponse("Target deleted.")
+
 
 def absolute_media_path(media_path):
     """Compute absolute path in MEDIA_ROOT, from relative."""
@@ -357,3 +378,27 @@ class TargetsIdImage(View):
     def put(self, request, pk):
         """We simply make PUT do the same as POST."""
         return self.post(request, pk)
+
+    def delete(self, request, pk):
+        try:
+            target = find_target(request, int(pk))
+        except Target.DoesNotExist:
+            return HttpResponseNotFound('Target %s not found' % pk)
+        except ValueError as e:
+            return HttpResponseForbidden(str(e))
+
+        name = target.thumbnail.name
+
+        if not name:
+            return HttpResponseNotFound('Target %s has no image' % pk)
+
+        # Remove the thumbnail from the target.
+        # Note that this does not delete it from disk!
+        target.thumbnail.delete()
+
+        try:
+            os.remove(absolute_media_path(name))
+        except OSError as e:
+            logger.warning("Unable to delete thumbnail: %s", e)
+
+        return HttpResponse("Image deleted.")
