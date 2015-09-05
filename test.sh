@@ -38,7 +38,7 @@ cd /interop/server/auvsi_suas/static/auvsi_suas
 
 echo "Testing JavaScript Frontend..."
 
-./test.sh
+./test_with_phantomjs.sh
 frontend=$?
 
 echo -e "\n=====================================================================\n"
