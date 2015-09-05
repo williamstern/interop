@@ -11,11 +11,10 @@ from auvsi_suas.patches.simplekml_patch import Kml
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-# [satisfy_dist, waypoints, uas_logs, satisfied_list]
+# [waypoints, uas_logs, satisfied_list]
 TESTDATA_MISSIONCONFIG_EVALWAYPOINTS = (
-    100.0,
     [(38, -76, 100), (39, -77, 200), (37, -75, 0)],
-    [(38, -76, 150), (40, -78, 600), (37, -75, 50), (38, 100, 0)],
+    [(38, -76, 140), (40, -78, 600), (37, -75, 40)],
     [True, False, True]
 )  # yapf: disable
 
@@ -45,7 +44,6 @@ class TestMissionConfigModel(TestCase):
         wpt.order = 10
         wpt.save()
         config = MissionConfig()
-        config.mission_waypoints_dist_max = 1
         config.home_pos = pos
         config.emergent_last_known_pos = pos
         config.off_axis_target_pos = pos
@@ -62,8 +60,8 @@ class TestMissionConfigModel(TestCase):
 
     def test_satisfied_waypoints(self):
         """Tests the evaluation of waypoints method."""
-        (satisfy_dist, waypoint_details, uas_log_details,
-         exp_satisfied) = TESTDATA_MISSIONCONFIG_EVALWAYPOINTS
+        data = TESTDATA_MISSIONCONFIG_EVALWAYPOINTS
+        (waypoint_details, uas_log_details, exp_satisfied) = data
 
         # Create mission config
         gpos = GpsPosition()
@@ -72,7 +70,6 @@ class TestMissionConfigModel(TestCase):
         gpos.save()
         config = MissionConfig()
         config.home_pos = gpos
-        config.mission_waypoints_dist_max = satisfy_dist
         config.emergent_last_known_pos = gpos
         config.off_axis_target_pos = gpos
         config.sric_pos = gpos
@@ -165,7 +162,7 @@ class TestMissionConfigModelSampleMission(TestCase):
 
         # user0 data
         self.assertEqual(True, teams[user0]['waypoints_satisfied'][1])
-        self.assertEqual(False, teams[user0]['waypoints_satisfied'][2])
+        self.assertEqual(True, teams[user0]['waypoints_satisfied'][2])
 
         self.assertAlmostEqual(0.6, teams[user0]['out_of_bounds_time'])
 
@@ -230,9 +227,6 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertIn('longitude', data['home_pos'])
         self.assertEqual(10.0, data['home_pos']['latitude'])
         self.assertEqual(100.0, data['home_pos']['longitude'])
-
-        self.assertIn('mission_waypoints_dist_max', data)
-        self.assertEqual(10.0, data['mission_waypoints_dist_max'])
 
         self.assertIn('mission_waypoints', data)
         for waypoint in data['mission_waypoints']:

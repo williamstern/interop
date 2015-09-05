@@ -15,6 +15,7 @@ from takeoff_or_landing_event import TakeoffOrLandingEvent
 from time_period import TimePeriod
 from uas_telemetry import UasTelemetry
 from waypoint import Waypoint
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -30,9 +31,6 @@ class MissionConfig(models.Model):
     # The home position for use as a reference point. Should be the tents.
     home_pos = models.ForeignKey(GpsPosition,
                                  related_name='missionconfig_home_pos')
-
-    # The max distance to a waypoint to consider it satisfied/hit in feet.
-    mission_waypoints_dist_max = models.FloatField()
 
     # The waypoints that define the mission waypoint path
     mission_waypoints = models.ManyToManyField(
@@ -97,15 +95,14 @@ class MissionConfig(models.Model):
 
         return unicode(
             'MissionConfig (pk:%s, is_active: %s, home_pos:%s, '
-            'mission_waypoints_dist_max:%s, '
             'mission_waypoints:[%s], search_grid:[%s], '
             'emergent_lkp:%s, off_axis:%s, '
             'sric_pos:%s, ir_primary_pos:%s, ir_secondary_pos:%s, '
             'air_drop_pos:%s, server_info:%s, stationary_obstacles:%s, '
             'moving_obstacles:%s)' %
             (str(self.pk), str(self.is_active), self.home_pos.__unicode__(),
-             str(self.mission_waypoints_dist_max), mission_waypoints_str,
-             search_grid_str, self.emergent_last_known_pos.__unicode__(),
+             mission_waypoints_str, search_grid_str,
+             self.emergent_last_known_pos.__unicode__(),
              self.off_axis_target_pos.__unicode__(),
              self.sric_pos.__unicode__(),
              self.ir_primary_target_pos.__unicode__(),
@@ -128,7 +125,7 @@ class MissionConfig(models.Model):
             satisfied = False
             for uas_log in uas_telemetry_logs:
                 distance = uas_log.uas_position.distance_to(waypoint.position)
-                if distance < self.mission_waypoints_dist_max:
+                if distance < settings.SATISFIED_WAYPOINT_DIST_MAX_FT:
                     satisfied = True
                     break
             waypoints_satisfied.append(satisfied)
@@ -244,7 +241,6 @@ class MissionConfig(models.Model):
                 'latitude': self.home_pos.latitude,
                 'longitude': self.home_pos.longitude,
             },
-            'mission_waypoints_dist_max': self.mission_waypoints_dist_max,
             'mission_waypoints': [],  # Filled in below
             'search_grid_points': [],  # Filled in below
             'emergent_last_known_pos': {

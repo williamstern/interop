@@ -176,3 +176,6 @@ TEST_LOADTEST_TIME = 10.0
 # The minimum rate of an individual interop interface
 # (1.5x safety factor, 10Hz, 4 interfaces)
 TEST_LOADTEST_INTEROP_MIN_RATE = 1.5 * 10.0 * 4
+
+# The max distance for a waypoint to be considered satisfied.
+SATISFIED_WAYPOINT_DIST_MAX_FT = 50
