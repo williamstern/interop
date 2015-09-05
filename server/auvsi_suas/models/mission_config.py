@@ -29,7 +29,7 @@ class MissionConfig(models.Model):
 
     # The home position for use as a reference point. Should be the tents.
     home_pos = models.ForeignKey(GpsPosition,
-                                 related_name="missionconfig_home_pos")
+                                 related_name='missionconfig_home_pos')
 
     # The max distance to a waypoint to consider it satisfied/hit in feet.
     mission_waypoints_dist_max = models.FloatField()
@@ -37,59 +37,72 @@ class MissionConfig(models.Model):
     # The waypoints that define the mission waypoint path
     mission_waypoints = models.ManyToManyField(
         Waypoint,
-        related_name="missionconfig_mission_waypoints")
+        related_name='missionconfig_mission_waypoints')
 
     # The polygon that defines the search grid
     search_grid_points = models.ManyToManyField(
         Waypoint,
-        related_name="missionconfig_search_grid_points")
+        related_name='missionconfig_search_grid_points')
 
     # The last known position of the emergent target
     emergent_last_known_pos = models.ForeignKey(
         GpsPosition,
-        related_name="missionconfig_emergent_last_known_pos")
+        related_name='missionconfig_emergent_last_known_pos')
 
     # Off-axis target position
     off_axis_target_pos = models.ForeignKey(
         GpsPosition,
-        related_name="missionconfig_off_axis_target_pos")
+        related_name='missionconfig_off_axis_target_pos')
 
     # The SRIC position
     sric_pos = models.ForeignKey(GpsPosition,
-                                 related_name="missionconfig_sric_pos")
+                                 related_name='missionconfig_sric_pos')
 
     # The IR primary target position
     ir_primary_target_pos = models.ForeignKey(
         GpsPosition,
-        related_name="missionconfig_ir_primary_target_pos")
+        related_name='missionconfig_ir_primary_target_pos')
 
     # The IR secondary target position
     ir_secondary_target_pos = models.ForeignKey(
         GpsPosition,
-        related_name="missionconfig_ir_secondary_target_pos")
+        related_name='missionconfig_ir_secondary_target_pos')
 
     # The air drop position
     air_drop_pos = models.ForeignKey(GpsPosition,
-                                     related_name="missionconfig_air_drop_pos")
+                                     related_name='missionconfig_air_drop_pos')
 
     # The server info
     server_info = models.ForeignKey(ServerInfo)
 
+    # The stationary obstacles
+    stationary_obstacles = models.ManyToManyField(StationaryObstacle)
+
+    # The moving obstacles
+    moving_obstacles = models.ManyToManyField(MovingObstacle)
+
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        mission_waypoints_str = ", ".join(
-            ["%s" % wpt.__unicode__() for wpt in self.mission_waypoints.all()])
-        search_grid_str = ", ".join(
-            ["%s" % wpt.__unicode__()
+        mission_waypoints_str = ', '.join(
+            ['%s' % wpt.__unicode__() for wpt in self.mission_waypoints.all()])
+        search_grid_str = ', '.join(
+            ['%s' % wpt.__unicode__()
              for wpt in self.search_grid_points.all()])
+        stationary_obstacles_str = ', '.join(
+            ['%s' % obst.__unicode__()
+             for obst in self.stationary_obstacles.all()])
+        moving_obstacles_str = ', '.join(
+            ['%s' % obst.__unicode__()
+             for obst in self.moving_obstacles.all()])
 
         return unicode(
-            "MissionConfig (pk:%s, is_active: %s, home_pos:%s, "
-            "mission_waypoints_dist_max:%s, "
-            "mission_waypoints:[%s], search_grid:[%s], "
-            "emergent_lkp:%s, off_axis:%s, "
-            "sric_pos:%s, ir_primary_pos:%s, ir_secondary_pos:%s, "
-            "air_drop_pos:%s, server_info:%s)" %
+            'MissionConfig (pk:%s, is_active: %s, home_pos:%s, '
+            'mission_waypoints_dist_max:%s, '
+            'mission_waypoints:[%s], search_grid:[%s], '
+            'emergent_lkp:%s, off_axis:%s, '
+            'sric_pos:%s, ir_primary_pos:%s, ir_secondary_pos:%s, '
+            'air_drop_pos:%s, server_info:%s, stationary_obstacles:%s, '
+            'moving_obstacles:%s)' %
             (str(self.pk), str(self.is_active), self.home_pos.__unicode__(),
              str(self.mission_waypoints_dist_max), mission_waypoints_str,
              search_grid_str, self.emergent_last_known_pos.__unicode__(),
@@ -97,7 +110,8 @@ class MissionConfig(models.Model):
              self.sric_pos.__unicode__(),
              self.ir_primary_target_pos.__unicode__(),
              self.ir_secondary_target_pos.__unicode__(),
-             self.air_drop_pos.__unicode__(), self.server_info.__unicode__()))
+             self.air_drop_pos.__unicode__(), self.server_info.__unicode__(),
+             stationary_obstacles_str, moving_obstacles_str))
 
     def satisfied_waypoints(self, uas_telemetry_logs):
         """Determines whether the UAS satisfied the waypoints.
@@ -144,11 +158,6 @@ class MissionConfig(models.Model):
                 }
             }
         """
-        # Get base data for mission
-        fly_zones = FlyZone.objects.all()
-        stationary_obstacles = StationaryObstacle.objects.all()
-        moving_obstacles = MovingObstacle.objects.all()
-
         # Start a results map from user to evaluation data
         results = {}
 
@@ -185,7 +194,8 @@ class MissionConfig(models.Model):
             # of bounds, not actual or possible time spent out of bounds.
             out_of_bounds_time = 0
             for logs in uas_period_logs:
-                out_of_bounds_time += FlyZone.out_of_bounds(fly_zones, logs)
+                out_of_bounds_time += FlyZone.out_of_bounds(
+                        FlyZone.objects.all(), logs)
             eval_data['out_of_bounds_time'] = out_of_bounds_time
 
             # Determine interop rates.
@@ -213,13 +223,13 @@ class MissionConfig(models.Model):
             # Determine collisions with stationary and moving obstacles.
             stationary_collisions = eval_data.setdefault(
                 'stationary_obst_collision', {})
-            for obst in stationary_obstacles:
+            for obst in self.stationary_obstacles.all():
                 collision = obst.evaluate_collision_with_uas(uas_logs)
                 stationary_collisions[obst.pk] = collision
 
             moving_collisions = eval_data.setdefault(
                 'moving_obst_collision', {})
-            for obst in moving_obstacles:
+            for obst in self.moving_obstacles.all():
                 collision = obst.evaluate_collision_with_uas(uas_logs)
                 moving_collisions[obst.pk] = collision
 
@@ -228,57 +238,73 @@ class MissionConfig(models.Model):
     def json(self):
         """Return a dict, for conversion to JSON."""
         ret = {
-            "id": self.pk,
-            "active": self.is_active,
-            "home_pos": {
-                "latitude": self.home_pos.latitude,
-                "longitude": self.home_pos.longitude,
+            'id': self.pk,
+            'active': self.is_active,
+            'home_pos': {
+                'latitude': self.home_pos.latitude,
+                'longitude': self.home_pos.longitude,
             },
-            "mission_waypoints_dist_max": self.mission_waypoints_dist_max,
-            "mission_waypoints": [],  # Filled in below
-            "search_grid_points": [],  # Filled in below
-            "emergent_last_known_pos": {
-                "latitude": self.emergent_last_known_pos.latitude,
-                "longitude": self.emergent_last_known_pos.longitude,
+            'mission_waypoints_dist_max': self.mission_waypoints_dist_max,
+            'mission_waypoints': [],  # Filled in below
+            'search_grid_points': [],  # Filled in below
+            'emergent_last_known_pos': {
+                'latitude': self.emergent_last_known_pos.latitude,
+                'longitude': self.emergent_last_known_pos.longitude,
             },
-            "off_axis_target_pos": {
-                "latitude": self.off_axis_target_pos.latitude,
-                "longitude": self.off_axis_target_pos.longitude,
+            'off_axis_target_pos': {
+                'latitude': self.off_axis_target_pos.latitude,
+                'longitude': self.off_axis_target_pos.longitude,
             },
-            "sric_pos": {
-                "latitude": self.sric_pos.latitude,
-                "longitude": self.sric_pos.longitude,
+            'sric_pos': {
+                'latitude': self.sric_pos.latitude,
+                'longitude': self.sric_pos.longitude,
             },
-            "ir_primary_target_pos": {
-                "latitude": self.ir_primary_target_pos.latitude,
-                "longitude": self.ir_primary_target_pos.longitude,
+            'ir_primary_target_pos': {
+                'latitude': self.ir_primary_target_pos.latitude,
+                'longitude': self.ir_primary_target_pos.longitude,
             },
-            "ir_secondary_target_pos": {
-                "latitude": self.ir_secondary_target_pos.latitude,
-                "longitude": self.ir_secondary_target_pos.longitude,
+            'ir_secondary_target_pos': {
+                'latitude': self.ir_secondary_target_pos.latitude,
+                'longitude': self.ir_secondary_target_pos.longitude,
             },
-            "air_drop_pos": {
-                "latitude": self.air_drop_pos.latitude,
-                "longitude": self.air_drop_pos.longitude,
+            'air_drop_pos': {
+                'latitude': self.air_drop_pos.latitude,
+                'longitude': self.air_drop_pos.longitude,
             },
+            'stationary_obstacles': [],  # Filled in below
+            'moving_obstacles': [],  # Filled in below
         }
 
         for waypoint in self.mission_waypoints.all():
             ret['mission_waypoints'].append({
-                "id": waypoint.pk,
-                "latitude": waypoint.position.gps_position.latitude,
-                "longitude": waypoint.position.gps_position.longitude,
-                "altitude_msl": waypoint.position.altitude_msl,
-                "order": waypoint.order,
+                'id': waypoint.pk,
+                'latitude': waypoint.position.gps_position.latitude,
+                'longitude': waypoint.position.gps_position.longitude,
+                'altitude_msl': waypoint.position.altitude_msl,
+                'order': waypoint.order,
             })
 
         for point in self.search_grid_points.all():
             ret['search_grid_points'].append({
-                "id": point.pk,
-                "latitude": point.position.gps_position.latitude,
-                "longitude": point.position.gps_position.longitude,
-                "altitude_msl": point.position.altitude_msl,
-                "order": point.order,
+                'id': point.pk,
+                'latitude': point.position.gps_position.latitude,
+                'longitude': point.position.gps_position.longitude,
+                'altitude_msl': point.position.altitude_msl,
+                'order': point.order,
+            })
+        for obst in self.stationary_obstacles.all():
+            ret['stationary_obstacles'].append({
+                'id': obst.pk,
+                'latitude': obst.gps_position.latitude,
+                'longitude': obst.gps_position.longitude,
+                'cylinder_radius': obst.cylinder_radius,
+                'cylinder_height': obst.cylinder_height,
+            })
+        for obst in self.moving_obstacles.all():
+            ret['moving_obstacles'].append({
+                'id': obst.pk,
+                'speed_avg': obst.speed_avg,
+                'sphere_radius': obst.sphere_radius,
             })
 
         return ret
@@ -326,7 +352,7 @@ class MissionConfig(models.Model):
 
         # Waypoints
         waypoints_folder = kml_folder.newfolder(name='Waypoints')
-        linestring = waypoints_folder.newlinestring(name="Waypoints")
+        linestring = waypoints_folder.newlinestring(name='Waypoints')
         waypoints = []
         waypoint_num = 1
         for waypoint in self.mission_waypoints.all():
@@ -376,3 +402,7 @@ class MissionConfig(models.Model):
             pol.style.linestyle.color = Color.black
             pol.style.linestyle.width = 2
             pol.style.polystyle.color = Color.changealphaint(50, Color.blue)
+
+        # Stationary Obstacles
+        stationary_obstacles_folder = kml_folder.newfolder(
+                name='Stationary Obstacles')

@@ -8,6 +8,7 @@ from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.views import boolean_param
 from auvsi_suas.views import logger
 from auvsi_suas.views.decorators import require_login
+from auvsi_suas.views.missions import active_mission
 from django.core.cache import cache
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
@@ -56,12 +57,17 @@ class Obstacles(View):
         if log_access:
             ObstacleAccessLog(user=request.user).save()
 
+        # Get active mission for forming responses.
+        (mission, err) = active_mission()
+        if err:
+            return err
+
         # Form JSON response portion for stationary obstacles
         stationary_obstacles_cached = True
         stationary_obstacles_key = '/StationaryObstacle/all'
         stationary_obstacles = cache.get(stationary_obstacles_key)
         if stationary_obstacles is None:
-            stationary_obstacles = StationaryObstacle.objects.all()
+            stationary_obstacles = mission.stationary_obstacles.all()
             stationary_obstacles_cached = False
         stationary_obstacles_json = []
         for cur_obst in stationary_obstacles:
@@ -74,7 +80,7 @@ class Obstacles(View):
         moving_obstacles_key = '/MovingObstacle/all'
         moving_obstacles = cache.get(moving_obstacles_key)
         if moving_obstacles is None:
-            moving_obstacles = MovingObstacle.objects.all()
+            moving_obstacles = mission.moving_obstacles.all()
             moving_obstacles_cached = False
         moving_obstacles_json = []
         for cur_obst in moving_obstacles:

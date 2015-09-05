@@ -1,12 +1,15 @@
 """Tests for the obstacles module."""
 
-import time
+import datetime
 import json
 import logging
+import time
 from auvsi_suas.models import AerialPosition
 from auvsi_suas.models import GpsPosition
+from auvsi_suas.models import MissionConfig
 from auvsi_suas.models import MovingObstacle
 from auvsi_suas.models import ObstacleAccessLog
+from auvsi_suas.models import ServerInfo
 from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.models import Waypoint
 from django.conf import settings
@@ -85,25 +88,50 @@ class TestObstaclesViewCommon(TestCase):
             'testuser', 'email@example.com', 'testpass')
         self.user.save()
 
+        # Create an active mission.
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 10
+        pos.save()
+        info = ServerInfo()
+        info.timestamp = datetime.datetime.now()
+        info.message = "Hello World"
+        info.save()
+        config = MissionConfig()
+        config.is_active = True 
+        config.home_pos = pos
+        config.mission_waypoints_dist_max = 10
+        config.emergent_last_known_pos = pos
+        config.off_axis_target_pos = pos
+        config.sric_pos = pos
+        config.ir_primary_target_pos = pos
+        config.ir_secondary_target_pos = pos
+        config.air_drop_pos = pos
+        config.server_info = info
+        config.save()
+        
         # Add a couple of stationary obstacles
-        self.create_stationary_obstacle(lat=38.142233,
-                                        lon=-76.434082,
-                                        radius=300,
-                                        height=500)
+        obst = self.create_stationary_obstacle(lat=38.142233,
+                                               lon=-76.434082,
+                                               radius=300,
+                                               height=500)
+        config.stationary_obstacles.add(obst)
 
-        self.create_stationary_obstacle(lat=38.442233,
-                                        lon=-76.834082,
-                                        radius=100,
-                                        height=750)
+        obst = self.create_stationary_obstacle(lat=38.442233,
+                                               lon=-76.834082,
+                                               radius=100,
+                                               height=750)
+        config.stationary_obstacles.add(obst)
 
         # And a couple of moving obstacles
-        self.create_moving_obstacle([
+        obst = self.create_moving_obstacle([
             # (lat,     lon,        alt)
             (38.142233, -76.434082, 300),
             (38.141878, -76.425198, 700),
         ])
+        config.moving_obstacles.add(obst)
 
-        self.create_moving_obstacle([
+        obst = self.create_moving_obstacle([
             # (lat,     lon,        alt)
             (38.145405, -76.428310, 100),
             (38.146582, -76.424099, 200),
@@ -112,6 +140,9 @@ class TestObstaclesViewCommon(TestCase):
             (38.147573, -76.420832, 100),
             (38.148522, -76.419507, 750),
         ])
+        config.moving_obstacles.add(obst)
+
+        config.save()
 
         # Login
         response = self.client.post(login_url, {

@@ -26,6 +26,13 @@ class TestClearCache(TestCase):
         info.message = "Hello World"
         info.save()
 
+        obst = StationaryObstacle()
+        obst.gps_position = pos
+        obst.cylinder_radius = 10
+        obst.cylinder_height = 10
+        obst.save()
+        self.obst = obst
+
         config = MissionConfig()
         config.is_active = True
         config.home_pos = pos
@@ -39,13 +46,8 @@ class TestClearCache(TestCase):
         config.server_info = info
         config.save()
         self.config = config
-
-        obst = StationaryObstacle()
-        obst.gps_position = pos
-        obst.cylinder_radius = 10
-        obst.cylinder_height = 10
-        obst.save()
-        self.obst = obst
+        config.stationary_obstacles.add(obst)
+        config.save()
 
         self.login_url = reverse('auvsi_suas:login')
         self.obst_url = reverse('auvsi_suas:obstacles')
