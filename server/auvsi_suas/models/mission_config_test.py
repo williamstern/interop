@@ -2,6 +2,7 @@
 
 import datetime
 from auvsi_suas.models import AerialPosition
+from auvsi_suas.models import FlyZone
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import MissionConfig
 from auvsi_suas.models import ServerInfo
@@ -227,6 +228,23 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertIn('longitude', data['home_pos'])
         self.assertEqual(10.0, data['home_pos']['latitude'])
         self.assertEqual(100.0, data['home_pos']['longitude'])
+
+        self.assertIn('fly_zones', data)
+        self.assertEqual(1, len(data['fly_zones']))
+        self.assertIn('altitude_msl_min', data['fly_zones'][0])
+        self.assertEqual(0.0, data['fly_zones'][0]['altitude_msl_min'])
+        self.assertIn('altitude_msl_max', data['fly_zones'][0])
+        self.assertEqual(20.0, data['fly_zones'][0]['altitude_msl_max'])
+        self.assertIn('boundary_pts', data['fly_zones'][0])
+        self.assertEqual(4, len(data['fly_zones'][0]['boundary_pts']))
+        self.assertIn('latitude', data['fly_zones'][0]['boundary_pts'][0])
+        self.assertEqual(37.0,
+                         data['fly_zones'][0]['boundary_pts'][0]['latitude'])
+        self.assertIn('longitude', data['fly_zones'][0]['boundary_pts'][0])
+        self.assertEqual(-75.0,
+                         data['fly_zones'][0]['boundary_pts'][0]['longitude'])
+        self.assertIn('order', data['fly_zones'][0]['boundary_pts'][0])
+        self.assertEqual(0, data['fly_zones'][0]['boundary_pts'][0]['order'])
 
         self.assertIn('mission_waypoints', data)
         for waypoint in data['mission_waypoints']:

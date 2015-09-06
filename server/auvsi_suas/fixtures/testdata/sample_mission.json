@@ -877,6 +877,9 @@
 {
     "fields": {
         "off_axis_target_pos": 324,
+        "fly_zones": [
+            22
+        ],
         "mission_waypoints": [
             155,
             156

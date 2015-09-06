@@ -30,7 +30,10 @@ class MissionConfig(models.Model):
 
     # The home position for use as a reference point. Should be the tents.
     home_pos = models.ForeignKey(GpsPosition,
-                                 related_name='missionconfig_home_pos')
+                                 related_name="missionconfig_home_pos")
+
+    # Valid areas for the UAS to fly.
+    fly_zones = models.ManyToManyField(FlyZone)
 
     # The waypoints that define the mission waypoint path
     mission_waypoints = models.ManyToManyField(
@@ -192,7 +195,7 @@ class MissionConfig(models.Model):
             out_of_bounds_time = 0
             for logs in uas_period_logs:
                 out_of_bounds_time += FlyZone.out_of_bounds(
-                        FlyZone.objects.all(), logs)
+                    self.fly_zones.all(), logs)
             eval_data['out_of_bounds_time'] = out_of_bounds_time
 
             # Determine interop rates.
@@ -241,11 +244,12 @@ class MissionConfig(models.Model):
                 'latitude': self.home_pos.latitude,
                 'longitude': self.home_pos.longitude,
             },
-            'mission_waypoints': [],  # Filled in below
-            'search_grid_points': [],  # Filled in below
-            'emergent_last_known_pos': {
-                'latitude': self.emergent_last_known_pos.latitude,
-                'longitude': self.emergent_last_known_pos.longitude,
+            "fly_zones": [],  # Filled in below
+            "mission_waypoints": [],  # Filled in below
+            "search_grid_points": [],  # Filled in below
+            "emergent_last_known_pos": {
+                "latitude": self.emergent_last_known_pos.latitude,
+                "longitude": self.emergent_last_known_pos.longitude,
             },
             'off_axis_target_pos': {
                 'latitude': self.off_axis_target_pos.latitude,
@@ -270,7 +274,19 @@ class MissionConfig(models.Model):
             'stationary_obstacles': [],  # Filled in below
             'moving_obstacles': [],  # Filled in below
         }
-
+        for zone in self.fly_zones.all():
+            pts = [
+                {
+                    "latitude": bpt.position.gps_position.latitude,
+                    "longitude": bpt.position.gps_position.longitude,
+                    "order": bpt.order
+                } for bpt in zone.boundary_pts.order_by('order')
+            ]
+            ret['fly_zones'].append({
+                "boundary_pts": pts,
+                "altitude_msl_min": zone.altitude_msl_min,
+                "altitude_msl_max": zone.altitude_msl_max
+            })
         for waypoint in self.mission_waypoints.all():
             ret['mission_waypoints'].append({
                 'id': waypoint.pk,
@@ -302,7 +318,6 @@ class MissionConfig(models.Model):
                 'speed_avg': obst.speed_avg,
                 'sphere_radius': obst.sphere_radius,
             })
-
         return ret
 
     @classmethod
