@@ -8,7 +8,8 @@ Exec {
     path => ["/bin",
              "/sbin",
              "/usr/bin",
-             "/usr/sbin"],
+             "/usr/sbin",
+             "/usr/local/bin"],
     # Log output for setup
     logoutput => true,
 }

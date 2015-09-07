@@ -28,16 +28,17 @@ class auvsi_suas::server_install {
                      Package['python-matplotlib'], Package['python-psycopg2'] ]
     }
 
-    # Install packages from NPM.
-    exec { 'karma and jasmine':
-        command => 'npm install --force -g karma karma-jasmine karma-chrome-launcher karma-cli',
-        cwd => '/interop/server',
-        require => Package['npm'],
-    }
     # Link NodeJS (installed as nodejs) so that Karma can use it as node.
     file { '/usr/local/bin/node':
         ensure => 'link',
         target => '/usr/bin/nodejs',
         require => Package['npm'],
+    }
+    # Install packages from NPM.
+    exec { 'karma and jasmine':
+        environment => ['HOME=/interop'],
+        command => 'npm install --force -g karma karma-jasmine karma-chrome-launcher phantomjs karma-phantomjs-launcher karma-cli',
+        cwd => '/interop/server',
+        require => [Package['npm'], File['/usr/local/bin/node']],
     }
 }
