@@ -55,7 +55,7 @@ Backend = function($rootScope, $resource, $interval) {
     /**
      * @private @const {!Object} Obstacles backend interface.
      */
-    this.obstaclesResource_ = $resource('/api/interop/obstacles', {log: false});
+    this.obstaclesResource_ = $resource('/api/obstacles', {log: false});
 
     /**
      * @private @const {!Object} Telemetry backend interface.

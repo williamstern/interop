@@ -1,5 +1,8 @@
 from auvsi_suas.views.clear_cache import ClearCache
+from auvsi_suas.views.login import Login
 from auvsi_suas.views.missions import Missions
+from auvsi_suas.views.obstacles import Obstacles
+from auvsi_suas.views.server_info import ServerInfo
 from auvsi_suas.views.targets import Targets, TargetsId, TargetsIdImage
 from auvsi_suas.views.teams import Teams, TeamsId
 from auvsi_suas.views.telemetry import Telemetry
@@ -7,10 +10,6 @@ from auvsi_suas.views.auvsi_admin.evaluate_teams import EvaluateTeams
 from auvsi_suas.views.auvsi_admin.export_kml import ExportKml
 from auvsi_suas.views.auvsi_admin.index import Index
 from auvsi_suas.views.auvsi_admin.live_kml import LiveKml, LiveKmlUpdate
-from auvsi_suas.views.interop.login import Login
-from auvsi_suas.views.interop.obstacles import Obstacles
-from auvsi_suas.views.interop.server_info import ServerInfo
-from auvsi_suas.views.interop.uas_telemetry import UasTelemetry
 from django.conf.urls import patterns, url
 from django.conf import settings
 from django.conf.urls.static import static
@@ -21,10 +20,9 @@ urlpatterns = patterns(
     '',
     # Team interoperability
     url(r'^api/login$', Login.as_view(), name='login'),
-    url(r'^api/interop/server_info$', ServerInfo.as_view(), name='server_info'),
-    url(r'^api/interop/obstacles$', Obstacles.as_view(), name='obstacles'),
-    url(r'^api/interop/uas_telemetry$', UasTelemetry.as_view(),
-        name='uas_telemetry'),
+    url(r'^api/server_info$', ServerInfo.as_view(), name='server_info'),
+    url(r'^api/obstacles$', Obstacles.as_view(), name='obstacles'),
+    url(r'^api/telemetry$', Telemetry.as_view(), name='telemetry'),
     url(r'^api/targets$', Targets.as_view(), name='targets'),
     url(r'^api/targets/(?P<pk>\d+)$', TargetsId.as_view(), name='targets_id'),
     url(r'^api/targets/(?P<pk>\d+)/image$', TargetsIdImage.as_view(),
@@ -33,7 +31,6 @@ urlpatterns = patterns(
     url(r'^api/missions$', Missions.as_view(), name='missions'),
     url(r'^api/teams$', Teams.as_view(), name='teams'),
     url(r'^api/teams/(?P<pk>\d+)$', TeamsId.as_view(), name='teams_id'),
-    url(r'^api/telemetry$', Telemetry.as_view(), name='telemetry'),
     url(r'^api/clear_cache$', ClearCache.as_view(), name='clear_cache'),
     # Admin access views
     url(r'^$', Index.as_view(), name='index'),

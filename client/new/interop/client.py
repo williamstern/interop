@@ -88,7 +88,7 @@ class Client(object):
             requests.Timeout: Request timeout
             ValueError or AttributeError: Malformed response from server
         """
-        r = self.get('/api/interop/server_info')
+        r = self.get('/api/server_info')
         d = r.json()
 
         return ServerInfo(message=d['message'],
@@ -105,7 +105,7 @@ class Client(object):
             InteropError: Error from server
             requests.Timeout: Request timeout
         """
-        self.post('/api/interop/uas_telemetry', data=telem.serialize())
+        self.post('/api/telemetry', data=telem.serialize())
 
     def get_obstacles(self):
         """GET obstacles.
@@ -119,7 +119,7 @@ class Client(object):
             requests.Timeout: Request timeout
             ValueError or AttributeError: Malformed response from server
         """
-        r = self.get('/api/interop/obstacles')
+        r = self.get('/api/obstacles')
         d = r.json()
 
         stationary = []

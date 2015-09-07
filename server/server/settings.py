@@ -41,7 +41,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'auvsi_suas',
-    'auvsi_suas.views.interop',
     'auvsi_suas.views.auvsi_admin',
     'debug_toolbar',
 )  # yapf: disable
