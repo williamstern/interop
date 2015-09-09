@@ -104,7 +104,7 @@ class ServerInfoRequest(InteropRequest):
 
     def __init__(self):
         """Inits the server info request."""
-        url = '/api/interop/server_info'
+        url = '/api/server_info'
         method = METHOD_GET
         params = {}
         super(ServerInfoRequest, self).__init__(url, method, params)
@@ -118,7 +118,7 @@ class ObstaclesRequest(InteropRequest):
 
     def __init__(self):
         """Inits the obstacle info request."""
-        url = '/api/interop/obstacles'
+        url = '/api/obstacles'
         method = METHOD_GET
         params = {}
         super(ObstaclesRequest, self).__init__(url, method, params)
@@ -139,7 +139,7 @@ class UasTelemetryRequest(InteropRequest):
             altitude_msl: The altitude in feet.
             uas_heading: The UAS heading in degrees.
         """
-        url = '/api/interop/uas_telemetry'
+        url = '/api/telemetry'
         method = METHOD_POST
         params = {
             'latitude': latitude,

@@ -25,7 +25,7 @@ describe("Backend service", function() {
         $httpBackend.whenGET('/api/missions').respond(missions);
         $httpBackend.whenGET('/api/teams').respond(teams);
         $httpBackend.whenGET('/api/telemetry?limit=1').respond(telemetry);
-        $httpBackend.whenGET('/api/interop/obstacles?log=false')
+        $httpBackend.whenGET('/api/obstacles?log=false')
             .respond(obstacles);
     }));
 

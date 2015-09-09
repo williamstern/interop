@@ -26,14 +26,14 @@ The relative URLs (endpoints) are described further in the following sections.
 The interface defined in this document is what will be used at the competition.
 Only slight changes may be made leading up to the competition to fix bugs or
 add features. Teams should synchronize their code and check this documentation
-for updates. An example relative URL is ``/api/interop/server_info``.
+for updates. An example relative URL is ``/api/server_info``.
 
 Full Resource URL
 -----------------
 
 The full resource URL is the combination of the hostname, port, and relative
 URL. This is the URL that must be used to make requests. An example full
-resource URL is "http://192.168.1.2:8080/api/interop/server_info".
+resource URL is "http://192.168.1.2:8080/api/server_info".
 
 Endpoints
 ---------
@@ -47,16 +47,16 @@ A quick summary of the endpoints:
   that future requests will be authenticated. Teams cannot make other requests
   without logging in successfully.
 
-* :http:get:`/api/interop/server_info`: Used to download server
+* :http:get:`/api/server_info`: Used to download server
   information from the competition server for purpose of displaying it.
 
-* :http:get:`/api/interop/obstacles`: Used to download
+* :http:get:`/api/obstacles`: Used to download
   obstacle information from the competition server for purpose of
   displaying it and avoiding the obstacles.
 
-* :http:post:`/api/interop/uas_telemetry`: Used to upload UAS
-  telemetry information to the competition server. Uploading telemetry to this
-  endpoint is required by the competition rules.
+* :http:post:`/api/telemetry`: Used to upload UAS telemetry information
+  to the competition server. Uploading telemetry to this endpoint is
+  required by the competition rules.
 
 * :http:post:`/api/targets`: Used to upload targets for submission.
 
@@ -154,7 +154,7 @@ User Login
 Server Information
 ^^^^^^^^^^^^^^^^^^
 
-.. http:get:: /api/interop/server_info
+.. http:get:: /api/server_info
 
    Teams make requests to obtain server information for purpose of displaying
    the information. This request is a GET request with no parameters. The data
@@ -164,7 +164,7 @@ Server Information
 
    .. sourcecode:: http
 
-      GET /api/interop/server_info HTTP/1.1
+      GET /api/server_info HTTP/1.1
       Host: 192.168.1.2:8000
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
 
@@ -217,7 +217,7 @@ Server Information
 Obstacle Information
 ^^^^^^^^^^^^^^^^^^^^
 
-.. http:get:: /api/interop/obstacles
+.. http:get:: /api/obstacles
 
    Teams make requests to obtain obstacle information for purpose of displaying
    the information and for avoiding the obstacles. This request is a GET
@@ -227,7 +227,7 @@ Obstacle Information
 
    .. sourcecode:: http
 
-      GET /api/interop/obstacles HTTP/1.1
+      GET /api/obstacles HTTP/1.1
       Host: 192.168.1.2:8000
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
 
@@ -321,7 +321,7 @@ Obstacle Information
 UAS Telemetry
 ^^^^^^^^^^^^^
 
-.. http:post:: /api/interop/uas_telemetry
+.. http:post:: /api/telemetry
 
    Teams make requests to upload the UAS telemetry to the competition server.
    The request is a POST request with parameters ``latitude``, ``longitude``,
@@ -334,7 +334,7 @@ UAS Telemetry
 
    .. sourcecode:: http
 
-      POST /api/interop/uas_telemetry HTTP/1.1
+      POST /api/telemetry HTTP/1.1
       Host: 192.168.1.2:8000
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
       Content-Type: application/x-www-form-urlencoded

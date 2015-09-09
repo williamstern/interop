@@ -25,14 +25,14 @@ server:
          http://localhost:8080/api/login
 
     $ curl -b cookies.txt -c cookies.txt \
-         http://localhost:8080/api/interop/server_info
+         http://localhost:8080/api/server_info
 
     $ curl -b cookies.txt -c cookies.txt \
-         http://localhost:8080/api/interop/obstacles
+         http://localhost:8080/api/obstacles
 
     $ curl -b cookies.txt -c cookies.txt \
          --data "latitude=10&longitude=20&altitude_msl=30&uas_heading=40" \
-         http://localhost:8080/api/interop/uas_telemetry
+         http://localhost:8080/api/telemetry
 
 --------------
 
