@@ -13,7 +13,7 @@ deactivate
 echo -e "\n=====================================================================\n"
 
 # Client
-cd /interop/client/new/
+cd /interop/client/
 
 echo "Testing Python 2 client..."
 

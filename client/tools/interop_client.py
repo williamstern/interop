@@ -1,6 +1,8 @@
 """Client for interoperability. This is the sample implementation binary.
 
 This binary brings together communication code and data generation code.
+
+NOTE: This client is deprecated and should not be used for new tools.
 """
 
 import argparse

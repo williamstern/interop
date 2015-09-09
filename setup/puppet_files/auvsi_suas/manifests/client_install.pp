@@ -7,17 +7,17 @@ class auvsi_suas::client_install {
     require auvsi_suas::base
 
     # Python 2 virtualenv
-    python::virtualenv { '/interop/client/new/venv2' :
+    python::virtualenv { '/interop/client/venv2' :
         ensure => 'present',
         version => 'system',
-        requirements => '/interop/client/new/requirements.txt',
+        requirements => '/interop/client/requirements.txt',
     }
 
     # Python 3 virtualenv
-    python::virtualenv { '/interop/client/new/venv3' :
+    python::virtualenv { '/interop/client/venv3' :
         ensure => 'present',
         version => '3.4',
-        requirements => '/interop/client/new/requirements.txt',
+        requirements => '/interop/client/requirements.txt',
     }
 
     # We install in 'develop' mode, so changes to the source file
@@ -25,33 +25,33 @@ class auvsi_suas::client_install {
 
     # Install in Python 2 virtualenv
     python::pip { 'interop2' :
-        pkgname => '/interop/client/new',
+        pkgname => '/interop/client',
         ensure => 'latest',
-        virtualenv => '/interop/client/new/venv2',
+        virtualenv => '/interop/client/venv2',
         install_args => ['-e'], # develop mode
-        require => Python::Virtualenv['/interop/client/new/venv2'],
+        require => Python::Virtualenv['/interop/client/venv2'],
     }
 
     # Install in Python 3 virtualenv
     python::pip { 'interop3' :
-        pkgname => '/interop/client/new',
+        pkgname => '/interop/client',
         ensure => 'latest',
-        virtualenv => '/interop/client/new/venv3',
+        virtualenv => '/interop/client/venv3',
         install_args => ['-e'], # develop mode
-        require => Python::Virtualenv['/interop/client/new/venv3'],
+        require => Python::Virtualenv['/interop/client/venv3'],
     }
 
     # Install nose for testing
     python::pip { 'nose2' :
         pkgname => 'nose',
         ensure => 'latest',
-        virtualenv => '/interop/client/new/venv2',
-        require => Python::Virtualenv['/interop/client/new/venv2'],
+        virtualenv => '/interop/client/venv2',
+        require => Python::Virtualenv['/interop/client/venv2'],
     }
     python::pip { 'nose3' :
         pkgname => 'nose',
         ensure => 'latest',
-        virtualenv => '/interop/client/new/venv3',
-        require => Python::Virtualenv['/interop/client/new/venv3'],
+        virtualenv => '/interop/client/venv3',
+        require => Python::Virtualenv['/interop/client/venv3'],
     }
 }
