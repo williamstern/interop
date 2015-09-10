@@ -3,8 +3,8 @@ The included files form a basic implementation of a interoperability solution fo
 It is expected that teams will modify and tailor this application to their system's specific needs and capabilities.
 
 ## Usage
-The client proxy requires that the python interopt client be installed for the instance of python running it.
-This may be accomplished by including the interopt package on the PYTHONPATH environment variable, or by pip installing
+The client proxy requires that the python interop client be installed for the instance of python running it.
+This may be accomplished by including the interop package on the PYTHONPATH environment variable, or by pip installing
 the package to the local instance of python.
 The client proxy has a number of options to configure it to correctly connect to the competition server.
 These options may be view by running the command:

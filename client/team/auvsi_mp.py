@@ -12,7 +12,8 @@ print 'Server Info: {}'.format(server.server_info())
 def timing(rate):
     """
     Timing Generator, creates delays to achieve the given loop frequency
-    :param rate: Rate in Hertz
+    Args:
+        rate: Rate in Hertz
     """
     next_time = time()
     while True:
