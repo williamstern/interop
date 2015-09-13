@@ -892,7 +892,15 @@
         "home_pos": 324,
         "is_active": true,
         "air_drop_pos": 324,
-        "server_info": 1
+        "server_info": 1,
+        "stationary_obstacles": [
+            25,
+            26
+        ],
+        "moving_obstacles": [
+            25,
+            26
+        ]
     },
     "model": "auvsi_suas.missionconfig",
     "pk": 3
