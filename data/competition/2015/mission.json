@@ -1395,7 +1395,6 @@
     "fields": {
         "ir_secondary_target_pos": 31,
         "off_axis_target_pos": 28,
-        "mission_waypoints_dist_max": 50.0,
         "mission_waypoints": [
             13,
             14,
@@ -1417,7 +1416,21 @@
             25
         ],
         "home_pos": 13,
-        "air_drop_pos": 32
+        "air_drop_pos": 32,
+        "server_info": 1,
+        "stationary_obstacles": [
+            1,
+            2
+        ],
+        "moving_obstacles": [
+            1,
+            2
+        ],
+        "fly_zones": [
+            1,
+            2
+        ],
+        "is_active": true
     },
     "model": "auvsi_suas.missionconfig",
     "pk": 1
