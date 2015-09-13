@@ -128,6 +128,11 @@ MissionScene = function($rootScope, Distance, Units, Settings) {
     this.homePosMaterial_ = new THREE.MeshPhongMaterial({color: 0x00ff00});
 
     /**
+     * @private @const {!Object} The fly zone line material.
+     */
+    this.flyZoneLineMaterial_ = new THREE.LineBasicMaterial({color: 0x00ff00});
+
+    /**
      * @private @const {!Object} The search grid marker geometry.
      */
     this.searchGridPtGeometry_ = this.missionComponentGeometry_;
@@ -145,7 +150,7 @@ MissionScene = function($rootScope, Distance, Units, Settings) {
     /**
      * @private @const {!Object} The search grid line material.
      */
-    this.searchGridPtLineMaterial_ = new THREE.LineDashedMaterial(
+    this.searchGridPtLineMaterial_ = new THREE.LineBasicMaterial(
             {color: 0x00ffff});
 
     /**
@@ -162,7 +167,7 @@ MissionScene = function($rootScope, Distance, Units, Settings) {
     /**
      * @private @const {!Object} The mission waypoint line material.
      */
-    this.missionWaypointLineMaterial_ = new THREE.LineDashedMaterial(
+    this.missionWaypointLineMaterial_ = new THREE.LineBasicMaterial(
             {color: 0x0000ff});
 
     /**
@@ -277,6 +282,43 @@ MissionScene.prototype.addMissionSceneElements_ = function(mission, scene) {
                 this.missionComponentRadius_, scene);
     }
 
+    // Add fly zone lines.
+    for (var i = 0; i < mission.fly_zones.length; i++) {
+        var flyZone = mission.fly_zones[i];
+
+        // Sort boundary by zone order.
+        flyZone.boundary_pts.sort(function(a, b) {
+            return a.order - b.order;
+        });
+
+        // Create lines for fly zone boundary.
+        var altitudes = [flyZone.altitude_msl_min, flyZone.altitude_msl_max];
+        var altitudeGeometries = [new THREE.Geometry(), new THREE.Geometry()];
+        for (var j = 0; j < flyZone.boundary_pts.length; j++) {
+            var k = (j + 1) % flyZone.boundary_pts.length;
+            var start = flyZone.boundary_pts[j];
+            var end = flyZone.boundary_pts[k];
+
+            for (var l = 0; l < altitudes.length; l++) {
+                var alt = altitudes[l];
+                var geom = altitudeGeometries[l];
+                var startPt = new THREE.Vector3();
+                this.setObjectPosition_(
+                        start, alt, mission.home_pos, startPt);
+                var endPt = new THREE.Vector3();
+                this.setObjectPosition_(
+                        end, alt, mission.home_pos, endPt);
+                geom.vertices.push(startPt, endPt);
+            }
+        }
+        for (var j = 0; j < altitudeGeometries.length; j++) {
+            var geom = altitudeGeometries[j];
+            geom.computeLineDistances();
+            var boundaryLine = new THREE.Line(geom, this.flyZoneLineMaterial_);
+            scene.add(boundaryLine);
+        }
+    }
+
     // Add search grid points.
     for (var i = 0; i < mission.search_grid_points.length; i++) {
         var searchPt = mission.search_grid_points[i];
@@ -302,6 +344,7 @@ MissionScene.prototype.addMissionSceneElements_ = function(mission, scene) {
 
         searchGridPtLineGeometry.vertices.push(startPt, endPt);
     }
+    searchGridPtLineGeometry.computeLineDistances();
     var searchGridPtLine= new THREE.Line(
             searchGridPtLineGeometry, this.searchGridPtLineMaterial_);
     scene.add(searchGridPtLine);
@@ -331,6 +374,7 @@ MissionScene.prototype.addMissionSceneElements_ = function(mission, scene) {
 
         missionWaypointLineGeometry.vertices.push(startPt, endPt);
     }
+    missionWaypointLineGeometry.computeLineDistances();
     var missionWaypointLine = new THREE.Line(
             missionWaypointLineGeometry, this.missionWaypointLineMaterial_);
     scene.add(missionWaypointLine);
