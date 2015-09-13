@@ -33,7 +33,3 @@ server:
     $ curl -b cookies.txt -c cookies.txt \
          --data "latitude=10&longitude=20&altitude_msl=30&uas_heading=40" \
          http://localhost:8080/api/telemetry
-
---------------
-
-Next: :doc:`debugging`

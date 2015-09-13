@@ -56,7 +56,3 @@ these tests. The deployed version will not be in debug mode, and will
 use a high performance web server in addition to the Django application.
 The judges have also confirmed with some teams that their
 interoperability implementations have achieved the required 10 Hz.
-
---------------
-
-Next: :doc:`deployment`

@@ -30,10 +30,5 @@ Evaluation Export CSV
 The competition server as a set of evaluation functions which can determine
 information like which waypoints were hit by the UAS, how much time the UAS
 spent out of bounds, what the min/max/average rate of interoperability was, and
-what stationary and moving obstacles the UAS collided with. To download this
-CSV file, first login using Django's admin interface, and then navigate to
-``/auvsi_admin/evaluate_teams.csv`` to download the file.
-
---------------
-
-Next: :doc:`/spec`
+what stationary and moving obstacles the UAS collided with. The admin interface
+contains links to download this file per-mission.

@@ -26,7 +26,3 @@ Teams intending to use Ubuntu 14.04 LTS should do the following:
    Terminal <https://help.ubuntu.com/community/UsingTheTerminal>`__
 #. `Learn the Linux Command
    Line <http://linuxcommand.org/learning_the_shell.php>`__
-
---------------
-
-Next: :doc:`git`

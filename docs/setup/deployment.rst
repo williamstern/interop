@@ -27,7 +27,3 @@ The judges will also be running black-box and white-box monitoring, some
 of which will involve additional computers. These will not be supplied
 to the teams for testing. The judges will also be configuring the router
 and computers to isolate network traffic.
-
---------------
-
-Next: :doc:`/management/index`

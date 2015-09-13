@@ -17,7 +17,3 @@ Teams intending to use Puppet should do the following:
 #. `Use the Learning Virtual Machine (VM) to Practice
    Puppet <https://docs.puppetlabs.com/learning/>`__
 #. `Explore the Puppet Forge <https://forge.puppetlabs.com/>`__
-
---------------
-
-Next: :doc:`python`

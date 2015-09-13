@@ -99,7 +99,3 @@ the competition recommends using the username "testadmin" and password
 
     $ cd ~/auvsi_suas_competition/src/auvsi_suas_server
     $ python manage.py syncdb
-
---------------
-
-Next: :doc:`testing`

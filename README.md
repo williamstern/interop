@@ -1,15 +1,29 @@
 AUVSI SUAS Interoperability
-================================================================================
+===========================
 
-Repository Contents:
+This is the repository for the Association for Unmanned Vehicle Systems
+International (AUVSI) Student Unmanned Aerial System (SUAS) Competition. It
+contains the Umanned Aerial System (UAS) Interoperability System.
 
-* `/setup`: Automated setup for interoperability server and tools.
-* `/server`: Interoperability server, implementing the SUAS interoperability API spec.
+TODO(pmtischler): Add contact information.
+
+TODO(pmtischler): Update with doc URL.
+[Documentation](http://readthedocs.org). Installation, getting started, configuration & management, interoperability specification, etc.
+
+
+Repository Contents
+-------------------
+
+* `/setup`: Automated setup for the interoperability system and tools.
+* `/server`: Interoperability server, implementing the AUVSI SUAS
+  Interoperability API specification.
 * `/client`: Client libraries for interacting with the server.
 * `/tools`: Small management tools.
+* `/data`: Datasets for the system (e.g. previous year's configuration).
+* `/docs`: The documentation source.
 
-Users should first execute the scripts in the setup folder to install
-dependencies and prepare the system for development and deployment.
-
-Teams may use the client and server implementations for development and testing.
-The judges will use a similar server at competition.
+* `/LICENSE`: The license for this repository.
+* `/CONTRIBUTING.md`: Information for those who contribute to the repo.
+* `/README.md`: This file.
+* `/test.sh`: Executes all tests for the repository. This should be used to
+  validate the system is properly setup.

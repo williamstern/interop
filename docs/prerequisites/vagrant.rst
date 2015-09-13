@@ -12,7 +12,3 @@ Vagrant should do the following:
 #. `Read the Documentation <https://docs.vagrantup.com/v2/>`__
 #. `Complete a
    Tutorial <https://docs.vagrantup.com/v2/getting-started/index.html>`__
-
---------------
-
-Next: :doc:`ubuntu`

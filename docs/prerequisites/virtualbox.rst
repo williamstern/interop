@@ -16,7 +16,3 @@ Teams intending to use VirtualBox should do the following:
    Manual <https://www.virtualbox.org/manual/UserManual.html>`__
 #. `Complete a
    Tutorial <http://www.wikihow.com/Install-Ubuntu-on-VirtualBox>`__
-
---------------
-
-Next: :doc:`ubuntu`

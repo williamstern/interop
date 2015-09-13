@@ -1,4 +1,4 @@
-AUVSI SUAS Interoperabilty Client Library
+AUVSI SUAS Interoperabilty: Client Library
 =========================================
 
 This library provides a simple Python API for sending and receiving data from

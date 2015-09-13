@@ -1081,7 +1081,3 @@ Targets
    * ``purple``
    * ``brown``
    * ``orange``
-
---------------
-
-Next: :doc:`/hints`

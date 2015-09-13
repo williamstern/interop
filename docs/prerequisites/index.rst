@@ -50,8 +50,6 @@ Competition system. The underlying systems are as follows:
 
 --------------
 
-Next: :doc:`virtualbox` or :doc:`vagrant`
-
 .. toctree::
    :hidden:
 

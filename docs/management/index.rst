@@ -8,25 +8,18 @@ competition system. Teams will need to use these sections frequently.
    The automatic setup configures Apache which starts the server at
    machine startup. This section is optional and describes how to start
    the development server.
-#. :doc:`configure`.
-   How to configure the server to set parameters like the server
-   message, and the number and types of obstacles. It also can be used
-   to view log data and view posted Unmanned Aerial System (UAS)
-   telemetry.
-#. :doc:`interop_example`.
-   An example of how to perform interoperability with the competition
-   server. This approach is extremely inefficient and is insufficient to
-   achieve the required update rates, but it demonstrates how to make
-   requests.
+#. :doc:`configure_manage`.
+   How to configure and manage the server. Judges will do this at competition,
+   and teams will do this while testing.
+#. :doc:`debugging`.
+   How to debug problems with the interoperability system. This includes
+   viewing the server logs and exporting evaluation data.
 
 --------------
-
-Next: :doc:`start_stop`
 
 .. toctree::
    :hidden:
 
    start_stop
-   configure
-   interop_example
+   configure_manage
    debugging
