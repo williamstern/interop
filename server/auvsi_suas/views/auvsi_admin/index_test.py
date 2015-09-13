@@ -6,6 +6,7 @@ from django.test import TestCase
 login_url = reverse('auvsi_suas:login')
 index_url = reverse('auvsi_suas:index')
 
+
 class TestIndex(TestCase):
     """Tests the ACLs on index."""
 

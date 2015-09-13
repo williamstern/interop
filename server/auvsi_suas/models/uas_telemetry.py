@@ -178,7 +178,7 @@ class UasTelemetry(AccessLog):
         users = User.objects.all()
         for user in users:
             period_logs = UasTelemetry.by_user(user)\
-                .filter(timestamp__gt=timezone.now()-timespan)
+                .filter(timestamp__gt=timezone.now() - timespan)
 
             if len(period_logs) < 1:
                 continue

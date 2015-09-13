@@ -40,8 +40,12 @@ class TestUasTelemetry(TestUasTelemetryBase):
         super(TestUasTelemetry, self).setUp()
 
         self.log = self.create_log_element(
-                timestamp=timezone.now(), user=self.user, lat=10, lon=100,
-                alt=200, heading=90)
+            timestamp=timezone.now(),
+            user=self.user,
+            lat=10,
+            lon=100,
+            alt=200,
+            heading=90)
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -50,14 +54,26 @@ class TestUasTelemetry(TestUasTelemetryBase):
     def test_duplicate_unequal(self):
         """Tests duplicate function with unequal telemetry."""
         log1 = self.create_log_element(
-                timestamp=timezone.now(), user=self.user, lat=20, lon=200,
-                alt=200, heading=90)
+            timestamp=timezone.now(),
+            user=self.user,
+            lat=20,
+            lon=200,
+            alt=200,
+            heading=90)
         log2 = self.create_log_element(
-                timestamp=timezone.now(), user=self.user, lat=10, lon=100,
-                alt=300, heading=90)
+            timestamp=timezone.now(),
+            user=self.user,
+            lat=10,
+            lon=100,
+            alt=300,
+            heading=90)
         log3 = self.create_log_element(
-                timestamp=timezone.now(), user=self.user, lat=10, lon=100,
-                alt=200, heading=10)
+            timestamp=timezone.now(),
+            user=self.user,
+            lat=10,
+            lon=100,
+            alt=200,
+            heading=10)
 
         self.assertFalse(self.log.duplicate(log1))
         self.assertFalse(self.log.duplicate(log2))
@@ -66,8 +82,12 @@ class TestUasTelemetry(TestUasTelemetryBase):
     def test_duplicate_equal(self):
         """Tests duplicate function with equal telemetry."""
         log1 = self.create_log_element(
-                timestamp=timezone.now(), user=self.user, lat=10, lon=100,
-                alt=200, heading=90)
+            timestamp=timezone.now(),
+            user=self.user,
+            lat=10,
+            lon=100,
+            alt=200,
+            heading=90)
 
         self.assertTrue(self.log.duplicate(self.log))
         self.assertTrue(self.log.duplicate(log1))
@@ -94,22 +114,37 @@ class TestUasTelemetry(TestUasTelemetryBase):
 
 
 class TestUasTelemetryDedupe(TestUasTelemetryBase):
-
     def setUp(self):
         super(TestUasTelemetryDedupe, self).setUp()
 
         self.log1 = self.create_log_element(
-                timestamp=timezone.now(), user=self.user,
-                lat=10, lon=200, alt=200, heading=90)
+            timestamp=timezone.now(),
+            user=self.user,
+            lat=10,
+            lon=200,
+            alt=200,
+            heading=90)
         self.log2 = self.create_log_element(
-                timestamp=timezone.now(), user=self.user,
-                lat=20, lon=200, alt=200, heading=90)
+            timestamp=timezone.now(),
+            user=self.user,
+            lat=20,
+            lon=200,
+            alt=200,
+            heading=90)
         self.log3 = self.create_log_element(
-                timestamp=timezone.now(), user=self.user,
-                lat=30, lon=200, alt=200, heading=90)
+            timestamp=timezone.now(),
+            user=self.user,
+            lat=30,
+            lon=200,
+            alt=200,
+            heading=90)
         self.log4 = self.create_log_element(
-                timestamp=timezone.now(), user=self.user,
-                lat=40, lon=200, alt=200, heading=90)
+            timestamp=timezone.now(),
+            user=self.user,
+            lat=40,
+            lon=200,
+            alt=200,
+            heading=90)
 
     def test_no_logs(self):
         """Tests empty log."""
@@ -140,8 +175,12 @@ class TestUasTelemetryKML(TestUasTelemetryBase):
     def create_log_element(self, lat, lon, alt):
         """Override to define defaults."""
         super(TestUasTelemetryKML, self).create_log_element(
-                timestamp=timezone.now(), user=self.user, lat=lat, lon=lon,
-                alt=alt, heading=80)
+            timestamp=timezone.now(),
+            user=self.user,
+            lat=lat,
+            lon=lon,
+            alt=alt,
+            heading=80)
 
     def test_kml_simple(self):
         coordinates = [

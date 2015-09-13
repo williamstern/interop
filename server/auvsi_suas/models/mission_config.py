@@ -416,4 +416,4 @@ class MissionConfig(models.Model):
 
         # Stationary Obstacles
         stationary_obstacles_folder = kml_folder.newfolder(
-                name='Stationary Obstacles')
+            name='Stationary Obstacles')

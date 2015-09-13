@@ -5,11 +5,10 @@ from django.db import models, migrations
 
 from auvsi_suas.models.server_info import ServerInfo
 
+
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('auvsi_suas', '0003_missionconfig_is_active'),
-    ]
+    dependencies = [('auvsi_suas', '0003_missionconfig_is_active')]
 
     operations = [
         migrations.AddField(
@@ -18,6 +17,5 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 default=1,
                 to='auvsi_suas.ServerInfo'),
-            preserve_default=False,
-        ),
+            preserve_default=False),
     ]

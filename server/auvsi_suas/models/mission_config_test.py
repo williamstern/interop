@@ -333,10 +333,8 @@ class TestMissionConfigModelSampleMission(TestCase):
                          data['stationary_obstacles'][0]['cylinder_height'])
         self.assertEqual(10.0,
                          data['stationary_obstacles'][0]['cylinder_radius'])
-        self.assertEqual(38.0,
-                         data['stationary_obstacles'][0]['latitude'])
-        self.assertEqual(-76.0,
-                         data['stationary_obstacles'][0]['longitude'])
+        self.assertEqual(38.0, data['stationary_obstacles'][0]['latitude'])
+        self.assertEqual(-76.0, data['stationary_obstacles'][0]['longitude'])
 
         self.assertIn('moving_obstacles', data)
         self.assertEqual(2, len(data['moving_obstacles']))
@@ -345,10 +343,8 @@ class TestMissionConfigModelSampleMission(TestCase):
             self.assertIn('speed_avg', obst)
             self.assertIn('sphere_radius', obst)
         self.assertEqual(25, data['moving_obstacles'][0]['id'])
-        self.assertEqual(1.0,
-                         data['moving_obstacles'][0]['speed_avg'])
-        self.assertEqual(15.0,
-                         data['moving_obstacles'][0]['sphere_radius'])
+        self.assertEqual(1.0, data['moving_obstacles'][0]['speed_avg'])
+        self.assertEqual(15.0, data['moving_obstacles'][0]['sphere_radius'])
 
     def test_toKML(self):
         """Test Generation of kml for all mission data"""
