@@ -26,6 +26,7 @@ module.exports = function(config) {
       '../angularjs/angular-touch.js',
       // Source files.
       'app.js',
+      'components/settings-service/settings-service.js',
       'components/navigation/navigation.js',
       'components/backend-service/backend-service.js',
       'components/units-service/units-service.js',
@@ -35,6 +36,7 @@ module.exports = function(config) {
       'pages/mission-dashboard/mission-dashboard-controller.js',
       'pages/mission-list/mission-list-controller.js',
       // Test files.
+      'components/settings-service/settings-service_test.js',
       'components/navigation/navigation_test.js',
       'components/backend-service/backend-service_test.js',
       'components/units-service/units-service_test.js',

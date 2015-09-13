@@ -192,9 +192,6 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertEqual(10.0, data[0]['home_pos']['latitude'])
         self.assertEqual(100.0, data[0]['home_pos']['longitude'])
 
-        self.assertIn('mission_waypoints_dist_max', data[0])
-        self.assertEqual(10.0, data[0]['mission_waypoints_dist_max'])
-
         self.assertIn('mission_waypoints', data[0])
         for waypoint in data[0]['mission_waypoints']:
             self.assertIn('id', waypoint)

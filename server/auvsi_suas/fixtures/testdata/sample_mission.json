@@ -877,7 +877,6 @@
 {
     "fields": {
         "off_axis_target_pos": 324,
-        "mission_waypoints_dist_max": 10.0,
         "mission_waypoints": [
             155,
             156

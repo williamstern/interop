@@ -25,7 +25,7 @@
  * @struct
  * @ngInject
  */
-MissionScene = function($rootScope, Distance, Units) {
+MissionScene = function($rootScope, Distance, Units, Settings) {
     /**
      * @type {?Object} The scene that is built by the service.
      */
@@ -45,6 +45,11 @@ MissionScene = function($rootScope, Distance, Units) {
      * @private @const {!Object} The units service.
      */
     this.units_ = Units;
+
+    /**
+     * @private @const {!Object} The settings service.
+     */
+    this.settings_ = Settings;
 
     /**
      * @private @const {?Object} The sky light in the scene.
@@ -352,7 +357,7 @@ MissionScene.prototype.addMissionSceneElements_ = function(mission, scene) {
         var waypointObj = this.createObject_(
                 this.missionWaypointGeometry_, this.missionWaypointMaterial_,
                 waypoint, waypoint.altitude_msl, mission.home_pos,
-                mission.mission_waypoints_dist_max, scene);
+                this.settings_.satisfied_waypoint_dist_max_ft, scene);
     }
 
     // Add lines between mission waypoints.
@@ -481,5 +486,6 @@ angular.module('auvsiSuasApp').service('MissionScene', [
     '$rootScope',
     'Distance',
     'Units',
+    'Settings',
     MissionScene
 ]);
