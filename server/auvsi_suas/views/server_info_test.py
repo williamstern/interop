@@ -53,7 +53,6 @@ class TestServerInfoView(TestCase):
         self.mission = MissionConfig()
         self.mission.is_active = True
         self.mission.home_pos = gpos
-        self.mission.mission_waypoints_dist_max = 0
         self.mission.emergent_last_known_pos = gpos
         self.mission.off_axis_target_pos = gpos
         self.mission.sric_pos = gpos

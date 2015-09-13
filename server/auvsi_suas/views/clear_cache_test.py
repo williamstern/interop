@@ -36,7 +36,6 @@ class TestClearCache(TestCase):
         config = MissionConfig()
         config.is_active = True
         config.home_pos = pos
-        config.mission_waypoints_dist_max = 10
         config.emergent_last_known_pos = pos
         config.off_axis_target_pos = pos
         config.sric_pos = pos

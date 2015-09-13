@@ -98,9 +98,8 @@ class TestObstaclesViewCommon(TestCase):
         info.message = "Hello World"
         info.save()
         config = MissionConfig()
-        config.is_active = True 
+        config.is_active = True
         config.home_pos = pos
-        config.mission_waypoints_dist_max = 10
         config.emergent_last_known_pos = pos
         config.off_axis_target_pos = pos
         config.sric_pos = pos
@@ -109,7 +108,7 @@ class TestObstaclesViewCommon(TestCase):
         config.air_drop_pos = pos
         config.server_info = info
         config.save()
-        
+
         # Add a couple of stationary obstacles
         obst = self.create_stationary_obstacle(lat=38.142233,
                                                lon=-76.434082,

@@ -86,7 +86,6 @@
     ir_secondary_target_pos: 3
     is_active: true
     mission_waypoints: [1]
-    mission_waypoints_dist_max: 100.0
     off_axis_target_pos: 3
     search_grid_points: [1]
     server_info: 1
