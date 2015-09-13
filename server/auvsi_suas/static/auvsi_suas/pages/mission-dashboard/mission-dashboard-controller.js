@@ -9,14 +9,12 @@
  * @param {!angular.Scope} $rootScope The root scope to listen for events.
  * @param {!angular.$routeParams} $routeParams The route parameter service.
  * @param {!Object} Backend The backend service.
- * @param {!Object} MissionScene The mission scene building service.
  * @final
  * @constructor
  * @struct
  * @ngInject
  */
-MissionDashboardCtrl = function(
-        $rootScope, $routeParams, Backend, MissionScene) {
+MissionDashboardCtrl = function($rootScope, $routeParams, Backend) {
     /**
      * @private @const {!angular.$routeParams} The route params service.
      */
@@ -28,9 +26,9 @@ MissionDashboardCtrl = function(
     this.backend_ = Backend;
 
     /**
-     * @private @const {!Object} The mission scene buildling service.
+     * @private @const {?Object} The scene built by the map view, via template.
      */
-    this.missionScene_ = MissionScene;
+    this.missionScene = null;
 
     // Whenever the backend data is updated, rebuild the scene.
     $rootScope.$on(
@@ -66,10 +64,12 @@ MissionDashboardCtrl.prototype.getCurrentMission = function() {
  * @private
  */
 MissionDashboardCtrl.prototype.rebuildMissionScene_ = function() {
-    // Get the current mission.
-    this.missionScene_.rebuildScene(
-            this.getCurrentMission(), this.backend_.obstacles,
-            this.backend_.telemetry);
+    if (!!this.missionScene) {
+        // Rebuild scene with current mission.
+        this.missionScene.rebuildScene(
+                this.getCurrentMission(), this.backend_.obstacles,
+                this.backend_.telemetry);
+    }
 };
 
 
@@ -131,6 +131,5 @@ angular.module('auvsiSuasApp').controller('MissionDashboardCtrl', [
     '$rootScope',
     '$routeParams',
     'Backend',
-    'MissionScene',
     MissionDashboardCtrl
 ]);
