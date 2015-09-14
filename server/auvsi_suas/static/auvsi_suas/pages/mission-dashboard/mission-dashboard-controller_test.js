@@ -9,7 +9,7 @@ describe("MissionDashboardCtrl controller", function() {
 
     beforeEach(module('auvsiSuasApp'));
 
-    beforeEach(inject(function($rootScope, $controller, MissionScene) {
+    beforeEach(inject(function($rootScope, $controller) {
         routeParams = {
             missionId: 1
         };
@@ -21,8 +21,7 @@ describe("MissionDashboardCtrl controller", function() {
         missionDashboardCtrl = $controller('MissionDashboardCtrl',
                                            {$rootScope: $rootScope,
                                             $routeParams: routeParams,
-                                            Backend: backend,
-                                            MissionScene: MissionScene});
+                                            Backend: backend});
     }));
 
     it("Should get current mission", function() {

@@ -6,22 +6,44 @@
 /**
  * Directive for 3D map view of Mission Scene.
  * @param {!angular.Window} $window The window service.
- * @param {!Object} MissionScene The mission scene service.
+ * @param {!angular.Scope} $rootScope The root scope service.
+ * @param {!Object} Distance The distance service.
+ * @param {!Object} Units The units service.
  * @final
  * @constructor
  * @struct
  * @ngInject
  */
-MissionMapView = function($window, MissionScene) {
+MissionMapView = function($window, $rootScope, Distance, Units, Settings) {
     /**
      * @private @const {!angular.Window} The window service.
      */
     this.window_ = $window;
 
     /**
-     * @private @const {!Object} The mission scene service.
+     * @private @const {!angular.Scope} The root scope service.
      */
-    this.missionScene_ = MissionScene;
+    this.rootScope_ = $rootScope;
+
+    /**
+     * @private @const {!Object} The distance service.
+     */
+    this.distance_ = Distance;
+
+    /**
+     * @private @const {!Object} The units service.
+     */
+    this.units_ = Units;
+
+    /**
+     * @private @const {!Object} The settings service.
+     */
+    this.settings_ = Settings;
+
+    /**
+     * @private @const {!Object} The mission scene, created on link.
+     */
+    this.missionScene_ = null;
 
     /**
      * @private {?angular.Scope} The element scope.
@@ -103,6 +125,11 @@ MissionMapView.prototype.link = function(scope, element, attrs) {
     this.element_ = element;
     this.attrs_ = attrs;
 
+    // Create the scene for this element.
+    this.missionScene_ = new MissionScene(
+            this.rootScope_, this.distance_, this.units_, this.settings_);
+    this.scope_.missionScene = this.missionScene_;
+
     // Create a camera and configure it.
     var fieldOfView = 60;
     var aspectRatio = 1;
@@ -126,9 +153,6 @@ MissionMapView.prototype.link = function(scope, element, attrs) {
 
     // Set camera and renderer sizes.
     this.setCameraAndRendererSize_();
-
-    // Whenever the renderer is rebuilt, resources must be as well.
-    this.missionScene_.rebuildResources();
 
     // Whenever the window resizes, update the camera and renderer.
     angular.element(this.window_).on(
@@ -296,14 +320,18 @@ MissionMapView.prototype.render_ = function() {
 // Register the directive.
 angular.module('auvsiSuasApp').directive('missionMapView', [
     '$window',
-    'MissionScene',
-    function($window, MissionScene) {
-        var mapView = new MissionMapView($window, MissionScene);
+    '$rootScope',
+    'Distance',
+    'Units',
+    'Settings',
+    function($window, $rootScope, Distance, Units, Settings) {
+        var mapView = new MissionMapView($window, $rootScope, Distance, Units, Settings);
         return {
             restrict: 'E',
             scope: {
                 offsetWidth: '=',
-                offsetHeight: '='
+                offsetHeight: '=',
+                missionScene: '='
             },
             templateUrl: ('/static/auvsi_suas/components/' +
                           'mission-map-view/mission-map-view.html'),

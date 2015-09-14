@@ -31,7 +31,7 @@ module.exports = function(config) {
       'components/backend-service/backend-service.js',
       'components/units-service/units-service.js',
       'components/distance-service/distance-service.js',
-      'components/mission-scene-service/mission-scene-service.js',
+      'components/mission-scene/mission-scene.js',
       'components/mission-map-view/mission-map-view.js',
       'pages/mission-dashboard/mission-dashboard-controller.js',
       'pages/mission-list/mission-list-controller.js',
