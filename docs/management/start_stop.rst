@@ -33,7 +33,3 @@ Stop the Server
 
 To stop the server, use the keyboard combination Control-C while the terminal
 is in focus. This will signal the web server to shutdown.
-
---------------
-
-Next: :doc:`configure`

@@ -16,6 +16,7 @@ repository into the `home directory
     $ sudo apt-get -y install git
     $ cd ~/
     $ git clone https://github.com/pmtischler/auvsi_suas_competition.git
+TODO(pmtischler): Update with new repository link
 
 Syncing Downloaded Code with Repository
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -32,6 +33,7 @@ repository's copy by executing the following code:
 Download via Website as ZIP File
 --------------------------------
 
+TODO(pmtischler): Update with new repository link
 Alternatively, you can download go to the `Github Repository Page
 <https://github.com/pmtischler/auvsi_suas_competition>`__ and click "Download
 Zip". Unzip the contents and place the "auvsi\_suas\_competition" folder in the
@@ -39,7 +41,3 @@ home directory. If you download it as a ZIP file, rather than using Git
 directly, synchronizing the system with the repository will require you to
 re-download, unzip, and replace the folder. Make sure to backup any databases
 you have created before synchronizing.
-
---------------
-
-Next: Setup via :doc:`vagrant` or :doc:`machine_or_vm`

@@ -22,7 +22,3 @@ Teams intending to use Git should do the following:
    Tutorial <http://git-scm.com/book/en/Getting-Started>`__
 #. Create a Github Account & Create a Sample Repository
 #. Practice with Commands
-
---------------
-
-Next: :doc:`puppet`

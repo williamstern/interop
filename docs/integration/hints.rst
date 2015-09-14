@@ -2,11 +2,7 @@ Implementation Hints
 ====================
 
 This page contains some hints on how to implement interoperability.
-These are provided as is, no further clarification will be given, and
-details should be verified on your own before used. It may not be
-necessary to implement all or any of these hints. The intention is not
-to solve problems for the teams, but to soften potential challenges that
-are not the focus of this task.
+These points are common sources of poor performance.
 
 #. **Reuse of TCP Connections**. The HTTP protocol, which is the
    protocol used by the interoperability specification and server,
@@ -69,7 +65,3 @@ are not the focus of this task.
    to disable this on the client side (team's implementation). Teams
    should also pipeline requests when the server does not respond fast
    enough due to artificial latency.
-
---------------
-
-Next: :doc:`changelog`

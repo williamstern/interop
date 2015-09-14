@@ -38,7 +38,3 @@ Teams should do the following:
    implements a multiplayer Checkers game.
 #. `Learn to Deploy Django with
    Apache <https://docs.djangoproject.com/en/1.7/howto/deployment/wsgi/modwsgi/>`__
-
---------------
-
-Next: :doc:`/setup/index`

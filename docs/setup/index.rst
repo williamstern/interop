@@ -24,8 +24,6 @@ done once per deployment instance. Teams should do the following:
 
 --------------
 
-Next: :doc:`downloading`
-
 .. toctree::
    :hidden:
 

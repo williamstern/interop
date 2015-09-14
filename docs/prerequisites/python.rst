@@ -12,7 +12,3 @@ do the following:
    Tutorial <https://docs.python.org/2/tutorial/index.html>`__
 #. Code a Sample Program: Build a console-based Checkers game. Make sure
    to have a good Model-View-Controller design.
-
---------------
-
-Next: :doc:`django`
