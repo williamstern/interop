@@ -1,0 +1,35 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # All Vagrant configuration is done here. The most common configuration
+  # options are documented and commented below. For a complete reference,
+  # please see the online documentation at vagrantup.com.
+
+  # Use 4G of RAM and 2 CPUs for performance.
+  config.vm.provider "virtualbox" do |v|
+    v.memory = 4096
+    v.cpus = 2
+  end
+
+  # Every Vagrant virtual environment requires a box to build off of.
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.box_url = "https://vagrantcloud.com/ubuntu/boxes/trusty64/versions/20150521.0.0/providers/virtualbox.box"
+
+  # Forward port for SUAS server
+  config.vm.network "forwarded_port", guest: 80,   host: 8000
+  config.vm.network "forwarded_port", guest: 8080, host: 8080
+
+  # Sync the repository folder to known path in VM
+  config.vm.synced_folder "../", "/home/vagrant/interop"
+
+  # Use automated setup script
+  config.vm.provision :shell do |shell|
+    shell.inline = "cd /home/vagrant/interop/setup;
+                    ./setup.sh;"
+  end
+
+end

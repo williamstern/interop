@@ -1,0 +1,38 @@
+<div class="row">
+
+  <div class="small-3 columns">
+    <div class="row text-center text-middle">
+      <h4>Dashboard</h4>
+      <h5><a data-reveal-id="dashboardHelpModal">Help</a></h5>
+      <div id="dashboardHelpModal" class="reveal-modal" data-reveal>
+        <h5>Left Status Pane</h5>
+        <p>Contains status information about the teams which are interacting with the system. A team appears in the pane when they are either in-air or active. A team is considered in-air if the last TakeoffOrLandingEvent a judge logged indicated UAS in air. A team is considered active if they recently performed an interoperability interaction.</p>
+        <h5>Right 3D Display</h5>
+        <p>The 3D display pulls data from the backend at a regular rate and displays it. The display is initially centered at the MissionConfig's home position, and is indicated by a green sphere. The white spheres indicate MissionConfig mission elements like the SRIC position. The blue spheres show waypoints, and the light blue spheres show the search grid. The red sphere and red cylinders indicate obstacle positions. Finally, the yellow spheres show UAS positions.</p>
+      </div>
+    </div>
+
+    <hr></hr>
+
+    <div class="row" ng-repeat="team in missionDashboardCtrl.getActiveOrInAirTeams()">
+      <div class="panel {{missionDashboardCtrl.getTeamColorClass(team)}}">
+        <h4>{{team.id}}: {{team.name}}</h4>
+        <h6>Active: {{team.active}}</h6>
+        <h6>In Air: {{team.in_air}}</h6>
+      </div>
+    </div>
+  </div>
+
+  <div class="small-9 columns">
+    <div class="row mission-dashboard-mission-view">
+      <mission-map-view offset-width="0" offset-height="95" mission-scene="missionDashboardCtrl.missionScene"></mission-map-view>
+    </div>
+  </div>
+
+  <!-- Init Foundation for Modal --!>
+  <script>
+    $(document).foundation();
+  </script>
+
+</div>
+
