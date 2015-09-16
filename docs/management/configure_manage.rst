@@ -23,24 +23,27 @@ management, and the "Mission" heading has links specific to the mission being
 viewed.
 
 #. **System**
+
    #. **Live View (KML)**. Downloads a KML file which can be opened in Google
-         Earth to view real-time information. This provides a visualization
-         that complements the one provided in this interface.
+      Earth to view real-time information. This provides a visualization
+      that complements the one provided in this interface.
    #. **Evaluate Teams (CSV)**. Evaluates the teams and downloads a CSV file.
-         This data can be used to determine whether teams completed certain
-         tasks. The evaluation is performed for the single active mission.
+      This data can be used to determine whether teams completed certain
+      tasks. The evaluation is performed for the single active mission.
    #. **Export Data (KML)**. Downloads a KML file which can be opened in Google
-         Earth to view the UAS telemetry and other mission data after the
-         mission is completed.
+      Earth to view the UAS telemetry and other mission data after the
+      mission is completed.
    #. **Edit Data**. Opens the Django Admin Interface which can be used to
-         configure missions and view raw data.
+      configure missions and view raw data.
    #. **Clear Cache**. Caching is used to improve performance of certain
-         operations. The caches automatically expire, so users shouldn't need
-         to use this, but data modification mid-mission may require explicit
-         clearing to react faster.
+      operations. The caches automatically expire, so users shouldn't need
+      to use this, but data modification mid-mission may require explicit
+      clearing to react faster.
+
 #. **Mission**
+
    #. **Evaluate Teams (CSV)**. Evaluates the teams for the mission being
-         viewed. This is otherwise the same as the System link.
+      viewed. This is otherwise the same as the System link.
 
 The mission specific page is broken into two sections. The left side contains a
 status indicator, and the right side contains a live map view. The status
