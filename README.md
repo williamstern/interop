@@ -1,14 +1,18 @@
 AUVSI SUAS Interoperability
 ===========================
 
+![Read the Docs Documentation](https://readthedocs.org/projects/auvsi-suas-competition-interoperability-system/badge/?version=latest)
+
 This is the repository for the Association for Unmanned Vehicle Systems
 International (AUVSI) Student Unmanned Aerial System (SUAS) Competition. It
 contains the Umanned Aerial System (UAS) Interoperability System.
 
-TODO(pmtischler): Add contact information.
+[auvsi-suas@googlegroups.com](https://groups.google.com/forum/#!forum/auvsi-suas).
+Contact the competition directors and interoperability developers.
 
-TODO(pmtischler): Update with doc URL.
-[Documentation](http://readthedocs.org). Installation, getting started, configuration & management, interoperability specification, etc.
+[Documentation](http://auvsi-suas-competition-interoperability-system.readthedocs.org/en/latest/).
+Installation, getting started, configuration & management, interoperability
+specification, etc.
 
 
 Repository Contents

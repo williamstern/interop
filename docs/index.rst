@@ -3,17 +3,19 @@ AUVSI SUAS Competition
 
 This is the documentation for the Association for Unmanned Vehicle Systems
 International (AUVSI) Student Unmanned Air Systems (SUAS) Competition
-Repository.
+Repository. The [AUVSI Seafarer Chapter](http://auvsi-seafarer.org/) runs the
+competition.
 
-TODO(pmtischler): Add contact information.
+To contact the competition directors and interoperability developers, please
+email
+[auvsi-suas@googlegroups.com](https://groups.google.com/forum/#!forum/auvsi-suas).
 
 
 Repository
 ----------
 
-TODO(pmtischler): Update with new repository link.
 The `AUVSI SUAS Competition Repository
-<https://github.com/pmtischler/auvsi_suas_competition>`__ contains the
+<https://github.com/auvsi-suas/interop>`__ contains the
 interoperability server and associated components.  Teams should `watch the
 repository <https://help.github.com/articles/watching-repositories/>`__ so they
 receive notifications when things change. Teams should also monitor the Git log
