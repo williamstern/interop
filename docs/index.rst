@@ -3,12 +3,12 @@ AUVSI SUAS Competition
 
 This is the documentation for the Association for Unmanned Vehicle Systems
 International (AUVSI) Student Unmanned Air Systems (SUAS) Competition
-Repository. The [AUVSI Seafarer Chapter](http://auvsi-seafarer.org/) runs the
-competition.
+Repository. The `AUVSI Seafarer Chapter <http://auvsi-seafarer.org/>`__ runs
+the competition.
 
 To contact the competition directors and interoperability developers, please
-email
-[auvsi-suas@googlegroups.com](https://groups.google.com/forum/#!forum/auvsi-suas).
+email `auvsi-suas@googlegroups.com
+<https://groups.google.com/forum/#!forum/auvsi-suas>`__.
 
 
 Repository
