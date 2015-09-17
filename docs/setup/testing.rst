@@ -1,23 +1,29 @@
 System Testing
 ==============
 
-The competition server comes with many tests to evaluate the system. You
-should execute these tests after you have installed the system, or after
-any code updates (git pull). If the tests do not pass then you will
-likely have trouble testing your interoperability implementation.
+The interoperability software comes with many tests to evaluate the system. You
+should execute these tests after you have installed the system, or after any
+code updates (git pull). If the tests do not pass then you will likely have
+trouble testing your interoperability implementation.
 
 To run the tests execute the following commands:
 
 .. code-block:: bash
 
-    $ cd ~/auvsi_competition_server/src/auvsi_suas_server
-    $ python manage.py test auvsi_suas
+    $ ~/interop/test.sh
+
+Or from outside Vagrant VM:
+
+.. code-block:: bash
+
+    $ vagrant ssh -c "/interop/test.sh"
 
 The tests have executed successfully if you see these lines::
 
-    Ran [X] tests in [Y]s
-
-    OK
+    Server PASSED
+    Python 2 client PASSED
+    Python 3 client PASSED
+    JavaScript Frontend PASSED
 
 These tests will do the following:
 
