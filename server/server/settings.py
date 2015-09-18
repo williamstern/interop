@@ -169,7 +169,7 @@ TEST_RUNNER = 'auvsi_suas.test_runner.AuvsiSuasTestRunner'
 TEST_ENABLE_PLOTTING = False
 
 # Whether to perform load tests (slower)
-TEST_ENABLE_LOADTEST = False
+TEST_ENABLE_LOADTEST = True
 
 # The time to execute each loadtest for
 TEST_LOADTEST_TIME = 10.0
