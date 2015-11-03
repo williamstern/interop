@@ -12,7 +12,7 @@ Using Vagrant makes setup quite simple.
 
 .. code-block:: bash
 
-    $ cd ~/auvsi_suas_competition
+    $ cd ~/interop/setup
     $ vagrant up
 
 This will create a virtual machine (VM), map the VM ports to the host

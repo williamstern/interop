@@ -39,14 +39,14 @@ Setup Machine using Vagrant
 #. **Create the Virtual Machine, Install the Operating System (OS), and
    Install Dependencies**. You can create the Virtual Machine (VM), sync
    the repository to a folder in the VM
-   (``/home/vagrant/auvsi_suas_competition``), and execute the automated
+   (``~/interop``), and execute the automated
    dependency installation. Execute the following commands on the host
    machine:
 
 .. code-block:: bash
 
     $ vagrant box add ubuntu/trusty64
-    $ cd ~/auvsi_suas_competition/setup
+    $ cd ~/interop/setup
     $ vagrant up
 
 Login To the Machine & Open a Terminal
@@ -75,7 +75,7 @@ setup:
 
 .. code-block:: bash
 
-    $ cd ~/auvsi_suas_competition/setup
+    $ cd ~/interop/setup
     $ ./setup.sh
 
 Manual Database Setup
@@ -97,5 +97,5 @@ the competition recommends using the username "testadmin" and password
 
 .. code-block:: bash
 
-    $ cd ~/auvsi_suas_competition/src/auvsi_suas_server
+    $ cd ~/interop/server
     $ python manage.py syncdb

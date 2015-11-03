@@ -24,7 +24,7 @@ repository's copy by executing the following code:
 
 .. code-block:: bash
 
-    $ cd ~/auvsi_suas_competition
+    $ cd ~/interop
     $ git pull
 
 Download via Website as ZIP File
