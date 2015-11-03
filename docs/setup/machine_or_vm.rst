@@ -39,7 +39,7 @@ Setup Machine using Vagrant
 #. **Create the Virtual Machine, Install the Operating System (OS), and
    Install Dependencies**. You can create the Virtual Machine (VM), sync
    the repository to a folder in the VM
-   (``/home/interop``), and execute the automated
+   (``~/interop``), and execute the automated
    dependency installation. Execute the following commands on the host
    machine:
 
