@@ -3,7 +3,7 @@ System Testing
 
 The interoperability software comes with many tests to evaluate the system. You
 should execute these tests after you have installed the system, or after any
-code updates (git pull). If the tests do not pass then you will likely have
+code updates (``git pull``). If the tests do not pass then you will likely have
 trouble testing your interoperability implementation.
 
 To run the tests execute the following commands:

@@ -6,7 +6,7 @@ Server Log File
 
 The competition server logs important events and debug information to a
 temporary log file. The server writes useful debugging information to
-``/var/log/apache2/auvsi_suas_server.debug.log``. Users can inspect this file
+``/var/log/apache2/interop_server_error.log``. Users can inspect this file
 during or after competition server execution to debug interoperability. For
 example, if your implementation is getting denied due to invalid user
 credentials, the log will contain a message stating such and what request
@@ -16,13 +16,13 @@ You can print out the file with the command:
 
 .. code-block:: bash
 
-    $ cat /var/log/apache2/auvsi_suas_server.debug.log
+    $ cat /var/log/apache2/interop_server_error.log
 
 You can watch changes to the file live with the command:
 
 .. code-block:: bash
 
-    $ tail -f /var/log/apache2/auvsi_suas_server.debug.log
+    $ tail -f /var/log/apache2/interop_server_error.log
 
 Evaluation Export CSV
 ---------------------

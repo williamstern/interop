@@ -1,11 +1,12 @@
 Machine or VirtualBox Setup
 ===========================
 
-You need either a dedicated machine or a virtual machine (VM) to run the
-competition server. Using a dedicated machine or VirtualBox will require
-manual setup, which is described in this section. Either method will
-require at least 13 GB of disk space. It is recommended to reserve at
-least 20 GB.
+For very simple setup, use :doc:`Vagrant <vagrant>`.
+
+You can manually setup a dedicated machine or a virtual machine (VM) to run the
+competition server. Using a dedicated machine or VirtualBox will require manual
+setup, which is described in this section. Either method will require at least
+13 GB of disk space. It is recommended to reserve at least 20 GB.
 
 Create Dedicated Machine
 ------------------------
@@ -23,31 +24,6 @@ Create Machine using VirtualBox
 #. **Install the Operating System (OS)**. Install :doc:`/prerequisites/ubuntu`
    onto the machine. Create a user with administration privileges (e.g.
    the one creates at OS install) and login as that user.
-
-Setup Machine using Vagrant
----------------------------
-
-#. **Download the Repository**. To setup a virtual machine using Vagrant
-   you will need the Vagrantfile, a file which defines the machine
-   configuration. You will need to first download the repository onto
-   the host machine, for which instructions can be found
-   :doc:`here <downloading>`.
-#. **Install Vagrant**. You will then need to install
-   `Vagrant <https://www.vagrantup.com/>`__. Please follow the
-   instructions for downloading and installing on your host machine, and
-   for downloading the ubuntu/trusty64 box.
-#. **Create the Virtual Machine, Install the Operating System (OS), and
-   Install Dependencies**. You can create the Virtual Machine (VM), sync
-   the repository to a folder in the VM
-   (``~/interop``), and execute the automated
-   dependency installation. Execute the following commands on the host
-   machine:
-
-.. code-block:: bash
-
-    $ vagrant box add ubuntu/trusty64
-    $ cd ~/interop/setup
-    $ vagrant up
 
 Login To the Machine & Open a Terminal
 --------------------------------------
@@ -81,8 +57,8 @@ setup:
 Manual Database Setup
 ---------------------
 
-The AUVSI SUAS competition server relies on a `SQLite
-database <http://www.sqlite.org/>`__ to keep durable state that persists
+The AUVSI SUAS competition server relies on a `PostgreSQL
+database <http://www.postgres.org/>`__ to keep durable state that persists
 between system restarts. The user must setup the database and give it a
 superuser before the system can be used.
 
@@ -98,4 +74,5 @@ the competition recommends using the username "testadmin" and password
 .. code-block:: bash
 
     $ cd ~/interop/server
+    $ source venv/bin/activate
     $ python manage.py syncdb

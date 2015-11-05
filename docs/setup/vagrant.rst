@@ -18,4 +18,5 @@ Using Vagrant makes setup quite simple.
 This will create a virtual machine (VM), map the VM ports to the host
 ports, and perform the automated system setup (dependencies, database,
 Apache, etc.). Once you execute these commands and the machine is setup,
-you should be able to access the competition server at localhost:80.
+you should be able to access the competition server from within the VM
+at http://localhost, or from the host at http://localhost:8000.
