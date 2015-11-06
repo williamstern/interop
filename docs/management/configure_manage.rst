@@ -1,6 +1,28 @@
 Configure & Manage the Server
 =============================
 
+Admin Account
+-------------
+
+The automated system setup will create a default administrator account with
+username ``testadmin`` and password ``testpass``. This account can be used to
+login to the admin interfaces or authenticate any requests.
+
+Create a new administrator
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If you have cleared the server database, or would like to create another
+administrator account, the Django management program can be used to create
+an administrator account.
+
+.. code-block:: bash
+
+    $ cd ~/interop/server
+    $ source venv/bin/activate
+    $ python manage.py createsuperuser
+
+Follow the prompts to select a username and password.
+
 Admin Interfaces
 ----------------
 
