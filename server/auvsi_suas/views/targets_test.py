@@ -200,6 +200,13 @@ class TestPostTarget(TestCase):
                                     content_type='application/json')
         self.assertEqual(400, response.status_code)
 
+    def test_invalid_json(self):
+        """Request body must contain valid JSON."""
+        response = self.client.post(targets_url,
+                                    data='type=standard&longitude=-76',
+                                    content_type='multipart/form-data')
+        self.assertEqual(400, response.status_code)
+
     def test_missing_latitude(self):
         """Target latitude required if longitude specified."""
         target = {'type': 'standard', 'longitude': -76}
@@ -527,6 +534,19 @@ class TestTargetId(TestCase):
 
         response = self.client.put(targets_id_url(args=[t.pk]),
                                    data=json.dumps(data))
+        self.assertEqual(400, response.status_code)
+
+    def test_put_invalid_json(self):
+        """PUT request body must be valid JSON."""
+        l = GpsPosition(latitude=38, longitude=-76)
+        l.save()
+
+        t = Target(user=self.user, target_type=TargetType.standard, location=l)
+        t.save()
+
+        response = self.client.put(targets_id_url(args=[t.pk]),
+                                   data="latitude=76",
+                                   content_type='multipart/form-data')
         self.assertEqual(400, response.status_code)
 
     def test_delete_own(self):
