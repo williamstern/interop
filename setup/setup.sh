@@ -34,6 +34,9 @@ function ensure_puppet_module() {
     sudo puppet module upgrade ${module}
 }
 
+# Save all output to a log file.
+exec &> >(tee ${SETUP}/setup-$(date +%F-%H-%M-%S).log)
+
 # Create soft link from repo to standardize scripts
 log "Creating softlinks..."
 sudo ln -snf ${REPO} /interop
