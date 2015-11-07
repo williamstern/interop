@@ -169,7 +169,8 @@ class TestTelemetryGet(TestCase):
         })
         self.assertEqual(200, response.status_code)
 
-    def create_logs(self, user,
+    def create_logs(self,
+                    user,
                     num=10,
                     start=None,
                     delta=None,
@@ -202,8 +203,8 @@ class TestTelemetryGet(TestCase):
 
     def test_normal_user(self):
         """Normal users not allowed access."""
-        user = User.objects.create_user(
-            'testuser', 'email@example.com', 'testpass')
+        user = User.objects.create_user('testuser', 'email@example.com',
+                                        'testpass')
         user.save()
 
         # Login

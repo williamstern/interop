@@ -53,8 +53,9 @@ class TeamsId(View):
         except User.DoesNotExist:
             return HttpResponseBadRequest('Unknown team %s' % pk)
 
-        return HttpResponse(json.dumps(user_json(user)),
-                            content_type="application/json")
+        return HttpResponse(
+            json.dumps(user_json(user)),
+            content_type="application/json")
 
     def put(self, request, pk):
         """PUT allows updating in-air status."""
@@ -82,5 +83,6 @@ class TeamsId(View):
                 event = TakeoffOrLandingEvent(user=user, uas_in_air=in_air)
                 event.save()
 
-        return HttpResponse(json.dumps(user_json(user)),
-                            content_type="application/json")
+        return HttpResponse(
+            json.dumps(user_json(user)),
+            content_type="application/json")

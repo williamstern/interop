@@ -16,6 +16,5 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='missionconfig',
             name='stationary_obstacles',
-            field=models.ManyToManyField(to=
-                                         'auvsi_suas.StationaryObstacle')),
+            field=models.ManyToManyField(to='auvsi_suas.StationaryObstacle')),
     ]

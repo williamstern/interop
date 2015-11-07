@@ -22,35 +22,32 @@ class Migration(migrations.Migration):
                 ('timestamp', models.DateTimeField(auto_now_add=True,
                                                    db_index=True)),
             ], ),
-        migrations.CreateModel(
-            name='AerialPosition',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID',
-                                        serialize=False,
-                                        auto_created=True,
-                                        primary_key=True)),
-                ('altitude_msl', models.FloatField()),
-            ], ),
-        migrations.CreateModel(
-            name='FlyZone',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID',
-                                        serialize=False,
-                                        auto_created=True,
-                                        primary_key=True)),
-                ('altitude_msl_min', models.FloatField()),
-                ('altitude_msl_max', models.FloatField()),
-            ], ),
-        migrations.CreateModel(
-            name='GpsPosition',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID',
-                                        serialize=False,
-                                        auto_created=True,
-                                        primary_key=True)),
-                ('latitude', models.FloatField()),
-                ('longitude', models.FloatField()),
-            ], ),
+        migrations.CreateModel(name='AerialPosition',
+                               fields=[
+                                   ('id', models.AutoField(verbose_name='ID',
+                                                           serialize=False,
+                                                           auto_created=True,
+                                                           primary_key=True)),
+                                   ('altitude_msl', models.FloatField()),
+                               ], ),
+        migrations.CreateModel(name='FlyZone',
+                               fields=[
+                                   ('id', models.AutoField(verbose_name='ID',
+                                                           serialize=False,
+                                                           auto_created=True,
+                                                           primary_key=True)),
+                                   ('altitude_msl_min', models.FloatField()),
+                                   ('altitude_msl_max', models.FloatField()),
+                               ], ),
+        migrations.CreateModel(name='GpsPosition',
+                               fields=[
+                                   ('id', models.AutoField(verbose_name='ID',
+                                                           serialize=False,
+                                                           auto_created=True,
+                                                           primary_key=True)),
+                                   ('latitude', models.FloatField()),
+                                   ('longitude', models.FloatField()),
+                               ], ),
         migrations.CreateModel(
             name='MissionConfig',
             fields=[
@@ -72,16 +69,15 @@ class Migration(migrations.Migration):
                  models.ForeignKey(related_name='missionconfig_ir_target_pos',
                                    to='auvsi_suas.GpsPosition')),
             ], ),
-        migrations.CreateModel(
-            name='MovingObstacle',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID',
-                                        serialize=False,
-                                        auto_created=True,
-                                        primary_key=True)),
-                ('speed_avg', models.FloatField()),
-                ('sphere_radius', models.FloatField()),
-            ], ),
+        migrations.CreateModel(name='MovingObstacle',
+                               fields=[
+                                   ('id', models.AutoField(verbose_name='ID',
+                                                           serialize=False,
+                                                           auto_created=True,
+                                                           primary_key=True)),
+                                   ('speed_avg', models.FloatField()),
+                                   ('sphere_radius', models.FloatField()),
+                               ], ),
         migrations.CreateModel(
             name='ServerInfo',
             fields=[
@@ -92,18 +88,17 @@ class Migration(migrations.Migration):
                 ('timestamp', models.DateTimeField(auto_now_add=True)),
                 ('team_msg', models.CharField(max_length=100)),
             ], ),
-        migrations.CreateModel(
-            name='StationaryObstacle',
-            fields=[
-                ('id', models.AutoField(verbose_name='ID',
-                                        serialize=False,
-                                        auto_created=True,
-                                        primary_key=True)),
-                ('cylinder_radius', models.FloatField()),
-                ('cylinder_height', models.FloatField()),
-                ('gps_position', models.ForeignKey(to=
-                                                   'auvsi_suas.GpsPosition')),
-            ], ),
+        migrations.CreateModel(name='StationaryObstacle',
+                               fields=[
+                                   ('id', models.AutoField(verbose_name='ID',
+                                                           serialize=False,
+                                                           auto_created=True,
+                                                           primary_key=True)),
+                                   ('cylinder_radius', models.FloatField()),
+                                   ('cylinder_height', models.FloatField()),
+                                   ('gps_position', models.ForeignKey(
+                                       to='auvsi_suas.GpsPosition')),
+                               ], ),
         migrations.CreateModel(
             name='Waypoint',
             fields=[
@@ -112,8 +107,8 @@ class Migration(migrations.Migration):
                                         auto_created=True,
                                         primary_key=True)),
                 ('order', models.IntegerField(db_index=True)),
-                ('position', models.ForeignKey(to=
-                                               'auvsi_suas.AerialPosition')),
+                ('position', models.ForeignKey(to='auvsi_suas.AerialPosition')
+                 ),
             ], ),
         migrations.CreateModel(
             name='ObstacleAccessLog',
@@ -165,12 +160,11 @@ class Migration(migrations.Migration):
             model_name='movingobstacle',
             name='waypoints',
             field=models.ManyToManyField(to='auvsi_suas.Waypoint'), ),
-        migrations.AddField(
-            model_name='missionconfig',
-            name='mission_waypoints',
-            field=models.ManyToManyField(related_name=
-                                         'missionconfig_mission_waypoints',
-                                         to='auvsi_suas.Waypoint'), ),
+        migrations.AddField(model_name='missionconfig',
+                            name='mission_waypoints',
+                            field=models.ManyToManyField(
+                                related_name='missionconfig_mission_waypoints',
+                                to='auvsi_suas.Waypoint'), ),
         migrations.AddField(
             model_name='missionconfig',
             name='off_axis_target_pos',

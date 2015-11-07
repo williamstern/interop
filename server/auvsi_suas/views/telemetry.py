@@ -144,5 +144,6 @@ class Telemetry(View):
 
         response = [l.json() for l in logs]
 
-        return HttpResponse(json.dumps(response),
-                            content_type="application/json")
+        return HttpResponse(
+            json.dumps(response),
+            content_type="application/json")

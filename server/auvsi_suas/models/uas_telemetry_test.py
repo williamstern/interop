@@ -39,13 +39,12 @@ class TestUasTelemetry(TestUasTelemetryBase):
     def setUp(self):
         super(TestUasTelemetry, self).setUp()
 
-        self.log = self.create_log_element(
-            timestamp=timezone.now(),
-            user=self.user,
-            lat=10,
-            lon=100,
-            alt=200,
-            heading=90)
+        self.log = self.create_log_element(timestamp=timezone.now(),
+                                           user=self.user,
+                                           lat=10,
+                                           lon=100,
+                                           alt=200,
+                                           heading=90)
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -53,27 +52,24 @@ class TestUasTelemetry(TestUasTelemetryBase):
 
     def test_duplicate_unequal(self):
         """Tests duplicate function with unequal telemetry."""
-        log1 = self.create_log_element(
-            timestamp=timezone.now(),
-            user=self.user,
-            lat=20,
-            lon=200,
-            alt=200,
-            heading=90)
-        log2 = self.create_log_element(
-            timestamp=timezone.now(),
-            user=self.user,
-            lat=10,
-            lon=100,
-            alt=300,
-            heading=90)
-        log3 = self.create_log_element(
-            timestamp=timezone.now(),
-            user=self.user,
-            lat=10,
-            lon=100,
-            alt=200,
-            heading=10)
+        log1 = self.create_log_element(timestamp=timezone.now(),
+                                       user=self.user,
+                                       lat=20,
+                                       lon=200,
+                                       alt=200,
+                                       heading=90)
+        log2 = self.create_log_element(timestamp=timezone.now(),
+                                       user=self.user,
+                                       lat=10,
+                                       lon=100,
+                                       alt=300,
+                                       heading=90)
+        log3 = self.create_log_element(timestamp=timezone.now(),
+                                       user=self.user,
+                                       lat=10,
+                                       lon=100,
+                                       alt=200,
+                                       heading=10)
 
         self.assertFalse(self.log.duplicate(log1))
         self.assertFalse(self.log.duplicate(log2))
@@ -81,13 +77,12 @@ class TestUasTelemetry(TestUasTelemetryBase):
 
     def test_duplicate_equal(self):
         """Tests duplicate function with equal telemetry."""
-        log1 = self.create_log_element(
-            timestamp=timezone.now(),
-            user=self.user,
-            lat=10,
-            lon=100,
-            alt=200,
-            heading=90)
+        log1 = self.create_log_element(timestamp=timezone.now(),
+                                       user=self.user,
+                                       lat=10,
+                                       lon=100,
+                                       alt=200,
+                                       heading=90)
 
         self.assertTrue(self.log.duplicate(self.log))
         self.assertTrue(self.log.duplicate(log1))
@@ -117,34 +112,30 @@ class TestUasTelemetryDedupe(TestUasTelemetryBase):
     def setUp(self):
         super(TestUasTelemetryDedupe, self).setUp()
 
-        self.log1 = self.create_log_element(
-            timestamp=timezone.now(),
-            user=self.user,
-            lat=10,
-            lon=200,
-            alt=200,
-            heading=90)
-        self.log2 = self.create_log_element(
-            timestamp=timezone.now(),
-            user=self.user,
-            lat=20,
-            lon=200,
-            alt=200,
-            heading=90)
-        self.log3 = self.create_log_element(
-            timestamp=timezone.now(),
-            user=self.user,
-            lat=30,
-            lon=200,
-            alt=200,
-            heading=90)
-        self.log4 = self.create_log_element(
-            timestamp=timezone.now(),
-            user=self.user,
-            lat=40,
-            lon=200,
-            alt=200,
-            heading=90)
+        self.log1 = self.create_log_element(timestamp=timezone.now(),
+                                            user=self.user,
+                                            lat=10,
+                                            lon=200,
+                                            alt=200,
+                                            heading=90)
+        self.log2 = self.create_log_element(timestamp=timezone.now(),
+                                            user=self.user,
+                                            lat=20,
+                                            lon=200,
+                                            alt=200,
+                                            heading=90)
+        self.log3 = self.create_log_element(timestamp=timezone.now(),
+                                            user=self.user,
+                                            lat=30,
+                                            lon=200,
+                                            alt=200,
+                                            heading=90)
+        self.log4 = self.create_log_element(timestamp=timezone.now(),
+                                            user=self.user,
+                                            lat=40,
+                                            lon=200,
+                                            alt=200,
+                                            heading=90)
 
     def test_no_logs(self):
         """Tests empty log."""
@@ -201,22 +192,20 @@ class TestUasTelemetryKML(TestUasTelemetryBase):
         end.save()
 
         kml = Kml()
-        UasTelemetry.kml(
-            user=self.user,
-            logs=UasTelemetry.by_user(self.user),
-            kml=kml,
-            kml_doc=kml, )
+        UasTelemetry.kml(user=self.user,
+                         logs=UasTelemetry.by_user(self.user),
+                         kml=kml,
+                         kml_doc=kml)
         for coord in coordinates:
             tag = self.coord_format.format(coord[1], coord[0], coord[2])
             self.assertTrue(tag in kml.kml())
 
     def test_kml_empty(self):
         kml = Kml()
-        UasTelemetry.kml(
-            user=self.user,
-            logs=UasTelemetry.by_user(self.user),
-            kml=kml,
-            kml_doc=kml, )
+        UasTelemetry.kml(user=self.user,
+                         logs=UasTelemetry.by_user(self.user),
+                         kml=kml,
+                         kml_doc=kml)
 
     def test_kml_filter(self):
         coordinates = [
@@ -240,11 +229,10 @@ class TestUasTelemetryKML(TestUasTelemetryBase):
         end.save()
 
         kml = Kml()
-        UasTelemetry.kml(
-            user=self.user,
-            logs=UasTelemetry.by_user(self.user),
-            kml=kml,
-            kml_doc=kml, )
+        UasTelemetry.kml(user=self.user,
+                         logs=UasTelemetry.by_user(self.user),
+                         kml=kml,
+                         kml_doc=kml)
 
         for filtered in filtered_out:
             tag = self.coord_format.format(filtered[1], filtered[0],

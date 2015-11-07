@@ -94,8 +94,8 @@ class ServerInfo(Serializable):
     """
 
     def __init__(self, message, message_timestamp, server_time):
-        super(ServerInfo, self).__init__(
-            ["message", "message_timestamp", "server_time"])
+        super(ServerInfo, self).__init__(["message", "message_timestamp",
+                                          "server_time"])  # yapf: disable
 
         self.message = message
         self.message_timestamp = dateutil.parser.parse(message_timestamp)

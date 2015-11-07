@@ -96,8 +96,8 @@ class TestMissionConfigModel(TestCase):
 
         # Create UAS telemetry logs
         uas_logs = []
-        user = User.objects.create_user(
-            'testuser', 'testemail@x.com', 'testpass')
+        user = User.objects.create_user('testuser', 'testemail@x.com',
+                                        'testpass')
         for (lat, lon, alt) in uas_log_details:
             pos = GpsPosition()
             pos.latitude = lat

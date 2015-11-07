@@ -9,7 +9,6 @@ class Migration(migrations.Migration):
     dependencies = [('auvsi_suas', '0008_missionconfig_obstacles'), ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='missionconfig',
-            name='mission_waypoints_dist_max', ),
+        migrations.RemoveField(model_name='missionconfig',
+                               name='mission_waypoints_dist_max', ),
     ]

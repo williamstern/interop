@@ -17,14 +17,15 @@ def timing(rate):
     """
     next_time = time()
     while True:
-        next_time += 1.0/rate
-        delay = int((next_time-time())*1000)
+        next_time += 1.0 / rate
+        delay = int((next_time - time()) * 1000)
         if delay > 0:
             Script.Sleep(delay)
         yield
 
+
 while True:
     for _ in timing(rate=12):
-        server.telemetry(float(cs.lat), float(cs.lng), float(cs.alt), float(cs.groundcourse))
-
-
+        server.telemetry(
+            float(cs.lat), float(cs.lng), float(cs.alt),
+            float(cs.groundcourse))

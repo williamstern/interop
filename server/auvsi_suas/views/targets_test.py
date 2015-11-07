@@ -385,8 +385,9 @@ class TestTargetId(TestCase):
 
         data = {'description': 'Hello'}
 
-        response = self.client.put(targets_id_url(args=[t.pk]),
-                                   data=json.dumps(data))
+        response = self.client.put(
+            targets_id_url(args=[t.pk]),
+            data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -400,22 +401,22 @@ class TestTargetId(TestCase):
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
-        t = Target(
-            user=self.user,
-            target_type=TargetType.standard,
-            location=l,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
-            alphanumeric='ABC',
-            alphanumeric_color=Color.black,
-            description='Test target')
+        t = Target(user=self.user,
+                   target_type=TargetType.standard,
+                   location=l,
+                   orientation=Orientation.s,
+                   shape=Shape.square,
+                   background_color=Color.white,
+                   alphanumeric='ABC',
+                   alphanumeric_color=Color.black,
+                   description='Test target')
         t.save()
 
         data = {'shape': 'circle'}
 
-        response = self.client.put(targets_id_url(args=[t.pk]),
-                                   data=json.dumps(data))
+        response = self.client.put(
+            targets_id_url(args=[t.pk]),
+            data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -440,8 +441,9 @@ class TestTargetId(TestCase):
 
         data = {'shape': None}
 
-        response = self.client.put(targets_id_url(args=[t.pk]),
-                                   data=json.dumps(data))
+        response = self.client.put(
+            targets_id_url(args=[t.pk]),
+            data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -456,8 +458,9 @@ class TestTargetId(TestCase):
 
         data = {'type': None}
 
-        response = self.client.put(targets_id_url(args=[t.pk]),
-                                   data=json.dumps(data))
+        response = self.client.put(
+            targets_id_url(args=[t.pk]),
+            data=json.dumps(data))
         self.assertEqual(400, response.status_code)
 
     def test_put_location(self):
@@ -467,8 +470,9 @@ class TestTargetId(TestCase):
 
         data = {'latitude': 38, 'longitude': -76}
 
-        response = self.client.put(targets_id_url(args=[t.pk]),
-                                   data=json.dumps(data))
+        response = self.client.put(
+            targets_id_url(args=[t.pk]),
+            data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -482,8 +486,9 @@ class TestTargetId(TestCase):
 
         data = {'latitude': 38}
 
-        response = self.client.put(targets_id_url(args=[t.pk]),
-                                   data=json.dumps(data))
+        response = self.client.put(
+            targets_id_url(args=[t.pk]),
+            data=json.dumps(data))
         self.assertEqual(400, response.status_code)
 
     def test_put_update_location(self):
@@ -496,8 +501,9 @@ class TestTargetId(TestCase):
 
         data = {'latitude': 39}
 
-        response = self.client.put(targets_id_url(args=[t.pk]),
-                                   data=json.dumps(data))
+        response = self.client.put(
+            targets_id_url(args=[t.pk]),
+            data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -515,8 +521,9 @@ class TestTargetId(TestCase):
 
         data = {'latitude': None, 'longitude': None}
 
-        response = self.client.put(targets_id_url(args=[t.pk]),
-                                   data=json.dumps(data))
+        response = self.client.put(
+            targets_id_url(args=[t.pk]),
+            data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -532,8 +539,9 @@ class TestTargetId(TestCase):
 
         data = {'latitude': None}
 
-        response = self.client.put(targets_id_url(args=[t.pk]),
-                                   data=json.dumps(data))
+        response = self.client.put(
+            targets_id_url(args=[t.pk]),
+            data=json.dumps(data))
         self.assertEqual(400, response.status_code)
 
     def test_put_invalid_json(self):
@@ -544,9 +552,10 @@ class TestTargetId(TestCase):
         t = Target(user=self.user, target_type=TargetType.standard, location=l)
         t.save()
 
-        response = self.client.put(targets_id_url(args=[t.pk]),
-                                   data="latitude=76",
-                                   content_type='multipart/form-data')
+        response = self.client.put(
+            targets_id_url(args=[t.pk]),
+            data="latitude=76",
+            content_type='multipart/form-data')
         self.assertEqual(400, response.status_code)
 
     def test_delete_own(self):
@@ -646,7 +655,7 @@ class TestTargetIdImage(TestCase):
     def test_delete_no_image(self):
         """404 when DELETE image before upload."""
         response = self.client.delete(
-            targets_id_image_url(args=[self.target_id]))
+                targets_id_image_url(args=[self.target_id]))  # yapf: disable
         self.assertEqual(404, response.status_code)
 
     def test_get_other_user(self):
@@ -758,8 +767,8 @@ class TestTargetIdImage(TestCase):
         jpg_name = t.thumbnail.name
         self.assertTrue(os.path.exists(absolute_media_path(jpg_name)))
 
-        response = self.client.delete(
-            targets_id_image_url(args=[self.target_id]))
+        response = self.client.delete(targets_id_image_url(args=[self.target_id
+                                                                 ]))
         self.assertEqual(200, response.status_code)
 
         self.assertFalse(os.path.exists(absolute_media_path(jpg_name)))
@@ -768,8 +777,8 @@ class TestTargetIdImage(TestCase):
         """GET returns 404 after DELETE"""
         self.post_image('A.jpg')
 
-        response = self.client.delete(
-            targets_id_image_url(args=[self.target_id]))
+        response = self.client.delete(targets_id_image_url(args=[self.target_id
+                                                                 ]))
         self.assertEqual(200, response.status_code)
 
         response = self.client.get(targets_id_image_url(args=[self.target_id]))

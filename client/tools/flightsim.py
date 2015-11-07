@@ -53,9 +53,8 @@ class KmlGenerator(DataGenerator):
             # Apply motion
             self.pos.move(vec)
 
-        return (
-            self.pos.latitude, self.pos.longitude, self.pos.altitude,
-            self.pos.heading, )
+        return (self.pos.latitude, self.pos.longitude, self.pos.altitude,
+                self.pos.heading)
 
 
 def calc_new_heading(current, commanded, max_delta):
@@ -102,9 +101,9 @@ def _read_kml_flightpath(filename):
             if not correct_name:
                 continue
         for line_string in node.iter(
-            '{http://www.opengis.net/kml/2.2}LineString'):
+                '{http://www.opengis.net/kml/2.2}LineString'):
             for coordinates in line_string.iter(
-                '{http://www.opengis.net/kml/2.2}coordinates'):
+                    '{http://www.opengis.net/kml/2.2}coordinates'):
                 coords = coordinates.text.strip()
                 break
     if coords is None:
@@ -112,9 +111,13 @@ def _read_kml_flightpath(filename):
 
     # Coords is a space delimited string of comma delimited floats
     # i.e.  -76.42769387747484,38.14568798598072,0 -76.42978051879199,38.15063018032259,30 ...
-    coord_list = map(lambda pos_str: pos_str.split(','), coords.split(' '))  # Split into list of strings
-    coord_list = [map(float, x) for x in coord_list]  # Convert strings to floats
-    return [SpatialState(x[1], x[0], x[2]) for x in coord_list]  # Convert to list of tuples
+
+    # Split into list of strings
+    coord_list = map(lambda pos_str: pos_str.split(','), coords.split(' '))
+    # Convert strings to floats
+    coord_list = [map(float, x) for x in coord_list]
+    # Convert to list of tuples
+    return [SpatialState(x[1], x[0], x[2]) for x in coord_list]
 
 
 class SpatialState(object):
@@ -144,9 +147,8 @@ class SpatialState(object):
         :type waypoint: SpatialState
         """
         movevec = self._latlon - waypoint._latlon
-        return SpatialVector(
-            vector=movevec,
-            altitude=waypoint._alt - self._alt, )
+        return SpatialVector(vector=movevec,
+                             altitude=waypoint._alt - self._alt)
 
     def move(self, vec):
         """

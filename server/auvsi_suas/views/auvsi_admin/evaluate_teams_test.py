@@ -33,9 +33,8 @@ class TestEvaluateTeams(TestCase):
         client = self.client
         login_url = self.login_url
         eval_url = self.eval_url
-        client.post(login_url,
-                    {'username': 'testuser',
-                     'password': 'testpass'})
+        client.post(login_url, {'username': 'testuser',
+                                'password': 'testpass'})
         response = client.get(eval_url)
         self.assertEqual(403, response.status_code)
 
@@ -44,9 +43,8 @@ class TestEvaluateTeams(TestCase):
         client = self.client
         login_url = self.login_url
         eval_url = self.eval_url
-        client.post(login_url,
-                    {'username': 'testuser',
-                     'password': 'testpass'})
+        client.post(login_url, {'username': 'testuser',
+                                'password': 'testpass'})
 
         response = client.get(eval_url, {'mission': 100000})
         self.assertGreaterEqual(response.status_code, 400)
@@ -56,9 +54,8 @@ class TestEvaluateTeams(TestCase):
         client = self.client
         login_url = self.login_url
         eval_url = self.eval_url
-        client.post(login_url,
-                    {'username': 'testuser2',
-                     'password': 'testpass'})
+        client.post(login_url, {'username': 'testuser2',
+                                'password': 'testpass'})
         response = client.get(eval_url)
         self.assertEqual(response.status_code, 200)
         csv_data = response.content

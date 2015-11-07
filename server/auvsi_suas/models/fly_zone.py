@@ -62,9 +62,8 @@ class FlyZone(models.Model):
         for aerial_pos in aerial_pos_list:
             # Check altitude bounds
             alt = aerial_pos.altitude_msl
-            altitude_check = (
-                alt <= self.altitude_msl_max and alt >= self.altitude_msl_min
-            )
+            altitude_check = (alt <= self.altitude_msl_max and
+                              alt >= self.altitude_msl_min)
             results.append(altitude_check)
 
         # Create a list of positions to test whether inside polygon
@@ -78,8 +77,8 @@ class FlyZone(models.Model):
                                for cur_id in polygon_test_point_ids]
 
         # Test each point for inside polygon
-        polygon_test_results = path.contains_points(
-            np.array(polygon_test_points))
+        polygon_test_results = path.contains_points(np.array(
+            polygon_test_points))
         for test_id in range(len(polygon_test_point_ids)):
             cur_id = polygon_test_point_ids[test_id]
             results[cur_id] = (polygon_test_results[test_id] == True)
@@ -128,8 +127,8 @@ class FlyZone(models.Model):
             # simplification of time spent out of bounds.
             cur_log = uas_telemetry_logs[cur_id]
             prev_log = uas_telemetry_logs[cur_id - 1]
-            time_diff = (cur_log.timestamp - prev_log.timestamp
-                         ).total_seconds()
+            time_diff = (
+                cur_log.timestamp - prev_log.timestamp).total_seconds()
             total_time += time_diff
 
         return total_time

@@ -142,9 +142,8 @@ class UasTelemetry(AccessLog):
             for entry in flight_logs:
                 pos = entry.uas_position.gps_position
                 # Spatial Coordinates
-                coord = (
-                    pos.longitude, pos.latitude,
-                    entry.uas_position.altitude_msl, )
+                coord = (pos.longitude, pos.latitude,
+                         entry.uas_position.altitude_msl)
                 coords.append(coord)
 
                 # Time Elements
@@ -188,9 +187,8 @@ class UasTelemetry(AccessLog):
             for entry in period_logs:
                 pos = entry.uas_position.gps_position
                 # Spatial Coordinates
-                coord = (
-                    pos.longitude, pos.latitude,
-                    entry.uas_position.altitude_msl, )
+                coord = (pos.longitude, pos.latitude,
+                         entry.uas_position.altitude_msl)
                 coords.append(coord)
             linestring.coords = coords
             linestring.altitudemode = AltitudeMode.absolute

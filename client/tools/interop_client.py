@@ -47,8 +47,8 @@ def run(interop_client, data_generator, interop_time, username, password):
         interop_client.queue_request(request)
         request = interop_comms.ObstaclesRequest()
         interop_client.queue_request(request)
-        request = interop_comms.UasTelemetryRequest(
-            latitude, longitude, altitude_msl, uas_heading)
+        request = interop_comms.UasTelemetryRequest(latitude, longitude,
+                                                    altitude_msl, uas_heading)
         interop_client.queue_request(request)
         # Delay for interop timing
         end_time = datetime.datetime.now()

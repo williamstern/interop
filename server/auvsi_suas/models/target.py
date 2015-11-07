@@ -163,19 +163,19 @@ class Target(models.Model):
         """Descriptive text for use in displays."""
         d = self.json()
 
-        return unicode(
-            "{name}(pk={id}, user={user}, "
-            "target_type={type}, "
-            "latitude={latitude}, "
-            "longitude={longitude}, "
-            "orientation={orientation}, shape={shape} "
-            "background_color={background_color}, "
-            "alphanumeric='{alphanumeric}', "
-            "alphanumeric_color={alphanumeric_color}, "
-            "description='{description}', "
-            "thumbnail='{thumbnail}')".format(
-                name=self.__class__.__name__,
-                thumbnail=self.thumbnail, **d))
+        return unicode("{name}(pk={id}, user={user}, "
+                       "target_type={type}, "
+                       "latitude={latitude}, "
+                       "longitude={longitude}, "
+                       "orientation={orientation}, shape={shape} "
+                       "background_color={background_color}, "
+                       "alphanumeric='{alphanumeric}', "
+                       "alphanumeric_color={alphanumeric_color}, "
+                       "description='{description}', "
+                       "thumbnail='{thumbnail}')".format(
+                           name=self.__class__.__name__,
+                           thumbnail=self.thumbnail,
+                           **d))
 
     def json(self):
         """Target as dict, for JSON."""
