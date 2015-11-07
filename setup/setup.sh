@@ -41,8 +41,11 @@ sudo ln -snf ${REPO} /interop
 # Update the package list
 log "Updating package list and upgrading packages..."
 sudo apt-get -y update
-# Upgrade old packages
-sudo apt-get -y upgrade
+if [[ ! -v TRAVIS ]]; then
+    # Upgrade old packages
+    # Travis CI recommends againsts apt-get upgrade for speed.
+    sudo apt-get -y upgrade
+fi
 
 # Install Puppet
 log "Installing Puppet and modules..."
