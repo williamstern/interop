@@ -56,8 +56,6 @@ class TestServerInfoView(TestCase):
         self.mission.emergent_last_known_pos = gpos
         self.mission.off_axis_target_pos = gpos
         self.mission.sric_pos = gpos
-        self.mission.ir_primary_target_pos = gpos
-        self.mission.ir_secondary_target_pos = gpos
         self.mission.air_drop_pos = gpos
         self.mission.server_info = self.info
         self.mission.save()

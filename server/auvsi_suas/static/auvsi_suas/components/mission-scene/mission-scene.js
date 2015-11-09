@@ -272,7 +272,6 @@ MissionScene.prototype.addMissionSceneElements_ = function(mission, scene) {
     // Add mission components to scene.
     var missionComponents = [
         mission.air_drop_pos, mission.emergent_last_known_pos,
-        mission.ir_primary_target_pos, mission.ir_secondary_target_pos,
         mission.off_axis_target_pos, mission.sric_pos];
     for (var i = 0; i < missionComponents.length; i++) {
         var component = missionComponents[i];
