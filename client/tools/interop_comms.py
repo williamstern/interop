@@ -63,14 +63,14 @@ class InteropRequest(object):
             status: The status code of the response.
             data: The data of the response.
         """
-        queue_time = (self.queue_end_time - self.queue_start_time
-                      ).total_seconds()
-        request_time = (self.request_end_time - self.request_start_time
-                        ).total_seconds()
-        logging.info(
-            'Url: %s. Method: %s. Params: %s. Status: %s. Data: %s. '
-            'Queue Time: %s. Request Time: %s.', self.url, self.method,
-            str(self.params), status, data, queue_time, request_time)
+        queue_time = (
+            self.queue_end_time - self.queue_start_time).total_seconds()
+        request_time = (
+            self.request_end_time - self.request_start_time).total_seconds()
+        logging.info('Url: %s. Method: %s. Params: %s. Status: %s. Data: %s. '
+                     'Queue Time: %s. Request Time: %s.', self.url,
+                     self.method, str(self.params), status, data, queue_time,
+                     request_time)
 
 
 class LoginRequest(InteropRequest):
@@ -91,8 +91,8 @@ class LoginRequest(InteropRequest):
 
     def handle_response(self, client, response, status, data):
         """Overrides base method."""
-        super(LoginRequest, self).handle_response(
-            client, response, status, data)
+        super(LoginRequest, self).handle_response(client, response, status,
+                                                  data)
         client.cookies = response.getheader('Set-Cookie')
 
 
@@ -196,9 +196,9 @@ class InteroperabilityClient(threading.Thread):
                 self.conn.request(cur_request.method, url, headers=headers)
             else:
                 headers['Content-type'] = 'application/x-www-form-urlencoded'
-                self.conn.request(
-                    cur_request.method, cur_request.url,
-                    urllib.urlencode(cur_request.params), headers)
+                self.conn.request(cur_request.method, cur_request.url,
+                                  urllib.urlencode(cur_request.params),
+                                  headers)
             cur_request.request_started()
             # Get response
             response = self.conn.getresponse()

@@ -9,4 +9,9 @@ install:
   - ./setup/setup.sh
 
 script:
+  # Test server, client, and frontend
   - ./test.sh
+  # Verify that docs build
+  - ./tools/build_docs.sh
+  # Check formatting
+  - ./tools/format.sh --all

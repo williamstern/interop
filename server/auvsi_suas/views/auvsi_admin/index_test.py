@@ -12,8 +12,8 @@ class TestIndex(TestCase):
 
     def setUp(self):
         # Create nonadmin user
-        self.user = User.objects.create_user(
-            'testuser', 'testemail@x.com', 'testpass')
+        self.user = User.objects.create_user('testuser', 'testemail@x.com',
+                                             'testpass')
         self.user.save()
         # Create admin user
         self.superuser = User.objects.create_superuser(

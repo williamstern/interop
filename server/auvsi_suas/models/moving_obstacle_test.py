@@ -183,21 +183,21 @@ class TestMovingObstacle(TestCase):
         self.assertIsNone(obstacle.get_waypoint_travel_time(None, 1, 1))
         self.assertIsNone(obstacle.get_waypoint_travel_time([], 1, 1))
         self.assertIsNone(obstacle.get_waypoint_travel_time([None], 1, 1))
-        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], None,
-                                                            1))
-        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], 1,
-                                                            None))
-        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], -1,
-                                                            0))
-        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], 0,
-                                                            -1))
-        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], 2,
-                                                            0))
-        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], 0,
-                                                            2))
+        self.assertIsNone(obstacle.get_waypoint_travel_time(
+            [None, None], None, 1))
+        self.assertIsNone(obstacle.get_waypoint_travel_time(
+            [None, None], 1, None))
+        self.assertIsNone(obstacle.get_waypoint_travel_time(
+            [None, None], -1, 0))
+        self.assertIsNone(obstacle.get_waypoint_travel_time(
+            [None, None], 0, -1))
+        self.assertIsNone(obstacle.get_waypoint_travel_time(
+            [None, None], 2, 0))
+        self.assertIsNone(obstacle.get_waypoint_travel_time(
+            [None, None], 0, 2))
         obstacle.speed_avg = 0
-        self.assertIsNone(obstacle.get_waypoint_travel_time([None, None], 0,
-                                                            1))
+        self.assertIsNone(obstacle.get_waypoint_travel_time(
+            [None, None], 0, 1))
 
     def eval_travel_time(self, time_actual, time_received):
         """Evaluates whether the travel times are close enough."""
@@ -357,10 +357,11 @@ class TestMovingObstacle(TestCase):
                 apos = AerialPosition()
                 apos.gps_position = gpos
                 apos.altitude_msl = alt
-                self.assertEqual(obst.contains_pos(
-                    TESTDATA_MOVOBST_CONTAINSPOS_OBJ[0],
-                    TESTDATA_MOVOBST_CONTAINSPOS_OBJ[1],
-                    TESTDATA_MOVOBST_CONTAINSPOS_OBJ[3], apos), cur_contains)
+                self.assertEqual(
+                    obst.contains_pos(TESTDATA_MOVOBST_CONTAINSPOS_OBJ[0],
+                                      TESTDATA_MOVOBST_CONTAINSPOS_OBJ[1],
+                                      TESTDATA_MOVOBST_CONTAINSPOS_OBJ[3],
+                                      apos), cur_contains)
 
     def test_evaluate_collision_with_uas(self):
         """Tests the collision with UAS method."""
@@ -428,8 +429,8 @@ class TestMovingObstacle(TestCase):
         for (inside, logs) in log_collisions:
             self.assertEqual(obst.evaluate_collision_with_uas(logs), inside)
             for log in logs:
-                self.assertEqual(obst.evaluate_collision_with_uas([log]),
-                                 inside)
+                self.assertEqual(
+                    obst.evaluate_collision_with_uas([log]), inside)
 
     def test_json(self):
         """Tests the JSON serialization method."""
@@ -492,10 +493,9 @@ class TestMovingObstacle(TestCase):
         for cur_obst in self.obstacles:
             kml = Kml()
             kml_mission = kml.newfolder(name='SubFolder')
-            cur_obst.kml(
-                path=UasTelemetry.by_user(user),
-                kml=kml_mission,
-                kml_doc=kml.document, )
+            cur_obst.kml(path=UasTelemetry.by_user(user),
+                         kml=kml_mission,
+                         kml_doc=kml.document)
             result_kml = kml.kml()
             self.assertEqual(samples_expected, result_kml.count('<gx:value>'))
             self.assertIn(array_field_tag, result_kml)

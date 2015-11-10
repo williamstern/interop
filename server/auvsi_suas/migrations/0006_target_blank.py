@@ -9,11 +9,10 @@ class Migration(migrations.Migration):
     dependencies = [('auvsi_suas', '0005_target'), ]
 
     operations = [
-        migrations.AlterField(
-            model_name='target',
-            name='alphanumeric',
-            field=models.TextField(default=b'',
-                                   blank=True), ),
+        migrations.AlterField(model_name='target',
+                              name='alphanumeric',
+                              field=models.TextField(default=b'',
+                                                     blank=True), ),
         migrations.AlterField(
             model_name='target',
             name='alphanumeric_color',
@@ -21,8 +20,8 @@ class Migration(migrations.Migration):
                 blank=True,
                 null=True,
                 choices=[(1, b'white'), (2, b'black'), (3, b'gray'), (
-                    4, b'red'), (5, b'blue'), (6, b'green'), (7, b'yellow'),
-                         (8, b'purple'), (9, b'brown'), (10, b'orange')]), ),
+                    4, b'red'), (5, b'blue'), (6, b'green'), (7, b'yellow'), (
+                        8, b'purple'), (9, b'brown'), (10, b'orange')]), ),
         migrations.AlterField(
             model_name='target',
             name='background_color',
@@ -30,13 +29,12 @@ class Migration(migrations.Migration):
                 blank=True,
                 null=True,
                 choices=[(1, b'white'), (2, b'black'), (3, b'gray'), (
-                    4, b'red'), (5, b'blue'), (6, b'green'), (7, b'yellow'),
-                         (8, b'purple'), (9, b'brown'), (10, b'orange')]), ),
-        migrations.AlterField(
-            model_name='target',
-            name='description',
-            field=models.TextField(default=b'',
-                                   blank=True), ),
+                    4, b'red'), (5, b'blue'), (6, b'green'), (7, b'yellow'), (
+                        8, b'purple'), (9, b'brown'), (10, b'orange')]), ),
+        migrations.AlterField(model_name='target',
+                              name='description',
+                              field=models.TextField(default=b'',
+                                                     blank=True), ),
         migrations.AlterField(
             model_name='target',
             name='location',
@@ -49,8 +47,8 @@ class Migration(migrations.Migration):
             field=models.IntegerField(
                 blank=True,
                 null=True,
-                choices=[(1, b'n'), (2, b'ne'), (3, b'e'), (4, b'se'),
-                         (5, b's'), (6, b'sw'), (7, b'w'), (8, b'nw')]), ),
+                choices=[(1, b'n'), (2, b'ne'), (3, b'e'), (4, b'se'), (
+                    5, b's'), (6, b'sw'), (7, b'w'), (8, b'nw')]), ),
         migrations.AlterField(
             model_name='target',
             name='shape',

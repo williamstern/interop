@@ -259,14 +259,13 @@ class TestFlyZone(TestCase):
 
         # For each user, validate time out of bounds
         user_id = 0
-        epoch = timezone.now().replace(
-            year=1970,
-            month=1,
-            day=1,
-            hour=0,
-            minute=0,
-            second=0,
-            microsecond=0)
+        epoch = timezone.now().replace(year=1970,
+                                       month=1,
+                                       day=1,
+                                       hour=0,
+                                       minute=0,
+                                       second=0,
+                                       microsecond=0)
         for exp_out_of_bounds_time, uas_log_details in uas_details:
             # Create the logs
             user = User.objects.create_user('testuser%d' % user_id,

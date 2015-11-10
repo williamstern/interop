@@ -31,17 +31,16 @@ class TestTarget(TestCase):
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
-        t = Target(
-            user=self.user,
-            target_type=TargetType.standard,
-            location=l,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
-            alphanumeric='ABC',
-            alphanumeric_color=Color.black,
-            description='Test target',
-            thumbnail=thumb)
+        t = Target(user=self.user,
+                   target_type=TargetType.standard,
+                   location=l,
+                   orientation=Orientation.s,
+                   shape=Shape.square,
+                   background_color=Color.white,
+                   alphanumeric='ABC',
+                   alphanumeric_color=Color.black,
+                   description='Test target',
+                   thumbnail=thumb)
         t.save()
 
     def test_unicode(self):
@@ -53,17 +52,16 @@ class TestTarget(TestCase):
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
-        t = Target(
-            user=self.user,
-            target_type=TargetType.standard,
-            location=l,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
-            alphanumeric='ABC',
-            alphanumeric_color=Color.black,
-            description='Test target',
-            thumbnail=thumb)
+        t = Target(user=self.user,
+                   target_type=TargetType.standard,
+                   location=l,
+                   orientation=Orientation.s,
+                   shape=Shape.square,
+                   background_color=Color.white,
+                   alphanumeric='ABC',
+                   alphanumeric_color=Color.black,
+                   description='Test target',
+                   thumbnail=thumb)
         t.save()
 
         self.assertTrue(t.__unicode__())
@@ -85,16 +83,15 @@ class TestTarget(TestCase):
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
-        t = Target(
-            user=self.user,
-            target_type=TargetType.standard,
-            location=l,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
-            alphanumeric='ABC',
-            alphanumeric_color=Color.black,
-            description='Test target')
+        t = Target(user=self.user,
+                   target_type=TargetType.standard,
+                   location=l,
+                   orientation=Orientation.s,
+                   shape=Shape.square,
+                   background_color=Color.white,
+                   alphanumeric='ABC',
+                   alphanumeric_color=Color.black,
+                   description='Test target')
         t.save()
 
         d = t.json()

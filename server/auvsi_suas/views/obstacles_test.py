@@ -84,8 +84,8 @@ class TestObstaclesViewCommon(TestCase):
         return obstacle
 
     def setUp(self):
-        self.user = User.objects.create_user(
-            'testuser', 'email@example.com', 'testpass')
+        self.user = User.objects.create_user('testuser', 'email@example.com',
+                                             'testpass')
         self.user.save()
 
         # Create an active mission.
@@ -228,8 +228,8 @@ class TestObstaclesView(TestObstaclesViewCommon):
         op_rate = total_ops / total_t
 
         print 'Obstacle Info Rate (%f)' % op_rate
-        self.assertGreaterEqual(
-            op_rate, settings.TEST_LOADTEST_INTEROP_MIN_RATE)
+        self.assertGreaterEqual(op_rate,
+                                settings.TEST_LOADTEST_INTEROP_MIN_RATE)
 
 
 class TestObstaclesViewSuperuser(TestObstaclesViewCommon):

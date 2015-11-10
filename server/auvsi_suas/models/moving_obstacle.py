@@ -78,8 +78,8 @@ class MovingObstacle(models.Model):
             # Current intra waypoint travel time
             id_tm1 = (waypoint_id - 1) % num_waypoints
             id_t = waypoint_id % num_waypoints
-            cur_travel_time = self.get_waypoint_travel_time(
-                waypoints, id_tm1, id_t)
+            cur_travel_time = self.get_waypoint_travel_time(waypoints, id_tm1,
+                                                            id_t)
             travel_times[waypoint_id] = cur_travel_time
 
         return travel_times
@@ -159,7 +159,8 @@ class MovingObstacle(models.Model):
             # Load waypoints for obstacle, filter for consecutive duplicates
             all_wpts = self.waypoints.order_by('order')
             waypoints = [
-                all_wpts[i] for i in range(len(all_wpts))
+                all_wpts[i]
+                for i in range(len(all_wpts))
                 if i == 0 or all_wpts[i].distance_to(all_wpts[i - 1]) != 0
             ]
             self.preprocessed_waypoints = waypoints
@@ -321,10 +322,9 @@ class MovingObstacle(models.Model):
             while uav_path[path_index + 1].timestamp <= curr:
                 path_index += 1
 
-            uav = (
-                uav_path[path_index].uas_position.gps_position.latitude,
-                uav_path[path_index].uas_position.gps_position.longitude,
-                uav_path[path_index].uas_position.altitude_msl, )
+            uav = (uav_path[path_index].uas_position.gps_position.latitude,
+                   uav_path[path_index].uas_position.gps_position.longitude,
+                   uav_path[path_index].uas_position.altitude_msl)
             yield self.get_position(curr), uav, curr
             curr += delta
 

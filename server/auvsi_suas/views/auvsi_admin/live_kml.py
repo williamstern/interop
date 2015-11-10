@@ -48,8 +48,7 @@ class LiveKml(View):
 
         response = HttpResponse(kml.kml())
         response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
-        response['Content-Disposition'
-                 ] = 'attachment; filename=%s.kml' % 'live'
+        response['Content-Disposition'] = 'attachment; filename=live.kml'
         response['Content-Length'] = str(len(response.content))
         return response
 
@@ -91,7 +90,6 @@ class LiveKmlUpdate(View):
 
         response = HttpResponse(kml.kml())
         response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
-        response['Content-Disposition'
-                 ] = 'attachment; filename=%s.kml' % 'update'
+        response['Content-Disposition'] = 'attachment; filename=update.kml'
         response['Content-Length'] = str(len(response.content))
         return response

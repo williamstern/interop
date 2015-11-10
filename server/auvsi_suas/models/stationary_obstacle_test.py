@@ -112,11 +112,11 @@ class TestStationaryObstacleModel(TestCase):
         # Assert collisions correctly evaluated
         collisions = [(inside_logs, True), (outside_logs, False)]
         for (log_list, inside) in collisions:
-            self.assertEqual(obst.evaluate_collision_with_uas(log_list),
-                             inside)
+            self.assertEqual(
+                obst.evaluate_collision_with_uas(log_list), inside)
             for log in log_list:
-                self.assertEqual(obst.evaluate_collision_with_uas([log]),
-                                 inside)
+                self.assertEqual(
+                    obst.evaluate_collision_with_uas([log]), inside)
 
     def test_json(self):
         """Tests the JSON serialization method."""

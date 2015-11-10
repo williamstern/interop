@@ -184,8 +184,9 @@ class TestTeamsIdView(TestCase):
 
     def test_bad_json(self):
         """Invalid json rejected"""
-        response = self.client.put(teams_id_url(args=[self.user1.pk]),
-                                   'Hi there!')
+        response = self.client.put(
+            teams_id_url(args=[self.user1.pk]),
+            'Hi there!')
         self.assertGreaterEqual(400, response.status_code)
 
     def test_invalid_in_air(self):

@@ -35,9 +35,9 @@ TeamData = collections.namedtuple(
 
 def create_teams_data(teams_filepath, competition_data):
     """Creates user accounts and prints Latex for a PDF."""
-    teams = get_team_info(
-        teams_filepath, competition_data.team_static_range_min,
-        competition_data.team_static_range_max)
+    teams = get_team_info(teams_filepath,
+                          competition_data.team_static_range_min,
+                          competition_data.team_static_range_max)
     create_team_accounts(teams)
     print_latex_header()
     print_competition_data_latex(competition_data)
@@ -71,9 +71,8 @@ def get_team_info(teams_filepath, static_min, static_max):
 def create_team_accounts(teams):
     """Creates team accounts."""
     for team in teams:
-        get_user_model().objects.create_user(
-            username=team.username,
-            password=team.password)
+        get_user_model().objects.create_user(username=team.username,
+                                             password=team.password)
 
 
 def print_latex_header():
@@ -92,9 +91,8 @@ def print_competition_data_latex(data):
 def print_team_datas_latex(teams):
     """Prints the team data."""
     for team in teams:
-        print('\\team{%s}{%s}{%s}{%s}' % (
-            team.name, team.username, team.password, team.static_ip
-        ))
+        print('\\team{%s}{%s}{%s}{%s}' % (team.name, team.username,
+                                          team.password, team.static_ip))
 
 
 def print_latex_footer():
@@ -158,7 +156,7 @@ def main():
         print 'Invalid interop server details.'
         return
     if (not team_dhcp_range_min or not team_dhcp_range_max or
-        not team_static_range_min or not team_static_range_max):
+            not team_static_range_min or not team_static_range_max):
         print 'Invalid router details.'
         return
 

@@ -136,8 +136,8 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
             TimePeriod(self.year2003, self.year2004),
         ])
 
-        self.assertSequenceEqual([self.year2000_logs, self.year2003_logs],
-                                 self.to_lists(results))
+        self.assertSequenceEqual(
+            [self.year2000_logs, self.year2003_logs], self.to_lists(results))
 
     def test_non_intersecting_period(self):
         """No logs matched."""
@@ -154,8 +154,8 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
             TimePeriod(self.year2003, self.year2004),
         ])
 
-        self.assertSequenceEqual([[], self.year2003_logs],
-                                 self.to_lists(results))
+        self.assertSequenceEqual(
+            [[], self.year2003_logs], self.to_lists(results))
 
     def test_open_start(self):
         """Logs (-inf, 2001)"""
@@ -203,7 +203,8 @@ class TestAccessLogRates(TestAccessLogCommon):
         unused_logs = self.create_logs(self.user1, delta=delta)
         period = self.consistent_period(used_logs, delta)
 
-        rates = AccessLog.rates(self.user1, [period],
+        rates = AccessLog.rates(self.user1,
+                                [period],
                                 time_period_logs=[used_logs])
 
         self.assertSequenceEqual((1, 1), rates)

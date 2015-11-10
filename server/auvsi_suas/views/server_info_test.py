@@ -102,5 +102,5 @@ class TestServerInfoView(TestCase):
         op_rate = total_ops / total_t
 
         print 'Server Info Rate (%f)' % op_rate
-        self.assertGreaterEqual(
-            op_rate, settings.TEST_LOADTEST_INTEROP_MIN_RATE)
+        self.assertGreaterEqual(op_rate,
+                                settings.TEST_LOADTEST_INTEROP_MIN_RATE)

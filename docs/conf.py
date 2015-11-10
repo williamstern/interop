@@ -103,7 +103,6 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
-
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -137,7 +136,7 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = ['_static']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -205,25 +204,26 @@ htmlhelp_basename = 'AUVSISUASInteroperabilitydoc'
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+    # The paper size ('letterpaper' or 'a4paper').
+    #'papersize': 'letterpaper',
 
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+    # The font size ('10pt', '11pt' or '12pt').
+    #'pointsize': '10pt',
 
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
+    # Additional stuff for the LaTeX preamble.
+    #'preamble': '',
 
-# Latex figure (float) alignment
-#'figure_align': 'htbp',
+    # Latex figure (float) alignment
+    #'figure_align': 'htbp',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'AUVSISUASInteroperability.tex', u'AUVSI SUAS Interoperability Documentation',
-   u'AUVSI Seafarer Chapter', 'manual'),
+    (master_doc, 'AUVSISUASInteroperability.tex',
+     u'AUVSI SUAS Interoperability Documentation', u'AUVSI Seafarer Chapter',
+     'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -246,19 +246,17 @@ latex_documents = [
 # If false, no module index is generated.
 #latex_domain_indices = True
 
-
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'auvsisuasinteroperability', u'AUVSI SUAS Interoperability Documentation',
-     [author], 1)
+    (master_doc, 'auvsisuasinteroperability',
+     u'AUVSI SUAS Interoperability Documentation', [author], 1)
 ]
 
 # If true, show URL addresses after external links.
 #man_show_urls = False
-
 
 # -- Options for Texinfo output -------------------------------------------
 
@@ -266,9 +264,10 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'AUVSISUASInteroperability', u'AUVSI SUAS Interoperability Documentation',
-   author, 'AUVSISUASInteroperability', 'One line description of project.',
-   'Miscellaneous'),
+    (master_doc, 'AUVSISUASInteroperability',
+     u'AUVSI SUAS Interoperability Documentation', author,
+     'AUVSISUASInteroperability', 'One line description of project.',
+     'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.

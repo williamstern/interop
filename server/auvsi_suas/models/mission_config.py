@@ -74,31 +74,31 @@ class MissionConfig(models.Model):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        mission_waypoints_str = ', '.join(
-            ['%s' % wpt.__unicode__() for wpt in self.mission_waypoints.all()])
-        search_grid_str = ', '.join(
-            ['%s' % wpt.__unicode__()
-             for wpt in self.search_grid_points.all()])
-        stationary_obstacles_str = ', '.join(
-            ['%s' % obst.__unicode__()
-             for obst in self.stationary_obstacles.all()])
-        moving_obstacles_str = ', '.join(
-            ['%s' % obst.__unicode__()
-             for obst in self.moving_obstacles.all()])
+        mission_waypoints = ['%s' % wpt.__unicode__()
+                             for wpt in self.mission_waypoints.all()]
+
+        search_grid = ['%s' % wpt.__unicode__()
+                       for wpt in self.search_grid_points.all()]
+
+        stationary_obstacles = ['%s' % obst.__unicode__()
+                                for obst in self.stationary_obstacles.all()]
+
+        moving_obstacles = ['%s' % obst.__unicode__()
+                            for obst in self.moving_obstacles.all()]
 
         return unicode(
             'MissionConfig (pk:%s, is_active: %s, home_pos:%s, '
-            'mission_waypoints:[%s], search_grid:[%s], '
+            'mission_waypoints:%s, search_grid:%s, '
             'emergent_lkp:%s, off_axis:%s, '
             'sric_pos:%s, air_drop_pos:%s, server_info:%s, '
             'stationary_obstacles:%s, moving_obstacles:%s)' %
             (str(self.pk), str(self.is_active), self.home_pos.__unicode__(),
-             mission_waypoints_str, search_grid_str,
+             mission_waypoints, search_grid,
              self.emergent_last_known_pos.__unicode__(),
              self.off_axis_target_pos.__unicode__(),
-             self.sric_pos.__unicode__(),
-             self.air_drop_pos.__unicode__(), self.server_info.__unicode__(),
-             stationary_obstacles_str, moving_obstacles_str))
+             self.sric_pos.__unicode__(), self.air_drop_pos.__unicode__(),
+             self.server_info.__unicode__(), stationary_obstacles,
+             moving_obstacles))
 
     def satisfied_waypoints(self, uas_telemetry_logs):
         """Determines whether the UAS satisfied the waypoints.
@@ -164,8 +164,8 @@ class MissionConfig(models.Model):
 
             # Find the user's flights.
             flight_periods = TakeoffOrLandingEvent.flights(user)
-            uas_period_logs = UasTelemetry.dedupe(
-                UasTelemetry.by_time_period(user, flight_periods))
+            uas_period_logs = UasTelemetry.dedupe(UasTelemetry.by_time_period(
+                user, flight_periods))
             uas_logs = list(itertools.chain.from_iterable(uas_period_logs))
 
             # Determine if the uas hit the waypoints.
@@ -191,7 +191,8 @@ class MissionConfig(models.Model):
             server_info_times = ServerInfoAccessLog.rates(user, flight_periods)
             obstacle_times = ObstacleAccessLog.rates(user, flight_periods)
             uas_telemetry_times = UasTelemetry.rates(
-                user, flight_periods,
+                user,
+                flight_periods,
                 time_period_logs=uas_period_logs)
 
             interop_times['server_info'] = {
@@ -214,8 +215,8 @@ class MissionConfig(models.Model):
                 collision = obst.evaluate_collision_with_uas(uas_logs)
                 stationary_collisions[obst.pk] = collision
 
-            moving_collisions = eval_data.setdefault(
-                'moving_obst_collision', {})
+            moving_collisions = eval_data.setdefault('moving_obst_collision',
+                                                     {})
             for obst in self.moving_obstacles.all():
                 collision = obst.evaluate_collision_with_uas(uas_logs)
                 moving_collisions[obst.pk] = collision
