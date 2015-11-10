@@ -32,9 +32,7 @@ class AerialPositionModelAdmin(LargeDataModelAdmin):
 @admin.register(MissionConfig)
 class MissionConfigModelAdmin(admin.ModelAdmin):
     raw_id_fields = ("home_pos", "emergent_last_known_pos",
-                     "off_axis_target_pos", "sric_pos",
-                     "ir_primary_target_pos", "ir_secondary_target_pos",
-                     "air_drop_pos")
+                     "off_axis_target_pos", "sric_pos", "air_drop_pos")
 
 
 @admin.register(StationaryObstacle)

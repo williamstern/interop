@@ -49,8 +49,6 @@ class TestMissionConfigModel(TestCase):
         config.emergent_last_known_pos = pos
         config.off_axis_target_pos = pos
         config.sric_pos = pos
-        config.ir_primary_target_pos = pos
-        config.ir_secondary_target_pos = pos
         config.air_drop_pos = pos
         config.server_info = self.info
         config.save()
@@ -74,8 +72,6 @@ class TestMissionConfigModel(TestCase):
         config.emergent_last_known_pos = gpos
         config.off_axis_target_pos = gpos
         config.sric_pos = gpos
-        config.ir_primary_target_pos = gpos
-        config.ir_secondary_target_pos = gpos
         config.air_drop_pos = gpos
         config.server_info = self.info
         config.save()
@@ -302,18 +298,6 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertEqual(10.0, data['sric_pos']['latitude'])
         self.assertEqual(100.0, data['sric_pos']['longitude'])
 
-        self.assertIn('ir_primary_target_pos', data)
-        self.assertIn('latitude', data['ir_primary_target_pos'])
-        self.assertIn('longitude', data['ir_primary_target_pos'])
-        self.assertEqual(10.0, data['ir_primary_target_pos']['latitude'])
-        self.assertEqual(100.0, data['ir_primary_target_pos']['longitude'])
-
-        self.assertIn('ir_secondary_target_pos', data)
-        self.assertIn('latitude', data['ir_secondary_target_pos'])
-        self.assertIn('longitude', data['ir_secondary_target_pos'])
-        self.assertEqual(10.0, data['ir_secondary_target_pos']['latitude'])
-        self.assertEqual(100.0, data['ir_secondary_target_pos']['longitude'])
-
         self.assertIn('air_drop_pos', data)
         self.assertIn('latitude', data['air_drop_pos'])
         self.assertIn('longitude', data['air_drop_pos'])
@@ -353,10 +337,8 @@ class TestMissionConfigModelSampleMission(TestCase):
         data = kml.kml()
         names = [
             'Off Axis',
-            'IR Secondary',
             'SRIC',
             'Home Position',
-            'IR Primary',
             'Air Drop',
             'Emergent LKP',
             'Search Area',

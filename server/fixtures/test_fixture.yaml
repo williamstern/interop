@@ -82,8 +82,6 @@
     air_drop_pos: 4
     emergent_last_known_pos: 2
     home_pos: 1
-    ir_primary_target_pos: 5
-    ir_secondary_target_pos: 3
     is_active: true
     mission_waypoints: [1]
     off_axis_target_pos: 3

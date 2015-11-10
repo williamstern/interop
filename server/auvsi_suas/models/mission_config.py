@@ -59,16 +59,6 @@ class MissionConfig(models.Model):
     sric_pos = models.ForeignKey(GpsPosition,
                                  related_name='missionconfig_sric_pos')
 
-    # The IR primary target position
-    ir_primary_target_pos = models.ForeignKey(
-        GpsPosition,
-        related_name='missionconfig_ir_primary_target_pos')
-
-    # The IR secondary target position
-    ir_secondary_target_pos = models.ForeignKey(
-        GpsPosition,
-        related_name='missionconfig_ir_secondary_target_pos')
-
     # The air drop position
     air_drop_pos = models.ForeignKey(GpsPosition,
                                      related_name='missionconfig_air_drop_pos')
@@ -100,16 +90,13 @@ class MissionConfig(models.Model):
             'MissionConfig (pk:%s, is_active: %s, home_pos:%s, '
             'mission_waypoints:[%s], search_grid:[%s], '
             'emergent_lkp:%s, off_axis:%s, '
-            'sric_pos:%s, ir_primary_pos:%s, ir_secondary_pos:%s, '
-            'air_drop_pos:%s, server_info:%s, stationary_obstacles:%s, '
-            'moving_obstacles:%s)' %
+            'sric_pos:%s, air_drop_pos:%s, server_info:%s, '
+            'stationary_obstacles:%s, moving_obstacles:%s)' %
             (str(self.pk), str(self.is_active), self.home_pos.__unicode__(),
              mission_waypoints_str, search_grid_str,
              self.emergent_last_known_pos.__unicode__(),
              self.off_axis_target_pos.__unicode__(),
              self.sric_pos.__unicode__(),
-             self.ir_primary_target_pos.__unicode__(),
-             self.ir_secondary_target_pos.__unicode__(),
              self.air_drop_pos.__unicode__(), self.server_info.__unicode__(),
              stationary_obstacles_str, moving_obstacles_str))
 
@@ -259,14 +246,6 @@ class MissionConfig(models.Model):
                 'latitude': self.sric_pos.latitude,
                 'longitude': self.sric_pos.longitude,
             },
-            'ir_primary_target_pos': {
-                'latitude': self.ir_primary_target_pos.latitude,
-                'longitude': self.ir_primary_target_pos.longitude,
-            },
-            'ir_secondary_target_pos': {
-                'latitude': self.ir_secondary_target_pos.latitude,
-                'longitude': self.ir_secondary_target_pos.longitude,
-            },
             'air_drop_pos': {
                 'latitude': self.air_drop_pos.latitude,
                 'longitude': self.air_drop_pos.longitude,
@@ -352,8 +331,6 @@ class MissionConfig(models.Model):
             'Emergent LKP': self.emergent_last_known_pos,
             'Off Axis': self.off_axis_target_pos,
             'SRIC': self.sric_pos,
-            'IR Primary': self.ir_primary_target_pos,
-            'IR Secondary': self.ir_secondary_target_pos,
             'Air Drop': self.air_drop_pos,
         }
         for key, point in locations.iteritems():

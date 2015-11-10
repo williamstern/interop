@@ -46,8 +46,6 @@ class TestMissionForRequest(TestCase):
         config.emergent_last_known_pos = pos
         config.off_axis_target_pos = pos
         config.sric_pos = pos
-        config.ir_primary_target_pos = pos
-        config.ir_secondary_target_pos = pos
         config.air_drop_pos = pos
         config.server_info = info
         return config
@@ -248,19 +246,6 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertIn('longitude', data[0]['sric_pos'])
         self.assertEqual(10.0, data[0]['sric_pos']['latitude'])
         self.assertEqual(100.0, data[0]['sric_pos']['longitude'])
-
-        self.assertIn('ir_primary_target_pos', data[0])
-        self.assertIn('latitude', data[0]['ir_primary_target_pos'])
-        self.assertIn('longitude', data[0]['ir_primary_target_pos'])
-        self.assertEqual(10.0, data[0]['ir_primary_target_pos']['latitude'])
-        self.assertEqual(100.0, data[0]['ir_primary_target_pos']['longitude'])
-
-        self.assertIn('ir_secondary_target_pos', data[0])
-        self.assertIn('latitude', data[0]['ir_secondary_target_pos'])
-        self.assertIn('longitude', data[0]['ir_secondary_target_pos'])
-        self.assertEqual(10.0, data[0]['ir_secondary_target_pos']['latitude'])
-        self.assertEqual(100.0,
-                         data[0]['ir_secondary_target_pos']['longitude'])
 
         self.assertIn('air_drop_pos', data[0])
         self.assertIn('latitude', data[0]['air_drop_pos'])
