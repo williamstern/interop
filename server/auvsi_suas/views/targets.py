@@ -126,7 +126,10 @@ class Targets(View):
         return JsonResponse(targets, safe=False)
 
     def post(self, request):
-        data = json.loads(request.body)
+        try:
+            data = json.loads(request.body)
+        except ValueError:
+            return HttpResponseBadRequest('Request body is not valid JSON.')
 
         # Target type is required.
         if 'type' not in data:
@@ -214,7 +217,10 @@ class TargetsId(View):
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
-        data = json.loads(request.body)
+        try:
+            data = json.loads(request.body)
+        except ValueError:
+            return HttpResponseBadRequest('Request body is not valid JSON.')
 
         try:
             data = normalize_data(data)
