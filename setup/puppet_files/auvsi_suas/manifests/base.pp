@@ -35,7 +35,11 @@ class auvsi_suas::base {
     # version of pip outside of a virtualenv, so we must install with a manual
     # command.
     exec { 'install virtualenv-3.4' :
-        command => 'pip3 install --upgrade virtualenv',
+        # FIXME(pypa/virtualenv#851): The current version of the virtualenv
+        # wheel creates a virtualenv-3.5 binary, regardless of Python version.
+        # Workaround the issue by avoiding the wheel.
+        # https://github.com/pypa/virtualenv/issues/851
+        command => 'pip3 install --upgrade --no-use-wheel virtualenv',
         user => root,
         require => Package['python3-pip'],
     }
