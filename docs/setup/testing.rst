@@ -10,13 +10,13 @@ To run the tests execute the following commands:
 
 .. code-block:: bash
 
-    $ ~/interop/test.sh
+    $ bash /interop/test.sh
 
 Or from outside Vagrant VM:
 
 .. code-block:: bash
 
-    $ vagrant ssh -c "/interop/test.sh"
+    $ vagrant ssh -c "bash /interop/test.sh"
 
 The tests have executed successfully if you see these lines::
 

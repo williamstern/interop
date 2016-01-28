@@ -39,7 +39,7 @@ manifest. A couple of ports are forwarded from the guest to the host:
 A single command can be executed on the host to run all tests:
 
 ``` sh
-vagrant ssh -c "/interop/test.sh"
+vagrant ssh -c "bash /interop/test.sh"
 ```
 
 
@@ -50,5 +50,5 @@ To setup a physical or prebuilt virtual machine, change the working directory
 to this directory, and execute script:
 
 ``` sh
-./setup.sh
+bash setup.sh
 ```
