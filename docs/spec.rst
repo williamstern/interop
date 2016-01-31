@@ -778,9 +778,13 @@ Targets
 
    **Example response**:
 
+   .. FIXME(sphinx-doc/sphinx#2280): The Content-Type here is not particularly
+      relevant, but otherwise the sourcecode block will fail to lex.
+
    .. sourcecode:: http
 
       HTTP/1.1 200 OK
+      Content-Type: text/html
 
       Target deleted.
 
