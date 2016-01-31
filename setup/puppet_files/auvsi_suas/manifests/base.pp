@@ -8,9 +8,10 @@ class auvsi_suas::base {
 
     # Install python and pip
     class { 'python' :
+        ensure => 'latest',
         version => 'system',
-        pip => true,
-        virtualenv => true,
+        pip => 'latest',
+        virtualenv => 'latest',
     }
 
     # Some core programs
