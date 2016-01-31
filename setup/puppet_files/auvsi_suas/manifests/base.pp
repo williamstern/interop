@@ -30,18 +30,4 @@ class auvsi_suas::base {
     package { $package_deps:
         ensure => "latest",
     }
-
-    # Ubuntu 14.04 comes with a broken virtualenv, so it must be installed
-    # from pip. Better yet, python::pip can't use a non-system (i.e., Python 2)
-    # version of pip outside of a virtualenv, so we must install with a manual
-    # command.
-    exec { 'install virtualenv-3.4' :
-        # FIXME(pypa/virtualenv#851): The current version of the virtualenv
-        # wheel creates a virtualenv-3.5 binary, regardless of Python version.
-        # Workaround the issue by avoiding the wheel.
-        # https://github.com/pypa/virtualenv/issues/851
-        command => 'pip3 install --upgrade --no-use-wheel virtualenv',
-        user => root,
-        require => Package['python3-pip'],
-    }
 }
