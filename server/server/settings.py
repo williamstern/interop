@@ -51,6 +51,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'auvsi_suas.views.middleware.LoggingMiddleware',
 )  # yapf: disable
 
 # Add a '?debug' parameter to API endpoints, which wraps them in an HTML
@@ -115,14 +116,25 @@ LOGGING = {
         },
     },
     'loggers': {
+        'py.warnings': {
+            'handlers': ['file'],
+        },
+        'django': {
+            'handlers': ['file'],
+        },
         'django.request': {
             'handlers': ['file'],
-            'level': 'DEBUG',
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'django.security': {
+            'handlers': ['file'],
+            'level': 'WARNING',
             'propagate': True,
         },
         'auvsi_suas.views': {
             'handlers': ['file'],
-            'level': 'DEBUG',
+            'level': 'WARNING',
             'propagate': True,
         },
     },
