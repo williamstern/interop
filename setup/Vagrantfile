@@ -29,7 +29,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Use automated setup script
   config.vm.provision :shell do |shell|
     shell.inline = "cd /home/vagrant/interop/setup;
-                    ./setup.sh;"
+                    bash setup.sh;"
   end
 
 end

@@ -52,7 +52,7 @@ setup:
 .. code-block:: bash
 
     $ cd ~/interop/setup
-    $ ./setup.sh
+    $ bash setup.sh
 
 Manual Database Setup
 ---------------------
