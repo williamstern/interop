@@ -982,7 +982,7 @@ Targets
 
    .. TODO(prattmic): Update with 2016 sections.
 
-   * ``standard`` - Standard targets are described in section 7.2.8 of the rules.
+   * ``standard`` - Standard targets are described in section 7.2.7 of the rules.
 
    Describe the target characteristics with these fields (see
    :http:post:`/api/targets`):
@@ -996,7 +996,7 @@ Targets
       * ``alphanumeric_color``
 
    * ``qrc`` - Quick Response Code (QRC) targets are described in section
-     7.2.9 of the rules.
+     7.2.8 of the rules.
 
    Describe the target characteristics with these fields (see
    :http:post:`/api/targets`):
@@ -1029,16 +1029,6 @@ Targets
 
          * This field should contain a general description of the emergent
            target.
-
-   * ``ir`` - IR targets are described in section 7.8 of the rules.
-
-   Describe the target characteristics with these fields (see
-   :http:post:`/api/targets`):
-
-      * ``latitude``
-      * ``longitude``
-      * ``orientation``
-      * ``alphanumeric``
 
 .. py:data:: Orientations
 
