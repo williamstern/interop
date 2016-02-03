@@ -60,7 +60,6 @@ class TargetType(Choices):
     qrc = 2
     off_axis = 3
     emergent = 4
-    ir = 5
 
 
 @enum.unique
