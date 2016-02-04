@@ -39,8 +39,7 @@ class Client(object):
 
         self.session = requests.Session()
 
-        # All endpoints require authentication, so always
-        # login.
+        # All endpoints require authentication, so always login.
         self.post('/api/login',
                   data={'username': username,
                         'password': password})
@@ -155,7 +154,7 @@ class AsyncClient(object):
     Future response or error is received prior to making another request.
     """
 
-    def __init__(self, url, username, password, timeout=1):
+    def __init__(self, url, username, password, timeout=1, workers=8):
         """Create a new AsyncClient and login.
 
         Args:
@@ -164,12 +163,10 @@ class AsyncClient(object):
             username: Interoperability username
             password: Interoperability password
             timeout: Individual session request timeout (seconds)
+            workers: Number of threads to use for sending/receiving requests.
         """
         self.client = Client(url, username, password, timeout)
-
-        self.server_info_executor = ThreadPoolExecutor(max_workers=1)
-        self.uas_telemetry_executor = ThreadPoolExecutor(max_workers=1)
-        self.obstacles_executor = ThreadPoolExecutor(max_workers=1)
+        self.executor = ThreadPoolExecutor(max_workers=workers)
 
     def get_server_info(self):
         """GET server information, to be displayed to judges.
@@ -178,7 +175,7 @@ class AsyncClient(object):
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.server_info_executor.submit(self.client.get_server_info)
+        return self.executor.submit(self.client.get_server_info)
 
     def post_telemetry(self, telem):
         """POST new telemetry.
@@ -190,8 +187,7 @@ class AsyncClient(object):
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.uas_telemetry_executor.submit(self.client.post_telemetry,
-                                                  telem)
+        return self.executor.submit(self.client.post_telemetry, telem)
 
     def get_obstacles(self):
         """GET obstacles.
@@ -200,4 +196,4 @@ class AsyncClient(object):
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.obstacles_executor.submit(self.client.get_obstacles)
+        return self.executor.submit(self.client.get_obstacles)
