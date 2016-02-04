@@ -13,7 +13,7 @@ class TakeoffOrLandingEvent(AccessLog):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        return unicode('TakeoffOrLandingEvent (pk%s, user:%s, timestamp:%s, '
+        return unicode('TakeoffOrLandingEvent (pk:%s, user:%s, timestamp:%s, '
                        'uas_in_air:%s)' %
                        (str(self.pk), self.user.__unicode__(),
                         str(self.timestamp), str(self.uas_in_air)))
