@@ -6,6 +6,8 @@ values will be accepted by the server.
 """
 
 import dateutil.parser
+import re
+import sys
 
 
 def check_latitude(lat):
@@ -15,7 +17,7 @@ def check_latitude(lat):
         ValueError: Latitude out of range
     """
     if lat < -90 or lat > 90:
-        raise ValueError("Latitude (%f) out of range [-90 - 90]" % lat)
+        raise ValueError('Latitude (%f) out of range [-90 - 90]' % lat)
 
 
 def check_longitude(lon):
@@ -25,7 +27,7 @@ def check_longitude(lon):
         ValueError: Longitude out of range
     """
     if lon < -180 or lon > 180:
-        raise ValueError("Longitude (%f) out of range [-180, 180]" % lon)
+        raise ValueError('Longitude (%f) out of range [-180, 180]' % lon)
 
 
 class Serializable(object):
@@ -65,8 +67,8 @@ class Telemetry(Serializable):
     """
 
     def __init__(self, latitude, longitude, altitude_msl, uas_heading):
-        super(Telemetry, self).__init__(["latitude", "longitude",
-                                         "altitude_msl", "uas_heading"])
+        super(Telemetry, self).__init__(['latitude', 'longitude',
+                                         'altitude_msl', 'uas_heading'])
 
         self.latitude = float(latitude)
         self.longitude = float(longitude)
@@ -77,7 +79,7 @@ class Telemetry(Serializable):
         check_longitude(self.longitude)
 
         if self.uas_heading < 0 or self.uas_heading > 360:
-            raise ValueError("Heading (%f) out of range [0, 360]" %
+            raise ValueError('Heading (%f) out of range [0, 360]' %
                              self.uas_heading)
 
 
@@ -94,8 +96,8 @@ class ServerInfo(Serializable):
     """
 
     def __init__(self, message, message_timestamp, server_time):
-        super(ServerInfo, self).__init__(["message", "message_timestamp",
-                                          "server_time"])  # yapf: disable
+        super(ServerInfo, self).__init__(['message', 'message_timestamp',
+                                          'server_time'])  # yapf: disable
 
         self.message = message
         self.message_timestamp = dateutil.parser.parse(message_timestamp)
@@ -119,7 +121,7 @@ class StationaryObstacle(Serializable):
 
     def __init__(self, latitude, longitude, cylinder_radius, cylinder_height):
         super(StationaryObstacle, self).__init__(
-            ["latitude", "longitude", "cylinder_radius", "cylinder_height"])
+            ['latitude', 'longitude', 'cylinder_radius', 'cylinder_height'])
 
         self.latitude = float(latitude)
         self.longitude = float(longitude)
@@ -130,11 +132,11 @@ class StationaryObstacle(Serializable):
         check_longitude(self.longitude)
 
         if self.cylinder_radius < 0:
-            raise ValueError("Cylinder radius (%f) must be non-negative" %
+            raise ValueError('Cylinder radius (%f) must be non-negative' %
                              self.cylinder_radius)
 
         if self.cylinder_height < 0:
-            raise ValueError("Cylinder height (%f) must be non-negative" %
+            raise ValueError('Cylinder height (%f) must be non-negative' %
                              self.cylinder_height)
 
 
@@ -154,8 +156,8 @@ class MovingObstacle(Serializable):
     """
 
     def __init__(self, latitude, longitude, altitude_msl, sphere_radius):
-        super(MovingObstacle, self).__init__(["latitude", "longitude",
-                                              "altitude_msl", "sphere_radius"])
+        super(MovingObstacle, self).__init__(['latitude', 'longitude',
+                                              'altitude_msl', 'sphere_radius'])
 
         self.latitude = float(latitude)
         self.longitude = float(longitude)
@@ -166,5 +168,63 @@ class MovingObstacle(Serializable):
         check_longitude(self.longitude)
 
         if self.sphere_radius < 0:
-            raise ValueError("Sphere radius (%f) must be non-negative" %
+            raise ValueError('Sphere radius (%f) must be non-negative' %
                              self.sphere_radius)
+
+
+class Target(Serializable):
+    """A target.
+
+    Attributes:
+        target_type: Target type, must be one of TargetType.
+        latitude: Optional. Target latitude in decimal degrees. If provided,
+            longitude must also be provided.
+        longitude: Optional. Target longitude in decimal degrees. If provided,
+            latitude must also be provided.
+        orientation: Optional. Target orientation.
+        shape: Optional. Target shape.
+        background_color: Optional. Target color.
+        alphanumeric: Optional. Target alphanumeric. [0-9, a-z, A-Z].
+        alphanumeric_color: Optional. Target alphanumeric color.
+        description: Optional. Free-form description of the target, used for
+            certain target types.
+
+    Raises:
+        ValueError: Argument not valid.
+    """
+
+    def __init__(self,
+                 target_type,
+                 latitude=None,
+                 longitude=None,
+                 orientation=None,
+                 shape=None,
+                 background_color=None,
+                 alphanumeric=None,
+                 alphanumeric_color=None,
+                 description=None):
+        super(Target, self).__init__(
+            ['target_type', 'latitude', 'longitude', 'orientation', 'shape',
+             'background_color', 'alphanumeric', 'alphanumeric_color',
+             'description'])
+
+        self.target_type = target_type
+        self.latitude = float(latitude)
+        self.longitude = float(longitude)
+        self.orientation = orientation
+        self.shape = shape
+        self.background_color = background_color
+        self.alphanumeric = alphanumeric
+        self.alphanumeric_color = alphanumeric_color
+        self.description = description
+
+        if not self.target_type:
+            raise ValueError('Provided target type is invalid.')
+
+        check_latitude(self.latitude)
+        check_longitude(self.longitude)
+
+        if (self.alphanumeric and
+                not re.match('^[0-9a-zA-Z]$', self.alphanumeric)):
+            raise ValueError('Provided alphanumeric is not valid: %s' %
+                             self.alphanumeric)

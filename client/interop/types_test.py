@@ -1,6 +1,6 @@
 import unittest
 
-from . import Telemetry, StationaryObstacle, MovingObstacle
+from . import Telemetry, StationaryObstacle, MovingObstacle, Target
 
 
 class TestTelemetry(unittest.TestCase):
@@ -176,3 +176,96 @@ class TestMovingObstacle(unittest.TestCase):
         self.assertEqual(-76, s['longitude'])
         self.assertEqual(100, s['altitude_msl'])
         self.assertEqual(200, s['sphere_radius'])
+
+
+class TestTarget(unittest.TestCase):
+    """Tests the Target model for validation and serialization."""
+
+    def test_valid(self):
+        """Test valid inputs."""
+        Target(target_type='standard',
+               latitude=10,
+               longitude=-10,
+               orientation='n',
+               shape='circle',
+               background_color='white',
+               alphanumeric='a',
+               alphanumeric_color='black')
+
+        Target(target_type='qrc',
+               latitude=10,
+               longitude=-10,
+               description='http://test.com')
+
+        Target(target_type='off_axis',
+               latitude=10,
+               longitude=-10,
+               orientation='n',
+               shape='circle',
+               background_color='white',
+               alphanumeric='a',
+               alphanumeric_color='black')
+
+        Target(target_type='emergent',
+               latitude=10,
+               longitude=-10,
+               description='Fireman putting out a fire.')
+
+    def test_invalid(self):
+        """Test invalid inputs."""
+        with self.assertRaises(ValueError):
+            Target(target_type=None, latitude=10, longitude=10)
+
+        with self.assertRaises(ValueError):
+            Target(target_type='qrc',
+                   latitude=10000,
+                   longitude=-10,
+                   description='http://test.com')
+
+        with self.assertRaises(ValueError):
+            Target(target_type='qrc',
+                   latitude=10,
+                   longitude=-10000,
+                   description='http://test.com')
+
+        with self.assertRaises(ValueError):
+            Target(target_type='standard',
+                   latitude=10,
+                   longitude=-10,
+                   orientation='n',
+                   shape='circle',
+                   background_color='white',
+                   alphanumeric='abc',
+                   alphanumeric_color='black')
+
+        with self.assertRaises(ValueError):
+            Target(target_type='standard',
+                   latitude=10,
+                   longitude=-10,
+                   orientation='n',
+                   shape='circle',
+                   background_color='white',
+                   alphanumeric='.',
+                   alphanumeric_color='black')
+
+    def test_serialize(self):
+        """Test serialization."""
+        o = Target(target_type='standard',
+                   latitude=10,
+                   longitude=-10,
+                   orientation='n',
+                   shape='circle',
+                   background_color='white',
+                   alphanumeric='a',
+                   alphanumeric_color='black')
+        s = o.serialize()
+
+        self.assertEqual(9, len(s))
+        self.assertEqual('standard', s['target_type'])
+        self.assertEqual(10, s['latitude'])
+        self.assertEqual(-10, s['longitude'])
+        self.assertEqual('n', s['orientation'])
+        self.assertEqual('circle', s['shape'])
+        self.assertEqual('white', s['background_color'])
+        self.assertEqual('a', s['alphanumeric'])
+        self.assertEqual('black', s['alphanumeric_color'])
