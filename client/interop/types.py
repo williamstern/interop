@@ -60,7 +60,7 @@ class Telemetry(Serializable):
         latitude: Latitude in decimal degrees.
         longitude: Longitude in decimal degrees.
         altitude_msl: Altitude MSL in feet.
-        uas_heading: Aircraft heading in degrees (0-360).
+        uas_heading: Aircraft heading (true north) in degrees (0-360).
 
     Raises:
         ValueError: Argument not convertable to float or out of range.

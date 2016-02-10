@@ -26,7 +26,7 @@ class Telemetry(View):
         latitude: A latitude in decimal degrees.
         longitude: A logitude in decimal degrees.
         altitude_msl: An MSL altitude in decimal feet.
-        uas_heading: The UAS heading in decimal degrees. (0=north, 90=east)
+        uas_heading: The UAS (true north) heading in decimal degrees.
         """
         try:
             # Get the parameters

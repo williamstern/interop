@@ -361,8 +361,8 @@ UAS Telemetry
    :form altitude\_msl: The height above mean sea level (MSL) of the aircraft
                         in feet as a floating point value.
 
-   :form uas\_heading: The heading of the aircraft as a floating point degree
-                       value. Valid values are: 0 <= uas\_heading <= 360.
+   :form uas\_heading: The (true north) heading of the aircraft as a floating point
+                       degree value. Valid values are: 0 <= uas\_heading <= 360.
 
    :status 200: The team made a valid request. The information will be stored
                 on the competition server to evaluate various competition
@@ -1033,6 +1033,7 @@ Targets
 .. py:data:: Orientations
 
    These are the valid orientations that may be specified for a target.
+   They reference true north, not magnetic north.
 
    * ``N`` - North
    * ``NE`` - Northeast
