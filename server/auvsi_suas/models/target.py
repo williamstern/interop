@@ -155,6 +155,9 @@ class Target(models.Model):
     # Free-form target description.
     description = models.TextField(default='', blank=True)
 
+    # Target is an ADLC submission.
+    autonomous = models.BooleanField(default=False)
+
     # Uploaded target image thumbnail.
     thumbnail = models.ImageField(upload_to='targets', blank=True)
 
@@ -171,6 +174,7 @@ class Target(models.Model):
                        "alphanumeric='{alphanumeric}', "
                        "alphanumeric_color={alphanumeric_color}, "
                        "description='{description}', "
+                       "autonomous='{autonomous}', "
                        "thumbnail='{thumbnail}')".format(
                            name=self.__class__.__name__,
                            thumbnail=self.thumbnail,
@@ -224,4 +228,5 @@ class Target(models.Model):
             'alphanumeric': alphanumeric,
             'alphanumeric_color': alphanumeric_color,
             'description': description,
+            'autonomous': self.autonomous,
         }

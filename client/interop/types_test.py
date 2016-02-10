@@ -236,6 +236,8 @@ class TestTarget(unittest.TestCase):
                longitude=-10,
                description='Fireman putting out a fire.')
 
+        Target(type='standard', latitude=10, longitude=-10, autonomous=True)
+
     def test_invalid(self):
         """Test invalid inputs."""
         # Bad latitude.
@@ -262,10 +264,11 @@ class TestTarget(unittest.TestCase):
                    shape='circle',
                    background_color='white',
                    alphanumeric='a',
-                   alphanumeric_color='black')
+                   alphanumeric_color='black',
+                   autonomous=True)
         s = o.serialize()
 
-        self.assertEqual(10, len(s))
+        self.assertEqual(11, len(s))
         self.assertEqual(1, s['id'])
         self.assertEqual(2, s['user'])
         self.assertEqual('standard', s['type'])
@@ -276,6 +279,7 @@ class TestTarget(unittest.TestCase):
         self.assertEqual('white', s['background_color'])
         self.assertEqual('a', s['alphanumeric'])
         self.assertEqual('black', s['alphanumeric_color'])
+        self.assertEqual(True, s['autonomous'])
 
     def test_deserialize(self):
         """Test deserialization."""
@@ -287,7 +291,8 @@ class TestTarget(unittest.TestCase):
             'shape': 'circle',
             'background_color': 'white',
             'alphanumeric': 'a',
-            'alphanumeric_color': 'black'
+            'alphanumeric_color': 'black',
+            'autonomous': True,
         })
 
         self.assertEqual('standard', o.type)
@@ -298,6 +303,7 @@ class TestTarget(unittest.TestCase):
         self.assertEqual('white', o.background_color)
         self.assertEqual('a', o.alphanumeric)
         self.assertEqual('black', o.alphanumeric_color)
+        self.assertEqual(True, o.autonomous)
 
         o = Target.deserialize({'type': 'qrc'})
 

@@ -91,7 +91,8 @@ class TestTarget(TestCase):
                    background_color=Color.white,
                    alphanumeric='ABC',
                    alphanumeric_color=Color.black,
-                   description='Test target')
+                   description='Test target',
+                   autonomous=True)
         t.save()
 
         d = t.json()
@@ -107,6 +108,7 @@ class TestTarget(TestCase):
         self.assertEqual('ABC', d['alphanumeric'])
         self.assertEqual('black', d['alphanumeric_color'])
         self.assertEqual('Test target', d['description'])
+        self.assertEqual(True, d['autonomous'])
 
     def test_minimal_json(self):
         """Test target JSON with minimal data."""
@@ -126,3 +128,4 @@ class TestTarget(TestCase):
         self.assertEqual(None, d['alphanumeric'])
         self.assertEqual(None, d['alphanumeric_color'])
         self.assertEqual(None, d['description'])
+        self.assertEqual(False, d['autonomous'])

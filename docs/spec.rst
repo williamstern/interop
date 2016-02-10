@@ -438,6 +438,7 @@ Targets
           "alphanumeric": "C",
           "alphanumeric_color": "black",
           "description": null,
+          "autonomous": false,
       }
 
    The response format is the same as :http:get:`/api/targets/(int:id)` and
@@ -479,6 +480,15 @@ Targets
    :<json string description: (optional) Free-form description of target. This
                               should be used for describing certain target
                               types (see :py:data:`TargetTypes`).
+
+   :<json boolean autonomous: (optional, default ``false``) This target was
+                              detected, localized, and characterized by the
+                              team's ADLC system, per section 7.3 of the
+                              rules. Note that if this field is set, then
+                              detection, localization, and characterization
+                              must be autonomous, with no human input. Per
+                              section 7.3 of the rules, no more than six
+                              targets should be marked autonomous.
 
    :resheader Content-Type: The response is ``application/json`` on success.
 
@@ -540,6 +550,7 @@ Targets
               "alphanumeric": "C",
               "alphanumeric_color": "black",
               "description": null,
+              "autonomous": false,
           },
           {
               "id": 2,
@@ -553,6 +564,7 @@ Targets
               "alphanumeric": null,
               "alphanumeric_color": null,
               "description": "http://auvsi-seafarer.org",
+              "autonomous": false,
           }
       ]
 
@@ -614,6 +626,7 @@ Targets
           "alphanumeric": "C",
           "alphanumeric_color": "black",
           "description": null,
+          "autonomous": false,
       }
 
    :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
@@ -656,6 +669,8 @@ Targets
 
    :>json string description: Target description; ``null`` if no description
                               specified yet.
+
+   :>json boolean autonomous: Target is an ADLC target.
 
    :status 200: Success. Response contains target details.
 
@@ -716,6 +731,7 @@ Targets
           "alphanumeric": "O",
           "alphanumeric_color": "black",
           "description": null,
+          "autonomous": false,
       }
 
    This endpoint accepts all fields described in :http:post:`/api/targets` in
@@ -936,9 +952,12 @@ Targets
    This endpoint is used to delete the image associated with a target. A deleted
    image will not be used in scoring.
 
-   Note: You do not need to delete the target image before uploading a new
-   image. A call to :http:post:`/api/targets/(int:id)/image` or
-   :http:put:`/api/targets/(int:id)/image` will overwrite the existing image.
+   .. note::
+
+      You do not need to delete the target image before uploading a new image.
+      A call to :http:post:`/api/targets/(int:id)/image` or
+      :http:put:`/api/targets/(int:id)/image` will overwrite the existing
+      image.
 
    **Example request**:
 
@@ -980,8 +999,6 @@ Targets
 
    These are the valid types of targets which may be specified.
 
-   .. TODO(prattmic): Update with 2016 sections.
-
    * ``standard`` - Standard targets are described in section 7.2.7 of the rules.
 
    Describe the target characteristics with these fields (see
@@ -994,6 +1011,7 @@ Targets
       * ``background_color``
       * ``alphanumeric``
       * ``alphanumeric_color``
+      * ``autonomous``
 
    * ``qrc`` - Quick Response Code (QRC) targets are described in section
      7.2.8 of the rules.
