@@ -15,7 +15,7 @@ class UasTelemetry(AccessLog):
     """UAS telemetry reported by teams."""
     # The position of the UAS
     uas_position = models.ForeignKey(AerialPosition)
-    # The heading of the UAS in degrees (e.g. 0=north, 90=east)
+    # The (true north) heading of the UAS in degrees
     uas_heading = models.FloatField()
 
     def __unicode__(self):
