@@ -10,26 +10,6 @@ import re
 import sys
 
 
-def check_latitude(lat):
-    """Assert that latitude is valid.
-
-    Raises:
-        ValueError: Latitude out of range
-    """
-    if lat < -90 or lat > 90:
-        raise ValueError('Latitude (%f) out of range [-90 - 90]' % lat)
-
-
-def check_longitude(lon):
-    """Assert that longitude is valid.
-
-    Raises:
-        ValueError: Longitude out of range
-    """
-    if lon < -180 or lon > 180:
-        raise ValueError('Longitude (%f) out of range [-180, 180]' % lon)
-
-
 class Serializable(object):
     """ Serializable is a simple base class which provides basic
     'serialization' (a simple dict) of a subset of attributes the inheriting
@@ -37,20 +17,21 @@ class Serializable(object):
 
     By serializing only specified attributes, other attributes can be utilized
     by the class (or its subclasses) without being included in the serialized
-    dict.
+    dict. The serialization attributes are obtained from that 'attrs' property,
+    which should be defined by subclasses.
     """
 
-    def __init__(self, attrs):
-        """Initialize attributes to serialize
-
-        Args:
-            attrs: List of string attribute names to serialize.
-        """
-        self.attrs = attrs
+    # Subclasses should override.
+    attrs = []
 
     def serialize(self):
         """Serialize the current state of the object."""
         return {k: self.__dict__[k] for k in self.attrs}
+
+    @classmethod
+    def deserialize(cls, d):
+        """Deserialize the state of the object."""
+        return cls(**d)
 
 
 class Telemetry(Serializable):
@@ -63,24 +44,16 @@ class Telemetry(Serializable):
         uas_heading: Aircraft heading (true north) in degrees (0-360).
 
     Raises:
-        ValueError: Argument not convertable to float or out of range.
+        ValueError: Argument not convertable to float.
     """
 
-    def __init__(self, latitude, longitude, altitude_msl, uas_heading):
-        super(Telemetry, self).__init__(['latitude', 'longitude',
-                                         'altitude_msl', 'uas_heading'])
+    attrs = ['latitude', 'longitude', 'altitude_msl', 'uas_heading']
 
+    def __init__(self, latitude, longitude, altitude_msl, uas_heading):
         self.latitude = float(latitude)
         self.longitude = float(longitude)
         self.altitude_msl = float(altitude_msl)
         self.uas_heading = float(uas_heading)
-
-        check_latitude(self.latitude)
-        check_longitude(self.longitude)
-
-        if self.uas_heading < 0 or self.uas_heading > 360:
-            raise ValueError('Heading (%f) out of range [0, 360]' %
-                             self.uas_heading)
 
 
 class ServerInfo(Serializable):
@@ -95,10 +68,9 @@ class ServerInfo(Serializable):
         TypeError, ValueError: Message or server timestamp could not be parsed.
     """
 
-    def __init__(self, message, message_timestamp, server_time):
-        super(ServerInfo, self).__init__(['message', 'message_timestamp',
-                                          'server_time'])  # yapf: disable
+    attrs = ['message', 'message_timestamp', 'server_time']
 
+    def __init__(self, message, message_timestamp, server_time):
         self.message = message
         self.message_timestamp = dateutil.parser.parse(message_timestamp)
         self.server_time = dateutil.parser.parse(server_time)
@@ -116,28 +88,16 @@ class StationaryObstacle(Serializable):
         cylinder_height: Height in feet
 
     Raises:
-        ValueError: Argument not convertable to float or out of range.
+        ValueError: Argument not convertable to float.
     """
 
-    def __init__(self, latitude, longitude, cylinder_radius, cylinder_height):
-        super(StationaryObstacle, self).__init__(
-            ['latitude', 'longitude', 'cylinder_radius', 'cylinder_height'])
+    attrs = ['latitude', 'longitude', 'cylinder_radius', 'cylinder_height']
 
+    def __init__(self, latitude, longitude, cylinder_radius, cylinder_height):
         self.latitude = float(latitude)
         self.longitude = float(longitude)
         self.cylinder_radius = float(cylinder_radius)
         self.cylinder_height = float(cylinder_height)
-
-        check_latitude(self.latitude)
-        check_longitude(self.longitude)
-
-        if self.cylinder_radius < 0:
-            raise ValueError('Cylinder radius (%f) must be non-negative' %
-                             self.cylinder_radius)
-
-        if self.cylinder_height < 0:
-            raise ValueError('Cylinder height (%f) must be non-negative' %
-                             self.cylinder_height)
 
 
 class MovingObstacle(Serializable):
@@ -152,24 +112,16 @@ class MovingObstacle(Serializable):
         sphere_radius: Radius in feet
 
     Raises:
-        ValueError: Argument not convertable to float or out of range.
+        ValueError: Argument not convertable to float.
     """
 
-    def __init__(self, latitude, longitude, altitude_msl, sphere_radius):
-        super(MovingObstacle, self).__init__(['latitude', 'longitude',
-                                              'altitude_msl', 'sphere_radius'])
+    attrs = ['latitude', 'longitude', 'altitude_msl', 'sphere_radius']
 
+    def __init__(self, latitude, longitude, altitude_msl, sphere_radius):
         self.latitude = float(latitude)
         self.longitude = float(longitude)
         self.altitude_msl = float(altitude_msl)
         self.sphere_radius = float(sphere_radius)
-
-        check_latitude(self.latitude)
-        check_longitude(self.longitude)
-
-        if self.sphere_radius < 0:
-            raise ValueError('Sphere radius (%f) must be non-negative' %
-                             self.sphere_radius)
 
 
 class Target(Serializable):
@@ -197,6 +149,10 @@ class Target(Serializable):
         ValueError: Argument not valid.
     """
 
+    attrs = ['id', 'user', 'type', 'latitude', 'longitude', 'orientation',
+             'shape', 'background_color', 'alphanumeric', 'alphanumeric_color',
+             'description']
+
     def __init__(self,
                  id=None,
                  user=None,
@@ -209,30 +165,14 @@ class Target(Serializable):
                  alphanumeric=None,
                  alphanumeric_color=None,
                  description=None):
-        super(Target, self).__init__(
-            ['id', 'user', 'type', 'latitude', 'longitude', 'orientation',
-             'shape', 'background_color', 'alphanumeric', 'alphanumeric_color',
-             'description'])
-
         self.id = id
         self.user = user
         self.type = type
-        self.latitude = float(latitude)
-        self.longitude = float(longitude)
+        self.latitude = float(latitude) if latitude is not None else None
+        self.longitude = float(longitude) if longitude is not None else None
         self.orientation = orientation
         self.shape = shape
         self.background_color = background_color
         self.alphanumeric = alphanumeric
         self.alphanumeric_color = alphanumeric_color
         self.description = description
-
-        if not self.type:
-            raise ValueError('Provided target type is invalid.')
-
-        check_latitude(self.latitude)
-        check_longitude(self.longitude)
-
-        if (self.alphanumeric and
-                not re.match('^[0-9a-zA-Z]$', self.alphanumeric)):
-            raise ValueError('Provided alphanumeric is not valid: %s' %
-                             self.alphanumeric)
