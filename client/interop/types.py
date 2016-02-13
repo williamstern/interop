@@ -176,7 +176,11 @@ class Target(Serializable):
     """A target.
 
     Attributes:
-        target_type: Target type, must be one of TargetType.
+        id: Optional. The ID of the target. Assigned by the interoperability
+            server.
+        user: Optional. The ID of the user who created the target. Assigned by
+            the interoperability server.
+        type: Target type, must be one of TargetType.
         latitude: Optional. Target latitude in decimal degrees. If provided,
             longitude must also be provided.
         longitude: Optional. Target longitude in decimal degrees. If provided,
@@ -194,7 +198,9 @@ class Target(Serializable):
     """
 
     def __init__(self,
-                 target_type,
+                 id=None,
+                 user=None,
+                 type=None,
                  latitude=None,
                  longitude=None,
                  orientation=None,
@@ -204,11 +210,13 @@ class Target(Serializable):
                  alphanumeric_color=None,
                  description=None):
         super(Target, self).__init__(
-            ['target_type', 'latitude', 'longitude', 'orientation', 'shape',
-             'background_color', 'alphanumeric', 'alphanumeric_color',
+            ['id', 'user', 'type', 'latitude', 'longitude', 'orientation',
+             'shape', 'background_color', 'alphanumeric', 'alphanumeric_color',
              'description'])
 
-        self.target_type = target_type
+        self.id = id
+        self.user = user
+        self.type = type
         self.latitude = float(latitude)
         self.longitude = float(longitude)
         self.orientation = orientation
@@ -218,7 +226,7 @@ class Target(Serializable):
         self.alphanumeric_color = alphanumeric_color
         self.description = description
 
-        if not self.target_type:
+        if not self.type:
             raise ValueError('Provided target type is invalid.')
 
         check_latitude(self.latitude)

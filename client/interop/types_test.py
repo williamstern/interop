@@ -183,7 +183,9 @@ class TestTarget(unittest.TestCase):
 
     def test_valid(self):
         """Test valid inputs."""
-        Target(target_type='standard',
+        Target(id=1,
+               user=2,
+               type='standard',
                latitude=10,
                longitude=-10,
                orientation='n',
@@ -192,12 +194,12 @@ class TestTarget(unittest.TestCase):
                alphanumeric='a',
                alphanumeric_color='black')
 
-        Target(target_type='qrc',
+        Target(type='qrc',
                latitude=10,
                longitude=-10,
                description='http://test.com')
 
-        Target(target_type='off_axis',
+        Target(type='off_axis',
                latitude=10,
                longitude=-10,
                orientation='n',
@@ -206,7 +208,7 @@ class TestTarget(unittest.TestCase):
                alphanumeric='a',
                alphanumeric_color='black')
 
-        Target(target_type='emergent',
+        Target(type='emergent',
                latitude=10,
                longitude=-10,
                description='Fireman putting out a fire.')
@@ -214,22 +216,22 @@ class TestTarget(unittest.TestCase):
     def test_invalid(self):
         """Test invalid inputs."""
         with self.assertRaises(ValueError):
-            Target(target_type=None, latitude=10, longitude=10)
+            Target(type=None, latitude=10, longitude=10)
 
         with self.assertRaises(ValueError):
-            Target(target_type='qrc',
+            Target(type='qrc',
                    latitude=10000,
                    longitude=-10,
                    description='http://test.com')
 
         with self.assertRaises(ValueError):
-            Target(target_type='qrc',
+            Target(type='qrc',
                    latitude=10,
                    longitude=-10000,
                    description='http://test.com')
 
         with self.assertRaises(ValueError):
-            Target(target_type='standard',
+            Target(type='standard',
                    latitude=10,
                    longitude=-10,
                    orientation='n',
@@ -239,7 +241,7 @@ class TestTarget(unittest.TestCase):
                    alphanumeric_color='black')
 
         with self.assertRaises(ValueError):
-            Target(target_type='standard',
+            Target(type='standard',
                    latitude=10,
                    longitude=-10,
                    orientation='n',
@@ -250,7 +252,9 @@ class TestTarget(unittest.TestCase):
 
     def test_serialize(self):
         """Test serialization."""
-        o = Target(target_type='standard',
+        o = Target(id=1,
+                   user=2,
+                   type='standard',
                    latitude=10,
                    longitude=-10,
                    orientation='n',
@@ -260,8 +264,10 @@ class TestTarget(unittest.TestCase):
                    alphanumeric_color='black')
         s = o.serialize()
 
-        self.assertEqual(9, len(s))
-        self.assertEqual('standard', s['target_type'])
+        self.assertEqual(11, len(s))
+        self.assertEqual(1, s['id'])
+        self.assertEqual(2, s['user'])
+        self.assertEqual('standard', s['type'])
         self.assertEqual(10, s['latitude'])
         self.assertEqual(-10, s['longitude'])
         self.assertEqual('n', s['orientation'])
