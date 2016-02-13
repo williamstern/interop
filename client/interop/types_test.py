@@ -15,34 +15,31 @@ class TestTelemetry(unittest.TestCase):
         """Test invalid inputs"""
         # Bad latitude
         with self.assertRaises(ValueError):
-            Telemetry(latitude=120,
+            Telemetry(latitude='a',
                       longitude=-76,
                       altitude_msl=100,
                       uas_heading=90)
-
         # Bad longitude
         with self.assertRaises(ValueError):
             Telemetry(latitude=38,
-                      longitude=-200,
+                      longitude='a',
                       altitude_msl=100,
                       uas_heading=90)
-
+        # Bad altitude
+        with self.assertRaises(ValueError):
+            Telemetry(latitude=38,
+                      longitude=-76,
+                      altitude_msl='a',
+                      uas_heading=90)
         # Bad heading
         with self.assertRaises(ValueError):
             Telemetry(latitude=38,
                       longitude=-76,
                       altitude_msl=100,
-                      uas_heading=-90)
-
-        # Bad type
-        with self.assertRaises(ValueError):
-            Telemetry(latitude=38,
-                      longitude="Webster Field",
-                      altitude_msl=100,
-                      uas_heading=90)
+                      uas_heading='a')
 
     def test_serialize(self):
-        """Test serialization"""
+        """Test serialization."""
         t = Telemetry(latitude=38,
                       longitude=-76,
                       altitude_msl=100,
@@ -50,11 +47,24 @@ class TestTelemetry(unittest.TestCase):
         s = t.serialize()
 
         self.assertEqual(4, len(s))
-
         self.assertEqual(38, s['latitude'])
         self.assertEqual(-76, s['longitude'])
         self.assertEqual(100, s['altitude_msl'])
         self.assertEqual(90, s['uas_heading'])
+
+    def test_deserialize(self):
+        """Test deserialization."""
+        t = Telemetry.deserialize({
+            'latitude': 38,
+            'longitude': '-76',
+            'altitude_msl': 100,
+            'uas_heading': 90
+        })
+
+        self.assertEqual(38, t.latitude)
+        self.assertEqual(-76, t.longitude)
+        self.assertEqual(100, t.altitude_msl)
+        self.assertEqual(90, t.uas_heading)
 
 
 class TestStationaryObstacle(unittest.TestCase):
@@ -72,41 +82,31 @@ class TestStationaryObstacle(unittest.TestCase):
         """Test invalid inputs"""
         # Bad latitude
         with self.assertRaises(ValueError):
-            StationaryObstacle(latitude=120,
+            StationaryObstacle(latitude='a',
                                longitude=-76,
                                cylinder_radius=100,
                                cylinder_height=200)
-
         # Bad longitude
         with self.assertRaises(ValueError):
             StationaryObstacle(latitude=38,
-                               longitude=-200,
+                               longitude='a',
                                cylinder_radius=100,
                                cylinder_height=200)
-
         # Bad radius
         with self.assertRaises(ValueError):
             StationaryObstacle(latitude=38,
                                longitude=-76,
-                               cylinder_radius=-100,
+                               cylinder_radius='a',
                                cylinder_height=200)
-
         # Bad height
         with self.assertRaises(ValueError):
             StationaryObstacle(latitude=38,
                                longitude=-76,
                                cylinder_radius=100,
-                               cylinder_height=-200)
-
-        # Bad type
-        with self.assertRaises(ValueError):
-            StationaryObstacle(latitude=38,
-                               longitude="Webster Field",
-                               cylinder_radius=100,
-                               cylinder_height=90)
+                               cylinder_height='a')
 
     def test_serialize(self):
-        """Test serialization"""
+        """Test serialization."""
         o = StationaryObstacle(latitude=38,
                                longitude=-76,
                                cylinder_radius=100,
@@ -114,11 +114,24 @@ class TestStationaryObstacle(unittest.TestCase):
         s = o.serialize()
 
         self.assertEqual(4, len(s))
-
         self.assertEqual(38, s['latitude'])
         self.assertEqual(-76, s['longitude'])
         self.assertEqual(100, s['cylinder_radius'])
         self.assertEqual(200, s['cylinder_height'])
+
+    def test_deserialize(self):
+        """Test deserialization."""
+        o = StationaryObstacle.deserialize({
+            'latitude': '38',
+            'longitude': -76,
+            'cylinder_radius': 100,
+            'cylinder_height': 200
+        })
+
+        self.assertEqual(38, o.latitude)
+        self.assertEqual(-76, o.longitude)
+        self.assertEqual(100, o.cylinder_radius)
+        self.assertEqual(200, o.cylinder_height)
 
 
 class TestMovingObstacle(unittest.TestCase):
@@ -136,34 +149,31 @@ class TestMovingObstacle(unittest.TestCase):
         """Test invalid inputs"""
         # Bad latitude
         with self.assertRaises(ValueError):
-            MovingObstacle(latitude=120,
+            MovingObstacle(latitude='a',
                            longitude=-76,
                            altitude_msl=100,
                            sphere_radius=200)
-
         # Bad longitude
         with self.assertRaises(ValueError):
             MovingObstacle(latitude=38,
-                           longitude=-200,
+                           longitude='a',
                            altitude_msl=100,
                            sphere_radius=200)
-
+        # Bad altitude
+        with self.assertRaises(ValueError):
+            MovingObstacle(latitude=38,
+                           longitude=-76,
+                           altitude_msl='a',
+                           sphere_radius=-200)
         # Bad radius
         with self.assertRaises(ValueError):
             MovingObstacle(latitude=38,
                            longitude=-76,
                            altitude_msl=100,
-                           sphere_radius=-200)
-
-        # Bad type
-        with self.assertRaises(ValueError):
-            MovingObstacle(latitude=38,
-                           longitude="Webster Field",
-                           altitude_msl=100,
-                           sphere_radius=90)
+                           sphere_radius='a')
 
     def test_serialize(self):
-        """Test serialization"""
+        """Test serialization."""
         o = MovingObstacle(latitude=38,
                            longitude=-76,
                            altitude_msl=100,
@@ -171,11 +181,24 @@ class TestMovingObstacle(unittest.TestCase):
         s = o.serialize()
 
         self.assertEqual(4, len(s))
-
         self.assertEqual(38, s['latitude'])
         self.assertEqual(-76, s['longitude'])
         self.assertEqual(100, s['altitude_msl'])
         self.assertEqual(200, s['sphere_radius'])
+
+    def test_deserialize(self):
+        """Test deserialization."""
+        o = MovingObstacle.deserialize({
+            'latitude': 38,
+            'longitude': -76,
+            'altitude_msl': 100,
+            'sphere_radius': 200
+        })
+
+        self.assertEqual(38, o.latitude)
+        self.assertEqual(-76, o.longitude)
+        self.assertEqual(100, o.altitude_msl)
+        self.assertEqual(200, o.sphere_radius)
 
 
 class TestTarget(unittest.TestCase):
@@ -215,40 +238,18 @@ class TestTarget(unittest.TestCase):
 
     def test_invalid(self):
         """Test invalid inputs."""
-        with self.assertRaises(ValueError):
-            Target(type=None, latitude=10, longitude=10)
-
+        # Bad latitude.
         with self.assertRaises(ValueError):
             Target(type='qrc',
-                   latitude=10000,
+                   latitude='a',
                    longitude=-10,
                    description='http://test.com')
 
         with self.assertRaises(ValueError):
             Target(type='qrc',
                    latitude=10,
-                   longitude=-10000,
+                   longitude='a',
                    description='http://test.com')
-
-        with self.assertRaises(ValueError):
-            Target(type='standard',
-                   latitude=10,
-                   longitude=-10,
-                   orientation='n',
-                   shape='circle',
-                   background_color='white',
-                   alphanumeric='abc',
-                   alphanumeric_color='black')
-
-        with self.assertRaises(ValueError):
-            Target(type='standard',
-                   latitude=10,
-                   longitude=-10,
-                   orientation='n',
-                   shape='circle',
-                   background_color='white',
-                   alphanumeric='.',
-                   alphanumeric_color='black')
 
     def test_serialize(self):
         """Test serialization."""
@@ -275,3 +276,29 @@ class TestTarget(unittest.TestCase):
         self.assertEqual('white', s['background_color'])
         self.assertEqual('a', s['alphanumeric'])
         self.assertEqual('black', s['alphanumeric_color'])
+
+    def test_deserialize(self):
+        """Test deserialization."""
+        o = Target.deserialize({
+            'type': 'standard',
+            'latitude': '10',
+            'longitude': -10,
+            'orientation': 'n',
+            'shape': 'circle',
+            'background_color': 'white',
+            'alphanumeric': 'a',
+            'alphanumeric_color': 'black'
+        })
+
+        self.assertEqual('standard', o.type)
+        self.assertEqual(10, o.latitude)
+        self.assertEqual(-10, o.longitude)
+        self.assertEqual('n', o.orientation)
+        self.assertEqual('circle', o.shape)
+        self.assertEqual('white', o.background_color)
+        self.assertEqual('a', o.alphanumeric)
+        self.assertEqual('black', o.alphanumeric_color)
+
+        o = Target.deserialize({'type': 'qrc'})
+
+        self.assertEqual('qrc', o.type)

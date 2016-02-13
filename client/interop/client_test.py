@@ -37,7 +37,7 @@ class TestClientLoggedOut(unittest.TestCase):
         """Test connection timeout"""
         # We are assuming that there is no machine at this address.
         addr = "http://10.255.255.254"
-        timeout = 0.1
+        timeout = 0.0001
         with self.assertRaises(requests.Timeout):
             Client(addr, username, password, timeout=timeout)
         with self.assertRaises(requests.Timeout):
