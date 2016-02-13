@@ -70,16 +70,7 @@ class TakeoffOrLandingEvent(AccessLog):
         Returns:
             True if user is currently in-flight, False otherwise
         """
-        if time is None:
-            time = timezone.now()
-
-        event = cls.objects \
-            .filter(user=user.pk) \
-            .filter(timestamp__lt=time) \
-            .order_by('timestamp') \
-            .last()
-
+        event = cls.last_for_user(user, time)
         if event:
             return event.uas_in_air
-        else:
-            return False
+        return False

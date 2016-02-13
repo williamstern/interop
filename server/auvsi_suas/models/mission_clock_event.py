@@ -20,3 +20,33 @@ class MissionClockEvent(AccessLog):
                        (str(self.pk), self.user.__unicode__(),
                         str(self.timestamp), str(self.team_on_clock),
                         str(self.team_on_timeout)))
+
+    @classmethod
+    def user_on_clock(cls, user, time=None):
+        """Determine if given user is currently on mission clock.
+
+        Args:
+            user: User to get mission clock status.
+            time: Time to check status for, default now.
+        Returns:
+            True if the user currently on clock, False otherwise.
+        """
+        event = cls.last_for_user(user, time)
+        if event:
+            return event.team_on_clock
+        return False
+
+    @classmethod
+    def user_on_timeout(cls, user, time=None):
+        """Determine if given user is currently on timeout.
+
+        Args:
+            user: User to get timeout status.
+            time: Time to check status for, default now.
+        Returns:
+            True if user is on timeout, False otherwise.
+        """
+        event = cls.last_for_user(user, time)
+        if event:
+            return event.team_on_timeout
+        return False
