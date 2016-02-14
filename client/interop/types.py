@@ -10,23 +10,37 @@ import re
 import sys
 
 
-class Serializable(object):
-    """ Serializable is a simple base class which provides basic
-    'serialization' (a simple dict) of a subset of attributes the inheriting
-    class.
+class ClientBaseType(object):
+    """ ClientBaseType is a simple base class which provides basic functions.
 
-    By serializing only specified attributes, other attributes can be utilized
-    by the class (or its subclasses) without being included in the serialized
-    dict. The serialization attributes are obtained from that 'attrs' property,
-    which should be defined by subclasses.
+    The attributes are obtained from the 'attrs' property, which should be
+    defined by subclasses.
     """
 
     # Subclasses should override.
     attrs = []
 
+    def __eq__(self, other):
+        """Compares two objects."""
+        for attr in self.attrs:
+            if self.__dict__[attr] != other.__dict__[attr]:
+                return False
+        return True
+
+    def __repr__(self):
+        """Gets string encoding of object."""
+        return "%s(%s)" % (self.__class__.__name__,
+                           ', '.join('%s=%s' % (attr, self.__dict__[attr])
+                                     for attr in self.attrs))
+
+    def __unicode__(self):
+        """Gets unicode encoding of object."""
+        return unicode(self.__str__())
+
     def serialize(self):
         """Serialize the current state of the object."""
-        return {k: self.__dict__[k] for k in self.attrs}
+        return {k: self.__dict__[k]
+                for k in self.attrs if self.__dict__[k] is not None}
 
     @classmethod
     def deserialize(cls, d):
@@ -34,7 +48,7 @@ class Serializable(object):
         return cls(**d)
 
 
-class Telemetry(Serializable):
+class Telemetry(ClientBaseType):
     """UAS Telemetry at a single point in time.
 
     Attributes:
@@ -56,7 +70,7 @@ class Telemetry(Serializable):
         self.uas_heading = float(uas_heading)
 
 
-class ServerInfo(Serializable):
+class ServerInfo(ClientBaseType):
     """Server information to be displayed to judges.
 
     Attributes:
@@ -76,7 +90,7 @@ class ServerInfo(Serializable):
         self.server_time = dateutil.parser.parse(server_time)
 
 
-class StationaryObstacle(Serializable):
+class StationaryObstacle(ClientBaseType):
     """A stationary obstacle.
 
     This obstacle is a cylinder with a given location, height, and radius.
@@ -100,7 +114,7 @@ class StationaryObstacle(Serializable):
         self.cylinder_height = float(cylinder_height)
 
 
-class MovingObstacle(Serializable):
+class MovingObstacle(ClientBaseType):
     """A moving obstacle.
 
     This obstacle is a sphere with a given location, altitude, and radius.
@@ -124,7 +138,7 @@ class MovingObstacle(Serializable):
         self.sphere_radius = float(sphere_radius)
 
 
-class Target(Serializable):
+class Target(ClientBaseType):
     """A target.
 
     Attributes:
