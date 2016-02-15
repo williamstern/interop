@@ -64,6 +64,7 @@ ensure_puppet_module puppetlabs-apache
 # compatible with the latest version of the apt module, so if we install the
 # apt module manually first, the postgresql module will fail to install.
 ensure_puppet_module puppetlabs-apt
+ensure_puppet_module puppetlabs-nodejs
 ensure_puppet_module stankevich-python
 
 # Launch the Puppet process. Prepares machine.
