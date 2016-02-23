@@ -9,11 +9,12 @@ See README.md for more details."""
 
 from concurrent.futures import ThreadPoolExecutor
 import functools
+import json
 import requests
 import threading
 
 from .exceptions import InteropError
-from .types import ServerInfo, StationaryObstacle, MovingObstacle
+from .types import ServerInfo, StationaryObstacle, MovingObstacle, Target
 
 
 class Client(object):
@@ -29,10 +30,10 @@ class Client(object):
 
         Args:
             url: Base URL of interoperability server
-                (e.g., http://localhost:8000)
-            username: Interoperability username
-            password: Interoperability password
-            timeout: Individual session request timeout (seconds)
+                (e.g., http://localhost:8000).
+            username: Interoperability username.
+            password: Interoperability password.
+            timeout: Individual session request timeout (seconds).
         """
         self.url = url
         self.timeout = timeout
@@ -48,12 +49,11 @@ class Client(object):
         """GET request to server.
 
         Args:
-            uri: Server URI to access (without base URL)
-            **kwargs: Arguments to requests.Session.get method
-
+            uri: Server URI to access (without base URL).
+            **kwargs: Arguments to requests.Session.get method.
         Raises:
-            InteropError: Error from server
-            requests.Timeout: Request timeout
+            InteropError: Error from server.
+            requests.Timeout: Request timeout.
         """
         r = self.session.get(self.url + uri, timeout=self.timeout, **kwargs)
         if not r.ok:
@@ -64,28 +64,56 @@ class Client(object):
         """POST request to server.
 
         Args:
-            uri: Server URI to access (without base URL)
-            **kwargs: Arguments to requests.Session.post method
-
+            uri: Server URI to access (without base URL).
+            **kwargs: Arguments to requests.Session.post method.
         Raises:
-            InteropError: Error from server
-            requests.Timeout: Request timeout
+            InteropError: Error from server.
+            requests.Timeout: Request timeout.
         """
         r = self.session.post(self.url + uri, timeout=self.timeout, **kwargs)
         if not r.ok:
             raise InteropError(r)
+        return r
+
+    def put(self, uri, **kwargs):
+        """PUT request to server.
+
+        Args:
+            uri: Server URI to access (without base URL).
+            **kwargs: Arguments to requests.Session.put method.
+        Raises:
+            InteropError: Error from server.
+            requests.Timeout: Request timeout.
+        """
+        r = self.session.put(self.url + uri, timeout=self.timeout, **kwargs)
+        if not r.ok:
+            raise InteropError(r)
+        return r
+
+    def delete(self, uri):
+        """DELETE request to server.
+
+        Args:
+            uri: Server URI to access (without base URL).
+        Raises:
+            InteropError: Error from server.
+            requests.Timeout: Request timeout.
+        """
+        r = self.session.delete(self.url + uri, timeout=self.timeout)
+        if not r.ok:
+            raise InteropError(r)
+        return r
 
     def get_server_info(self):
         """GET server information, to be displayed to judges.
 
         Returns:
-            ServerInfo object
-
+            ServerInfo object.
         Raises:
             InteropError: Error from server. Note that you may receive this
                 error if the server has no message configured.
-            requests.Timeout: Request timeout
-            ValueError or AttributeError: Malformed response from server
+            requests.Timeout: Request timeout.
+            ValueError or AttributeError: Malformed response from server.
         """
         r = self.get('/api/server_info')
         return ServerInfo.deserialize(r.json())
@@ -95,10 +123,9 @@ class Client(object):
 
         Args:
             telem: Telemetry object containing telemetry state.
-
         Raises:
-            InteropError: Error from server
-            requests.Timeout: Request timeout
+            InteropError: Error from server.
+            requests.Timeout: Request timeout.
         """
         self.post('/api/telemetry', data=telem.serialize())
 
@@ -106,13 +133,12 @@ class Client(object):
         """GET obstacles.
 
         Returns:
-            List of StationaryObstacles and list of MovingObstacles.
-                i.e., ([StationaryObstacle], [MovingObstacles])
-
+            List of StationaryObstacles and list of MovingObstacles
+                i.e., ([StationaryObstacle], [MovingObstacles]).
         Raises:
-            InteropError: Error from server
-            requests.Timeout: Request timeout
-            ValueError or AttributeError: Malformed response from server
+            InteropError: Error from server.
+            requests.Timeout: Request timeout.
+            ValueError or AttributeError: Malformed response from server.
         """
         r = self.get('/api/obstacles')
         d = r.json()
@@ -126,6 +152,77 @@ class Client(object):
             moving.append(MovingObstacle.deserialize(o))
 
         return stationary, moving
+
+    def get_targets(self):
+        """GET targets.
+
+        Returns:
+            List of Target objects which are viewable by user.
+        Raises:
+            InteropError: Error from server.
+            requests.Timeout: Request timeout.
+            ValueError or AttributeError: Malformed response from server.
+        """
+        r = self.get('/api/targets')
+        return [Target.deserialize(t) for t in r.json()]
+
+    def get_target(self, target_id):
+        """GET target.
+
+        Args:
+            target_id: The ID of the target to get.
+        Returns:
+            Target object with corresponding ID.
+        Raises:
+            InteropError: Error form server.
+            requests.Timeout: Request timeout.
+            ValueError or AttributeError: Malformed response from server.
+        """
+        r = self.get('/api/targets/%d' % target_id)
+        return Target.deserialize(r.json())
+
+    def post_target(self, target):
+        """POST target.
+
+        Args:
+            target: The target to upload.
+        Returns:
+            The target after upload, which will include the target ID and user.
+        Raises:
+            InteropError: Error form server.
+            requests.Timeout: Request timeout.
+            ValueError or AttributeError: Malformed response from server.
+        """
+        r = self.post('/api/targets', data=json.dumps(target.serialize()))
+        return Target.deserialize(r.json())
+
+    def put_target(self, target_id, target):
+        """PUT target.
+
+        Args:
+            target_id: The ID of the target to update.
+            target: The target details to update.
+        Returns:
+            The target after being updated.
+        Raises:
+            InteropError: Error form server.
+            requests.Timeout: Request timeout.
+            ValueError or AttributeError: Malformed response from server.
+        """
+        r = self.put('/api/targets/%d' % target_id,
+                     data=json.dumps(target.serialize()))
+        return Target.deserialize(r.json())
+
+    def delete_target(self, target_id):
+        """DELETE target.
+
+        Args:
+            target_id: The ID of the target to delete.
+        Raises:
+            InteropError: Error form server.
+            requests.Timeout: Request timeout.
+        """
+        self.delete('/api/targets/%d' % target_id)
 
 
 class AsyncClient(object):
@@ -170,7 +267,6 @@ class AsyncClient(object):
 
         Args:
             telem: Telemetry object containing telemetry state.
-
         Returns:
             Future object which contains the return value or error from the
             underlying Client.
@@ -185,3 +281,57 @@ class AsyncClient(object):
             underlying Client.
         """
         return self.executor.submit(self.client.get_obstacles)
+
+    def get_targets(self):
+        """GET targets.
+
+        Returns:
+            Future object which contains the return value or error from the
+            underlying Client.
+        """
+        return self.executor.submit(self.client.get_targets)
+
+    def get_target(self, target_id):
+        """GET target.
+
+        Args:
+            target_id: The ID of the target to get.
+        Returns:
+            Future object which contains the return value or error from the
+            underlying Client.
+        """
+        return self.executor.submit(self.client.get_target, target_id)
+
+    def post_target(self, target):
+        """POST target.
+
+        Args:
+            target: The target to upload.
+        Returns:
+            Future object which contains the return value or error from the
+            underlying Client.
+        """
+        return self.executor.submit(self.client.post_target, target)
+
+    def put_target(self, target_id, target):
+        """PUT target.
+
+        Args:
+            target_id: The ID of the target to update.
+            target: The target details to update.
+        Returns:
+            Future object which contains the return value or error from the
+            underlying Client.
+        """
+        return self.executor.submit(self.client.put_target, target_id, target)
+
+    def delete_target(self, target_id):
+        """DELETE target.
+
+        Args:
+            target_id: The ID of the target to delete.
+        Returns:
+            Future object which contains the return value or error from the
+            underlying Client.
+        """
+        return self.executor.submit(self.client.delete_target, target_id)

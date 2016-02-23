@@ -3,7 +3,7 @@ import dateutil.parser
 import requests
 import unittest
 
-from . import Client, AsyncClient, InteropError, Telemetry
+from . import Client, AsyncClient, InteropError, Target, Telemetry
 
 # These tests run against a real interop server.
 # The server be loaded with the data from the test fixture in
@@ -141,3 +141,48 @@ class TestClient(unittest.TestCase):
         async_heights = [o.cylinder_height for o in async_stationary]
         self.assertIn(300, async_heights)
         self.assertIn(200, async_heights)
+
+    def test_targets(self):
+        """Test target workflow."""
+        # Post a target gets an updated target.
+        target = Target(type='standard')
+        post_target = self.client.post_target(target)
+        async_post_target = self.client.post_target(target)
+
+        self.assertIsNotNone(post_target.id)
+        self.assertIsNotNone(async_post_target.id)
+        self.assertIsNotNone(post_target.user)
+        self.assertIsNotNone(async_post_target.user)
+        self.assertEqual('standard', post_target.type)
+        self.assertEqual('standard', async_post_target.type)
+        self.assertNotEqual(post_target.id, async_post_target.id)
+
+        # Get targets.
+        get_target = self.client.get_target(post_target.id)
+        async_get_target = self.async_client.get_target(
+            async_post_target.id).result()
+        get_targets = self.client.get_targets()
+        async_get_targets = self.async_client.get_targets().result()
+
+        self.assertEquals(post_target, get_target)
+        self.assertEquals(async_post_target, async_get_target)
+        self.assertIn(post_target, get_targets)
+        self.assertIn(async_post_target, async_get_targets)
+
+        # Update target.
+        post_target.shape = 'circle'
+        async_post_target.shape = 'circle'
+        put_target = self.client.put_target(post_target.id, post_target)
+        async_put_target = self.async_client.put_target(
+            async_post_target.id, async_post_target).result()
+
+        self.assertEquals(post_target, put_target)
+        self.assertEquals(async_post_target, async_put_target)
+
+        # Delete target.
+        self.client.delete_target(post_target.id)
+        self.async_client.delete_target(async_post_target.id).result()
+
+        self.assertNotIn(post_target, self.client.get_targets())
+        self.assertNotIn(async_post_target,
+                         self.async_client.get_targets().result())

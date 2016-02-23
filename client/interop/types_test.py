@@ -265,7 +265,7 @@ class TestTarget(unittest.TestCase):
                    alphanumeric_color='black')
         s = o.serialize()
 
-        self.assertEqual(11, len(s))
+        self.assertEqual(10, len(s))
         self.assertEqual(1, s['id'])
         self.assertEqual(2, s['user'])
         self.assertEqual('standard', s['type'])
