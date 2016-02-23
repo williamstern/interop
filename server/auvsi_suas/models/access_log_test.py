@@ -53,6 +53,9 @@ class TestAccessLogBasic(TestAccessLogCommon):
         log.__unicode__()
 
     def test_no_data(self):
+        log = AccessLog.last_for_user(self.user1)
+        self.assertEqual(None, log)
+
         logs = AccessLog.by_user(self.user1)
         self.assertEqual(len(logs), 0)
 
@@ -63,7 +66,11 @@ class TestAccessLogBasic(TestAccessLogCommon):
         self.assertTupleEqual(log_rates, (None, None))
 
     def test_basic_access(self):
-        logs = self.create_logs(self.user1)
+        start = timezone.now() - datetime.timedelta(seconds=10)
+        logs = self.create_logs(self.user1, start=start)
+
+        log = AccessLog.last_for_user(self.user1)
+        self.assertEqual(logs[-1], log)
 
         results = AccessLog.by_user(self.user1)
         self.assertSequenceEqual(logs, results)
@@ -75,8 +82,20 @@ class TestAccessLogBasic(TestAccessLogCommon):
             logs += self.create_logs(self.user1, num=1)
             self.create_logs(self.user2, num=1)
 
+        log = AccessLog.last_for_user(self.user1)
+        self.assertEqual(logs[-1], log)
+
         results = AccessLog.by_user(self.user1)
         self.assertSequenceEqual(logs, results)
+
+    def test_last_for_user_before_time(self):
+        start = timezone.now()
+        delta = datetime.timedelta(seconds=1)
+        logs = self.create_logs(self.user1, num=10, start=start, delta=delta)
+
+        before_time = start + delta * 3
+        log = AccessLog.last_for_user(self.user1, before_time=before_time)
+        self.assertEqual(logs[2], log)
 
     def test_user_active(self):
         delta = datetime.timedelta(seconds=1)

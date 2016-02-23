@@ -22,6 +22,24 @@ class AccessLog(models.Model):
                         self.user.__unicode__(), str(self.timestamp)))
 
     @classmethod
+    def last_for_user(cls, user, before_time=None):
+        """Gets the last access log for the user.
+
+        Args:
+            user: The user to get the access log for.
+            before_time: Optional. Gets the last log before this time.
+        Returns:
+            The last access log for the user.
+        """
+        if before_time is None:
+            before_time = timezone.now()
+        return cls.objects \
+            .filter(user=user.pk) \
+            .filter(timestamp__lt=before_time) \
+            .order_by('timestamp') \
+            .last()
+
+    @classmethod
     def by_user(cls, user):
         """Gets the time-sorted list of access log for the given user.
 
