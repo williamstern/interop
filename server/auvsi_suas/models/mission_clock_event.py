@@ -50,3 +50,17 @@ class MissionClockEvent(AccessLog):
         if event:
             return event.team_on_timeout
         return False
+
+    @classmethod
+    def missions(cls, user):
+        """Gets the time periods which represents periods on the mission clock.
+
+        Args:
+            user: The user for which to get mission periods for.
+        Returns:
+            A list of TimePeriod objects for the mission clock.
+        """
+        return TimePeriod.from_events(
+            MissionClockEvent.by_user(user),
+            is_start_func=lambda x: x.team_on_clock,
+            is_end_func=lambda x: not x.team_on_clock)
