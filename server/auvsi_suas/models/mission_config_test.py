@@ -191,19 +191,19 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertAlmostEqual(1.0, teams[user1]['out_of_bounds_time'])
 
         self.assertAlmostEqual(
-            0.5, teams[user1]['interop_times']['server_info']['max'])
+            1.0, teams[user1]['interop_times']['server_info']['max'])
         self.assertAlmostEqual(
-            1. / 3, teams[user1]['interop_times']['server_info']['avg'])
+            2. / 4., teams[user1]['interop_times']['server_info']['avg'])
 
         self.assertAlmostEqual(
-            0.4, teams[user1]['interop_times']['obst_info']['max'])
+            1.0, teams[user1]['interop_times']['obst_info']['max'])
         self.assertAlmostEqual(
-            1. / 4, teams[user1]['interop_times']['obst_info']['avg'])
+            2. / 5, teams[user1]['interop_times']['obst_info']['avg'])
 
         self.assertAlmostEqual(
             1.0, teams[user1]['interop_times']['uas_telem']['max'])
         self.assertAlmostEqual(
-            1. / 3, teams[user1]['interop_times']['uas_telem']['avg'])
+            2. / 4, teams[user1]['interop_times']['uas_telem']['avg'])
 
         self.assertEqual(False, teams[user1]['stationary_obst_collision'][25])
         self.assertEqual(False, teams[user1]['stationary_obst_collision'][26])

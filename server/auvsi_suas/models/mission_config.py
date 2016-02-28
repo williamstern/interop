@@ -164,8 +164,10 @@ class MissionConfig(models.Model):
 
             # Find the user's flights.
             flight_periods = TakeoffOrLandingEvent.flights(user)
-            uas_period_logs = UasTelemetry.dedupe(UasTelemetry.by_time_period(
-                user, flight_periods))
+            uas_period_logs = [
+                UasTelemetry.dedupe(logs)
+                for logs in UasTelemetry.by_time_period(user, flight_periods)
+            ]
             uas_logs = list(itertools.chain.from_iterable(uas_period_logs))
 
             # Determine if the uas hit the waypoints.
