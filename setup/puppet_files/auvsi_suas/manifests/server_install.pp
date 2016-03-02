@@ -34,11 +34,18 @@ class auvsi_suas::server_install {
         target => '/usr/bin/nodejs',
         require => Package['npm'],
     }
-    # Install packages from NPM.
-    exec { 'karma and jasmine':
-        environment => ['HOME=/interop'],
-        command => 'npm install --force -g karma karma-jasmine karma-chrome-launcher phantomjs karma-phantomjs-launcher karma-cli',
-        cwd => '/interop/server',
+
+    # Install packages from npm.
+    $npm_deps = [
+        'karma',
+        'karma-jasmine',
+        'karma-chrome-launcher',
+        'phantomjs',
+        'karma-phantomjs-launcher',
+    ]
+    package { $npm_deps:
+        ensure => 'present',
+        provider => 'npm',
         require => [Package['npm'], File['/usr/local/bin/node']],
     }
 }
