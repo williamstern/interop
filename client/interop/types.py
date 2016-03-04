@@ -158,6 +158,8 @@ class Target(ClientBaseType):
         alphanumeric_color: Optional. Target alphanumeric color.
         description: Optional. Free-form description of the target, used for
             certain target types.
+        autonomous: Optional; defaults to False. Indicates that this is an
+            ADLC target.
 
     Raises:
         ValueError: Argument not valid.
@@ -165,7 +167,7 @@ class Target(ClientBaseType):
 
     attrs = ['id', 'user', 'type', 'latitude', 'longitude', 'orientation',
              'shape', 'background_color', 'alphanumeric', 'alphanumeric_color',
-             'description']
+             'description', 'autonomous']
 
     def __init__(self,
                  id=None,
@@ -178,7 +180,8 @@ class Target(ClientBaseType):
                  background_color=None,
                  alphanumeric=None,
                  alphanumeric_color=None,
-                 description=None):
+                 description=None,
+                 autonomous=False):
         self.id = id
         self.user = user
         self.type = type
@@ -190,3 +193,4 @@ class Target(ClientBaseType):
         self.alphanumeric = alphanumeric
         self.alphanumeric_color = alphanumeric_color
         self.description = description
+        self.autonomous = autonomous

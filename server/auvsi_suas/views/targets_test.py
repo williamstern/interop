@@ -114,6 +114,7 @@ class TestPostTarget(TestCase):
             'alphanumeric': 'ABC',
             'alphanumeric_color': 'black',
             'description': 'Best target',
+            'autonomous': False,
         }
 
         response = self.client.post(targets_url,
@@ -135,6 +136,7 @@ class TestPostTarget(TestCase):
         self.assertEqual(target['alphanumeric_color'],
                          created['alphanumeric_color'])
         self.assertEqual(target['description'], created['description'])
+        self.assertEqual(target['autonomous'], created['autonomous'])
 
         # It also contains 'user' and 'id' fields.
         self.assertIn('id', created)
@@ -161,6 +163,7 @@ class TestPostTarget(TestCase):
         self.assertEqual(None, created['alphanumeric'])
         self.assertEqual(None, created['alphanumeric_color'])
         self.assertEqual(None, created['description'])
+        self.assertEqual(False, created['autonomous'])
 
         # It also contains 'user' and 'id' fields.
         self.assertIn('id', created)
@@ -329,6 +332,23 @@ class TestPostTarget(TestCase):
                                         content_type='application/json')
             self.assertEqual(400, response.status_code)
 
+    def test_invalid_autonomous(self):
+        """Send bad target autonomous."""
+        bad = ['true', 1, 'Yes']
+
+        for b in bad:
+            target = {
+                'type': 'standard',
+                'latitude': 38,
+                'longitude': -76,
+                'autonomous': b,
+            }
+
+            response = self.client.post(targets_url,
+                                        data=json.dumps(target),
+                                        content_type='application/json')
+            self.assertEqual(400, response.status_code)
+
 
 class TestTargetsIdLoggedOut(TestCase):
     """Tests logged out targets_id."""
@@ -340,7 +360,7 @@ class TestTargetsIdLoggedOut(TestCase):
 
 
 class TestTargetId(TestCase):
-    """Tests GET/PUT specific targets."""
+    """Tests GET/PUT/DELETE specific targets."""
 
     def setUp(self):
         """Creates user and logs in."""
@@ -558,6 +578,21 @@ class TestTargetId(TestCase):
             content_type='multipart/form-data')
         self.assertEqual(400, response.status_code)
 
+    def test_put_change_autonomous(self):
+        """Change autonomous with PUT"""
+        t = Target(user=self.user, target_type=TargetType.standard)
+        t.save()
+
+        data = {'autonomous': True}
+
+        response = self.client.put(
+            targets_id_url(args=[t.pk]),
+            data=json.dumps(data))
+        self.assertEqual(200, response.status_code)
+
+        t.refresh_from_db()
+        self.assertEqual(True, t.autonomous)
+
     def test_delete_own(self):
         """Test DELETEing a target owned by the correct user."""
         t = Target(user=self.user, target_type=TargetType.standard)
@@ -627,7 +662,7 @@ def test_image(name):
 
 
 class TestTargetIdImage(TestCase):
-    """Tests GET/PUT target image."""
+    """Tests GET/PUT/DELETE target image."""
 
     def setUp(self):
         """Creates user and logs in."""

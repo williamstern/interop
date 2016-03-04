@@ -103,6 +103,10 @@ def normalize_data(data):
             raise ValueError('Unknown color "%s"; known colors %r' %
                              (data['alphanumeric_color'], Color.names()))
 
+    if 'autonomous' in data:
+        if data['autonomous'] is not True and data['autonomous'] is not False:
+            raise ValueError('"autonmous" must be true or false')
+
     return data
 
 
@@ -164,7 +168,8 @@ class Targets(View):
                    background_color=data.get('background_color'),
                    alphanumeric=data.get('alphanumeric', ''),
                    alphanumeric_color=data.get('alphanumeric_color'),
-                   description=data.get('description', ''))
+                   description=data.get('description', ''),
+                   autonomous=data.get('autonomous', False))
         t.save()
 
         return JsonResponse(t.json(), status=201)
@@ -242,6 +247,8 @@ class TargetsId(View):
             target.alphanumeric_color = data['alphanumeric_color']
         if 'description' in data:
             target.description = data['description']
+        if 'autonomous' in data:
+            target.autonomous = data['autonomous']
 
         # Location is special because it is in a GpsPosition model
 
