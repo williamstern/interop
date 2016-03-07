@@ -2,8 +2,13 @@
 
 import itertools
 import logging
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.db import models
+
 from auvsi_suas.patches.simplekml_patch import Color
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
+from auvsi_suas.models import units
 from fly_zone import FlyZone
 from gps_position import GpsPosition
 from moving_obstacle import MovingObstacle
@@ -15,9 +20,6 @@ from takeoff_or_landing_event import TakeoffOrLandingEvent
 from time_period import TimePeriod
 from uas_telemetry import UasTelemetry
 from waypoint import Waypoint
-from django.conf import settings
-from django.contrib.auth.models import User
-from django.db import models
 
 # Logging for the module
 logger = logging.getLogger(__name__)
@@ -349,7 +351,7 @@ class MissionConfig(models.Model):
         for waypoint in self.mission_waypoints.all():
             gps = waypoint.position.gps_position
             coord = (gps.longitude, gps.latitude,
-                     waypoint.position.altitude_msl)
+                     units.feet_to_meters(waypoint.position.altitude_msl))
             waypoints.append(coord)
 
             # Add waypoint marker
@@ -375,7 +377,8 @@ class MissionConfig(models.Model):
         search_area_num = 1
         for point in self.search_grid_points.all():
             gps = point.position.gps_position
-            coord = (gps.longitude, gps.latitude, point.position.altitude_msl)
+            coord = (gps.longitude, gps.latitude,
+                     units.feet_to_meters(point.position.altitude_msl))
             search_area.append(coord)
 
             # Add boundary marker

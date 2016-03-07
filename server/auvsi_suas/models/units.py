@@ -12,6 +12,17 @@ def kilometers_to_feet(kilometers):
     return kilometers * 3280.8399
 
 
+def feet_to_meters(feet):
+    """Converts feet to meters.
+
+    Args:
+        feet: A distance in feet.
+    Returns:
+        A distance in meters.
+    """
+    return feet * 0.3048
+
+
 def knots_to_feet_per_second(knots):
     """Converts knots to feet per second.
 
