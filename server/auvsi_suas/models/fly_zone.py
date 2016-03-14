@@ -1,9 +1,11 @@
 """Fly zone model."""
-from auvsi_suas.patches.simplekml_patch import AltitudeMode
-from auvsi_suas.patches.simplekml_patch import Color
 import numpy as np
 from django.db import models
 from matplotlib import path as mplpath
+
+from auvsi_suas.patches.simplekml_patch import AltitudeMode
+from auvsi_suas.patches.simplekml_patch import Color
+from auvsi_suas.models import units
 from waypoint import Waypoint
 
 
@@ -158,7 +160,8 @@ class FlyZone(models.Model):
         flyzone_num = 1
         for point in self.boundary_pts.all():
             gps = point.position.gps_position
-            coord = (gps.longitude, gps.latitude, point.position.altitude_msl)
+            coord = (gps.longitude, gps.latitude,
+                     units.feet_to_meters(point.position.altitude_msl))
             fly_zone.append(coord)
 
             # Add boundary marker

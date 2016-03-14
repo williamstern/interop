@@ -1,15 +1,17 @@
 """Tests for the uas_telemetry module."""
 
 import iso8601
-from auvsi_suas.models import AerialPosition
-from auvsi_suas.models import GpsPosition
-from auvsi_suas.models import TakeoffOrLandingEvent
-from auvsi_suas.models import UasTelemetry
 import datetime
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
 from simplekml import Kml
+
+from auvsi_suas.models import AerialPosition
+from auvsi_suas.models import GpsPosition
+from auvsi_suas.models import TakeoffOrLandingEvent
+from auvsi_suas.models import UasTelemetry
+from auvsi_suas.models import units
 
 
 class TestUasTelemetryBase(TestCase):
@@ -197,7 +199,8 @@ class TestUasTelemetryKML(TestUasTelemetryBase):
                          kml=kml,
                          kml_doc=kml)
         for coord in coordinates:
-            tag = self.coord_format.format(coord[1], coord[0], coord[2])
+            tag = self.coord_format.format(coord[1], coord[0],
+                                           units.feet_to_meters(coord[2]))
             self.assertTrue(tag in kml.kml())
 
     def test_kml_empty(self):
@@ -236,9 +239,10 @@ class TestUasTelemetryKML(TestUasTelemetryBase):
 
         for filtered in filtered_out:
             tag = self.coord_format.format(filtered[1], filtered[0],
-                                           filtered[2])
+                                           units.feet_to_meters(filtered[2]))
             self.assertTrue(tag not in kml.kml())
 
         for coord in coordinates:
-            tag = self.coord_format.format(coord[1], coord[0], coord[2])
+            tag = self.coord_format.format(coord[1], coord[0],
+                                           units.feet_to_meters(coord[2]))
             self.assertTrue(tag in kml.kml())

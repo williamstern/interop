@@ -1,14 +1,16 @@
 """UAS Telemetry model."""
 
-from access_log import AccessLog
-from aerial_position import AerialPosition
-from takeoff_or_landing_event import TakeoffOrLandingEvent
-from auvsi_suas.models.moving_obstacle import MovingObstacle
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+
+from access_log import AccessLog
+from aerial_position import AerialPosition
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
+from takeoff_or_landing_event import TakeoffOrLandingEvent
+from moving_obstacle import MovingObstacle
+import units
 
 
 class UasTelemetry(AccessLog):
@@ -143,7 +145,7 @@ class UasTelemetry(AccessLog):
                 pos = entry.uas_position.gps_position
                 # Spatial Coordinates
                 coord = (pos.longitude, pos.latitude,
-                         entry.uas_position.altitude_msl)
+                         units.feet_to_meters(entry.uas_position.altitude_msl))
                 coords.append(coord)
 
                 # Time Elements
@@ -188,7 +190,7 @@ class UasTelemetry(AccessLog):
                 pos = entry.uas_position.gps_position
                 # Spatial Coordinates
                 coord = (pos.longitude, pos.latitude,
-                         entry.uas_position.altitude_msl)
+                         units.feet_to_meters(entry.uas_position.altitude_msl))
                 coords.append(coord)
             linestring.coords = coords
             linestring.altitudemode = AltitudeMode.absolute

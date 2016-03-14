@@ -1,16 +1,17 @@
 """Moving obstacle model."""
 
 import numpy as np
-from auvsi_suas.models import distance
-from auvsi_suas.models import units
-from auvsi_suas.patches.simplekml_patch import AltitudeMode
-from auvsi_suas.patches.simplekml_patch import Color
-from auvsi_suas.patches.simplekml_patch import Types
 from datetime import timedelta
 from waypoint import Waypoint
 from django.db import models
 from django.utils import timezone
 from scipy.interpolate import splrep, splev
+
+from auvsi_suas.models import distance
+from auvsi_suas.models import units
+from auvsi_suas.patches.simplekml_patch import AltitudeMode
+from auvsi_suas.patches.simplekml_patch import Color
+from auvsi_suas.patches.simplekml_patch import Types
 
 
 class MovingObstacle(models.Model):
@@ -270,7 +271,7 @@ class MovingObstacle(models.Model):
         dt = timedelta(milliseconds=kml_output_resolution)
         for pos, uav, time in self.times(path, dt):
             # Spatial Coordinates (longitude, latitude, altitude)
-            coord = (pos[1], pos[0], pos[2])
+            coord = (pos[1], pos[0], units.feet_to_meters(pos[2]))
             coords.append(coord)
 
             # Time Elements
@@ -355,7 +356,7 @@ class MovingObstacle(models.Model):
             coords = []
             for pos in track(obstacle, timespan, dt):
                 # Longitude, Latitude, Altitude
-                coord = (pos[1], pos[0], pos[2])
+                coord = (pos[1], pos[0], units.feet_to_meters(pos[2]))
                 coords.append(coord)
             linestring.coords = coords
             linestring.altitudemode = AltitudeMode.absolute

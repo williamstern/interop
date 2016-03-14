@@ -1,11 +1,13 @@
 """Tests for the evaluate_teams module."""
 
+import logging
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.client import Client
-import logging
 from xml.etree import ElementTree
+
+from auvsi_suas.models import units
 
 
 class TestGenerateKMLCommon(TestCase):
@@ -86,13 +88,12 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
         self.folders = ['Teams', 'Missions']
         self.users = ['testuser', 'user0', 'user1']
         self.coordinates = [
-            (-76.0, 38.0, 0.0),
-            (-76.0, 38.0, 10.0),
-            (-76.0, 38.0, 20.0),
-            (-76.0, 38.0, 30.0),
-            (-76.0, 38.0, 100.0),
-            (-76.0, 38.0, 30.0),
-            (-76.0, 38.0, 60.0),
+            (lat, lon, units.feet_to_meters(alt))
+            for lat, lon, alt in [
+                (-76.0, 38.0, 0.0), (-76.0, 38.0, 10.0), (-76.0, 38.0, 20.0), (
+                    -76.0, 38.0, 30.0), (-76.0, 38.0, 100.0), (
+                        -76.0, 38.0, 30.0), (-76.0, 38.0, 60.0)
+            ]
         ]
 
     def test_generateKML_not_logged_in(self):
