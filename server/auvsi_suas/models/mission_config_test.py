@@ -140,6 +140,7 @@ class TestMissionConfigModelSampleMission(TestCase):
             self.assertIn(1, val['waypoints_satisfied'])
             self.assertIn(2, val['waypoints_satisfied'])
 
+            self.assertIn('mission_clock_time', val)
             self.assertIn('out_of_bounds_time', val)
 
             self.assertIn('interop_times', val)
@@ -161,6 +162,7 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertEqual(True, teams[user0]['waypoints_satisfied'][1])
         self.assertEqual(True, teams[user0]['waypoints_satisfied'][2])
 
+        self.assertAlmostEqual(2, teams[user0]['mission_clock_time'])
         self.assertAlmostEqual(0.6, teams[user0]['out_of_bounds_time'])
 
         self.assertAlmostEqual(
@@ -188,6 +190,7 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertEqual(True, teams[user1]['waypoints_satisfied'][1])
         self.assertEqual(True, teams[user1]['waypoints_satisfied'][2])
 
+        self.assertAlmostEqual(18, teams[user1]['mission_clock_time'])
         self.assertAlmostEqual(1.0, teams[user1]['out_of_bounds_time'])
 
         self.assertAlmostEqual(

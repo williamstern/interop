@@ -37,6 +37,24 @@
 },
 {
     "fields": {
+        "username": "testadmin",
+        "first_name": "",
+        "last_name": "",
+        "is_active": true,
+        "is_superuser": true,
+        "is_staff": true,
+        "last_login": "2016-03-22T11:48:18.571Z",
+        "groups": [],
+        "user_permissions": [],
+        "password": "pbkdf2_sha256$20000$RV69VeSD5TcB$0mKHBGrLECDAHYaG/VBf5RRABdzvSh2rqHGF1YLMAyg=",
+        "email": "testadmin@test.com",
+        "date_joined": "2016-03-22T11:48:10.093Z"
+    },
+    "model": "auth.user",
+    "pk": 55
+},
+{
+    "fields": {
         "latitude": 38.0,
         "longitude": -76.0
     },
@@ -341,94 +359,6 @@
 },
 {
     "fields": {
-        "position": 185,
-        "order": 10
-    },
-    "model": "auvsi_suas.waypoint",
-    "pk": 150
-},
-{
-    "fields": {
-        "position": 186,
-        "order": 0
-    },
-    "model": "auvsi_suas.waypoint",
-    "pk": 151
-},
-{
-    "fields": {
-        "position": 187,
-        "order": 1
-    },
-    "model": "auvsi_suas.waypoint",
-    "pk": 152
-},
-{
-    "fields": {
-        "position": 188,
-        "order": 2
-    },
-    "model": "auvsi_suas.waypoint",
-    "pk": 153
-},
-{
-    "fields": {
-        "position": 189,
-        "order": 3
-    },
-    "model": "auvsi_suas.waypoint",
-    "pk": 154
-},
-{
-    "fields": {
-        "position": 190,
-        "order": 0
-    },
-    "model": "auvsi_suas.waypoint",
-    "pk": 155
-},
-{
-    "fields": {
-        "position": 191,
-        "order": 1
-    },
-    "model": "auvsi_suas.waypoint",
-    "pk": 156
-},
-{
-    "fields": {
-        "position": 192,
-        "order": 0
-    },
-    "model": "auvsi_suas.waypoint",
-    "pk": 157
-},
-{
-    "fields": {
-        "position": 193,
-        "order": 1
-    },
-    "model": "auvsi_suas.waypoint",
-    "pk": 158
-},
-{
-    "fields": {
-        "position": 194,
-        "order": 0
-    },
-    "model": "auvsi_suas.waypoint",
-    "pk": 159
-},
-{
-    "fields": {
-        "position": 195,
-        "order": 1
-    },
-    "model": "auvsi_suas.waypoint",
-    "pk": 160
-},
-{
-    "fields": {
         "timestamp": "1970-01-01T00:00:00Z",
         "user": 53
     },
@@ -581,23 +511,6 @@
 },
 {
     "fields": {
-        "timestamp": "1970-01-01T00:00:09Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 164
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:10Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 165
-},
-
-{
-    "fields": {
         "timestamp": "1970-01-01T00:00:01.100Z",
         "user": 54
     },
@@ -661,6 +574,287 @@
     "pk": 163
 },
 {
+    "fields": {
+        "timestamp": "1970-01-01T00:00:09Z",
+        "user": 54
+    },
+    "model": "auvsi_suas.accesslog",
+    "pk": 164
+},
+{
+    "fields": {
+        "timestamp": "1970-01-01T00:00:10Z",
+        "user": 54
+    },
+    "model": "auvsi_suas.accesslog",
+    "pk": 165
+},
+{
+    "fields": {
+        "timestamp": "1970-01-01T00:00:00Z",
+        "user": 53
+    },
+    "model": "auvsi_suas.accesslog",
+    "pk": 166
+},
+{
+    "fields": {
+        "timestamp": "1970-01-01T00:00:02Z",
+        "user": 53
+    },
+    "model": "auvsi_suas.accesslog",
+    "pk": 167
+},
+{
+    "fields": {
+        "timestamp": "1970-01-01T00:00:00Z",
+        "user": 54
+    },
+    "model": "auvsi_suas.accesslog",
+    "pk": 168
+},
+{
+    "fields": {
+        "timestamp": "1970-01-01T00:00:03Z",
+        "user": 54
+    },
+    "model": "auvsi_suas.accesslog",
+    "pk": 169
+},
+{
+    "fields": {
+        "timestamp": "1970-01-01T00:00:05Z",
+        "user": 54
+    },
+    "model": "auvsi_suas.accesslog",
+    "pk": 170
+},
+{
+    "fields": {
+        "timestamp": "1970-01-01T00:00:20Z",
+        "user": 54
+    },
+    "model": "auvsi_suas.accesslog",
+    "pk": 171
+},
+{
+    "fields": {
+        "position": 185,
+        "order": 10
+    },
+    "model": "auvsi_suas.waypoint",
+    "pk": 150
+},
+{
+    "fields": {
+        "position": 186,
+        "order": 0
+    },
+    "model": "auvsi_suas.waypoint",
+    "pk": 151
+},
+{
+    "fields": {
+        "position": 187,
+        "order": 1
+    },
+    "model": "auvsi_suas.waypoint",
+    "pk": 152
+},
+{
+    "fields": {
+        "position": 188,
+        "order": 2
+    },
+    "model": "auvsi_suas.waypoint",
+    "pk": 153
+},
+{
+    "fields": {
+        "position": 189,
+        "order": 3
+    },
+    "model": "auvsi_suas.waypoint",
+    "pk": 154
+},
+{
+    "fields": {
+        "position": 190,
+        "order": 0
+    },
+    "model": "auvsi_suas.waypoint",
+    "pk": 155
+},
+{
+    "fields": {
+        "position": 191,
+        "order": 1
+    },
+    "model": "auvsi_suas.waypoint",
+    "pk": 156
+},
+{
+    "fields": {
+        "position": 192,
+        "order": 0
+    },
+    "model": "auvsi_suas.waypoint",
+    "pk": 157
+},
+{
+    "fields": {
+        "position": 193,
+        "order": 1
+    },
+    "model": "auvsi_suas.waypoint",
+    "pk": 158
+},
+{
+    "fields": {
+        "position": 194,
+        "order": 0
+    },
+    "model": "auvsi_suas.waypoint",
+    "pk": 159
+},
+{
+    "fields": {
+        "position": 195,
+        "order": 1
+    },
+    "model": "auvsi_suas.waypoint",
+    "pk": 160
+},
+{
+    "fields": {
+        "altitude_msl_max": 20.0,
+        "boundary_pts": [
+            151,
+            152,
+            153,
+            154
+        ],
+        "altitude_msl_min": 0.0
+    },
+    "model": "auvsi_suas.flyzone",
+    "pk": 22
+},
+{
+    "fields": {
+        "team_on_timeout": false,
+        "team_on_clock": true
+    },
+    "model": "auvsi_suas.missionclockevent",
+    "pk": 166
+},
+{
+    "fields": {
+        "team_on_timeout": false,
+        "team_on_clock": false
+    },
+    "model": "auvsi_suas.missionclockevent",
+    "pk": 167
+},
+{
+    "fields": {
+        "team_on_timeout": false,
+        "team_on_clock": true
+    },
+    "model": "auvsi_suas.missionclockevent",
+    "pk": 168
+},
+{
+    "fields": {
+        "team_on_timeout": true,
+        "team_on_clock": false
+    },
+    "model": "auvsi_suas.missionclockevent",
+    "pk": 169
+},
+{
+    "fields": {
+        "team_on_timeout": false,
+        "team_on_clock": true
+    },
+    "model": "auvsi_suas.missionclockevent",
+    "pk": 170
+},
+{
+    "fields": {
+        "team_on_timeout": false,
+        "team_on_clock": false
+    },
+    "model": "auvsi_suas.missionclockevent",
+    "pk": 171
+},
+{
+    "fields": {
+        "sphere_radius": 15.0,
+        "speed_avg": 1.0,
+        "waypoints": [
+            157,
+            158
+        ]
+    },
+    "model": "auvsi_suas.movingobstacle",
+    "pk": 25
+},
+{
+    "fields": {
+        "sphere_radius": 20.0,
+        "speed_avg": 1.0,
+        "waypoints": [
+            159,
+            160
+        ]
+    },
+    "model": "auvsi_suas.movingobstacle",
+    "pk": 26
+},
+{
+    "fields": {},
+    "model": "auvsi_suas.obstacleaccesslog",
+    "pk": 144
+},
+{
+    "fields": {},
+    "model": "auvsi_suas.obstacleaccesslog",
+    "pk": 145
+},
+{
+    "fields": {},
+    "model": "auvsi_suas.obstacleaccesslog",
+    "pk": 146
+},
+{
+    "fields": {},
+    "model": "auvsi_suas.obstacleaccesslog",
+    "pk": 147
+},
+{
+    "fields": {},
+    "model": "auvsi_suas.obstacleaccesslog",
+    "pk": 158
+},
+{
+    "fields": {},
+    "model": "auvsi_suas.obstacleaccesslog",
+    "pk": 159
+},
+{
+    "fields": {},
+    "model": "auvsi_suas.obstacleaccesslog",
+    "pk": 160
+},
+{
+    "fields": {
+        "timestamp": "1970-01-01T00:00:01Z",
+        "team_msg": "Hello World"
+    },
+    "model": "auvsi_suas.serverinfo",
+    "pk": 1
+},
+{
     "fields": {},
     "model": "auvsi_suas.serverinfoaccesslog",
     "pk": 139
@@ -701,39 +895,64 @@
     "pk": 157
 },
 {
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 144
+    "fields": {
+        "cylinder_height": 10.0,
+        "cylinder_radius": 10.0,
+        "gps_position": 331
+    },
+    "model": "auvsi_suas.stationaryobstacle",
+    "pk": 25
 },
 {
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 145
+    "fields": {
+        "cylinder_height": 10.0,
+        "cylinder_radius": 10.0,
+        "gps_position": 332
+    },
+    "model": "auvsi_suas.stationaryobstacle",
+    "pk": 26
 },
 {
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 146
+    "fields": {
+        "uas_in_air": true
+    },
+    "model": "auvsi_suas.takeofforlandingevent",
+    "pk": 137
 },
 {
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 147
+    "fields": {
+        "uas_in_air": false
+    },
+    "model": "auvsi_suas.takeofforlandingevent",
+    "pk": 138
 },
 {
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 158
+    "fields": {
+        "uas_in_air": true
+    },
+    "model": "auvsi_suas.takeofforlandingevent",
+    "pk": 153
 },
 {
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 159
+    "fields": {
+        "uas_in_air": false
+    },
+    "model": "auvsi_suas.takeofforlandingevent",
+    "pk": 154
 },
 {
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 160
+    "fields": {
+        "uas_in_air": true
+    },
+    "model": "auvsi_suas.takeofforlandingevent",
+    "pk": 164
+},
+{
+    "fields": {
+        "uas_in_air": false
+    },
+    "model": "auvsi_suas.takeofforlandingevent",
+    "pk": 165
 },
 {
     "fields": {
@@ -801,137 +1020,31 @@
 },
 {
     "fields": {
-        "uas_in_air": true
-    },
-    "model": "auvsi_suas.takeofforlandingevent",
-    "pk": 137
-},
-{
-    "fields": {
-        "uas_in_air": false
-    },
-    "model": "auvsi_suas.takeofforlandingevent",
-    "pk": 138
-},
-{
-    "fields": {
-        "uas_in_air": true
-    },
-    "model": "auvsi_suas.takeofforlandingevent",
-    "pk": 153
-},
-{
-    "fields": {
-        "uas_in_air": false
-    },
-    "model": "auvsi_suas.takeofforlandingevent",
-    "pk": 154
-},
-{
-    "fields": {
-        "uas_in_air": true
-    },
-    "model": "auvsi_suas.takeofforlandingevent",
-    "pk": 164
-},
-{
-    "fields": {
-        "uas_in_air": false
-    },
-    "model": "auvsi_suas.takeofforlandingevent",
-    "pk": 165
-},
-{
-    "fields": {
-        "cylinder_height": 10.0,
-        "cylinder_radius": 10.0,
-        "gps_position": 331
-    },
-    "model": "auvsi_suas.stationaryobstacle",
-    "pk": 25
-},
-{
-    "fields": {
-        "cylinder_height": 10.0,
-        "cylinder_radius": 10.0,
-        "gps_position": 332
-    },
-    "model": "auvsi_suas.stationaryobstacle",
-    "pk": 26
-},
-{
-    "fields": {
-        "sphere_radius": 15.0,
-        "speed_avg": 1.0,
-        "waypoints": [
-            157,
-            158
-        ]
-    },
-    "model": "auvsi_suas.movingobstacle",
-    "pk": 25
-},
-{
-    "fields": {
-        "sphere_radius": 20.0,
-        "speed_avg": 1.0,
-        "waypoints": [
-            159,
-            160
-        ]
-    },
-    "model": "auvsi_suas.movingobstacle",
-    "pk": 26
-},
-{
-    "fields": {
-        "altitude_msl_max": 20.0,
-        "boundary_pts": [
-            151,
-            152,
-            153,
-            154
+        "stationary_obstacles": [
+            25,
+            26
         ],
-        "altitude_msl_min": 0.0
-    },
-    "model": "auvsi_suas.flyzone",
-    "pk": 22
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:01Z",
-        "team_msg": "Hello World"
-    },
-    "model": "auvsi_suas.serverinfo",
-    "pk": 1
-},
-{
-    "fields": {
-        "off_axis_target_pos": 324,
         "fly_zones": [
             22
         ],
+        "off_axis_target_pos": 324,
+        "moving_obstacles": [
+            25,
+            26
+        ],
+        "server_info": 1,
+        "is_active": true,
         "mission_waypoints": [
             155,
             156
         ],
         "emergent_last_known_pos": 324,
-        "sric_pos": 324,
         "search_grid_points": [
             150
         ],
+        "sric_pos": 324,
         "home_pos": 324,
-        "is_active": true,
-        "air_drop_pos": 324,
-        "server_info": 1,
-        "stationary_obstacles": [
-            25,
-            26
-        ],
-        "moving_obstacles": [
-            25,
-            26
-        ]
+        "air_drop_pos": 324
     },
     "model": "auvsi_suas.missionconfig",
     "pk": 3

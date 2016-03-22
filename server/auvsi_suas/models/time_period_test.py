@@ -146,3 +146,16 @@ class TestTimePeriod(TestCase):
 
         # Way above
         self.assertTrue(t.within(datetime.datetime(2002, 1, 1)))
+
+    def test_duration_infinite(self):
+        """Tests the duration with infinite value (no endpoint)."""
+        t = TimePeriod(start=datetime.datetime(2000, 1, 1))
+        self.assertIsNone(t.duration())
+        t = TimePeriod(end=datetime.datetime(2000, 1, 1))
+        self.assertIsNone(t.duration())
+
+    def test_duration_finite(self):
+        """Tests the duration with endpoints and finite time."""
+        t = TimePeriod(start=datetime.datetime(2000, 1, 1),
+                       end=datetime.datetime(2000, 1, 2))
+        self.assertEqual(datetime.timedelta(days=1), t.duration())

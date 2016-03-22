@@ -51,7 +51,10 @@ class EvaluateTeams(View):
                         work_queue.append((new_prefixes, val))
                     else:
                         column_key = '.'.join(new_prefixes)
-                        col_data[column_key] = val
+                        if isinstance(val, list):
+                            col_data[column_key] = ','.join(val)
+                        else:
+                            col_data[column_key] = val
         # Get column headers
         col_headers = set()
         for col_data in user_col_data.values():
