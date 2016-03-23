@@ -2,25 +2,11 @@
  * Styles for the Mission Dashboard page.
  */
 
-
-.mission-dashboard-team-active-and-in-air {
-    background-color: #99FF99;  // Green
-}
-
-.mission-dashboard-team-active,
-.mission-dashboard-team-in-air {
-    background-color: #FFCC66;  // Orange
-}
-
-.mission-dashboard-team-inactive-and-not-in-air {
-    background-color: #D9D9D9;  // Gray
-}
-
 .mission-dashboard-mission-view {
     padding: 20px;
     width: 100%;
 }
 
-.mission-dashboard-misison-view mission-map-view {
+.mission-dashboard-mission-view mission-map-view {
     width: 100%;
 }

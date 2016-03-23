@@ -14,12 +14,8 @@
 
     <hr></hr>
 
-    <div class="row" ng-repeat="team in missionDashboardCtrl.getActiveOrInAirTeams()">
-      <div class="panel {{missionDashboardCtrl.getTeamColorClass(team)}}">
-        <h4>{{team.id}}: {{team.name}}</h4>
-        <h6>Active: {{team.active}}</h6>
-        <h6>In Air: {{team.in_air}}</h6>
-      </div>
+    <div class="row" ng-repeat="team in missionDashboardCtrl.getTeamsToDisplay()">
+        <team-status team="team"></team-status>
     </div>
   </div>
 

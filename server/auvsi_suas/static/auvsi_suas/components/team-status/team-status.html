@@ -1,0 +1,13 @@
+<div class="panel team-status {{teamStatusCtrl.getTeamColorClasses()}}">
+    <h4>{{teamStatusCtrl.team.id}}: {{teamStatusCtrl.team.name}}</h4>
+    <div class="row">
+        <div class="small-6 columns">
+            <h6>On Clock: {{teamStatusCtrl.team.on_clock}}</h6>
+            <h6>On Timeout: {{teamStatusCtrl.team.on_timeout}}</h6>
+        </div>
+        <div class="small-6 columns">
+            <h6>Active: {{teamStatusCtrl.team.active}}</h6>
+            <h6>In Air: {{teamStatusCtrl.team.in_air}}</h6>
+        </div>
+    </div>
+</div>
