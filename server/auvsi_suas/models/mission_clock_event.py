@@ -32,9 +32,7 @@ class MissionClockEvent(AccessLog):
             True if the user currently on clock, False otherwise.
         """
         event = cls.last_for_user(user, time)
-        if event:
-            return event.team_on_clock
-        return False
+        return event.team_on_clock if event else False
 
     @classmethod
     def user_on_timeout(cls, user, time=None):
@@ -47,9 +45,7 @@ class MissionClockEvent(AccessLog):
             True if user is on timeout, False otherwise.
         """
         event = cls.last_for_user(user, time)
-        if event:
-            return event.team_on_timeout
-        return False
+        return event.team_on_timeout if event else False
 
     @classmethod
     def missions(cls, user):
