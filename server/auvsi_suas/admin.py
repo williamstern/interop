@@ -2,6 +2,7 @@ from django.contrib import admin
 from auvsi_suas.models import AerialPosition
 from auvsi_suas.models import FlyZone
 from auvsi_suas.models import GpsPosition
+from auvsi_suas.models import MissionClockEvent
 from auvsi_suas.models import MissionConfig
 from auvsi_suas.models import MovingObstacle
 from auvsi_suas.models import ObstacleAccessLog
@@ -57,6 +58,7 @@ class WaypointModelAdmin(LargeDataModelAdmin):
 # These don't require any raw fields.
 admin.site.register(FlyZone)
 admin.site.register(GpsPosition, LargeDataModelAdmin)
+admin.site.register(MissionClockEvent)
 admin.site.register(MovingObstacle)
 admin.site.register(ObstacleAccessLog, LargeDataModelAdmin)
 admin.site.register(ServerInfo)

@@ -60,3 +60,9 @@ class TimePeriod(object):
         """Returns true if time is within the TimePeriod."""
         return (self.start is None or time >= self.start) and \
                 (self.end is None or time <= self.end)
+
+    def duration(self):
+        """Returns time duration as datetime.TimeDelta, or None if infinite."""
+        if self.start is None or self.end is None:
+            return None
+        return self.end - self.start
