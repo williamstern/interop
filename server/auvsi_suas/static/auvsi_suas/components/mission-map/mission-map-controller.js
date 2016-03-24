@@ -14,7 +14,7 @@
  * @struct
  * @ngInject
  */
-MissionMapView = function($window, $rootScope, Distance, Units, Settings) {
+MissionMapCtrl = function($window, $rootScope, Distance, Units, Settings) {
     /**
      * @private @const {!angular.Window} The window service.
      */
@@ -119,7 +119,7 @@ MissionMapView = function($window, $rootScope, Distance, Units, Settings) {
  * @param {!Array} element The directive element.
  * @param {!Object} attrs The directive attributes.
  */
-MissionMapView.prototype.link = function(scope, element, attrs) {
+MissionMapCtrl.prototype.link = function(scope, element, attrs) {
     // Store directive information.
     this.scope_ = scope;
     this.element_ = element;
@@ -181,7 +181,7 @@ MissionMapView.prototype.link = function(scope, element, attrs) {
  * Stop the renderer and destroy instances.
  * @private
  */
-MissionMapView.prototype.unlink_ = function() {
+MissionMapCtrl.prototype.unlink_ = function() {
     this.renderActive_ = false;
     this.camera_ = null;
     this.renderer_ = null;
@@ -192,7 +192,7 @@ MissionMapView.prototype.unlink_ = function() {
  * Sets the camera and renderer to match the view.
  * @private
  */
-MissionMapView.prototype.setCameraAndRendererSize_ = function() {
+MissionMapCtrl.prototype.setCameraAndRendererSize_ = function() {
     this.width_ = this.element_[0].offsetWidth - this.scope_.offsetWidth;
     this.height_ = this.window_.innerHeight - this.scope_.offsetHeight;
     // Set renderer size.
@@ -210,7 +210,7 @@ MissionMapView.prototype.setCameraAndRendererSize_ = function() {
  * @return {!Object} The normalized device coordinates.
  * @private
  */
-MissionMapView.prototype.getNormalizedDeviceCoords_ = function(
+MissionMapCtrl.prototype.getNormalizedDeviceCoords_ = function(
         offsetX, offsetY, pos) {
     var pos = new THREE.Vector2();
     pos.x = (offsetX / this.width_) * 2 - 1;
@@ -226,7 +226,7 @@ MissionMapView.prototype.getNormalizedDeviceCoords_ = function(
  *     intersection was found.
  * @private
  */
-MissionMapView.prototype.getMousePositionOnGround_ = function(
+MissionMapCtrl.prototype.getMousePositionOnGround_ = function(
         mousePos, mouseWorldPos) {
     this.raycaster_.setFromCamera(mousePos, this.camera_);
     var intersects = this.raycaster_.intersectObject(this.missionScene_.ground);
@@ -243,7 +243,7 @@ MissionMapView.prototype.getMousePositionOnGround_ = function(
  * @param {!Object} event THe mouse event.
  * @private
  */
-MissionMapView.prototype.mouseUpDown_ = function(mouseDown, event) {
+MissionMapCtrl.prototype.mouseUpDown_ = function(mouseDown, event) {
     this.mouseDown_ = mouseDown;
 
     if(mouseDown) {
@@ -261,7 +261,7 @@ MissionMapView.prototype.mouseUpDown_ = function(mouseDown, event) {
  * @param {!Object} event The event containing mouse details.
  * @private
  */
-MissionMapView.prototype.mouseMoved_ = function(event) {
+MissionMapCtrl.prototype.mouseMoved_ = function(event) {
     event.preventDefault();
     // If mouse is not down, ignore.
     if (!this.mouseDown_) {
@@ -291,7 +291,7 @@ MissionMapView.prototype.mouseMoved_ = function(event) {
  * @param {!Object} event The event containing mouse details.
  * @private
  */
-MissionMapView.prototype.mouseScrolled_ = function(event) {
+MissionMapCtrl.prototype.mouseScrolled_ = function(event) {
     this.camera_.position.z += event.originalEvent.deltaY;
     if (this.camera_.position.z < 1) {
         this.camera_.position.z = 1;
@@ -306,7 +306,7 @@ MissionMapView.prototype.mouseScrolled_ = function(event) {
  * Renders the mission scene in a render loop.
  * @private
  */
-MissionMapView.prototype.render_ = function() {
+MissionMapCtrl.prototype.render_ = function() {
     if (!!this.missionScene_.scene && !!this.camera_) {
         this.renderer_.render(this.missionScene_.scene, this.camera_);
     }
@@ -318,14 +318,14 @@ MissionMapView.prototype.render_ = function() {
 
 
 // Register the directive.
-angular.module('auvsiSuasApp').directive('missionMapView', [
+angular.module('auvsiSuasApp').directive('missionMap', [
     '$window',
     '$rootScope',
     'Distance',
     'Units',
     'Settings',
     function($window, $rootScope, Distance, Units, Settings) {
-        var mapView = new MissionMapView($window, $rootScope, Distance, Units, Settings);
+        var mapCtrl = new MissionMapCtrl($window, $rootScope, Distance, Units, Settings);
         return {
             restrict: 'E',
             scope: {
@@ -334,8 +334,8 @@ angular.module('auvsiSuasApp').directive('missionMapView', [
                 missionScene: '='
             },
             templateUrl: ('/static/auvsi_suas/components/' +
-                          'mission-map-view/mission-map-view.html'),
-            link: angular.bind(mapView, mapView.link)
+                          'mission-map/mission-map.html'),
+            link: angular.bind(mapCtrl, mapCtrl.link)
         };
     }
 ]);
