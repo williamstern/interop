@@ -39,41 +39,48 @@ describe("MissionDashboardCtrl controller", function() {
         expect(missionDashboardCtrl.getCurrentMission()).toBe(null);
     });
 
-    it("Should get the team color class", function() {
-        var team = {
-            active: true,
-            in_air: true
-        };
-        expect(missionDashboardCtrl.getTeamColorClass(team))
-            .toEqual('mission-dashboard-team-active-and-in-air');
-
-        team.in_air = false;
-        team.active = true;
-        expect(missionDashboardCtrl.getTeamColorClass(team))
-            .toEqual('mission-dashboard-team-active');
-
-        team.in_air = true;
-        team.active = false;
-        expect(missionDashboardCtrl.getTeamColorClass(team))
-            .toEqual('mission-dashboard-team-in-air');
-
-        team.in_air = false;
-        team.active = false;
-        expect(missionDashboardCtrl.getTeamColorClass(team))
-            .toEqual('mission-dashboard-team-inactive-and-not-in-air');
-    });
-
-    it("Should get active or in air teams", function() {
+    it("Should get teams to display", function() {
         var teams = [
-            {id: 1, active: false, in_air: false},
-            {id: 2, active: true,  in_air: false},
-            {id: 3, active: false, in_air: true},
-            {id: 4, active: true,  in_air: true}
+            {
+                id: 1,
+                on_clock: false,
+                on_timeout: false,
+                active: false,
+                in_air: false
+            },
+            {
+                id: 2,
+                on_clock: true,
+                on_timeout: false,
+                active: false,
+                in_air: false
+            },
+            {
+                id: 3,
+                on_clock: false,
+                on_timeout: true,
+                active: false,
+                in_air: false
+            },
+            {
+                id: 4,
+                on_clock: false,
+                on_timeout: false,
+                active: true,
+                in_air: false
+            },
+            {
+                id: 5,
+                on_clock: false,
+                on_timeout: false,
+                active: false,
+                in_air: true
+            },
         ];
-        active_or_in_air = [teams[1], teams[2], teams[3]];
+        teams_to_display = [teams[1], teams[2], teams[3], teams[4]];
         backend.teams = teams;
 
-        expect(missionDashboardCtrl.getActiveOrInAirTeams())
-            .toEqual(active_or_in_air);
+        expect(missionDashboardCtrl.getTeamsToDisplay())
+            .toEqual(teams_to_display);
     });
 });

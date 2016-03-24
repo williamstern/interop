@@ -74,42 +74,21 @@ MissionDashboardCtrl.prototype.rebuildMissionScene_ = function() {
 
 
 /**
- * Determines whether a team is active or in-air.
- * @param {!Object} team The team to test.
- * @return {!boolean} Whether team is active or in-air.
+ * Determines whether a team should be displayed.
+ * @param {!Object} team The team to evaluate.
+ * @return {!boolean} Whether team should be displayed.
  * @private
  */
-MissionDashboardCtrl.prototype.isTeamActiveOrInAir_ = function(team) {
-    return team.active || team.in_air;
+MissionDashboardCtrl.prototype.shouldDisplayTeam_ = function(team) {
+    return team.on_clock || team.on_timeout || team.active || team.in_air;
 };
 
-
 /**
- * Gets the class used to color a team's display on the dashboard.
- * @param {!Object} team The team to get the color class for.
- * @return {!string} The color class.
+ * Gets a list of teams which should be displayed.
+ * @return {!Array} A list of teams.
  * @export
  */
-MissionDashboardCtrl.prototype.getTeamColorClass = function(team) {
-    if (team.active && team.in_air) {
-        return 'mission-dashboard-team-active-and-in-air';
-    } else if (team.active) {
-        return 'mission-dashboard-team-active';
-    } else if (team.in_air) {
-        return 'mission-dashboard-team-in-air';
-    } else {
-        return 'mission-dashboard-team-inactive-and-not-in-air';
-    }
-
-};
-
-
-/**
- * Gets a list of teams which are active or in-air.
- * @return {!Array} A list of teams which are active or in-air.
- * @export
- */
-MissionDashboardCtrl.prototype.getActiveOrInAirTeams = function() {
+MissionDashboardCtrl.prototype.getTeamsToDisplay = function() {
     // Check that data has been loaded.
     if (!this.backend_.teams || this.backend_.teams.length == 0) {
         return [];
@@ -118,7 +97,7 @@ MissionDashboardCtrl.prototype.getActiveOrInAirTeams = function() {
     // Get all teams which are relevant.
     teams = [];
     for (var i = 0; i < this.backend_.teams.length; i++) {
-        if (this.isTeamActiveOrInAir_(this.backend_.teams[i])) {
+        if (this.shouldDisplayTeam_(this.backend_.teams[i])) {
             teams.push(this.backend_.teams[i]);
         }
     }
