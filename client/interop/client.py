@@ -174,7 +174,7 @@ class Client(object):
         Returns:
             Target object with corresponding ID.
         Raises:
-            InteropError: Error form server.
+            InteropError: Error from server.
             requests.Timeout: Request timeout.
             ValueError or AttributeError: Malformed response from server.
         """
@@ -189,7 +189,7 @@ class Client(object):
         Returns:
             The target after upload, which will include the target ID and user.
         Raises:
-            InteropError: Error form server.
+            InteropError: Error from server.
             requests.Timeout: Request timeout.
             ValueError or AttributeError: Malformed response from server.
         """
@@ -205,7 +205,7 @@ class Client(object):
         Returns:
             The target after being updated.
         Raises:
-            InteropError: Error form server.
+            InteropError: Error from server.
             requests.Timeout: Request timeout.
             ValueError or AttributeError: Malformed response from server.
         """
@@ -219,10 +219,58 @@ class Client(object):
         Args:
             target_id: The ID of the target to delete.
         Raises:
-            InteropError: Error form server.
+            InteropError: Error from server.
             requests.Timeout: Request timeout.
         """
         self.delete('/api/targets/%d' % target_id)
+
+    def get_target_image(self, target_id):
+        """GET target image.
+
+        Args:
+            target_id: The ID of the target for which to get the image.
+        Returns:
+            The image data that was previously uploaded.
+        Raises:
+            InteropError: Error from server.
+            requests.Timeout: Request timeout.
+        """
+        return self.get('/api/targets/%d/image' % target_id).content
+
+    def post_target_image(self, target_id, image_data):
+        """POST target image. Image must be PNG or JPEG data.
+
+        Args:
+            target_id: The ID of the target for which to upload an image.
+            image_data: The image data (bytes loaded from file) to upload.
+        Raises:
+            InteropError: Error from server.
+            requests.Timeout: Request timeout.
+        """
+        self.put_target_image(target_id, image_data)
+
+    def put_target_image(self, target_id, image_data):
+        """PUT target image. Image must be PNG or JPEG data.
+
+        Args:
+            target_id: The ID of the target for which to upload an image.
+            image_data: The image data (bytes loaded from file) to upload.
+        Raises:
+            InteropError: Error from server.
+            requests.Timeout: Request timeout.
+        """
+        self.put('/api/targets/%d/image' % target_id, data=image_data)
+
+    def delete_target_image(self, target_id):
+        """DELETE target image.
+
+        Args:
+            target_id: The ID of the target image to delete.
+        Raises:
+            InteropError: Error from server.
+            requests.Timeout: Request timeout.
+        """
+        self.delete('/api/targets/%d/image' % target_id)
 
 
 class AsyncClient(object):
@@ -335,3 +383,53 @@ class AsyncClient(object):
             underlying Client.
         """
         return self.executor.submit(self.client.delete_target, target_id)
+
+    def get_target_image(self, target_id):
+        """GET target image.
+
+        Args:
+            target_id: The ID of the target for which to get the image.
+        Returns:
+            The image data that was previously uploaded.
+        Returns:
+            Future object which contains the return value or error from the
+            underlying Client.
+        """
+        return self.executor.submit(self.client.get_target_image, target_id)
+
+    def post_target_image(self, target_id, image_data):
+        """POST target image. Image must be PNG or JPEG data.
+
+        Args:
+            target_id: The ID of the target for which to upload an image.
+            image_data: The image data (bytes loaded from file) to upload.
+        Returns:
+            Future object which contains the return value or error from the
+            underlying Client.
+        """
+        return self.executor.submit(self.client.post_target_image, target_id,
+                                    image_data)
+
+    def put_target_image(self, target_id, image_data):
+        """PUT target image. Image must be PNG or JPEG data.
+
+        Args:
+            target_id: The ID of the target for which to upload an image.
+            image_data: The image data (bytes loaded from file) to upload.
+        Returns:
+            Future object which contains the return value or error from the
+            underlying Client.
+        """
+        return self.executor.submit(self.client.put_target_image, target_id,
+                                    image_data)
+
+    def delete_target_image(self, target_id):
+        """DELETE target image.
+
+        Args:
+            target_id: The ID of the target image to delete.
+        Returns:
+            Future object which contains the return value or error from the
+            underlying Client.
+        """
+        return self.executor.submit(self.client.delete_target_image, target_id)

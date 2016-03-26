@@ -179,6 +179,30 @@ class TestClient(unittest.TestCase):
         self.assertEquals(post_target, put_target)
         self.assertEquals(async_post_target, async_put_target)
 
+        # Upload target image.
+        test_image_filepath = os.path.join(
+            os.path.dirname(__file__), "../testdata/A.jpg")
+        with open(test_image_filepath, 'rb') as f:
+            image_data = f.read()
+        self.client.put_target_image(post_target.id, image_data)
+        self.async_client.put_target_image(async_post_target.id,
+                                           image_data).result()
+
+        # Get the target image.
+        get_image = self.client.get_target_image(post_target.id)
+        async_get_image = self.async_client.get_target_image(
+            async_post_target.id).result()
+        self.assertEquals(image_data, get_image)
+        self.assertEquals(image_data, async_get_image)
+
+        # Delete the target image.
+        self.client.delete_target_image(post_target.id)
+        self.async_client.delete_target_image(async_post_target.id)
+        with self.assertRaises(InteropError):
+            self.client.get_target_image(post_target.id)
+        with self.assertRaises(InteropError):
+            self.async_client.get_target_image(async_post_target.id).result()
+
         # Delete target.
         self.client.delete_target(post_target.id)
         self.async_client.delete_target(async_post_target.id).result()
