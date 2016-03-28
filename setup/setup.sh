@@ -55,6 +55,7 @@ log "Installing Puppet and modules..."
 sudo apt-get -y install puppet
 # Install puppet modules
 sudo mkdir -p /etc/puppet/modules/
+ensure_puppet_module puppetlabs-stdlib
 ensure_puppet_module puppetlabs-concat
 ensure_puppet_module puppetlabs-postgresql
 ensure_puppet_module puppetlabs-apache
