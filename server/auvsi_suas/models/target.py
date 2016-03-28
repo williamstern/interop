@@ -161,6 +161,9 @@ class Target(models.Model):
     # Uploaded target image thumbnail.
     thumbnail = models.ImageField(upload_to='targets', blank=True)
 
+    # Whether judge considers thumbnail valid for target.
+    thumbnail_approved = models.NullBooleanField()
+
     def __unicode__(self):
         """Descriptive text for use in displays."""
         d = self.json()
@@ -175,9 +178,11 @@ class Target(models.Model):
                        "alphanumeric_color={alphanumeric_color}, "
                        "description='{description}', "
                        "autonomous='{autonomous}', "
-                       "thumbnail='{thumbnail}')".format(
+                       "thumbnail='{thumbnail}', "
+                       "thumbnail_approved='{thumbnail_approved}')".format(
                            name=self.__class__.__name__,
                            thumbnail=self.thumbnail,
+                           thumbnail_approved=str(self.thumbnail_approved),
                            **d))
 
     def json(self):
