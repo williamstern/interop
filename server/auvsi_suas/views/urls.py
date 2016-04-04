@@ -41,5 +41,5 @@ urlpatterns = patterns(
     url(r'^auvsi_admin/live.kml$', LiveKml.as_view(), name='live_kml'),
     url(r'^auvsi_admin/update.kml$', LiveKmlUpdate.as_view(),
         name='update_kml'),
-) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # yapf: enable
