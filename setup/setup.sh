@@ -8,6 +8,7 @@ set -e
 
 SETUP=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
 REPO=$(readlink -f ${SETUP}/..)
+PUPPET=/opt/puppetlabs/bin/puppet
 
 # $1 = log message
 function log() {
@@ -21,17 +22,17 @@ function ensure_puppet_module() {
     local module="$1"
     local installed=0
 
-    if sudo puppet module list | grep -q ${module}; then
+    if sudo ${PUPPET} module list | grep -q ${module}; then
         installed=1
     fi
 
     if [[ ${installed} == 0 ]]; then
-        sudo puppet module install ${version_arg} ${module}
+        sudo ${PUPPET} module install ${version_arg} ${module}
     else
         log "Puppet module \"${module}\" already installed"
     fi
 
-    sudo puppet module upgrade ${module}
+    sudo ${PUPPET} module upgrade ${module}
 }
 
 # Save all output to a log file.
@@ -40,6 +41,17 @@ exec &> >(tee ${SETUP}/setup-$(date +%F-%H-%M-%S).log)
 # Create soft link from repo to standardize scripts
 log "Creating softlinks..."
 sudo ln -snf ${REPO} /interop
+
+# Install puppet repo.
+set +e
+version=$(dpkg-query --showformat='${Version}' --show puppet-agent)
+set -e
+if [[ $? != 0 || (( ${version} < 1.4 )) ]]; then
+    log "Installing puppetlab repo..."
+    wget https://apt.puppetlabs.com/puppetlabs-release-pc1-precise.deb -O /tmp/puppetlabs-release-pc1-precise.deb
+    sudo dpkg -i /tmp/puppetlabs-release-pc1-precise.deb
+    rm /tmp/puppetlabs-release-pc1-precise.deb
+fi
 
 # Update the package list
 log "Updating package list and upgrading packages..."
@@ -52,23 +64,18 @@ fi
 
 # Install Puppet
 log "Installing Puppet and modules..."
-sudo apt-get -y install puppet
-# Install puppet modules
+sudo apt-get -y install puppet-agent
 sudo mkdir -p /etc/puppet/modules/
 ensure_puppet_module puppetlabs-stdlib
 ensure_puppet_module puppetlabs-concat
+ensure_puppet_module puppetlabs-apt
 ensure_puppet_module puppetlabs-postgresql
 ensure_puppet_module puppetlabs-apache
-# We explicitly use the apt module, so it is listed here.  However, the
-# postgresql module currently also depends on it, so it will be automatically
-# installed along with the postgresql module.  The postgresql module is not
-# compatible with the latest version of the apt module, so if we install the
-# apt module manually first, the postgresql module will fail to install.
-ensure_puppet_module puppetlabs-apt
 ensure_puppet_module puppetlabs-nodejs
 ensure_puppet_module stankevich-python
 
 # Launch the Puppet process. Prepares machine.
 log "Executing Puppet setup..."
-sudo puppet apply --modulepath=${SETUP}/puppet_files:/etc/puppet/modules/ \
+sudo ${PUPPET} apply \
+    --modulepath=${SETUP}/puppet_files:/etc/puppetlabs/code/environments/production/modules \
     ${SETUP}/puppet_files/auvsi_suas.pp
