@@ -20,7 +20,6 @@ SECRET_KEY = 'anp#d4lgo3u6j&6dc3+8sn!t+l(6hcuspm^&3(yq10evfwbh+1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-
 TEMPLATE_DEBUG = DEBUG
 
 TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
@@ -32,7 +31,6 @@ ALLOWED_HOSTS = ['*']
 INTERNAL_IPS = ['127.0.0.1']
 
 # Application definition
-
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
@@ -61,12 +59,10 @@ if DEBUG:
     MIDDLEWARE_CLASSES += debug.middleware
 
 ROOT_URLCONF = 'server.urls'
-
 WSGI_APPLICATION = 'server.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -95,7 +91,6 @@ CACHES = {
 }
 
 # Logging
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -142,31 +137,25 @@ LOGGING = {
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
-
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'auvsi_suas/static')
 
 # User uploaded files
-
+MEDIA_URL = '/media/'
 MEDIA_ROOT = '/var/www/media'
+
 # Send with X-SENDFILE in apache
 SENDFILE_BACKEND = 'sendfile.backends.xsendfile'
 
 # Login URL
-
 LOGIN_URL = '/admin/login/?next=/'
 
 # Migrations
