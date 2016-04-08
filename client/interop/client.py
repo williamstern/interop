@@ -20,6 +20,9 @@ from .types import ServerInfo, StationaryObstacle, MovingObstacle, Target
 class Client(object):
     """Client which provides authenticated access to interop API.
 
+    The constructor makes a login request, and all future requests will
+    automatically send the authentication cookie.
+
     This client uses a single session to make blocking requests to the
     interoperability server. This is the base core implementation. The
     AsyncClient uses this base Client to add performance features.
