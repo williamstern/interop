@@ -18,6 +18,8 @@ from server_info import ServerInfo
 from server_info_access_log import ServerInfoAccessLog
 from stationary_obstacle import StationaryObstacle
 from takeoff_or_landing_event import TakeoffOrLandingEvent
+from target import Target
+from target import TargetEvaluator
 from time_period import TimePeriod
 from uas_telemetry import UasTelemetry
 from waypoint import Waypoint
@@ -47,6 +49,10 @@ class MissionConfig(models.Model):
     search_grid_points = models.ManyToManyField(
         Waypoint,
         related_name='missionconfig_search_grid_points')
+
+    # The judge created targets.
+    targets = models.ManyToManyField(Target,
+                                     related_name='missionconfig_targets')
 
     # The last known position of the emergent target
     emergent_last_known_pos = models.ForeignKey(
@@ -136,6 +142,7 @@ class MissionConfig(models.Model):
                     id: Boolean,
                 }
                 'out_of_bounds_time': Seconds spent out of bounds,
+                'targets': Data from TargetEvaluation,
                 'interop_times': {
                     'server_info': {'max': Value, 'avg': Value},
                     'obst_info': {'max': Value, 'avg': Value},
@@ -211,6 +218,11 @@ class MissionConfig(models.Model):
                 out_of_bounds_time += FlyZone.out_of_bounds(
                     self.fly_zones.all(), logs)
             eval_data['out_of_bounds_time'] = out_of_bounds_time
+
+            # Evaluate the targets.
+            user_targets = Target.objects.filter(user=user).all()[:100]
+            evaluator = TargetEvaluator(user_targets, self.targets.all())
+            eval_data['targets'] = evaluator.evaluation_dict()
 
             # Determine interop rates.
             interop_times = eval_data.setdefault('interop_times', {})
