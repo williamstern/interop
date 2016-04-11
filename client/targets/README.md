@@ -14,5 +14,5 @@ Limitations:
 
 Executing the script:
 ```
-./upload_targets.py --url http://localhost --username testuser --target_filepath ../testdata/targets.txt --imagery_base_filepath ../testdata/
+./upload_targets.py --url http://localhost --username testuser --target_filepath ../testdata/targets.txt --imagery_dir ../testdata/
 ```
