@@ -1,9 +1,11 @@
 """Target model."""
 
 import enum
-from gps_position import GpsPosition
+import collections
+import networkx as nx
 from django.conf import settings
 from django.db import models
+from gps_position import GpsPosition
 
 
 class Choices(enum.IntEnum):
@@ -185,7 +187,7 @@ class Target(models.Model):
                            thumbnail_approved=str(self.thumbnail_approved),
                            **d))
 
-    def json(self):
+    def json(self, is_superuser=False):
         """Target as dict, for JSON."""
         target_type = None
         if self.target_type is not None:
@@ -221,7 +223,7 @@ class Target(models.Model):
         if self.description != '':
             description = self.description
 
-        return {
+        d = {
             'id': self.pk,
             'user': self.user.pk,
             'type': target_type,
@@ -234,4 +236,150 @@ class Target(models.Model):
             'alphanumeric_color': alphanumeric_color,
             'description': description,
             'autonomous': self.autonomous,
+        }
+        if is_superuser:
+            d['thumbnail_approved'] = self.thumbnail_approved
+        return d
+
+    def similar_classifications(self, other):
+        """Counts the number of similar classification attributes.
+
+        Args:
+            other: Another target for which to compare.
+        Returns:
+            The ratio of attributes which are the same.
+        """
+        if self.type != other.type:
+            return 0
+
+        standard_fields = ['orientation', 'shape', 'background_color',
+                           'alphanumeric', 'alphanumeric_color'],
+        classify_fields = {
+            TargetType.standard: standard_fields,
+            TargetType.qrc: ['description'],
+            TargetType.off_axis: standard_fields,
+            TargetType.emergent: [],
+        }
+        fields = classify_fields[self.type]
+        count = 0
+        for field in fields:
+            if getattr(self, field) == getattr(other, field):
+                count += 1
+        return float(count) / len(fields) if fields else 1
+
+
+class TargetEvaluator(object):
+    """Evaluates submitted targets against real judge-made targets."""
+
+    def __init__(self, submitted_targets, real_targets):
+        """Creates an evaluation of submitted targets against real targets.
+
+        Args:
+            submitted_targets: List of submitted Target objects.
+            real_targets: List of real Target objects made by judges.
+        """
+        self.submitted_targets = submitted_targets
+        self.real_targets = real_targets
+        self.matches = self.match_targets(submitted_targets, real_targets)
+
+    def match_value(self, submitted, real):
+        """Computes the match value if the two targets were paired.
+
+        Args:
+            submitted: The team submitted target.
+            real: The real target made by the judges.
+        Returns:
+            The match value, which is proportional to the points a team would
+            receive if the targets were paired.
+        """
+        # Targets which are not the same type have no match value.
+        # Targets which don't have an approved image have no match value.
+        if submitted.type != real.type or not submitted.thumbnail_approved:
+            return 0
+
+        # Compute the classification point value.
+        i = bisect.bisect_right(settings.TARGET_CLASSIFY_VALUE,
+                                real.similar_classifications(submitted))
+        classify_value = settings.TARGET_CLASSIFY_VALUE[i - 1] if i else 0
+        if not classify_value:
+            # Targets which don't have threshold classification have no value.
+            return 0
+
+        # Compute the location value.
+        i = bisect.bisect_left(settings.TARGET_LOCATION_VALUE,
+                               submitted.location.distance_to(real.location))
+        location_value = settings.TARGET_LOCATION_VALUE[i] if i != len(
+            settings.TARGET_LOCATION_VALUE) else 0
+
+        return classify_value + location_value
+
+    def match_targets(self, submitted_targets, real_targets):
+        """Matches the targets to maximize match value.
+
+        Args:
+            submitted_targets: List of submitted Target objects.
+            real_targets: List of real Target objects made by judges.
+        Returns:
+            A map from submitted target to real target, and real target to
+            submitted target.
+        """
+        # Create a bipartite graph from submitted to real targets with match
+        # values as edge weights. Skip edges with no match value.
+        g = nx.Graph()
+        g.add_nodes_from(submitted_targets, bipartite=0)
+        g.add_nodes_from(real_targets, bipartite=1)
+        for submitted in submitted_targets:
+            for real in real_targets:
+                match_value = self.match_value(submitted, real)
+                if match_value:
+                    g.add_edge(submitted, real, weight=match_value)
+        # Compute the full matching
+        return nx.bipartite.maximum_matching(g)
+
+    def evaluation_dict(self):
+        """Gets the evaluation dictionary.
+
+        Returns:
+            A dictionary of the form:
+            {
+                'matched_target_value': Total value from matched targets
+                'unmatched_target_count': Count of unmatched targets
+                'targets': {
+                    'pk': {
+                        'match_value': the value for the target
+                        'image_approved': whether the image was approved
+                        'classifications': number of similar classifications
+                        'location_accuracy': distance from actual
+                    }
+                }
+            }
+        """
+        matched_target_value = 0
+        unmatched_target_count = 0
+        target_dict = collections.defaultdict(dict)
+
+        for submitted in self.submitted_targets:
+            real = self.matches[submitted]
+            match_value = 0
+            classifications = 0
+            location_accuracy = -1
+            if not real:
+                unmatched_target_count += 1
+            else:
+                match_value = self.match_value(submitted, real)
+                classifications = submitted.similar_classifications(real)
+                location_accuracy = submitted.location.distance_to(
+                    real.location)
+            matched_target_value += match_value
+            target_dict[submitted.pk] = {
+                'match_value': match_value,
+                'image_approved': submitted.thumbnail_approved,
+                'classifications': classifications,
+                'location_accuracy': location_accuracy,
+            }
+
+        return {
+            'matched_target_value': matched_target_value,
+            'unmatched_target_count': unmatched_target_count,
+            'targets': target_dict,
         }

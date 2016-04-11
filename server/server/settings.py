@@ -180,3 +180,18 @@ TEST_LOADTEST_INTEROP_MIN_RATE = 1.5 * 10.0 * 4
 
 # The max distance for a waypoint to be considered satisfied.
 SATISFIED_WAYPOINT_DIST_MAX_FT = 50
+
+# The target classification match values (sorted).
+TARGET_CLASSIFY_VALUE = [
+    # Ratio, Match value
+    (0, 0),  # [  0, 2/5) -> 0
+    (2. / 5, 1),  # [2/5,   1) -> 1
+    (1, 2),  # [  1,    ) -> 2
+]
+
+# The location accuracy match values (sorted).
+TARGET_LOCATION_VALUE = [
+    # Distance, Match value
+    (75., 4),  # (  ,  75] -> 4
+    (150., 2),  # (75, 150] -> 2
+]
