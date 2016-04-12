@@ -1,7 +1,17 @@
 Interoperability Client
 =======================
 
-The judges have provided a sample Client which can be used to integrate with
-the interoperability server. This is provided to help teams integrate so that
-certain components can become a requirement and so that more advanced tasks can
-be defined.
+A sample interoperability Python client library for communicating with the
+interoperability seriver is provided along with the server. It can be found in
+``client/interop/`` in the `repository
+<https://github.com/auvsi-suas/interop/tree/master/client/interop>`_.
+
+.. automodule:: interop
+   :members: Client,
+             AsyncClient,
+             InteropError,
+             ServerInfo,
+             Telemetry,
+             StationaryObstacle,
+             MovingObstacle,
+             Target
