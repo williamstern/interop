@@ -1,7 +1,8 @@
 """Target model."""
 
-import enum
+import bisect
 import collections
+import enum
 import networkx as nx
 from django.conf import settings
 from django.db import models
@@ -249,18 +250,19 @@ class Target(models.Model):
         Returns:
             The ratio of attributes which are the same.
         """
-        if self.type != other.type:
+        # Cannot have similar fields with different type targets.
+        if self.target_type != other.target_type:
             return 0
 
         standard_fields = ['orientation', 'shape', 'background_color',
-                           'alphanumeric', 'alphanumeric_color'],
+                           'alphanumeric', 'alphanumeric_color']
         classify_fields = {
             TargetType.standard: standard_fields,
             TargetType.qrc: ['description'],
             TargetType.off_axis: standard_fields,
             TargetType.emergent: [],
         }
-        fields = classify_fields[self.type]
+        fields = classify_fields[self.target_type]
         count = 0
         for field in fields:
             if getattr(self, field) == getattr(other, field):
@@ -294,21 +296,24 @@ class TargetEvaluator(object):
         """
         # Targets which are not the same type have no match value.
         # Targets which don't have an approved image have no match value.
-        if submitted.type != real.type or not submitted.thumbnail_approved:
+        if (submitted.target_type != real.target_type or
+                not submitted.thumbnail_approved):
             return 0
 
         # Compute the classification point value.
         i = bisect.bisect_right(settings.TARGET_CLASSIFY_VALUE,
-                                real.similar_classifications(submitted))
-        classify_value = settings.TARGET_CLASSIFY_VALUE[i - 1] if i else 0
+                                (real.similar_classifications(submitted),
+                                 float('inf')))
+        classify_value = settings.TARGET_CLASSIFY_VALUE[i - 1][1] if i else 0
         if not classify_value:
             # Targets which don't have threshold classification have no value.
             return 0
 
         # Compute the location value.
-        i = bisect.bisect_left(settings.TARGET_LOCATION_VALUE,
-                               submitted.location.distance_to(real.location))
-        location_value = settings.TARGET_LOCATION_VALUE[i] if i != len(
+        i = bisect.bisect_left(
+            settings.TARGET_LOCATION_VALUE,
+            (submitted.location.distance_to(real.location), ))
+        location_value = settings.TARGET_LOCATION_VALUE[i][1] if i != len(
             settings.TARGET_LOCATION_VALUE) else 0
 
         return classify_value + location_value
@@ -321,7 +326,7 @@ class TargetEvaluator(object):
             real_targets: List of real Target objects made by judges.
         Returns:
             A map from submitted target to real target, and real target to
-            submitted target.
+            submitted target, if they are matched.
         """
         # Create a bipartite graph from submitted to real targets with match
         # values as edge weights. Skip edges with no match value.
@@ -346,6 +351,7 @@ class TargetEvaluator(object):
                 'unmatched_target_count': Count of unmatched targets
                 'targets': {
                     'pk': {
+                        'submitted_target': The pk of the submitted target.
                         'match_value': the value for the target
                         'image_approved': whether the image was approved
                         'classifications': number of similar classifications
@@ -355,31 +361,32 @@ class TargetEvaluator(object):
             }
         """
         matched_target_value = 0
-        unmatched_target_count = 0
         target_dict = collections.defaultdict(dict)
-
-        for submitted in self.submitted_targets:
-            real = self.matches[submitted]
+        for real in self.real_targets:
+            submitted_pk = -1
             match_value = 0
+            thumbnail_approved = False
             classifications = 0
             location_accuracy = -1
-            if not real:
-                unmatched_target_count += 1
-            else:
+            submitted = self.matches.get(real)
+            if submitted:
+                submitted_pk = submitted.pk
                 match_value = self.match_value(submitted, real)
+                thumbnail_approved = submitted.thumbnail_approved
                 classifications = submitted.similar_classifications(real)
                 location_accuracy = submitted.location.distance_to(
                     real.location)
             matched_target_value += match_value
-            target_dict[submitted.pk] = {
+            target_dict[real.pk] = {
+                'submitted_target': submitted_pk,
                 'match_value': match_value,
-                'image_approved': submitted.thumbnail_approved,
+                'image_approved': thumbnail_approved,
                 'classifications': classifications,
                 'location_accuracy': location_accuracy,
             }
-
+        unmatched_targets = len(self.submitted_targets) - len(self.matches) / 2
         return {
             'matched_target_value': matched_target_value,
-            'unmatched_target_count': unmatched_target_count,
+            'unmatched_target_count': unmatched_targets,
             'targets': target_dict,
         }

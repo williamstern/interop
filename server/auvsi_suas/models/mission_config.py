@@ -220,9 +220,16 @@ class MissionConfig(models.Model):
             eval_data['out_of_bounds_time'] = out_of_bounds_time
 
             # Evaluate the targets.
-            user_targets = Target.objects.filter(user=user).all()[:100]
-            evaluator = TargetEvaluator(user_targets, self.targets.all())
-            eval_data['targets'] = evaluator.evaluation_dict()
+            eval_data['targets'] = {}
+            user_targets = Target.objects.filter(user=user).all()
+            target_sets = {
+                'manual': [t for t in user_targets if not t.autonomous],
+                'auto': [t for t in user_targets
+                         if t.autonomous][:settings.TARGET_MAX_NUM_AUTONOMOUS],
+            }
+            for target_set, targets in target_sets.iteritems():
+                evaluator = TargetEvaluator(targets, self.targets.all())
+                eval_data['targets'][target_set] = evaluator.evaluation_dict()
 
             # Determine interop rates.
             interop_times = eval_data.setdefault('interop_times', {})
