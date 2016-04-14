@@ -11,7 +11,6 @@ class auvsi_suas::server_install {
         'python-scipy',
         'python-matplotlib',
         'python-psycopg2',
-        'npm',
     ]
     package { $package_deps:
         ensure => 'latest',
@@ -32,7 +31,6 @@ class auvsi_suas::server_install {
     file { '/usr/local/bin/node':
         ensure => 'link',
         target => '/usr/bin/nodejs',
-        require => Package['npm'],
     }
 
     # Install packages from npm.
@@ -46,6 +44,6 @@ class auvsi_suas::server_install {
     package { $npm_deps:
         ensure => 'present',
         provider => 'npm',
-        require => [Package['npm'], File['/usr/local/bin/node']],
+        require => Class["nodejs"],
     }
 }
