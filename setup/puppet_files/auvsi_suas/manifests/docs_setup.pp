@@ -9,6 +9,5 @@ class auvsi_suas::docs_setup {
         ensure => 'present',
         version => 'system',
         requirements => '/interop/docs/requirements.txt',
-        cwd => '/interop/docs/',
     }
 }
