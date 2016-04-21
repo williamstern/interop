@@ -76,6 +76,16 @@ ensure_puppet_module stankevich-python
 
 # Launch the Puppet process. Prepares machine.
 log "Executing Puppet setup..."
+set +e
 sudo ${PUPPET} apply \
+    --detailed-exitcodes \
     --modulepath=${SETUP}/puppet_files:/etc/puppetlabs/code/environments/production/modules \
     ${SETUP}/puppet_files/auvsi_suas.pp
+
+# Exit codes 0 and 2 indicate success, so rewrite code 2 as 0.
+# https://docs.puppet.com/puppet/latest/reference/man/agent.html#OPTIONS
+code=$?
+if [[ ${code} == 2 ]]; then
+    code=0
+fi
+exit ${code}
