@@ -107,6 +107,15 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
+# -- Options for autodoc --------------------------------------------------
+
+# Add the client to the path. The client is not installed in this virtualenv.
+# Instead we will mock out its dependencies and import it directly.
+sys.path.insert(0, os.path.abspath('../client/'))
+
+# Mock out client dependencies.
+autodoc_mock_imports = ['concurrent.futures', 'dateutil.parser', 'requests']
+
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for

@@ -1,9 +1,3 @@
 sphinx>=1.3
 sphinxcontrib-httpdomain>=1.3
 sphinx_rtd_theme
-
-# interop module and its requirements
-# Note: these are relative to the `pip install` invocation, not this file,
-# so pip must be invoked from this directory.
--r ../client/requirements.txt
-file:../client#egg=interop
