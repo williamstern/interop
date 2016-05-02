@@ -79,6 +79,32 @@ class TestTarget(TestCase):
         t = Target(user=self.user, target_type=TargetType.standard)
         t.save()
 
+    def test_creation_time(self):
+        """Creation time is set on creation and doesn't change on update."""
+        t = Target(user=self.user, target_type=TargetType.standard)
+        t.save()
+
+        orig = t.creation_time
+        self.assertIsNotNone(orig)
+
+        t.alphanumeric = 'A'
+        t.save()
+
+        self.assertEqual(orig, t.creation_time)
+
+    def test_last_modified_time(self):
+        """Last modified time is set on creation and changes every update."""
+        t = Target(user=self.user, target_type=TargetType.standard)
+        t.save()
+
+        orig = t.last_modified_time
+        self.assertIsNotNone(orig)
+
+        t.alphanumeric = 'A'
+        t.save()
+
+        self.assertGreater(t.last_modified_time, orig)
+
     def test_json(self):
         """Test target JSON."""
         l = GpsPosition(latitude=38, longitude=-76)

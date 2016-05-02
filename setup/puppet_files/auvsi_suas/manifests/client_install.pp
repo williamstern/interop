@@ -28,7 +28,7 @@ class auvsi_suas::client_install {
         pkgname => '/interop/client',
         ensure => 'latest',
         virtualenv => '/interop/client/venv2',
-        install_args => ['-e'], # develop mode
+        install_args => '-e', # develop mode
         require => Python::Virtualenv['/interop/client/venv2'],
     }
 
@@ -37,7 +37,7 @@ class auvsi_suas::client_install {
         pkgname => '/interop/client',
         ensure => 'latest',
         virtualenv => '/interop/client/venv3',
-        install_args => ['-e'], # develop mode
+        install_args => '-e', # develop mode
         require => Python::Virtualenv['/interop/client/venv3'],
     }
 

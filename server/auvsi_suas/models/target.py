@@ -167,6 +167,14 @@ class Target(models.Model):
     # Whether judge considers thumbnail valid for target.
     thumbnail_approved = models.NullBooleanField()
 
+    # Time that this target was first created.
+    # auto_now_add automatically sets this field on initial creation.
+    creation_time = models.DateTimeField(auto_now_add=True)
+
+    # Time that this target was last modified.
+    # auto_now automatically updates this field on save().
+    last_modified_time = models.DateTimeField(auto_now=True)
+
     def __unicode__(self):
         """Descriptive text for use in displays."""
         d = self.json()
@@ -182,10 +190,14 @@ class Target(models.Model):
                        "description='{description}', "
                        "autonomous='{autonomous}', "
                        "thumbnail='{thumbnail}', "
-                       "thumbnail_approved='{thumbnail_approved}')".format(
+                       "thumbnail_approved='{thumbnail_approved}', "
+                       "creation_time={creation_time}, "
+                       "last_modified_time={last_modified_time})".format(
                            name=self.__class__.__name__,
                            thumbnail=self.thumbnail,
                            thumbnail_approved=str(self.thumbnail_approved),
+                           creation_time=self.creation_time,
+                           last_modified_time=self.last_modified_time,
                            **d))
 
     def json(self, is_superuser=False):
