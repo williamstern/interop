@@ -320,6 +320,7 @@ class TestTargetEvaluator(TestCase):
         self.submitted_targets = [self.submit1, self.submit2, self.submit3,
                                   self.submit4]
         self.real_targets = [self.real3, self.real1, self.real4, self.real2]
+        self.real_matched_targets = [self.real1, self.real2]
 
     def test_match_value(self):
         """Tests the match value for two targets."""
@@ -354,18 +355,14 @@ class TestTargetEvaluator(TestCase):
             for key in keys:
                 self.assertIn(key, t)
         for s in self.real_targets:
-            self.assertIn(s.pk, d['targets'].keys())
+            if s in self.real_matched_targets:
+                self.assertIn(s.pk, d['targets'].keys())
+            else:
+                self.assertNotIn(s.pk, d['targets'].keys())
 
         self.assertEqual(9, d['matched_target_value'])
         self.assertEqual(2, d['unmatched_target_count'])
         self.assertEqual(6, d['targets'][self.real1.pk]['match_value'])
         self.assertEqual(True, d['targets'][self.real1.pk]['image_approved'])
         self.assertEqual(1.0, d['targets'][self.real1.pk]['classifications'])
-        self.assertEqual(0.0,
-                         d['targets'][self.real1.pk]['location_accuracy'])
-        self.assertEqual(0, d['targets'][self.real4.pk]['match_value'])
-        self.assertEqual(False,
-                         d['targets'][self.real4.pk]['image_approved'])
-        self.assertEqual(0, d['targets'][self.real4.pk]['classifications'])
-        self.assertEqual(-1,
-                         d['targets'][self.real4.pk]['location_accuracy'])
+        self.assertEqual(0.0, d['targets'][self.real1.pk]['location_accuracy'])

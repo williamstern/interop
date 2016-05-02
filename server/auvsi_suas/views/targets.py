@@ -172,9 +172,7 @@ class Targets(View):
                    autonomous=data.get('autonomous', False))
         t.save()
 
-        return JsonResponse(
-            t.json(is_superuser=request.user.is_superuser),
-            status=201)
+        return JsonResponse(t.json(), status=201)
 
 
 def find_target(request, pk):
@@ -214,8 +212,7 @@ class TargetsId(View):
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
-        return JsonResponse(target.json(is_superuser=
-                                        request.user.is_superuser))
+        return JsonResponse(target.json())
 
     def put(self, request, pk):
         try:
@@ -304,8 +301,7 @@ class TargetsId(View):
 
         target.save()
 
-        return JsonResponse(target.json(is_superuser=
-                                        request.user.is_superuser))
+        return JsonResponse(target.json())
 
     def delete(self, request, pk):
         try:

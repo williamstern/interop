@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [('auvsi_suas', '0015_target_thumbnail_approved'), ]
+    dependencies = [('auvsi_suas', '0016_add_target_time'), ]
 
     operations = [
         migrations.AddField(

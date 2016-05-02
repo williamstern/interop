@@ -1,9 +1,9 @@
 """Target model."""
 
-import bisect
 import collections
 import enum
 import networkx as nx
+import operator
 from django.conf import settings
 from django.db import models
 from gps_position import GpsPosition
@@ -200,7 +200,7 @@ class Target(models.Model):
                            last_modified_time=self.last_modified_time,
                            **d))
 
-    def json(self, is_superuser=False):
+    def json(self):
         """Target as dict, for JSON."""
         target_type = None
         if self.target_type is not None:
@@ -236,7 +236,7 @@ class Target(models.Model):
         if self.description != '':
             description = self.description
 
-        d = {
+        return {
             'id': self.pk,
             'user': self.user.pk,
             'type': target_type,
@@ -250,9 +250,6 @@ class Target(models.Model):
             'description': description,
             'autonomous': self.autonomous,
         }
-        if is_superuser:
-            d['thumbnail_approved'] = self.thumbnail_approved
-        return d
 
     def similar_classifications(self, other):
         """Counts the number of similar classification attributes.
@@ -296,6 +293,26 @@ class TargetEvaluator(object):
         self.real_targets = real_targets
         self.matches = self.match_targets(submitted_targets, real_targets)
 
+    def range_lookup(self,
+                     ranges,
+                     key,
+                     start_operator=operator.ge,
+                     end_operator=operator.le):
+        """Performs a range based lookup.
+
+        Args:
+            ranges: A list of maps containing start,end,value keys.
+            key: The key for the range lookup.
+            start_operator: The operator to compare the start key against.
+            end_operator: The operator to compare the end key against.
+        Returns:
+            The value associated for the range lookup, or None if not in range.
+        """
+        for r in ranges:
+            if start_operator(key, r['start']) and end_operator(key, r['end']):
+                return r['value']
+        return None
+
     def match_value(self, submitted, real):
         """Computes the match value if the two targets were paired.
 
@@ -313,20 +330,19 @@ class TargetEvaluator(object):
             return 0
 
         # Compute the classification point value.
-        i = bisect.bisect_right(settings.TARGET_CLASSIFY_VALUE,
-                                (real.similar_classifications(submitted),
-                                 float('inf')))
-        classify_value = settings.TARGET_CLASSIFY_VALUE[i - 1][1] if i else 0
+        num_similar = real.similar_classifications(submitted)
+        classify_value = self.range_lookup(settings.TARGET_CLASSIFY_RANGES,
+                                           num_similar,
+                                           end_operator=operator.lt)
         if not classify_value:
             # Targets which don't have threshold classification have no value.
             return 0
 
         # Compute the location value.
-        i = bisect.bisect_left(
-            settings.TARGET_LOCATION_VALUE,
-            (submitted.location.distance_to(real.location), ))
-        location_value = settings.TARGET_LOCATION_VALUE[i][1] if i != len(
-            settings.TARGET_LOCATION_VALUE) else 0
+        location_dist = submitted.location.distance_to(real.location)
+        location_value = self.range_lookup(settings.TARGET_LOCATION_RANGES,
+                                           location_dist,
+                                           start_operator=operator.gt)
 
         return classify_value + location_value
 
@@ -375,26 +391,18 @@ class TargetEvaluator(object):
         matched_target_value = 0
         target_dict = collections.defaultdict(dict)
         for real in self.real_targets:
-            submitted_pk = -1
-            match_value = 0
-            thumbnail_approved = False
-            classifications = 0
-            location_accuracy = -1
             submitted = self.matches.get(real)
-            if submitted:
-                submitted_pk = submitted.pk
-                match_value = self.match_value(submitted, real)
-                thumbnail_approved = submitted.thumbnail_approved
-                classifications = submitted.similar_classifications(real)
-                location_accuracy = submitted.location.distance_to(
-                    real.location)
+            if not submitted:
+                continue
+            match_value = self.match_value(submitted, real)
             matched_target_value += match_value
             target_dict[real.pk] = {
-                'submitted_target': submitted_pk,
+                'submitted_target': submitted.pk,
                 'match_value': match_value,
-                'image_approved': thumbnail_approved,
-                'classifications': classifications,
-                'location_accuracy': location_accuracy,
+                'image_approved': submitted.thumbnail_approved,
+                'classifications': submitted.similar_classifications(real),
+                'location_accuracy':
+                submitted.location.distance_to(real.location),
             }
         unmatched_targets = len(self.submitted_targets) - len(self.matches) / 2
         return {

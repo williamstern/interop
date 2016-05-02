@@ -184,17 +184,28 @@ SATISFIED_WAYPOINT_DIST_MAX_FT = 50
 # The max number of autonomous targets.
 TARGET_MAX_NUM_AUTONOMOUS = 6
 
-# The target classification match values (sorted).
-TARGET_CLASSIFY_VALUE = [
-    # Ratio, Match value
-    (0, 0),  # [  0, 2/5) -> 0
-    (2. / 5, 1),  # [2/5,   1) -> 1
-    (1, 2),  # [  1,    ) -> 2
+# The target classification match values: [start, end) -> value
+TARGET_CLASSIFY_RANGES = [
+    {"start": float("-inf"),
+     "end": 2. / 5,
+     "value": 0},
+    {"start": 2. / 5,
+     "end": 1,
+     "value": 1},
+    {"start": 1,
+     "end": float("inf"),
+     "value": 2},
 ]
 
-# The location accuracy match values (sorted).
-TARGET_LOCATION_VALUE = [
-    # Distance, Match value
-    (75., 4),  # (  ,  75] -> 4
-    (150., 2),  # (75, 150] -> 2
+# The location accuracy match values: (start, end] -> value
+TARGET_LOCATION_RANGES = [
+    {"start": float("-inf"),
+     "end": 75,
+     "value": 4},
+    {"start": 75,
+     "end": 150,
+     "value": 2},
+    {"start": 150,
+     "end": float("inf"),
+     "value": 0},
 ]
