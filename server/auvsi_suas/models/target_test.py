@@ -136,6 +136,16 @@ class TestTarget(TestCase):
         self.assertEqual('black', d['alphanumeric_color'])
         self.assertEqual('Test target', d['description'])
         self.assertEqual(True, d['autonomous'])
+        self.assertNotIn('thumbnail_approved', d)
+
+        d = t.json(is_superuser=True)
+        self.assertIn('thumbnail_approved', d)
+
+        t.thumbnail_approved = True
+        t.save()
+        d = t.json(is_superuser=True)
+        self.assertEqual(None, d['thumbnail'])
+        self.assertEqual(True, d['thumbnail_approved'])
 
     def test_minimal_json(self):
         """Test target JSON with minimal data."""
