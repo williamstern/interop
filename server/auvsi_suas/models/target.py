@@ -177,30 +177,12 @@ class Target(models.Model):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        d = self.json()
+        d = self.json(is_superuser=True)
+        return unicode('{name}({fields})'.format(
+            name=self.__class__.__name__,
+            fields=', '.join('%s=%s' % (k, v) for k, v in d.iteritems())))
 
-        return unicode("{name}(pk={id}, user={user}, "
-                       "target_type={type}, "
-                       "latitude={latitude}, "
-                       "longitude={longitude}, "
-                       "orientation={orientation}, shape={shape} "
-                       "background_color={background_color}, "
-                       "alphanumeric='{alphanumeric}', "
-                       "alphanumeric_color={alphanumeric_color}, "
-                       "description='{description}', "
-                       "autonomous='{autonomous}', "
-                       "thumbnail='{thumbnail}', "
-                       "thumbnail_approved='{thumbnail_approved}', "
-                       "creation_time={creation_time}, "
-                       "last_modified_time={last_modified_time})".format(
-                           name=self.__class__.__name__,
-                           thumbnail=self.thumbnail,
-                           thumbnail_approved=str(self.thumbnail_approved),
-                           creation_time=self.creation_time,
-                           last_modified_time=self.last_modified_time,
-                           **d))
-
-    def json(self):
+    def json(self, is_superuser=False):
         """Target as dict, for JSON."""
         target_type = None
         if self.target_type is not None:
@@ -236,7 +218,7 @@ class Target(models.Model):
         if self.description != '':
             description = self.description
 
-        return {
+        d = {
             'id': self.pk,
             'user': self.user.pk,
             'type': target_type,
@@ -250,6 +232,14 @@ class Target(models.Model):
             'description': description,
             'autonomous': self.autonomous,
         }
+
+        if is_superuser:
+            d['thumbnail'] = self.thumbnail.name if self.thumbnail else None
+            d['thumbnail_approved'] = self.thumbnail_approved
+            d['creation_time'] = self.creation_time
+            d['last_modified_time'] = self.last_modified_time
+
+        return d
 
     def similar_classifications(self, other):
         """Counts the number of similar classification attributes.

@@ -123,7 +123,8 @@ class Targets(View):
         # but for now 100 targets ought to be enough for anyone.
         targets = Target.objects.filter(user=request.user).all()[:100]
 
-        targets = [t.json() for t in targets]
+        targets = [t.json(is_superuser=request.user.is_superuser)
+                   for t in targets]
 
         # Older versions of JS allow hijacking the Array constructor to steal
         # JSON data. It is not a problem in recent versions.
@@ -172,7 +173,9 @@ class Targets(View):
                    autonomous=data.get('autonomous', False))
         t.save()
 
-        return JsonResponse(t.json(), status=201)
+        return JsonResponse(
+            t.json(is_superuser=request.user.is_superuser),
+            status=201)
 
 
 def find_target(request, pk):
@@ -190,10 +193,9 @@ def find_target(request, pk):
     """
     target = Target.objects.get(pk=pk)
 
-    # We only let users get their own targets
+    # We only let users get their own targets.
     if target.user != request.user:
         raise ValueError("Accessing target %d not allowed" % pk)
-
     return target
 
 
@@ -212,7 +214,8 @@ class TargetsId(View):
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
-        return JsonResponse(target.json())
+        return JsonResponse(target.json(is_superuser=
+                                        request.user.is_superuser))
 
     def put(self, request, pk):
         try:
@@ -301,7 +304,8 @@ class TargetsId(View):
 
         target.save()
 
-        return JsonResponse(target.json())
+        return JsonResponse(target.json(is_superuser=
+                                        request.user.is_superuser))
 
     def delete(self, request, pk):
         try:
