@@ -143,8 +143,20 @@ class TestMissionConfigModelSampleMission(TestCase):
             self.assertIn('mission_clock_time', val)
             self.assertIn('out_of_bounds_time', val)
 
-            self.assertIn('interop_times', val)
+            self.assertIn('targets', val)
+            for target_set in ['manual', 'auto']:
+                self.assertIn(target_set, val['targets'])
+                keys = ['matched_target_value', 'unmatched_target_count',
+                        'targets']
+                for key in keys:
+                    self.assertIn(key, val['targets'][target_set])
+                for t in val['targets'][target_set]['targets']:
+                    keys = ['match_value', 'image_approved', 'classifications',
+                            'location_accuracy']
+                    for key in keys:
+                        self.assertIn(key, t)
 
+            self.assertIn('interop_times', val)
             for key in ['server_info', 'obst_info', 'uas_telem']:
                 self.assertIn(key, val['interop_times'])
                 self.assertIn('max', val['interop_times'][key])

@@ -180,3 +180,32 @@ TEST_LOADTEST_INTEROP_MIN_RATE = 1.5 * 10.0 * 4
 
 # The max distance for a waypoint to be considered satisfied.
 SATISFIED_WAYPOINT_DIST_MAX_FT = 50
+
+# The max number of autonomous targets.
+TARGET_MAX_NUM_AUTONOMOUS = 6
+
+# The target classification match values: [start, end) -> value
+TARGET_CLASSIFY_RANGES = [
+    {"start": float("-inf"),
+     "end": 2. / 5,
+     "value": 0},
+    {"start": 2. / 5,
+     "end": 1,
+     "value": 1},
+    {"start": 1,
+     "end": float("inf"),
+     "value": 2},
+]
+
+# The location accuracy match values: (start, end] -> value
+TARGET_LOCATION_RANGES = [
+    {"start": float("-inf"),
+     "end": 75,
+     "value": 4},
+    {"start": 75,
+     "end": 150,
+     "value": 2},
+    {"start": 150,
+     "end": float("inf"),
+     "value": 0},
+]
