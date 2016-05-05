@@ -316,22 +316,17 @@ class TargetsId(View):
             return HttpResponseForbidden(str(e))
 
         # Remember the thumbnail path so we can delete it from disk.
-        thumbnail = target.thumbnail.name
+        thumbnail = target.thumbnail.path if target.thumbnail else None
 
         target.delete()
 
         if thumbnail:
             try:
-                os.remove(absolute_media_path(thumbnail))
+                os.remove(thumbnail)
             except OSError as e:
                 logger.warning("Unable to delete thumbnail: %s", e)
 
         return HttpResponse("Target deleted.")
-
-
-def absolute_media_path(media_path):
-    """Compute absolute path in MEDIA_ROOT, from relative."""
-    return os.path.join(settings.MEDIA_ROOT, media_path)
 
 
 class TargetsIdImage(View):
@@ -353,7 +348,7 @@ class TargetsIdImage(View):
             return HttpResponseNotFound('Target %s has no image' % pk)
 
         # Tell Apache to serve the thumbnail.
-        return sendfile(request, absolute_media_path(target.thumbnail.name))
+        return sendfile(request, target.thumbnail.path)
 
     def post(self, request, pk):
         try:
@@ -378,15 +373,15 @@ class TargetsIdImage(View):
                 'Invalid image format %s, only JPEG and PNG allowed' %
                 i.format)
 
-        old_thumbnail = target.thumbnail.name
+        old_path = target.thumbnail.path if target.thumbnail else None
 
         target.thumbnail.save('%d.%s' % (target.pk, i.format), ImageFile(f))
 
-        if target.thumbnail.name != old_thumbnail:
+        if old_path and target.thumbnail.path != old_path:
             # We didn't overwrite the old thumbnail, we should delete it,
             # but ignore deletion errors.
             try:
-                os.remove(absolute_media_path(old_thumbnail))
+                os.remove(old_path)
             except OSError as e:
                 logger.warning("Unable to delete old thumbnail: %s", e)
 
@@ -404,17 +399,16 @@ class TargetsIdImage(View):
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
-        name = target.thumbnail.name
-
-        if not name:
+        if not target.thumbnail or not target.thumbnail.path:
             return HttpResponseNotFound('Target %s has no image' % pk)
 
+        path = target.thumbnail.path
         # Remove the thumbnail from the target.
         # Note that this does not delete it from disk!
         target.thumbnail.delete()
 
         try:
-            os.remove(absolute_media_path(name))
+            os.remove(path)
         except OSError as e:
             logger.warning("Unable to delete thumbnail: %s", e)
 

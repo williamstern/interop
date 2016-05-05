@@ -4,7 +4,6 @@ import functools
 import json
 import os.path
 from auvsi_suas.models import GpsPosition, Target, TargetType, Color, Shape, Orientation
-from auvsi_suas.views.targets import absolute_media_path
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -646,13 +645,13 @@ class TestTargetId(TestCase):
             self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
-        thumb = t.thumbnail.name
-        self.assertTrue(os.path.exists(absolute_media_path(thumb)))
+        thumb = t.thumbnail.path
+        self.assertTrue(os.path.exists(thumb))
 
         response = self.client.delete(targets_id_url(args=[pk]))
         self.assertEqual(200, response.status_code)
 
-        self.assertFalse(os.path.exists(absolute_media_path(thumb)))
+        self.assertFalse(os.path.exists(thumb))
 
 
 def test_image(name):
@@ -788,25 +787,25 @@ class TestTargetIdImage(TestCase):
         self.post_image('A.jpg')
 
         t = Target.objects.get(pk=self.target_id)
-        jpg_name = t.thumbnail.name
-        self.assertTrue(os.path.exists(absolute_media_path(jpg_name)))
+        jpg_path = t.thumbnail.path
+        self.assertTrue(os.path.exists(jpg_path))
 
         self.post_image('A.png', content_type='image/png')
-        self.assertFalse(os.path.exists(absolute_media_path(jpg_name)))
+        self.assertFalse(os.path.exists(jpg_path))
 
     def test_delete(self):
         """Image deleted on DELETE"""
         self.post_image('A.jpg')
 
         t = Target.objects.get(pk=self.target_id)
-        jpg_name = t.thumbnail.name
-        self.assertTrue(os.path.exists(absolute_media_path(jpg_name)))
+        jpg_path = t.thumbnail.path
+        self.assertTrue(os.path.exists(jpg_path))
 
         response = self.client.delete(targets_id_image_url(args=[self.target_id
                                                                  ]))
         self.assertEqual(200, response.status_code)
 
-        self.assertFalse(os.path.exists(absolute_media_path(jpg_name)))
+        self.assertFalse(os.path.exists(jpg_path))
 
     def test_get_after_delete(self):
         """GET returns 404 after DELETE"""
