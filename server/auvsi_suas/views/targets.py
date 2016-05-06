@@ -193,10 +193,11 @@ def find_target(request, pk):
     """
     target = Target.objects.get(pk=pk)
 
-    # We only let users get their own targets.
-    if target.user != request.user:
+    # We only let users get their own targets, unless a superuser.
+    if target.user == request.user or request.user.is_superuser:
+        return target
+    else:
         raise ValueError("Accessing target %d not allowed" % pk)
-    return target
 
 
 class TargetsId(View):
