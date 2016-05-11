@@ -5,10 +5,12 @@ from PIL import Image
 import os
 import os.path
 
-from auvsi_suas.models import GpsPosition, Target, TargetType, Color, Shape, Orientation
+from auvsi_suas.models import GpsPosition, Target, TargetType, Color, Shape, Orientation, MissionClockEvent
 from auvsi_suas.views import logger
 from auvsi_suas.views.decorators import require_login
+from auvsi_suas.views.decorators import require_superuser
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.core.files.images import ImageFile
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
@@ -118,11 +120,8 @@ class Targets(View):
         return super(Targets, self).dispatch(*args, **kwargs)
 
     def get(self, request):
-        # We only support getting up to 100 targets for now.
-        # Additional limit and pagination options may be added in the future,
-        # but for now 100 targets ought to be enough for anyone.
+        # Limit serving to 100 targets to prevent slowdown and isolation problems.
         targets = Target.objects.filter(user=request.user).all()[:100]
-
         targets = [t.json(is_superuser=request.user.is_superuser)
                    for t in targets]
 
@@ -414,3 +413,44 @@ class TargetsIdImage(View):
             logger.warning("Unable to delete thumbnail: %s", e)
 
         return HttpResponse("Image deleted.")
+
+
+class TargetsAdminReview(View):
+    """Get or update review status for targets."""
+
+    @method_decorator(require_superuser)
+    def dispatch(self, *args, **kwargs):
+        return super(TargetsAdminReview, self).dispatch(*args, **kwargs)
+
+    def get(self, request):
+        """Gets all of the targets ready for review."""
+        targets = []
+        for user in User.objects.all():
+            # Targets still editable aren't ready for review.
+            if (MissionClockEvent.user_on_clock(user) or
+                    MissionClockEvent.user_on_timeout(user)):
+                continue
+            targets.extend([t.json(is_superuser=request.user.is_superuser)
+                            for t in Target.objects.filter(user=user).all()])
+        return JsonResponse(targets, safe=False)
+
+    def put(self, request, pk):
+        """Updates the review status of a target."""
+        try:
+            data = json.loads(request.body)
+            approved = bool(data['approved'])
+        except KeyError:
+            return HttpResponseBadRequest('Failed to get required field.')
+        except ValueError:
+            return HttpResponseBadRequest('Field had incorrect type.')
+
+        try:
+            target = find_target(request, int(pk))
+        except Target.DoesNotExist:
+            return HttpResponseNotFound('Target %s not found' % pk)
+        except ValueError as e:
+            return HttpResponseForbidden(str(e))
+        target.thumbnail_approved = approved
+        target.save()
+        return JsonResponse(target.json(is_superuser=
+                                        request.user.is_superuser))
