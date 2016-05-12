@@ -2,6 +2,7 @@
 
 import os.path
 from auvsi_suas.models import GpsPosition
+from auvsi_suas.models import TakeoffOrLandingEvent
 from auvsi_suas.models import Target
 from auvsi_suas.models import TargetEvaluator
 from auvsi_suas.models import TargetType
@@ -234,6 +235,52 @@ class TestTarget(TestCase):
         t2.save()
         self.assertAlmostEqual(1.0, t1.similar_classifications(t2))
 
+    def test_actionable_submission(self):
+        """Tests actionable_submission correctly filters submissions."""
+        # t1 created and updated before take off.
+        t1 = Target(user=self.user, target_type=TargetType.standard)
+        t1.save()
+        t1.alphanumeric = 'A'
+        t1.save()
+
+        # t2 created before take off and updated in flight.
+        t2 = Target(user=self.user, target_type=TargetType.standard)
+        t2.save()
+
+        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=True)
+        event.save()
+
+        t2.alphanumeric = 'A'
+        t2.save()
+
+        # t3 created and updated in flight.
+        t3 = Target(user=self.user, target_type=TargetType.standard)
+        t3.save()
+        t3.alphanumeric = 'A'
+        t3.save()
+
+        # t4 created in flight and updated after landing.
+        t4 = Target(user=self.user, target_type=TargetType.standard)
+        t4.save()
+
+        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
+        event.save()
+
+        t4.alphanumeric = 'A'
+        t4.save()
+
+        # t5 created and updated after landing.
+        t5 = Target(user=self.user, target_type=TargetType.standard)
+        t5.save()
+        t5.alphanumeric = 'A'
+        t5.save()
+
+        self.assertFalse(t1.actionable_submission())
+        self.assertFalse(t2.actionable_submission())
+        self.assertTrue(t3.actionable_submission())
+        self.assertFalse(t4.actionable_submission())
+        self.assertFalse(t5.actionable_submission())
+
 
 class TestTargetEvaluator(TestCase):
     """Tests for the TargetEvaluator."""
@@ -250,6 +297,9 @@ class TestTargetEvaluator(TestCase):
         l2.save()
         l3 = GpsPosition(latitude=-38, longitude=76)
         l3.save()
+
+        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=True)
+        event.save()
 
         # A target worth full points.
         self.submit1 = Target(user=self.user,
@@ -282,7 +332,7 @@ class TestTargetEvaluator(TestCase):
                               orientation=Orientation.n,
                               shape=Shape.circle,
                               background_color=Color.white,
-                              alphanumeric='ABC',
+                              # alphanumeric set below
                               alphanumeric_color=Color.black,
                               description='Test target 2',
                               autonomous=False,
@@ -327,6 +377,13 @@ class TestTargetEvaluator(TestCase):
                             description='Test target 4')
         self.real4.save()
 
+        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
+        event.save()
+
+        # submit2 updated after landing.
+        self.submit2.alphanumeric = 'ABC'
+        self.submit2.save()
+
         self.submitted_targets = [self.submit1, self.submit2, self.submit3,
                                   self.submit4]
         self.real_targets = [self.real3, self.real1, self.real4, self.real2]
@@ -334,15 +391,15 @@ class TestTargetEvaluator(TestCase):
 
     def test_match_value(self):
         """Tests the match value for two targets."""
-        e = TargetEvaluator([], [])
-        self.assertEqual(6, e.match_value(self.submit1, self.real1))
+        e = TargetEvaluator(self.submitted_targets, self.real_targets)
+        self.assertEqual(8, e.match_value(self.submit1, self.real1))
         self.assertEqual(3, e.match_value(self.submit2, self.real2))
         self.assertEqual(0, e.match_value(self.submit3, self.real3))
         self.assertEqual(0, e.match_value(self.submit4, self.real4))
 
     def test_match_targets(self):
         """Tests that matching targets produce maximal matches."""
-        e = TargetEvaluator([], [])
+        e = TargetEvaluator(self.submitted_targets, self.real_targets)
         self.assertEqual(
             {
                 self.submit1: self.real1,
@@ -361,7 +418,7 @@ class TestTargetEvaluator(TestCase):
         self.assertIn('targets', d)
         for t in d['targets'].values():
             keys = ['match_value', 'image_approved', 'classifications',
-                    'location_accuracy']
+                    'location_accuracy', 'actionable']
             for key in keys:
                 self.assertIn(key, t)
         for s in self.real_targets:
@@ -370,9 +427,31 @@ class TestTargetEvaluator(TestCase):
             else:
                 self.assertNotIn(s.pk, d['targets'].keys())
 
-        self.assertEqual(9, d['matched_target_value'])
+        self.assertEqual(11, d['matched_target_value'])
         self.assertEqual(2, d['unmatched_target_count'])
-        self.assertEqual(6, d['targets'][self.real1.pk]['match_value'])
+        self.assertEqual(8, d['targets'][self.real1.pk]['match_value'])
         self.assertEqual(True, d['targets'][self.real1.pk]['image_approved'])
         self.assertEqual(1.0, d['targets'][self.real1.pk]['classifications'])
         self.assertEqual(0.0, d['targets'][self.real1.pk]['location_accuracy'])
+        self.assertEqual('objective',
+                         d['targets'][self.real1.pk]['actionable'])
+
+        self.assertEqual(None, d['targets'][self.real2.pk]['actionable'])
+
+    def test_evaluation_dict_no_submitted_targets(self):
+        """Tests that evaluation_dict works with no submitted targets."""
+        e = TargetEvaluator([], self.real_targets)
+        d = e.evaluation_dict()
+
+        self.assertEqual(0, d['matched_target_value'])
+        self.assertEqual(0, d['unmatched_target_count'])
+        self.assertEqual({}, d['targets'])
+
+    def test_evaluation_dict_no_real_targets(self):
+        """Tests that evaluation_dict works with no submitted targets."""
+        e = TargetEvaluator(self.submitted_targets, [])
+        d = e.evaluation_dict()
+
+        self.assertEqual(0, d['matched_target_value'])
+        self.assertEqual(4, d['unmatched_target_count'])
+        self.assertEqual({}, d['targets'])

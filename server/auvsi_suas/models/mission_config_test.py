@@ -150,9 +150,9 @@ class TestMissionConfigModelSampleMission(TestCase):
                         'targets']
                 for key in keys:
                     self.assertIn(key, val['targets'][target_set])
-                for t in val['targets'][target_set]['targets']:
+                for t in val['targets'][target_set]['targets'].values():
                     keys = ['match_value', 'image_approved', 'classifications',
-                            'location_accuracy']
+                            'location_accuracy', 'actionable']
                     for key in keys:
                         self.assertIn(key, t)
 
@@ -191,6 +191,18 @@ class TestMissionConfigModelSampleMission(TestCase):
             0.5, teams[user0]['interop_times']['uas_telem']['max'])
         self.assertAlmostEqual(
             1. / 6, teams[user0]['interop_times']['uas_telem']['avg'])
+
+        self.assertEqual(
+            11, teams[user0]['targets']['manual']['matched_target_value'])
+        self.assertEqual(
+            1, teams[user0]['targets']['manual']['unmatched_target_count'])
+        # Real targets are PKs 1, 2, and 3.
+        self.assertEqual(
+            'objective',
+            teams[user0]['targets']['manual']['targets'][1]['actionable'])
+        self.assertEqual(
+            None,
+            teams[user0]['targets']['manual']['targets'][2]['actionable'])
 
         self.assertEqual(True, teams[user0]['stationary_obst_collision'][25])
         self.assertEqual(False, teams[user0]['stationary_obst_collision'][26])
