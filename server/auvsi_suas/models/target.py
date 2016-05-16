@@ -7,6 +7,7 @@ import operator
 from django.conf import settings
 from django.db import models
 from gps_position import GpsPosition
+from takeoff_or_landing_event import TakeoffOrLandingEvent
 
 
 class Choices(enum.IntEnum):
@@ -268,6 +269,30 @@ class Target(models.Model):
                 count += 1
         return float(count) / len(fields) if fields else 1
 
+    def actionable_submission(self, flights=None):
+        """Checks if Target meets Actionable Intelligence submission criteria.
+
+        A target is "actionable" if the aircraft was in flight from initial
+        target submission until the last update. Note that this does not check
+        the localization or characterization Actionable Intelligence criteria.
+
+        Args:
+            flights: Optional memoized flights for this target's user. If
+                     omitted, the flights will be looked up.
+
+        Returns:
+            True if target may be considered an "actionable" submission.
+        """
+        if flights is None:
+            flights = TakeoffOrLandingEvent.flights(self.user)
+
+        for flight in flights:
+            if flight.within(self.creation_time) and \
+                flight.within(self.last_modified_time):
+                return True
+
+        return False
+
 
 class TargetEvaluator(object):
     """Evaluates submitted targets against real judge-made targets."""
@@ -276,12 +301,49 @@ class TargetEvaluator(object):
         """Creates an evaluation of submitted targets against real targets.
 
         Args:
-            submitted_targets: List of submitted Target objects.
+            submitted_targets: List of submitted Target objects, all from
+                               the same user.
             real_targets: List of real Target objects made by judges.
+
+        Raises:
+            AssertionError: not all submitted targets are from the same user.
         """
         self.submitted_targets = submitted_targets
         self.real_targets = real_targets
+
+        if self.submitted_targets:
+            self.user = self.submitted_targets[0].user
+            for t in self.submitted_targets:
+                if t.user != self.user:
+                    raise AssertionError(
+                        "All submitted targets must be from the same user")
+
+            self.flights = TakeoffOrLandingEvent.flights(self.user)
+
         self.matches = self.match_targets(submitted_targets, real_targets)
+
+    def actionable(self, target, classifications, location_accuracy):
+        """Determines level of target actionable intelligence.
+
+        Args:
+            target: Target to test
+            classifications: Number of correct classifications
+            location_accuracy: Target location accuracy
+
+        Returns:
+            Threshold met: one of None, 'threshold', or 'objective'
+        """
+        if target.target_type == TargetType.standard and \
+            target.actionable_submission(flights=self.flights):
+            params = settings.TARGET_ACTIONABLE_PARAMS
+            if classifications >= params['objective']['characteristics'] \
+                and location_accuracy <= params['objective']['location']:
+                return 'objective'
+            elif classifications >= params['objective']['characteristics'] \
+                and location_accuracy <= params['objective']['location']:
+                return 'threshold'
+
+        return None
 
     def range_lookup(self,
                      ranges,
@@ -307,8 +369,10 @@ class TargetEvaluator(object):
         """Computes the match value if the two targets were paired.
 
         Args:
-            submitted: The team submitted target.
-            real: The real target made by the judges.
+            submitted: The team submitted target. Must be one of
+                self.submitted_targets.
+            real: The real target made by the judges. Must be one of
+                self.real_targets.
         Returns:
             The match value, which is proportional to the points a team would
             receive if the targets were paired.
@@ -334,7 +398,18 @@ class TargetEvaluator(object):
                                            location_dist,
                                            start_operator=operator.gt)
 
-        return classify_value + location_value
+        # Actionable intelligence value
+        actionable = self.actionable(submitted, num_similar, location_dist)
+        if actionable == 'objective':
+            actionable_value = \
+                settings.TARGET_ACTIONABLE_PARAMS['objective']['value']
+        elif actionable == 'threshold':
+            actionable_value = \
+                settings.TARGET_ACTIONABLE_PARAMS['threshold']['value']
+        else:
+            actionable_value = 0
+
+        return classify_value + location_value + actionable_value
 
     def match_targets(self, submitted_targets, real_targets):
         """Matches the targets to maximize match value.
@@ -368,12 +443,14 @@ class TargetEvaluator(object):
                 'matched_target_value': Total value from matched targets
                 'unmatched_target_count': Count of unmatched targets
                 'targets': {
-                    'pk': {
+                    pk: {
                         'submitted_target': The pk of the submitted target.
                         'match_value': the value for the target
                         'image_approved': whether the image was approved
-                        'classifications': number of similar classifications
+                        'classifications': proportion of similar classifications
                         'location_accuracy': distance from actual
+                        'actionable': level of Actionable Intelligence criteria
+                            met: one of False, 'threshold', or 'objective'
                     }
                 }
             }
@@ -386,13 +463,19 @@ class TargetEvaluator(object):
                 continue
             match_value = self.match_value(submitted, real)
             matched_target_value += match_value
+
+            classifications = submitted.similar_classifications(real)
+            location_accuracy = submitted.location.distance_to(real.location)
+            actionable = self.actionable(submitted, classifications,
+                                         location_accuracy)
+
             target_dict[real.pk] = {
                 'submitted_target': submitted.pk,
                 'match_value': match_value,
                 'image_approved': submitted.thumbnail_approved,
-                'classifications': submitted.similar_classifications(real),
-                'location_accuracy':
-                submitted.location.distance_to(real.location),
+                'classifications': classifications,
+                'location_accuracy': location_accuracy,
+                'actionable': actionable,
             }
         unmatched_targets = len(self.submitted_targets) - len(self.matches) / 2
         return {

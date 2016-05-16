@@ -209,3 +209,17 @@ TARGET_LOCATION_RANGES = [
      "end": float("inf"),
      "value": 0},
 ]
+
+# Actionable Intelligence threshold and objective level parameters.
+TARGET_ACTIONABLE_PARAMS = {
+    "threshold": {
+        "characteristics": 3. / 5.,
+        "location": 150,  # ft
+        "value": 1,
+    },
+    "objective": {
+        "characteristics": 5. / 5.,
+        "location": 75,  # ft
+        "value": 2,
+    },
+}
