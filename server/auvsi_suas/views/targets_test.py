@@ -3,7 +3,7 @@
 import functools
 import json
 import os.path
-from auvsi_suas.models import GpsPosition, Target, TargetType, Color, Shape, Orientation
+from auvsi_suas.models import Color, GpsPosition, MissionClockEvent, Orientation, Shape, Target, TargetType
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -14,6 +14,9 @@ targets_url = reverse('auvsi_suas:targets')
 targets_id_url = functools.partial(reverse, 'auvsi_suas:targets_id')
 targets_id_image_url = functools.partial(reverse,
                                          'auvsi_suas:targets_id_image')
+targets_review_url = reverse('auvsi_suas:targets_review')
+targets_review_id_url = functools.partial(reverse,
+                                          'auvsi_suas:targets_review_id')
 
 
 class TestTargetsLoggedOut(TestCase):
@@ -817,3 +820,115 @@ class TestTargetIdImage(TestCase):
 
         response = self.client.get(targets_id_image_url(args=[self.target_id]))
         self.assertEqual(404, response.status_code)
+
+
+class TestTargetsAdminReviewNotAdmin(TestCase):
+    """Tests admin review when not logged in as admin."""
+
+    def test_not_authenticated(self):
+        """Unauthenticated requests should fail."""
+        response = self.client.get(targets_review_url)
+        self.assertEqual(403, response.status_code)
+
+        response = self.client.put(targets_review_id_url(args=[1]))
+        self.assertEqual(403, response.status_code)
+
+    def test_not_admin(self):
+        """Unauthenticated requests should fail."""
+        self.user = User.objects.create_user('testuser', 'testemail@x.com',
+                                             'testpass')
+        response = self.client.post(login_url, {
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+        self.assertEqual(200, response.status_code)
+
+        response = self.client.get(targets_review_url)
+        self.assertEqual(403, response.status_code)
+
+        response = self.client.put(targets_review_id_url(args=[1]))
+        self.assertEqual(403, response.status_code)
+
+
+class TestTargetsAdminReview(TestCase):
+    """Tests GET/PUT admin review of targets."""
+
+    def setUp(self):
+        """Creates user and logs in."""
+        self.user = User.objects.create_superuser(
+            'testuser', 'testemail@x.com', 'testpass')
+        self.team = User.objects.create_user('testuser2', 'testemail@x.com',
+                                             'testpass')
+        response = self.client.post(login_url, {
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+        self.assertEqual(200, response.status_code)
+
+    def test_get_no_targets(self):
+        """Test GET when there are no targets."""
+        response = self.client.get(targets_review_url)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual([], json.loads(response.content))
+
+    def test_get_editable_targets(self):
+        """Test GET when there are targets but are still in editable window."""
+        MissionClockEvent(user=self.team,
+                          team_on_clock=True,
+                          team_on_timeout=False).save()
+        Target(user=self.team, target_type=TargetType.qrc).save()
+
+        response = self.client.get(targets_review_url)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual([], json.loads(response.content))
+
+    def test_get_noneditable_targets(self):
+        """Test GET when there are non-editable targets."""
+        MissionClockEvent(user=self.team,
+                          team_on_clock=True,
+                          team_on_timeout=False).save()
+        MissionClockEvent(user=self.team,
+                          team_on_clock=False,
+                          team_on_timeout=False).save()
+        target = Target(user=self.team, target_type=TargetType.qrc)
+        target.save()
+
+        response = self.client.get(targets_review_url)
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(1, len(data))
+        self.assertIn('type', data[0])
+        self.assertEqual('qrc', data[0]['type'])
+
+    def test_put_review_no_approved(self):
+        """Test PUT review with no approved field."""
+        target = Target(user=self.team, target_type=TargetType.qrc)
+        target.save()
+
+        response = self.client.put(targets_review_id_url(args=[target.pk]))
+        self.assertEqual(400, response.status_code)
+
+    def test_put_invalid_pk(self):
+        """Test PUT reivew with invalid pk."""
+        response = self.client.put(
+            targets_review_id_url(args=[1]),
+            data=json.dumps({'approved': False}))
+        self.assertEqual(404, response.status_code)
+
+    def test_put_review(self):
+        """Test PUT review is saved."""
+        target = Target(user=self.team, target_type=TargetType.qrc)
+        target.save()
+
+        response = self.client.put(
+            targets_review_id_url(args=[target.pk]),
+            data=json.dumps({'approved': False}))
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertIn('id', data)
+        self.assertEqual(target.pk, data['id'])
+        self.assertIn('thumbnail_approved', data)
+        self.assertFalse(data['thumbnail_approved'])
+
+        target.refresh_from_db()
+        self.assertFalse(target.thumbnail_approved)

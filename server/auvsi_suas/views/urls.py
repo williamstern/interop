@@ -3,7 +3,7 @@ from auvsi_suas.views.login import Login
 from auvsi_suas.views.missions import Missions
 from auvsi_suas.views.obstacles import Obstacles
 from auvsi_suas.views.server_info import ServerInfo
-from auvsi_suas.views.targets import Targets, TargetsId, TargetsIdImage
+from auvsi_suas.views.targets import Targets, TargetsId, TargetsIdImage, TargetsAdminReview
 from auvsi_suas.views.teams import Teams, TeamsId
 from auvsi_suas.views.telemetry import Telemetry
 from auvsi_suas.views.auvsi_admin.evaluate_teams import EvaluateTeams
@@ -29,6 +29,10 @@ urlpatterns = patterns(
         name='targets_id_image'),
     # Admin API
     url(r'^api/missions$', Missions.as_view(), name='missions'),
+    url(r'^api/targets/review$', TargetsAdminReview.as_view(),
+        name='targets_review'),
+    url(r'^api/targets/review/(?P<pk>\d+)$', TargetsAdminReview.as_view(),
+        name='targets_review_id'),
     url(r'^api/teams$', Teams.as_view(), name='teams'),
     url(r'^api/teams/(?P<pk>\d+)$', TeamsId.as_view(), name='teams_id'),
     url(r'^api/clear_cache$', ClearCache.as_view(), name='clear_cache'),
