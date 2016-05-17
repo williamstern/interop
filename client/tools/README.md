@@ -1,23 +1,13 @@
-AUVSI SUAS: Sample Interoperability Implementation
+AUVSI SUAS: Interoperability Client Tools
 ================================================================================
 
-This directory contains a sample implementation of interoperability. This
-implementation can be used as blackbox monitoring of the running system, to
-load test the deployment configuration, or test components which are otherwise
-difficult to test.
+## Prober
 
-You can use the code by executing:
+The prober is a simple use of the interoperability client which validates the
+system is working and recieving data. Assuming tests passed before deployment,
+this can be used to validate the system is accessible by teams.
 
-    python interop_client.py localhost:80 0.1 testuser testpass
-
-NOTE: This client is deprecated and should not be used for new tools.
-
-
-## Mission Simulator
-The flightsim module can be used to test the system using realistic flight
-dyanamics.  The motion of the UAV is determined by the kml file.  An example
-file is provided "./data/FlightPath.kml".  The file should contain a line path
-called FlightPath.  A suitable path may be created using the "Add Path" icon
-in Google Earth.  Altitudes must be added manually when using that process.
-
-    python run_flightsim.py 127.0.0.1:8000 0.1 cornell uni ./data/FlightPath.kml
+```
+python prober.py [interop_server_host] [interop_time] [username] [password] [generator] [flightsim_kml_path]
+python prober.py http://localhost:80 0.1 testuser testpass zeros
+```

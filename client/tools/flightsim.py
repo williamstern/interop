@@ -1,6 +1,14 @@
-from interop_datagen import DataGenerator
+"""DataGenerator implementation that simulates a UAS based on KML waypoints."""
+
+import argparse
+import datetime
+import sys
+import time
+from datagen import DataGenerator
 from xml.etree import ElementTree
 from LatLon.lat_lon import LatLon
+
+from interop import Telemetry
 
 switch_threshold = 15  # Meters
 max_turn_rate = 120  # Degrees per second
@@ -11,13 +19,10 @@ class KmlGenerator(DataGenerator):
     def __init__(self, filename):
         self.path = _read_kml_flightpath(filename)
         self.speed = 50  # Meters per second
-        self.time = None
+        self.time = datetime.datetime.now()
         self.waypoint = 0
         self.pos = self.path[self.waypoint]
         self.waypoint = 1
-
-    def start(self, start_time):
-        self.time = start_time
 
     def get_uas_telemetry(self, new_time):
         delta_time = (new_time - self.time).total_seconds()
@@ -53,8 +58,8 @@ class KmlGenerator(DataGenerator):
             # Apply motion
             self.pos.move(vec)
 
-        return (self.pos.latitude, self.pos.longitude, self.pos.altitude,
-                self.pos.heading)
+        return Telemetry(self.pos.latitude, self.pos.longitude,
+                         self.pos.altitude, self.pos.heading)
 
 
 def calc_new_heading(current, commanded, max_delta):

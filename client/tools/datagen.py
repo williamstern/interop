@@ -1,10 +1,9 @@
-"""Implementation of data generation for interoperability.
-
-This is team specific and the code here represents a simulation.
-"""
+"""Data generation interface for tools acting as a UAS."""
 
 import abc
 import logging
+
+from interop import Telemetry
 
 
 class DataGenerator(object):
@@ -29,4 +28,4 @@ class ZeroValueGenerator(DataGenerator):
 
     def get_uas_telemetry(self, cur_time):
         """Overrides base method."""
-        return (0, 0, 0, 0)
+        return Telemetry(0, 0, 0, 0)
