@@ -36,6 +36,7 @@ module.exports = function(config) {
       'components/team-status/team-status-controller.js',
       'pages/mission-dashboard/mission-dashboard-controller.js',
       'pages/mission-list/mission-list-controller.js',
+      'pages/target-review/target-review-controller.js',
       // Test files.
       'components/settings/settings-service_test.js',
       'components/navigation/navigation_test.js',
@@ -45,6 +46,7 @@ module.exports = function(config) {
       'components/team-status/team-status-controller_test.js',
       'pages/mission-dashboard/mission-dashboard-controller_test.js',
       'pages/mission-list/mission-list-controller_test.js',
+      'pages/target-review/target-review-controller_test.js',
     ],
 
 

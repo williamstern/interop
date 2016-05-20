@@ -38,56 +38,84 @@ Backend = function($rootScope, $resource, $interval) {
     this.telemetry = null;
 
     /**
+     * @export {?Array<Object>} The targets for review.
+     */
+    this.reviewTargets = null;
+
+    /**
      * @private @const {!angular.Scope} The root scope service.
      */
     this.rootScope_ = $rootScope;
 
     /**
-     * @private @const {!Object} Missions backend interface.
+     * @private @const {!Object} Missions interface.
      */
     this.missionResource_ = $resource('/api/missions');
 
     /**
-     * @private @const {!Object} Teams backend interface.
+     * @private @const {!Object} Teams interface.
      */
     this.teamsResource_ = $resource('/api/teams');
 
     /**
-     * @private @const {!Object} Obstacles backend interface.
+     * @private @const {!Object} Obstacles interface.
      */
     this.obstaclesResource_ = $resource('/api/obstacles', {log: false});
 
     /**
-     * @private @const {!Object} Telemetry backend interface.
+     * @private @const {!Object} Telemetry interface.
      */
     this.telemetryResource_ = $resource('/api/telemetry');
 
     /**
-     * @private @const {!Number} The update period in ms.
+     * @private @const {!Object} Target review interface.
      */
-    this.updatePeriodMs_ = 1000;
+    this.targetReviewResource_ = $resource(
+            '/api/targets/review/:id',
+            {id: '@id'},
+            {'update': {method: 'PUT'}});
+
     /**
-     * @private @const {!Object} The update which syncs with the backend (1s).
+     * @private @const {!Object} Real time data sync every 1s.
      */
-    this.updateInterval_ = $interval(angular.bind(this, this.update_),
-                                     this.updatePeriodMs_);
+    this.realTimeInterval_ = $interval(
+            angular.bind(this, this.realTimeUpdate_), 1000);
+
+    /**
+     * @private @const {!Object} Batch data sync every 10s.
+     */
+    this.nonRealTimeInterval_ = $interval(
+            angular.bind(this, this.nonRealTimeUpdate_), 10000);
+
+    // Perform initial sync.
+    this.realTimeUpdate_();
+    this.nonRealTimeUpdate_();
 };
 
 
 /**
- * Executes asynchronous updates with the backend.
+ * Executes asynchronous updates for real-time data.
  * @private
  */
-Backend.prototype.update_ = function() {
-    // Execute all asynchronous background syncs.
-    this.missionResource_.query({}).$promise.then(
-            angular.bind(this, this.setMissions_));
+Backend.prototype.realTimeUpdate_ = function() {
     this.teamsResource_.query({}).$promise.then(
             angular.bind(this, this.setTeams_));
     this.obstaclesResource_.get({}).$promise.then(
             angular.bind(this, this.setObstacles_));
     this.telemetryResource_.query({limit: 1}).$promise.then(
             angular.bind(this, this.setTelemetry_));
+};
+
+
+/**
+ * Executes asynchronous updates for non-real-time data.
+ * @private
+ */
+Backend.prototype.nonRealTimeUpdate_ = function() {
+    this.missionResource_.query({}).$promise.then(
+            angular.bind(this, this.setMissions_));
+    this.targetReviewResource_.query({}).$promise.then(
+            angular.bind(this, this.setReviewTargets_));
 };
 
 
@@ -140,6 +168,17 @@ Backend.prototype.setObstacles_ = function(obstacles) {
  */
 Backend.prototype.setTelemetry_ = function(telemetry) {
     this.telemetry = telemetry;
+    this.notifyDataUpdated_();
+};
+
+
+/**
+ * Sets the review targets.
+ * @param {!Array<Object>} reviewTargets The targets to set.
+ * @private
+ */
+Backend.prototype.setReviewTargets_ = function(reviewTargets) {
+    this.reviewTargets = reviewTargets;
     this.notifyDataUpdated_();
 };
 
