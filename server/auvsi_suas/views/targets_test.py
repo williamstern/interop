@@ -6,6 +6,7 @@ import os.path
 from auvsi_suas.models import Color, GpsPosition, MissionClockEvent, Orientation, Shape, Target, TargetType
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.files.images import ImageFile
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
@@ -882,6 +883,22 @@ class TestTargetsAdminReview(TestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual([], json.loads(response.content))
 
+    def test_get_noneditable_without_thumbnail_targets(self):
+        """Test GET when there are non-editable targets without thumbnail."""
+        MissionClockEvent(user=self.team,
+                          team_on_clock=True,
+                          team_on_timeout=False).save()
+        MissionClockEvent(user=self.team,
+                          team_on_clock=False,
+                          team_on_timeout=False).save()
+        target = Target(user=self.team, target_type=TargetType.qrc)
+        target.save()
+
+        response = self.client.get(targets_review_url)
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+        self.assertEqual(0, len(data))
+
     def test_get_noneditable_targets(self):
         """Test GET when there are non-editable targets."""
         MissionClockEvent(user=self.team,
@@ -891,6 +908,10 @@ class TestTargetsAdminReview(TestCase):
                           team_on_clock=False,
                           team_on_timeout=False).save()
         target = Target(user=self.team, target_type=TargetType.qrc)
+        target.save()
+
+        with open(test_image('A.jpg')) as f:
+            target.thumbnail.save('%d.%s' % (target.pk, 'jpg'), ImageFile(f))
         target.save()
 
         response = self.client.get(targets_review_url)
