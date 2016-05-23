@@ -444,7 +444,7 @@ class TargetsAdminReview(View):
         """Updates the review status of a target."""
         try:
             data = json.loads(request.body)
-            approved = bool(data['approved'])
+            approved = bool(data['thumbnail_approved'])
         except KeyError:
             return HttpResponseBadRequest('Failed to get required field.')
         except ValueError:

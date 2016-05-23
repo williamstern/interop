@@ -27,11 +27,6 @@ NavigationCtrl = function($routeParams) {
             target: "_blank"
         },
         {
-            text: "Evaluate Teams (CSV)",
-            url: "/auvsi_admin/evaluate_teams.csv",
-            target: "_blank"
-        },
-        {
             text: "Export Data (KML)",
             url: "/auvsi_admin/export_data.kml",
             target: "_blank"
@@ -85,6 +80,16 @@ NavigationCtrl.prototype.shouldShowMissionLinks = function() {
  */
 NavigationCtrl.prototype.updateMissionLinks_ = function() {
     this.missionLinks_ = [
+        {
+            text: "Dashboard",
+            url: "/#/mission/" + this.mission_,
+            target: "_self",
+        },
+        {
+            text: "Review Targets",
+            url: "/#/mission/" + this.mission_ + "/targets",
+            target: "_self"
+        },
         {
             text: "Evaluate Teams (CSV)",
             url: "/auvsi_admin/evaluate_teams.csv?mission=" + this.mission_,

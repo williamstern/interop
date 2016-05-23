@@ -26,6 +26,11 @@ auvsiSuasApp.config(['$routeProvider', function($routeProvider) {
             controller: 'MissionDashboardCtrl',
             controllerAs: 'missionDashboardCtrl'
         }).
+        when('/mission/:missionId/targets', {
+            templateUrl: '/static/auvsi_suas/pages/target-review/target-review.html',
+            controller: 'TargetReviewCtrl',
+            controllerAs: 'targetReviewCtrl'
+        }).
         otherwise({
             redirectTo: '/'
         });
