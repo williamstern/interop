@@ -207,7 +207,7 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
 
         self.assertEqual(156, data[0]['mission_waypoints'][1]['id'])
         self.assertEqual(38.0, data[0]['mission_waypoints'][1]['latitude'])
-        self.assertEqual(-76.0, data[0]['mission_waypoints'][1]['longitude'])
+        self.assertEqual(-77.0, data[0]['mission_waypoints'][1]['longitude'])
         self.assertEqual(60.0, data[0]['mission_waypoints'][1]['altitude_msl'])
         self.assertEqual(1, data[0]['mission_waypoints'][1]['order'])
 
