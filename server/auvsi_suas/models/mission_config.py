@@ -112,23 +112,29 @@ class MissionConfig(models.Model):
     def satisfied_waypoints(self, uas_telemetry_logs):
         """Determines whether the UAS satisfied the waypoints.
 
+        Waypoints must be satisfied in order.
+
         Args:
             uas_telemetry_logs: A list of UAS Telemetry logs.
         Returns:
             A list of booleans where each value indicates whether the UAS
             satisfied the waypoint for that index.
         """
-        waypoints_satisfied = []
         waypoints = self.mission_waypoints.order_by('order')
-        for waypoint in waypoints:
-            satisfied = False
-            for uas_log in uas_telemetry_logs:
-                distance = uas_log.uas_position.distance_to(waypoint.position)
-                if distance < settings.SATISFIED_WAYPOINT_DIST_MAX_FT:
-                    satisfied = True
-                    break
-            waypoints_satisfied.append(satisfied)
-        return waypoints_satisfied
+        curr = 0
+        satisfied = [False for w in waypoints]
+
+        for uas_log in uas_telemetry_logs:
+            if curr == len(waypoints):
+                break
+
+            waypoint = waypoints[curr]
+            distance = uas_log.uas_position.distance_to(waypoint.position)
+            if distance < settings.SATISFIED_WAYPOINT_DIST_MAX_FT:
+                satisfied[curr] = True
+                curr += 1
+
+        return satisfied
 
     def evaluate_teams(self):
         """Evaluates the teams (non admin users) of the competition.

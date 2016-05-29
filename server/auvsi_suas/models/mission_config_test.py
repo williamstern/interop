@@ -12,13 +12,6 @@ from auvsi_suas.patches.simplekml_patch import Kml
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-# [waypoints, uas_logs, satisfied_list]
-TESTDATA_MISSIONCONFIG_EVALWAYPOINTS = (
-    [(38, -76, 100), (39, -77, 200), (37, -75, 0)],
-    [(38, -76, 140), (40, -78, 600), (37, -75, 40)],
-    [True, False, True]
-)  # yapf: disable
-
 
 class TestMissionConfigModel(TestCase):
     """Tests the MissionConfig model."""
@@ -57,11 +50,38 @@ class TestMissionConfigModel(TestCase):
         config.save()
         self.assertTrue(config.__unicode__())
 
+    def create_uas_logs(self, user, entries):
+        """Create a list of uas telemetry logs.
+
+        Args:
+            user: User to create logs for.
+            entries: List of (lat, lon, alt) tuples for each entry.
+
+        Returns:
+            List of UasTelemetry objects
+        """
+        ret = []
+
+        for (lat, lon, alt) in entries:
+            pos = GpsPosition()
+            pos.latitude = lat
+            pos.longitude = lon
+            pos.save()
+            apos = AerialPosition()
+            apos.altitude_msl = alt
+            apos.gps_position = pos
+            apos.save()
+            log = UasTelemetry()
+            log.user = user
+            log.uas_position = apos
+            log.uas_heading = 0
+            log.save()
+            ret.append(log)
+
+        return ret
+
     def test_satisfied_waypoints(self):
         """Tests the evaluation of waypoints method."""
-        data = TESTDATA_MISSIONCONFIG_EVALWAYPOINTS
-        (waypoint_details, uas_log_details, exp_satisfied) = data
-
         # Create mission config
         gpos = GpsPosition()
         gpos.latitude = 10
@@ -77,8 +97,9 @@ class TestMissionConfigModel(TestCase):
         config.save()
 
         # Create waypoints for config
-        for wpt_id in xrange(len(waypoint_details)):
-            (lat, lon, alt) = waypoint_details[wpt_id]
+        waypoints = [(38, -76, 100), (39, -77, 200), (40, -78, 0)]
+        for i, waypoint in enumerate(waypoints):
+            (lat, lon, alt) = waypoint
             pos = GpsPosition()
             pos.latitude = lat
             pos.longitude = lon
@@ -89,34 +110,32 @@ class TestMissionConfigModel(TestCase):
             apos.save()
             wpt = Waypoint()
             wpt.position = apos
-            wpt.order = wpt_id
+            wpt.order = i
             wpt.save()
             config.mission_waypoints.add(wpt)
         config.save()
 
         # Create UAS telemetry logs
-        uas_logs = []
         user = User.objects.create_user('testuser', 'testemail@x.com',
                                         'testpass')
-        for (lat, lon, alt) in uas_log_details:
-            pos = GpsPosition()
-            pos.latitude = lat
-            pos.longitude = lon
-            pos.save()
-            apos = AerialPosition()
-            apos.altitude_msl = alt
-            apos.gps_position = pos
-            apos.save()
-            log = UasTelemetry()
-            log.user = user
-            log.uas_position = apos
-            log.uas_heading = 0
-            log.save()
-            uas_logs.append(log)
 
-        # Assert correct satisfied waypoints
-        wpts_satisfied = config.satisfied_waypoints(uas_logs)
-        self.assertEqual(wpts_satisfied, exp_satisfied)
+        # Only first is valid.
+        entries = [(38, -76, 140), (40, -78, 600), (37, -75, 40)]
+        expect = [True, False, False]
+        logs = self.create_uas_logs(user, entries)
+        self.assertEqual(expect, config.satisfied_waypoints(logs))
+
+        # First and last are valid, but missed second, so third doesn't count.
+        entries = [(38, -76, 140), (40, -78, 600), (40, -78, 40)]
+        expect = [True, False, False]
+        logs = self.create_uas_logs(user, entries)
+        self.assertEqual(expect, config.satisfied_waypoints(logs))
+
+        # Hit all.
+        entries = [(38, -76, 140), (39, -77, 180), (40, -78, 40)]
+        expect = [True, True, True]
+        logs = self.create_uas_logs(user, entries)
+        self.assertEqual(expect, config.satisfied_waypoints(logs))
 
 
 class TestMissionConfigModelSampleMission(TestCase):
@@ -172,7 +191,7 @@ class TestMissionConfigModelSampleMission(TestCase):
 
         # user0 data
         self.assertEqual(True, teams[user0]['waypoints_satisfied'][1])
-        self.assertEqual(True, teams[user0]['waypoints_satisfied'][2])
+        self.assertEqual(False, teams[user0]['waypoints_satisfied'][2])
 
         self.assertAlmostEqual(2, teams[user0]['mission_clock_time'])
         self.assertAlmostEqual(0.6, teams[user0]['out_of_bounds_time'])
@@ -287,7 +306,7 @@ class TestMissionConfigModelSampleMission(TestCase):
 
         self.assertEqual(156, data['mission_waypoints'][1]['id'])
         self.assertEqual(38.0, data['mission_waypoints'][1]['latitude'])
-        self.assertEqual(-76.0, data['mission_waypoints'][1]['longitude'])
+        self.assertEqual(-77.0, data['mission_waypoints'][1]['longitude'])
         self.assertEqual(60.0, data['mission_waypoints'][1]['altitude_msl'])
         self.assertEqual(1, data['mission_waypoints'][1]['order'])
 
