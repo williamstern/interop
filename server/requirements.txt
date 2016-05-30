@@ -8,6 +8,7 @@ networkx
 numpy
 pillow
 psycopg2
+pyproj
 PyYAML # for loaddata
 scipy
 simplekml==1.2.7

@@ -186,8 +186,8 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertIn('home_pos', data[0])
         self.assertIn('latitude', data[0]['home_pos'])
         self.assertIn('longitude', data[0]['home_pos'])
-        self.assertEqual(10.0, data[0]['home_pos']['latitude'])
-        self.assertEqual(100.0, data[0]['home_pos']['longitude'])
+        self.assertEqual(38.0, data[0]['home_pos']['latitude'])
+        self.assertEqual(-79.0, data[0]['home_pos']['longitude'])
 
         self.assertIn('mission_waypoints', data[0])
         for waypoint in data[0]['mission_waypoints']:
@@ -222,8 +222,8 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertEqual(1, len(data[0]['search_grid_points']))
 
         self.assertEqual(150, data[0]['search_grid_points'][0]['id'])
-        self.assertEqual(10.0, data[0]['search_grid_points'][0]['latitude'])
-        self.assertEqual(100.0, data[0]['search_grid_points'][0]['longitude'])
+        self.assertEqual(38.0, data[0]['search_grid_points'][0]['latitude'])
+        self.assertEqual(-79.0, data[0]['search_grid_points'][0]['longitude'])
         self.assertEqual(1000.0,
                          data[0]['search_grid_points'][0]['altitude_msl'])
         self.assertEqual(10, data[0]['search_grid_points'][0]['order'])
@@ -231,24 +231,24 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertIn('emergent_last_known_pos', data[0])
         self.assertIn('latitude', data[0]['emergent_last_known_pos'])
         self.assertIn('longitude', data[0]['emergent_last_known_pos'])
-        self.assertEqual(10.0, data[0]['emergent_last_known_pos']['latitude'])
-        self.assertEqual(100.0,
+        self.assertEqual(38.0, data[0]['emergent_last_known_pos']['latitude'])
+        self.assertEqual(-79.0,
                          data[0]['emergent_last_known_pos']['longitude'])
 
         self.assertIn('off_axis_target_pos', data[0])
         self.assertIn('latitude', data[0]['off_axis_target_pos'])
         self.assertIn('longitude', data[0]['off_axis_target_pos'])
-        self.assertEqual(10.0, data[0]['off_axis_target_pos']['latitude'])
-        self.assertEqual(100.0, data[0]['off_axis_target_pos']['longitude'])
+        self.assertEqual(38.0, data[0]['off_axis_target_pos']['latitude'])
+        self.assertEqual(-79.0, data[0]['off_axis_target_pos']['longitude'])
 
         self.assertIn('sric_pos', data[0])
         self.assertIn('latitude', data[0]['sric_pos'])
         self.assertIn('longitude', data[0]['sric_pos'])
-        self.assertEqual(10.0, data[0]['sric_pos']['latitude'])
-        self.assertEqual(100.0, data[0]['sric_pos']['longitude'])
+        self.assertEqual(38.0, data[0]['sric_pos']['latitude'])
+        self.assertEqual(-79.0, data[0]['sric_pos']['longitude'])
 
         self.assertIn('air_drop_pos', data[0])
         self.assertIn('latitude', data[0]['air_drop_pos'])
         self.assertIn('longitude', data[0]['air_drop_pos'])
-        self.assertEqual(10.0, data[0]['air_drop_pos']['latitude'])
-        self.assertEqual(100.0, data[0]['air_drop_pos']['longitude'])
+        self.assertEqual(38.0, data[0]['air_drop_pos']['latitude'])
+        self.assertEqual(-79.0, data[0]['air_drop_pos']['longitude'])

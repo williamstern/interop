@@ -7,6 +7,7 @@ class auvsi_suas::server_install {
 
     # Install packages from apt.
     $package_deps = [
+        'python-pyproj',
         'python-numpy',
         'python-scipy',
         'python-matplotlib',
@@ -23,8 +24,9 @@ class auvsi_suas::server_install {
         requirements => '/interop/server/requirements.txt',
         # We install some packages from apt since that is much faster.
         systempkgs => true,
-        require => [ Package['python-numpy'], Package['python-scipy'],
-                     Package['python-matplotlib'], Package['python-psycopg2'] ]
+        require => [ Package['python-pyproj'], Package['python-numpy'],
+                     Package['python-scipy'], Package['python-matplotlib'],
+                     Package['python-psycopg2'] ]
     }
 
     # Link NodeJS (installed as nodejs) so that Karma can use it as node.

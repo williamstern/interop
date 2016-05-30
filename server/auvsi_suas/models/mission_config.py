@@ -8,6 +8,7 @@ from django.db import models
 
 from auvsi_suas.patches.simplekml_patch import Color
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
+from auvsi_suas.models import distance
 from auvsi_suas.models import units
 from fly_zone import FlyZone
 from gps_position import GpsPosition
@@ -112,29 +113,85 @@ class MissionConfig(models.Model):
     def satisfied_waypoints(self, uas_telemetry_logs):
         """Determines whether the UAS satisfied the waypoints.
 
-        Waypoints must be satisfied in order.
+        Waypoints must be satisfied in order. The entire pattern may be
+        restarted at any point. The best (most waypoints satisfied) attempt
+        will be returned.
+
+        Assumes that waypoints are at least
+        settings.SATISFIED_WAYPOINT_DIST_MAX_FT apart.
 
         Args:
             uas_telemetry_logs: A list of UAS Telemetry logs.
         Returns:
-            A list of booleans where each value indicates whether the UAS
-            satisfied the waypoint for that index.
+            satisifed: Total number of waypoints hit (must be in order).
+            satisfied_track: Total number of waypoints hit while remaining
+                             along the track. Once the UAV leaves the track
+                             no more waypoints will count towards this metric.
         """
+        # Use a common projection in distance_to_line based on the home
+        # position.
+        zone, north = distance.utm_zone(self.home_pos.latitude,
+                                        self.home_pos.longitude)
+        utm = distance.proj_utm(zone, north)
+
         waypoints = self.mission_waypoints.order_by('order')
-        curr = 0
-        satisfied = [False for w in waypoints]
+
+        best = {"satisfied": 0, "satisfied_track": 0}
+        current = {"satisfied": 0, "satisfied_track": 0}
+
+        def best_run(prev_best, current):
+            """Returns the best of the current run and the previous best."""
+            if current["satisfied"] > prev_best["satisfied"]:
+                return current
+            elif current["satisfied"] == prev_best["satisfied"] and \
+                    current["satisfied_track"] > prev_best["satisfied_track"]:
+                return current
+            return prev_best
+
+        prev_wpt, curr_wpt = -1, 0
+        track_ok = True
 
         for uas_log in uas_telemetry_logs:
-            if curr == len(waypoints):
-                break
+            # At any point the UAV may restart the waypoint pattern, at which
+            # point we reset the counters.
+            d0 = uas_log.uas_position.distance_to(waypoints[0].position)
+            if d0 < settings.SATISFIED_WAYPOINT_DIST_MAX_FT:
+                best = best_run(best, current)
 
-            waypoint = waypoints[curr]
-            distance = uas_log.uas_position.distance_to(waypoint.position)
-            if distance < settings.SATISFIED_WAYPOINT_DIST_MAX_FT:
-                satisfied[curr] = True
-                curr += 1
+                # The check below will set satisfied and satisfied_track to 1.
+                current = {"satisfied": 0, "satisfied_track": 0}
+                prev_wpt, curr_wpt = -1, 0
+                track_ok = True
 
-        return satisfied
+            # Once we have passed the first waypoint, ensure that the UAS
+            # remains along the waypoint track. We can skip this once they
+            # fail (until the entire pattern is restarted).
+            if prev_wpt >= 0 and track_ok:
+                start = (waypoints[prev_wpt].position.gps_position.latitude,
+                         waypoints[prev_wpt].position.gps_position.longitude,
+                         waypoints[prev_wpt].position.altitude_msl)
+                end = (waypoints[curr_wpt].position.gps_position.latitude,
+                       waypoints[curr_wpt].position.gps_position.longitude,
+                       waypoints[curr_wpt].position.altitude_msl)
+                point = (uas_log.uas_position.gps_position.latitude,
+                         uas_log.uas_position.gps_position.longitude,
+                         uas_log.uas_position.altitude_msl)
+                d = distance.distance_to_line(start, end, point, utm)
+                if d > settings.WAYPOINT_TRACK_DIST_MAX_FT:
+                    track_ok = False
+
+            waypoint = waypoints[curr_wpt]
+            d = uas_log.uas_position.distance_to(waypoint.position)
+            if d < settings.SATISFIED_WAYPOINT_DIST_MAX_FT:
+                current["satisfied"] += 1
+                if track_ok:
+                    current["satisfied_track"] += 1
+                curr_wpt += 1
+                prev_wpt += 1
+
+        best = best_run(best, current)
+
+        return best["satisfied"], best["satisfied_track"]
 
     def evaluate_teams(self):
         """Evaluates the teams (non admin users) of the competition.
@@ -209,11 +266,10 @@ class MissionConfig(models.Model):
                 warnings.append('No UAS telemetry logs.')
 
             # Determine if the uas hit the waypoints.
-            waypoints_hit = self.satisfied_waypoints(uas_logs)
-            waypoints_keyed = {}
-            for i, hit in enumerate(waypoints_hit):
-                waypoints_keyed[i + 1] = hit
-            eval_data['waypoints_satisfied'] = waypoints_keyed
+            waypoints_hit, waypoints_hit_track = \
+                self.satisfied_waypoints(uas_logs)
+            eval_data['waypoints_satisfied'] = waypoints_hit
+            eval_data['waypoints_satisfied_track'] = waypoints_hit_track
 
             # Determine if the uas went out of bounds. This must be done for
             # each period individually so time between periods isn't counted as

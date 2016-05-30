@@ -1,6 +1,17 @@
 """Functions for converting between units."""
 
 
+def meters_to_feet(meters):
+    """Converts meters to feet.
+
+    Args:
+        meters: A distance in meters.
+    Returns:
+        A distance in feet.
+    """
+    return meters / 0.3048
+
+
 def kilometers_to_feet(kilometers):
     """Converts kilometers to feet.
 
@@ -9,7 +20,7 @@ def kilometers_to_feet(kilometers):
     Returns:
         A distance in feet.
     """
-    return kilometers * 3280.8399
+    return meters_to_feet(1000 * kilometers)
 
 
 def feet_to_meters(feet):
