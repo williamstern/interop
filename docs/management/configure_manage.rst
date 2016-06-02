@@ -146,7 +146,8 @@ The user must create a MissionConfig in order to test interoperability.
    mission. The active mission is used when responding to requests or storing
    data. The admin must make sure there is only one labeled active at a time.
 #. `Home pos` defines the home position. This is the center of the admin
-   display and should be where the ground station is.
+   display and should be where the ground station is. The mission is expected
+   to occur reasonably close to this position (i.e., within several miles).
 #. `Fly zones` define the valid areas where a UAS is considered in-bounds. This
    must include the takeoff and landing strip. This is used to evaluate time
    spent out of bounds.

@@ -4,6 +4,24 @@ from auvsi_suas.models import units
 from django.test import TestCase
 
 
+class TestMetersToFeet(TestCase):
+    """Tests the conversion from meters to feet."""
+
+    def test_m_to_ft(self):
+        """Performs a data-driven test of the conversion."""
+        cases = [
+            # (m, ft_actual)
+            (  0,     0),
+            (  1,     3.28084),
+            (  1.5,   4.92126),
+            (100,   328.084),
+        ]  # yapf: disable
+        for (km, ft_actual) in cases:
+            self.assertAlmostEqual(ft_actual,
+                                   units.meters_to_feet(km),
+                                   delta=5)
+
+
 class TestKilometersToFeet(TestCase):
     """Tests the conversion from kilometers to feet."""
 

@@ -181,6 +181,9 @@ TEST_LOADTEST_INTEROP_MIN_RATE = 1.5 * 10.0 * 4
 # The max distance for a waypoint to be considered satisfied.
 SATISFIED_WAYPOINT_DIST_MAX_FT = 50
 
+# The max distance for a UAS to diverge from the waypoint track.
+WAYPOINT_TRACK_DIST_MAX_FT = 100
+
 # The max number of autonomous targets.
 TARGET_MAX_NUM_AUTONOMOUS = 6
 
