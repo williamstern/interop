@@ -422,10 +422,7 @@ class TestTargetEvaluator(TestCase):
             for key in keys:
                 self.assertIn(key, t)
         for s in self.real_targets:
-            if s in self.real_matched_targets:
-                self.assertIn(s.pk, d['targets'].keys())
-            else:
-                self.assertNotIn(s.pk, d['targets'].keys())
+            self.assertIn(s.pk, d['targets'].keys())
 
         self.assertEqual(11, d['matched_target_value'])
         self.assertEqual(2, d['unmatched_target_count'])
@@ -445,7 +442,9 @@ class TestTargetEvaluator(TestCase):
 
         self.assertEqual(0, d['matched_target_value'])
         self.assertEqual(0, d['unmatched_target_count'])
-        self.assertEqual({}, d['targets'])
+        for td in d['targets'].values():
+            for v in td.values():
+                self.assertEqual('', v)
 
     def test_evaluation_dict_no_real_targets(self):
         """Tests that evaluation_dict works with no submitted targets."""
