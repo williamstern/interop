@@ -70,4 +70,4 @@ class EvaluateTeams(View):
             writer.writerow(col_data)
         output = csv_output.getvalue()
         csv_output.close()
-        return HttpResponse(output)
+        return HttpResponse(output, content_type='text/csv')

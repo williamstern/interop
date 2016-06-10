@@ -35,7 +35,6 @@ class ExportKml(View):
 
         response = HttpResponse(kml.kml())
         response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
-        response['Content-Disposition'] = \
-            'attachment; filename=%s.kml' % 'mission'
+        response['Content-Disposition'] = 'attachment; filename=mission.kml'
         response['Content-Length'] = str(len(response.content))
         return response
