@@ -459,24 +459,34 @@ class TargetEvaluator(object):
         target_dict = collections.defaultdict(dict)
         for real in self.real_targets:
             submitted = self.matches.get(real)
-            if not submitted:
-                continue
-            match_value = self.match_value(submitted, real)
-            matched_target_value += match_value
+            if submitted:
+                match_value = self.match_value(submitted, real)
+                matched_target_value += match_value
 
-            classifications = submitted.similar_classifications(real)
-            location_accuracy = submitted.location.distance_to(real.location)
-            actionable = self.actionable(submitted, classifications,
-                                         location_accuracy)
+                classifications = submitted.similar_classifications(real)
+                location_accuracy = submitted.location.distance_to(
+                    real.location)
+                actionable = self.actionable(submitted, classifications,
+                                             location_accuracy)
 
-            target_dict[real.pk] = {
-                'submitted_target': submitted.pk,
-                'match_value': match_value,
-                'image_approved': submitted.thumbnail_approved,
-                'classifications': classifications,
-                'location_accuracy': location_accuracy,
-                'actionable': actionable,
-            }
+                target_dict[real.pk] = {
+                    'submitted_target': submitted.pk,
+                    'match_value': match_value,
+                    'image_approved': submitted.thumbnail_approved,
+                    'classifications': classifications,
+                    'location_accuracy': location_accuracy,
+                    'actionable': actionable,
+                }
+            else:
+                target_dict[real.pk] = {
+                    'submitted_target': '',
+                    'match_value': '',
+                    'image_approved': '',
+                    'classifications': '',
+                    'location_accuracy': '',
+                    'actionable': '',
+                }
+
         unmatched_targets = len(self.submitted_targets) - len(self.matches) / 2
         return {
             'matched_target_value': matched_target_value,
