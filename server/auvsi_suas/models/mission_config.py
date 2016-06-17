@@ -163,6 +163,11 @@ class MissionConfig(models.Model):
                 prev_wpt, curr_wpt = -1, 0
                 track_ok = True
 
+            # If the UAS has satisfied all of the waypoints, await starting the
+            # waypoint pattern again.
+            if curr_wpt >= len(waypoints):
+                continue
+
             # Once we have passed the first waypoint, ensure that the UAS
             # remains along the waypoint track. We can skip this once they
             # fail (until the entire pattern is restarted).

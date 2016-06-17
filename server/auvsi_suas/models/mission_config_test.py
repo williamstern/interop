@@ -181,6 +181,13 @@ class TestMissionConfigModel(TestCase):
         logs = self.create_uas_logs(user, entries)
         self.assertEqual(expect, config.satisfied_waypoints(logs))
 
+        # Keep flying after hitting all waypoints.
+        entries = [(38, -76, 140), (39, -77, 180), (40, -78, 40),
+                   (30.1, -78.1, 100)]
+        expect = (3, 3)
+        logs = self.create_uas_logs(user, entries)
+        self.assertEqual(expect, config.satisfied_waypoints(logs))
+
 
 class TestMissionConfigModelSampleMission(TestCase):
 
