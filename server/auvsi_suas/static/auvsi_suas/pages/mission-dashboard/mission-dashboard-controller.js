@@ -64,11 +64,18 @@ MissionDashboardCtrl.prototype.getCurrentMission = function() {
  * @private
  */
 MissionDashboardCtrl.prototype.rebuildMissionScene_ = function() {
+    var telemetry = [];
+    for (var i = 0; i < this.backend_.teams.length; i++) {
+        var team = this.backend_.teams[i];
+        if (team.active && this.backend_.telemetry[team.id]) {
+            telemetry.push(this.backend_.telemetry[team.id]);
+        }
+    }
+
     if (!!this.missionScene) {
         // Rebuild scene with current mission.
         this.missionScene.rebuildScene(
-                this.getCurrentMission(), this.backend_.obstacles,
-                this.backend_.telemetry);
+                this.getCurrentMission(), this.backend_.obstacles, telemetry);
     }
 };
 
