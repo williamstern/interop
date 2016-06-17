@@ -33,9 +33,9 @@ Backend = function($rootScope, $resource, $interval) {
     this.obstacles = null;
 
     /**
-     * @export {?Object} The telemetry data.
+     * @export {!Object} Map from user to telemetry data.
      */
-    this.telemetry = null;
+    this.telemetry = {};
 
     /**
      * @export {?Array<Object>} The targets for review.
@@ -98,12 +98,11 @@ Backend = function($rootScope, $resource, $interval) {
  * @private
  */
 Backend.prototype.realTimeUpdate_ = function() {
-    this.teamsResource_.query({}).$promise.then(
-            angular.bind(this, this.setTeams_));
+    this.teamsResource_.query({}).$promise
+        .then(angular.bind(this, this.setTeams_))
+        .then(angular.bind(this, this.updateTelemetry_));
     this.obstaclesResource_.get({}).$promise.then(
             angular.bind(this, this.setObstacles_));
-    this.telemetryResource_.query({limit: 1}).$promise.then(
-            angular.bind(this, this.setTelemetry_));
 };
 
 
@@ -162,12 +161,31 @@ Backend.prototype.setObstacles_ = function(obstacles) {
 
 
 /**
+ * Updates the telemetry for active teams.
+ * @private
+ */
+Backend.prototype.updateTelemetry_ = function() {
+    for (var i = 0; i < this.teams.length; i++) {
+        if (this.teams[i].active) {
+            var query = this.telemetryResource_.query({
+                limit: 1,
+                user: this.teams[i].id
+            });
+            query.$promise.then(angular.bind(this, this.setTelemetry_));
+        }
+    }
+}
+
+
+/**
  * Sets the telemetry.
  * @param {!Object} telemetry The telemetry to set.
  * @private
  */
 Backend.prototype.setTelemetry_ = function(telemetry) {
-    this.telemetry = telemetry;
+    for (var i = 0; i < telemetry.length; i++) {
+        this.telemetry[telemetry[i].user] = telemetry[i];
+    }
     this.notifyDataUpdated_();
 };
 
