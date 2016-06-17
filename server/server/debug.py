@@ -19,7 +19,7 @@ class NonHtmlDebugToolbarMiddleware(object):
                 new_content = '<html><body>Binary Data, ' \
                     'Length: {}</body></html>'.format(len(response.content))
                 response = HttpResponse(new_content)
-            elif response['Content-Type'] != 'text/html':
+            elif not response['Content-Type'].startswith('text/html'):
                 content = response.content
                 try:
                     json_ = json.loads(content)
