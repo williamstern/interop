@@ -30,6 +30,9 @@ ALLOWED_HOSTS = ['*']
 # Add your IP here, if not localhost.
 INTERNAL_IPS = ['127.0.0.1']
 
+# Path to jQuery for the Django Debug Toolbar to use.
+JQUERY_URL = '/static/admin/js/jquery.js'
+
 # Application definition
 INSTALLED_APPS = (
     'django.contrib.admin',
