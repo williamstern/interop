@@ -34,9 +34,9 @@ class AccessLog(models.Model):
         if before_time is None:
             before_time = timezone.now()
         return cls.objects \
+            .order_by('timestamp') \
             .filter(user=user.pk) \
             .filter(timestamp__lt=before_time) \
-            .order_by('timestamp') \
             .last()
 
     @classmethod
