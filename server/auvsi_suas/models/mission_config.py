@@ -127,6 +127,8 @@ class MissionConfig(models.Model):
             satisfied_track: Total number of waypoints hit while remaining
                              along the track. Once the UAV leaves the track
                              no more waypoints will count towards this metric.
+            closest:         Dictionary of closest approach distances to each
+                             waypoint.
         """
         # Use a common projection in distance_to_line based on the home
         # position.
@@ -138,6 +140,7 @@ class MissionConfig(models.Model):
 
         best = {"satisfied": 0, "satisfied_track": 0}
         current = {"satisfied": 0, "satisfied_track": 0}
+        closest = {}
 
         def best_run(prev_best, current):
             """Returns the best of the current run and the previous best."""
@@ -163,6 +166,15 @@ class MissionConfig(models.Model):
                 prev_wpt, curr_wpt = -1, 0
                 track_ok = True
 
+            # The UAS may pass closer to the waypoint after achieving the capture
+            # threshold. so continue to look for better passes of the previous
+            # waypoint until the next is reched.
+            if prev_wpt >= 0:
+                dp = uas_log.uas_position.distance_to(waypoints[
+                    prev_wpt].position)
+                if dp < closest[prev_wpt]:
+                    closest[prev_wpt] = dp
+
             # If the UAS has satisfied all of the waypoints, await starting the
             # waypoint pattern again.
             if curr_wpt >= len(waypoints):
@@ -187,6 +199,10 @@ class MissionConfig(models.Model):
 
             waypoint = waypoints[curr_wpt]
             d = uas_log.uas_position.distance_to(waypoint.position)
+
+            if curr_wpt not in closest or d < closest[curr_wpt]:
+                closest[curr_wpt] = d
+
             if d < settings.SATISFIED_WAYPOINT_DIST_MAX_FT:
                 current["satisfied"] += 1
                 if track_ok:
@@ -196,7 +212,7 @@ class MissionConfig(models.Model):
 
         best = best_run(best, current)
 
-        return best["satisfied"], best["satisfied_track"]
+        return best["satisfied"], best["satisfied_track"], closest
 
     def evaluate_teams(self):
         """Evaluates the teams (non admin users) of the competition.
@@ -271,10 +287,11 @@ class MissionConfig(models.Model):
                 warnings.append('No UAS telemetry logs.')
 
             # Determine if the uas hit the waypoints.
-            waypoints_hit, waypoints_hit_track = \
+            waypoints_hit, waypoints_hit_track, waypoints_closest = \
                 self.satisfied_waypoints(uas_logs)
             eval_data['waypoints_satisfied'] = waypoints_hit
             eval_data['waypoints_satisfied_track'] = waypoints_hit_track
+            eval_data['waypoints_closest'] = waypoints_closest
 
             # Determine if the uas went out of bounds. This must be done for
             # each period individually so time between periods isn't counted as
