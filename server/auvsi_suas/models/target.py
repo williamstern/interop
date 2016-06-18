@@ -393,10 +393,13 @@ class TargetEvaluator(object):
             return 0
 
         # Compute the location value.
-        location_dist = submitted.location.distance_to(real.location)
-        location_value = self.range_lookup(settings.TARGET_LOCATION_RANGES,
-                                           location_dist,
-                                           start_operator=operator.gt)
+        location_dist = float('inf')
+        location_value = 0
+        if submitted.location:
+            location_dist = submitted.location.distance_to(real.location)
+            location_value = self.range_lookup(settings.TARGET_LOCATION_RANGES,
+                                               location_dist,
+                                               start_operator=operator.gt)
 
         # Actionable intelligence value
         actionable = self.actionable(submitted, num_similar, location_dist)
@@ -464,8 +467,10 @@ class TargetEvaluator(object):
                 matched_target_value += match_value
 
                 classifications = submitted.similar_classifications(real)
-                location_accuracy = submitted.location.distance_to(
-                    real.location)
+                location_accuracy = None
+                if submitted.location:
+                    location_accuracy = submitted.location.distance_to(
+                        real.location)
                 actionable = self.actionable(submitted, classifications,
                                              location_accuracy)
 

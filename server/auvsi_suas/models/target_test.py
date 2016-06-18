@@ -377,6 +377,29 @@ class TestTargetEvaluator(TestCase):
                             description='Test target 4')
         self.real4.save()
 
+        # A target without location worth fewer points.
+        self.submit5 = Target(user=self.user,
+                              target_type=TargetType.standard,
+                              orientation=Orientation.s,
+                              shape=Shape.square,
+                              background_color=Color.white,
+                              alphanumeric='ABC',
+                              alphanumeric_color=Color.black,
+                              description='Test target 5',
+                              autonomous=False,
+                              thumbnail_approved=True)
+        self.submit5.save()
+        self.real5 = Target(user=self.user,
+                            target_type=TargetType.standard,
+                            location=l1,
+                            orientation=Orientation.s,
+                            shape=Shape.square,
+                            background_color=Color.white,
+                            alphanumeric='ABC',
+                            alphanumeric_color=Color.black,
+                            description='Test target 5')
+        self.real5.save()
+
         event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
         event.save()
 
@@ -396,6 +419,7 @@ class TestTargetEvaluator(TestCase):
         self.assertEqual(3, e.match_value(self.submit2, self.real2))
         self.assertEqual(0, e.match_value(self.submit3, self.real3))
         self.assertEqual(0, e.match_value(self.submit4, self.real4))
+        self.assertEqual(2, e.match_value(self.submit5, self.real5))
 
     def test_match_targets(self):
         """Tests that matching targets produce maximal matches."""
