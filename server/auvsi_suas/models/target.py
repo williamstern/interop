@@ -378,9 +378,7 @@ class TargetEvaluator(object):
             receive if the targets were paired.
         """
         # Targets which are not the same type have no match value.
-        # Targets which don't have an approved image have no match value.
-        if (submitted.target_type != real.target_type or
-                not submitted.thumbnail_approved):
+        if submitted.target_type != real.target_type:
             return 0
 
         # Compute the classification point value.
