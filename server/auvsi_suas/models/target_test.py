@@ -351,19 +351,27 @@ class TestTargetEvaluator(TestCase):
 
         # A target worth no common traits, so unmatched.
         self.submit3 = Target(user=self.user,
-                              target_type=TargetType.qrc,
+                              target_type=TargetType.standard,
                               location=l1,
+                              orientation=Orientation.n,
+                              shape=Shape.circle,
+                              background_color=Color.blue,
+                              alphanumeric='XYZ',
                               description='Incorrect description',
                               autonomous=False,
                               thumbnail_approved=True)
         self.submit3.save()
         self.real3 = Target(user=self.user,
-                            target_type=TargetType.qrc,
+                            target_type=TargetType.standard,
+                            orientation=Orientation.e,
+                            shape=Shape.semicircle,
+                            background_color=Color.yellow,
+                            alphanumeric='LMN',
                             location=l3,
                             description='Test target 3')
         self.real3.save()
 
-        # Unapproved image worth no points, so unmatched.
+        # Targets without approved image may still match.
         self.submit4 = Target(user=self.user,
                               target_type=TargetType.qrc,
                               location=l1,
@@ -377,6 +385,29 @@ class TestTargetEvaluator(TestCase):
                             description='Test target 4')
         self.real4.save()
 
+        # A target without location worth fewer points.
+        self.submit5 = Target(user=self.user,
+                              target_type=TargetType.standard,
+                              orientation=Orientation.n,
+                              shape=Shape.trapezoid,
+                              background_color=Color.purple,
+                              alphanumeric='PQR',
+                              alphanumeric_color=Color.blue,
+                              description='Test target 5',
+                              autonomous=False,
+                              thumbnail_approved=True)
+        self.submit5.save()
+        self.real5 = Target(user=self.user,
+                            target_type=TargetType.standard,
+                            location=l1,
+                            orientation=Orientation.n,
+                            shape=Shape.trapezoid,
+                            background_color=Color.purple,
+                            alphanumeric='PQR',
+                            alphanumeric_color=Color.blue,
+                            description='Test target 5')
+        self.real5.save()
+
         event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
         event.save()
 
@@ -385,9 +416,11 @@ class TestTargetEvaluator(TestCase):
         self.submit2.save()
 
         self.submitted_targets = [self.submit1, self.submit2, self.submit3,
-                                  self.submit4]
-        self.real_targets = [self.real3, self.real1, self.real4, self.real2]
-        self.real_matched_targets = [self.real1, self.real2]
+                                  self.submit4, self.submit5]
+        self.real_targets = [self.real1, self.real2, self.real3, self.real4,
+                             self.real5]
+        self.real_matched_targets = [self.real1, self.real2, self.real4,
+                                     self.real5]
 
     def test_match_value(self):
         """Tests the match value for two targets."""
@@ -395,7 +428,8 @@ class TestTargetEvaluator(TestCase):
         self.assertEqual(8, e.match_value(self.submit1, self.real1))
         self.assertEqual(3, e.match_value(self.submit2, self.real2))
         self.assertEqual(0, e.match_value(self.submit3, self.real3))
-        self.assertEqual(0, e.match_value(self.submit4, self.real4))
+        self.assertEqual(6, e.match_value(self.submit4, self.real4))
+        self.assertEqual(2, e.match_value(self.submit5, self.real5))
 
     def test_match_targets(self):
         """Tests that matching targets produce maximal matches."""
@@ -404,8 +438,12 @@ class TestTargetEvaluator(TestCase):
             {
                 self.submit1: self.real1,
                 self.submit2: self.real2,
+                self.submit4: self.real4,
+                self.submit5: self.real5,
                 self.real1: self.submit1,
-                self.real2: self.submit2
+                self.real2: self.submit2,
+                self.real4: self.submit4,
+                self.real5: self.submit5,
             }, e.match_targets(self.submitted_targets, self.real_targets))
 
     def test_evaluation_dict(self):
@@ -424,8 +462,8 @@ class TestTargetEvaluator(TestCase):
         for s in self.real_targets:
             self.assertIn(s.pk, d['targets'].keys())
 
-        self.assertEqual(11, d['matched_target_value'])
-        self.assertEqual(2, d['unmatched_target_count'])
+        self.assertEqual(19, d['matched_target_value'])
+        self.assertEqual(1, d['unmatched_target_count'])
         self.assertEqual(8, d['targets'][self.real1.pk]['match_value'])
         self.assertEqual(True, d['targets'][self.real1.pk]['image_approved'])
         self.assertEqual(1.0, d['targets'][self.real1.pk]['classifications'])
@@ -452,5 +490,5 @@ class TestTargetEvaluator(TestCase):
         d = e.evaluation_dict()
 
         self.assertEqual(0, d['matched_target_value'])
-        self.assertEqual(4, d['unmatched_target_count'])
+        self.assertEqual(5, d['unmatched_target_count'])
         self.assertEqual({}, d['targets'])
