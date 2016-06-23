@@ -49,4 +49,8 @@ class auvsi_suas::postgresql_setup {
     postgresql::server::config_entry { 'synchronous_commit':
         value => 'off',
     }
+    # Larger memory available for sort operations.
+    postgresql::server::config_entry { 'work_mem':
+        value => '128MB',
+    }
 }
