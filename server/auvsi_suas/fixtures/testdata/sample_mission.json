@@ -572,7 +572,9 @@
 {
     "fields": {
         "uas_position": 178,
-        "uas_heading": 0.0
+        "uas_heading": 0.0,
+        "timestamp": "1970-01-01T00:00:00Z",
+        "user": 53
     },
     "model": "auvsi_suas.uastelemetry",
     "pk": 148
@@ -580,7 +582,9 @@
 {
     "fields": {
         "uas_position": 179,
-        "uas_heading": 0.0
+        "uas_heading": 0.0,
+        "timestamp": "1970-01-01T00:00:00.100Z",
+        "user": 53
     },
     "model": "auvsi_suas.uastelemetry",
     "pk": 149
@@ -588,7 +592,9 @@
 {
     "fields": {
         "uas_position": 180,
-        "uas_heading": 0.0
+        "uas_heading": 0.0,
+        "timestamp": "1970-01-01T00:00:00.200Z",
+        "user": 53
     },
     "model": "auvsi_suas.uastelemetry",
     "pk": 150
@@ -596,7 +602,9 @@
 {
     "fields": {
         "uas_position": 181,
-        "uas_heading": 0.0
+        "uas_heading": 0.0,
+        "timestamp": "1970-01-01T00:00:00.300Z",
+        "user": 53
     },
     "model": "auvsi_suas.uastelemetry",
     "pk": 151
@@ -604,7 +612,9 @@
 {
     "fields": {
         "uas_position": 182,
-        "uas_heading": 0.0
+        "uas_heading": 0.0,
+        "timestamp": "1970-01-01T00:00:00.800Z",
+        "user": 53
     },
     "model": "auvsi_suas.uastelemetry",
     "pk": 152
@@ -612,7 +622,9 @@
 {
     "fields": {
         "uas_position": 183,
-        "uas_heading": 0.0
+        "uas_heading": 0.0,
+        "timestamp": "1970-01-01T00:00:01Z",
+        "user": 54
     },
     "model": "auvsi_suas.uastelemetry",
     "pk": 161
@@ -620,7 +632,9 @@
 {
     "fields": {
         "uas_position": 184,
-        "uas_heading": 0.0
+        "uas_heading": 0.0,
+        "timestamp": "1970-01-01T00:00:02Z",
+        "user": 54
     },
     "model": "auvsi_suas.uastelemetry",
     "pk": 162
@@ -628,7 +642,9 @@
 {
     "fields": {
         "uas_position": 184,
-        "uas_heading": 0.0
+        "uas_heading": 0.0,
+        "timestamp": "1970-01-01T00:00:03Z",
+        "user": 54
     },
     "model": "auvsi_suas.uastelemetry",
     "pk": 163
@@ -755,191 +771,64 @@
 },
 {
     "fields": {
-        "uas_in_air": true
+        "uas_in_air": true,
+        "timestamp": "1970-01-01T00:00:00Z",
+        "user": 53
     },
     "model": "auvsi_suas.takeofforlandingevent",
     "pk": 137
 },
 {
     "fields": {
-        "uas_in_air": false
+        "uas_in_air": false,
+        "timestamp": "1970-01-01T00:00:01Z",
+        "user": 53
     },
     "model": "auvsi_suas.takeofforlandingevent",
     "pk": 138
 },
 {
     "fields": {
-        "uas_in_air": true
+        "uas_in_air": true,
+        "timestamp": "1970-01-01T00:00:01Z",
+        "user": 54
     },
     "model": "auvsi_suas.takeofforlandingevent",
     "pk": 153
 },
 {
     "fields": {
-        "uas_in_air": false
+        "uas_in_air": false,
+        "timestamp": "1970-01-01T00:00:02Z",
+        "user": 54
     },
     "model": "auvsi_suas.takeofforlandingevent",
     "pk": 154
 },
 {
     "fields": {
-        "uas_in_air": true
+        "uas_in_air": true,
+        "timestamp": "1970-01-01T00:00:09Z",
+        "user": 54
     },
     "model": "auvsi_suas.takeofforlandingevent",
     "pk": 164
 },
 {
     "fields": {
-        "uas_in_air": false
+        "uas_in_air": false,
+        "timestamp": "1970-01-01T00:00:10Z",
+        "user": 54
     },
     "model": "auvsi_suas.takeofforlandingevent",
     "pk": 165
 },
 {
-    "fields": {},
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 139
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 140
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 141
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 142
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 143
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 155
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 156
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 157
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 144
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 145
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 146
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 147
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 158
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 159
-},
-{
-    "fields": {},
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 160
-},
-{
-    "fields": {
-        "team_on_timeout": false,
-        "team_on_clock": true
-    },
-    "model": "auvsi_suas.missionclockevent",
-    "pk": 166
-},
-{
-    "fields": {
-        "team_on_timeout": false,
-        "team_on_clock": false
-    },
-    "model": "auvsi_suas.missionclockevent",
-    "pk": 167
-},
-{
-    "fields": {
-        "team_on_timeout": false,
-        "team_on_clock": true
-    },
-    "model": "auvsi_suas.missionclockevent",
-    "pk": 168
-},
-{
-    "fields": {
-        "team_on_timeout": true,
-        "team_on_clock": false
-    },
-    "model": "auvsi_suas.missionclockevent",
-    "pk": 169
-},
-{
-    "fields": {
-        "team_on_timeout": false,
-        "team_on_clock": true
-    },
-    "model": "auvsi_suas.missionclockevent",
-    "pk": 170
-},
-{
-    "fields": {
-        "team_on_timeout": false,
-        "team_on_clock": false
-    },
-    "model": "auvsi_suas.missionclockevent",
-    "pk": 171
-},
-{
     "fields": {
         "timestamp": "1970-01-01T00:00:00Z",
         "user": 53
     },
-    "model": "auvsi_suas.accesslog",
-    "pk": 137
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:01Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 138
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.serverinfoaccesslog",
     "pk": 139
 },
 {
@@ -947,7 +836,7 @@
         "timestamp": "1970-01-01T00:00:00.200Z",
         "user": 53
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.serverinfoaccesslog",
     "pk": 140
 },
 {
@@ -955,7 +844,7 @@
         "timestamp": "1970-01-01T00:00:00.300Z",
         "user": 53
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.serverinfoaccesslog",
     "pk": 141
 },
 {
@@ -963,7 +852,7 @@
         "timestamp": "1970-01-01T00:00:00.400Z",
         "user": 53
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.serverinfoaccesslog",
     "pk": 142
 },
 {
@@ -971,103 +860,15 @@
         "timestamp": "1970-01-01T00:00:00.800Z",
         "user": 53
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.serverinfoaccesslog",
     "pk": 143
 },
 {
     "fields": {
         "timestamp": "1970-01-01T00:00:00Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 144
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.100Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 145
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.600Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 146
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.700Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 147
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 148
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.100Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 149
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.200Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 150
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.300Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 151
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.800Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 152
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:01Z",
         "user": 54
     },
-    "model": "auvsi_suas.accesslog",
-    "pk": 153
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:02Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 154
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.serverinfoaccesslog",
     "pk": 155
 },
 {
@@ -1075,7 +876,7 @@
         "timestamp": "1970-01-01T00:00:01.100Z",
         "user": 54
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.serverinfoaccesslog",
     "pk": 156
 },
 {
@@ -1083,15 +884,47 @@
         "timestamp": "1970-01-01T00:00:01.500Z",
         "user": 54
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.serverinfoaccesslog",
     "pk": 157
+},
+{
+    "fields": {
+        "timestamp": "1970-01-01T00:00:00Z",
+        "user": 53
+    },
+    "model": "auvsi_suas.obstacleaccesslog",
+    "pk": 144
+},
+{
+    "fields": {
+        "timestamp": "1970-01-01T00:00:00.100Z",
+        "user": 53
+    },
+    "model": "auvsi_suas.obstacleaccesslog",
+    "pk": 145
+},
+{
+    "fields": {
+        "timestamp": "1970-01-01T00:00:00.600Z",
+        "user": 53
+    },
+    "model": "auvsi_suas.obstacleaccesslog",
+    "pk": 146
+},
+{
+    "fields": {
+        "timestamp": "1970-01-01T00:00:00.700Z",
+        "user": 53
+    },
+    "model": "auvsi_suas.obstacleaccesslog",
+    "pk": 147
 },
 {
     "fields": {
         "timestamp": "1970-01-01T00:00:01.100Z",
         "user": 54
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.obstacleaccesslog",
     "pk": 158
 },
 {
@@ -1099,7 +932,7 @@
         "timestamp": "1970-01-01T00:00:01.200Z",
         "user": 54
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.obstacleaccesslog",
     "pk": 159
 },
 {
@@ -1107,95 +940,67 @@
         "timestamp": "1970-01-01T00:00:01.600Z",
         "user": 54
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.obstacleaccesslog",
     "pk": 160
 },
 {
     "fields": {
-        "timestamp": "1970-01-01T00:00:01Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 161
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:02Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 162
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:03Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 163
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:09Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 164
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:10Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.accesslog",
-    "pk": 165
-},
-{
-    "fields": {
+        "team_on_timeout": false,
+        "team_on_clock": true,
         "timestamp": "1970-01-01T00:00:00Z",
         "user": 53
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.missionclockevent",
     "pk": 166
 },
 {
     "fields": {
+        "team_on_timeout": false,
+        "team_on_clock": false,
         "timestamp": "1970-01-01T00:00:02Z",
         "user": 53
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.missionclockevent",
     "pk": 167
 },
 {
     "fields": {
+        "team_on_timeout": false,
+        "team_on_clock": true,
         "timestamp": "1970-01-01T00:00:00Z",
         "user": 54
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.missionclockevent",
     "pk": 168
 },
 {
     "fields": {
+        "team_on_timeout": true,
+        "team_on_clock": false,
         "timestamp": "1970-01-01T00:00:03Z",
         "user": 54
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.missionclockevent",
     "pk": 169
 },
 {
     "fields": {
+        "team_on_timeout": false,
+        "team_on_clock": true,
         "timestamp": "1970-01-01T00:00:05Z",
         "user": 54
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.missionclockevent",
     "pk": 170
 },
 {
     "fields": {
+        "team_on_timeout": false,
+        "team_on_clock": false,
         "timestamp": "1970-01-01T00:00:20Z",
         "user": 54
     },
-    "model": "auvsi_suas.accesslog",
+    "model": "auvsi_suas.missionclockevent",
     "pk": 171
 }
 ]

@@ -15,6 +15,9 @@ class AccessLog(models.Model):
     # The user which accessed the data
     user = models.ForeignKey(settings.AUTH_USER_MODEL, db_index=True)
 
+    class Meta:
+        abstract = True
+
     def __unicode__(self):
         """Descriptive text for use in displays."""
         return unicode("%s (pk:%s, user:%s, timestamp:%s)" %
