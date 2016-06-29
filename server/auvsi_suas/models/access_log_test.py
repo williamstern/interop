@@ -1,10 +1,20 @@
 """Tests for the access_log module."""
 
 import datetime
-from auvsi_suas.models import AccessLog, TimePeriod
+from auvsi_suas.models import AccessLog, ServerInfoAccessLog, TimePeriod
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
+
+# We use ServerInfoAccessLog as a concrete version of AccessLog, which is
+# actually testable.
+
+
+class TestSanity(TestCase):
+    """Make sure ServerInfoAccessLog is a canonical AccessLog."""
+
+    def test_server_info_access_log(self):
+        self.assertTrue(issubclass(ServerInfoAccessLog, AccessLog))
 
 
 class TestAccessLogCommon(TestCase):
@@ -33,7 +43,7 @@ class TestAccessLogCommon(TestCase):
         logs = []
 
         for i in xrange(num):
-            log = AccessLog(user=user)
+            log = ServerInfoAccessLog(user=user)
             log.save()
             log.timestamp = start + i * delta
             log.save()
@@ -47,32 +57,32 @@ class TestAccessLogBasic(TestAccessLogCommon):
 
     def test_unicode(self):
         """Tests the unicode method executes."""
-        log = AccessLog(timestamp=timezone.now(), user=self.user1)
+        log = ServerInfoAccessLog(timestamp=timezone.now(), user=self.user1)
         log.save()
 
         log.__unicode__()
 
     def test_no_data(self):
-        log = AccessLog.last_for_user(self.user1)
+        log = ServerInfoAccessLog.last_for_user(self.user1)
         self.assertEqual(None, log)
 
-        logs = AccessLog.by_user(self.user1)
+        logs = ServerInfoAccessLog.by_user(self.user1)
         self.assertEqual(len(logs), 0)
 
-        logs = AccessLog.by_time_period(self.user1, [])
+        logs = ServerInfoAccessLog.by_time_period(self.user1, [])
         self.assertEqual(len(logs), 0)
 
-        log_rates = AccessLog.rates(self.user1, [])
+        log_rates = ServerInfoAccessLog.rates(self.user1, [])
         self.assertTupleEqual(log_rates, (None, None))
 
     def test_basic_access(self):
         start = timezone.now() - datetime.timedelta(seconds=10)
         logs = self.create_logs(self.user1, start=start)
 
-        log = AccessLog.last_for_user(self.user1)
+        log = ServerInfoAccessLog.last_for_user(self.user1)
         self.assertEqual(logs[-1], log)
 
-        results = AccessLog.by_user(self.user1)
+        results = ServerInfoAccessLog.by_user(self.user1)
         self.assertSequenceEqual(logs, results)
 
     def test_multi_user(self):
@@ -82,10 +92,10 @@ class TestAccessLogBasic(TestAccessLogCommon):
             logs += self.create_logs(self.user1, num=1)
             self.create_logs(self.user2, num=1)
 
-        log = AccessLog.last_for_user(self.user1)
+        log = ServerInfoAccessLog.last_for_user(self.user1)
         self.assertEqual(logs[-1], log)
 
-        results = AccessLog.by_user(self.user1)
+        results = ServerInfoAccessLog.by_user(self.user1)
         self.assertSequenceEqual(logs, results)
 
     def test_last_for_user_before_time(self):
@@ -94,7 +104,8 @@ class TestAccessLogBasic(TestAccessLogCommon):
         logs = self.create_logs(self.user1, num=10, start=start, delta=delta)
 
         before_time = start + delta * 3
-        log = AccessLog.last_for_user(self.user1, before_time=before_time)
+        log = ServerInfoAccessLog.last_for_user(self.user1,
+                                                before_time=before_time)
         self.assertEqual(logs[2], log)
 
     def test_user_active(self):
@@ -105,17 +116,20 @@ class TestAccessLogBasic(TestAccessLogCommon):
         latest_time = self.year2000 + 10 * delta
 
         # Active for user with recent logs
-        self.assertTrue(AccessLog.user_active(self.user1, base=latest_time))
+        self.assertTrue(ServerInfoAccessLog.user_active(self.user1,
+                                                        base=latest_time))
 
         # Not active for user with no logs
-        self.assertFalse(AccessLog.user_active(self.user2, base=latest_time))
+        self.assertFalse(ServerInfoAccessLog.user_active(self.user2,
+                                                         base=latest_time))
 
         # Not active for user with no recent logs
-        self.assertFalse(AccessLog.user_active(self.user1, base=self.year2001))
+        self.assertFalse(ServerInfoAccessLog.user_active(self.user1,
+                                                         base=self.year2001))
 
         # Active now
         self.create_logs(self.user1, num=10, delta=delta)
-        self.assertTrue(AccessLog.user_active(self.user1))
+        self.assertTrue(ServerInfoAccessLog.user_active(self.user1))
 
 
 class TestAccessLogByTimePeriod(TestAccessLogCommon):
@@ -134,7 +148,7 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
 
     def test_single_period(self):
         """Single set of logs accessible."""
-        results = AccessLog.by_time_period(self.user1, [
+        results = ServerInfoAccessLog.by_time_period(self.user1, [
             TimePeriod(self.year2000, self.year2001)
         ])
 
@@ -142,7 +156,7 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
 
     def test_full_range(self):
         """All logs from (-inf, inf)."""
-        results = AccessLog.by_time_period(self.user1, [
+        results = ServerInfoAccessLog.by_time_period(self.user1, [
             TimePeriod(None, None)
         ])
 
@@ -150,7 +164,7 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
 
     def test_both_periods(self):
         """Both sets of logs, accesses individually."""
-        results = AccessLog.by_time_period(self.user1, [
+        results = ServerInfoAccessLog.by_time_period(self.user1, [
             TimePeriod(self.year2000, self.year2001),
             TimePeriod(self.year2003, self.year2004),
         ])
@@ -160,7 +174,7 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
 
     def test_non_intersecting_period(self):
         """No logs matched."""
-        results = AccessLog.by_time_period(self.user1, [
+        results = ServerInfoAccessLog.by_time_period(self.user1, [
             TimePeriod(self.year2001, self.year2002),
         ])
 
@@ -168,7 +182,7 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
 
     def test_one_intersecting_period(self):
         """Only one period matches logs."""
-        results = AccessLog.by_time_period(self.user1, [
+        results = ServerInfoAccessLog.by_time_period(self.user1, [
             TimePeriod(self.year2001, self.year2002),
             TimePeriod(self.year2003, self.year2004),
         ])
@@ -178,7 +192,7 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
 
     def test_open_start(self):
         """Logs (-inf, 2001)"""
-        results = AccessLog.by_time_period(self.user1, [
+        results = ServerInfoAccessLog.by_time_period(self.user1, [
             TimePeriod(None, self.year2001),
         ])
 
@@ -186,7 +200,7 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
 
     def test_open_end(self):
         """Logs (2003, inf)"""
-        results = AccessLog.by_time_period(self.user1, [
+        results = ServerInfoAccessLog.by_time_period(self.user1, [
             TimePeriod(self.year2003, None),
         ])
 
@@ -210,7 +224,7 @@ class TestAccessLogRates(TestAccessLogCommon):
         logs = self.create_logs(self.user1, delta=delta)
         period = self.consistent_period(logs, delta)
 
-        rates = AccessLog.rates(self.user1, [period])
+        rates = ServerInfoAccessLog.rates(self.user1, [period])
 
         self.assertSequenceEqual((1, 1), rates)
 
@@ -222,9 +236,9 @@ class TestAccessLogRates(TestAccessLogCommon):
         unused_logs = self.create_logs(self.user1, delta=delta)
         period = self.consistent_period(used_logs, delta)
 
-        rates = AccessLog.rates(self.user1,
-                                [period],
-                                time_period_logs=[used_logs])
+        rates = ServerInfoAccessLog.rates(self.user1,
+                                          [period],
+                                          time_period_logs=[used_logs])
 
         self.assertSequenceEqual((1, 1), rates)
 
@@ -235,7 +249,7 @@ class TestAccessLogRates(TestAccessLogCommon):
         logs = self.create_logs(self.user1, delta=delta)
         period = TimePeriod(None, None)
 
-        rates = AccessLog.rates(self.user1, [period])
+        rates = ServerInfoAccessLog.rates(self.user1, [period])
 
         self.assertSequenceEqual((1, 1), rates)
 
@@ -254,7 +268,7 @@ class TestAccessLogRates(TestAccessLogCommon):
 
         periods = [self.consistent_period(l, delta) for l in logs]
 
-        rates = AccessLog.rates(self.user1, periods)
+        rates = ServerInfoAccessLog.rates(self.user1, periods)
 
         self.assertSequenceEqual((1, 1), rates)
 
@@ -275,7 +289,7 @@ class TestAccessLogRates(TestAccessLogCommon):
 
         periods = [self.consistent_period(l, delta) for l in logs]
 
-        rates = AccessLog.rates(self.user1, periods)
+        rates = ServerInfoAccessLog.rates(self.user1, periods)
 
         self.assertAlmostEqual(1.0, rates[0])  # max
         self.assertAlmostEqual(0.75, rates[1], delta=0.001)  # avg
