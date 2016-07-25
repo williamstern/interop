@@ -6,7 +6,7 @@ install:
   # Travis CI does not make the home directory world readable by default,
   # which prevents Apache from reading the server source.
   - sudo chmod 755 /home/travis/
-  - ./setup/setup.sh
+  - sudo ./setup/setup.sh
 
 script:
   # Test server, client, and frontend
