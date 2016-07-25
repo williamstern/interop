@@ -15,8 +15,6 @@ from gps_position import GpsPosition
 from mission_clock_event import MissionClockEvent
 from moving_obstacle import MovingObstacle
 from obstacle_access_log import ObstacleAccessLog
-from server_info import ServerInfo
-from server_info_access_log import ServerInfoAccessLog
 from stationary_obstacle import StationaryObstacle
 from takeoff_or_landing_event import TakeoffOrLandingEvent
 from target import Target
@@ -73,9 +71,6 @@ class MissionConfig(models.Model):
     air_drop_pos = models.ForeignKey(GpsPosition,
                                      related_name='missionconfig_air_drop_pos')
 
-    # The server info
-    server_info = models.ForeignKey(ServerInfo)
-
     # The stationary obstacles
     stationary_obstacles = models.ManyToManyField(StationaryObstacle)
 
@@ -100,15 +95,14 @@ class MissionConfig(models.Model):
             'MissionConfig (pk:%s, is_active: %s, home_pos:%s, '
             'mission_waypoints:%s, search_grid:%s, '
             'emergent_lkp:%s, off_axis:%s, '
-            'sric_pos:%s, air_drop_pos:%s, server_info:%s, '
+            'sric_pos:%s, air_drop_pos:%s, '
             'stationary_obstacles:%s, moving_obstacles:%s)' %
             (str(self.pk), str(self.is_active), self.home_pos.__unicode__(),
              mission_waypoints, search_grid,
              self.emergent_last_known_pos.__unicode__(),
              self.off_axis_target_pos.__unicode__(),
              self.sric_pos.__unicode__(), self.air_drop_pos.__unicode__(),
-             self.server_info.__unicode__(), stationary_obstacles,
-             moving_obstacles))
+             stationary_obstacles, moving_obstacles))
 
     def satisfied_waypoints(self, uas_telemetry_logs):
         """Determines whether the UAS satisfied the waypoints.
@@ -228,7 +222,6 @@ class MissionConfig(models.Model):
                 'out_of_bounds_time': Seconds spent out of bounds,
                 'targets': Data from TargetEvaluation,
                 'interop_times': {
-                    'server_info': {'max': Value, 'avg': Value},
                     'obst_info': {'max': Value, 'avg': Value},
                     'uas_telem': {'max': Value, 'avg': Value},
                 },
@@ -318,17 +311,12 @@ class MissionConfig(models.Model):
             # Determine interop rates.
             interop_times = eval_data.setdefault('interop_times', {})
 
-            server_info_times = ServerInfoAccessLog.rates(user, flight_periods)
             obstacle_times = ObstacleAccessLog.rates(user, flight_periods)
             uas_telemetry_times = UasTelemetry.rates(
                 user,
                 flight_periods,
                 time_period_logs=uas_period_logs)
 
-            interop_times['server_info'] = {
-                'max': server_info_times[0],
-                'avg': server_info_times[1]
-            }
             interop_times['obst_info'] = {
                 'max': obstacle_times[0],
                 'avg': obstacle_times[1]

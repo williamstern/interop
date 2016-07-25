@@ -455,14 +455,6 @@
 },
 {
     "fields": {
-        "timestamp": "1970-01-01T00:00:01Z",
-        "team_msg": "Hello World"
-    },
-    "model": "auvsi_suas.serverinfo",
-    "pk": 1
-},
-{
-    "fields": {
         "cylinder_height": 10.0,
         "cylinder_radius": 10.0,
         "gps_position": 331
@@ -493,7 +485,6 @@
             25,
             26
         ],
-        "server_info": 1,
         "is_active": true,
         "mission_waypoints": [
             155,
@@ -822,70 +813,6 @@
     },
     "model": "auvsi_suas.takeofforlandingevent",
     "pk": 165
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 139
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.200Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 140
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.300Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 141
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.400Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 142
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.800Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 143
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 155
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:01.100Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 156
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:01.500Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.serverinfoaccesslog",
-    "pk": 157
 },
 {
     "fields": {

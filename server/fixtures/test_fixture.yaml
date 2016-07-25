@@ -28,9 +28,6 @@
     password: pbkdf2_sha256$20000$6hErQuM8Gxni$zLDQHSFgpGUiPMfQqGJjIyp9Q1VcHzIhM7Z3P81SwaY=
     user_permissions: []
     username: testuser
-- model: auvsi_suas.serverinfo
-  pk: 1
-  fields: {team_msg: Hello World!, timestamp: ! '2015-08-02 01:16:15.609002+00:00'}
 - model: auvsi_suas.stationaryobstacle
   pk: 1
   fields: {cylinder_height: 200.0, cylinder_radius: 150.0, gps_position: 1}
@@ -86,7 +83,6 @@
     mission_waypoints: [1]
     off_axis_target_pos: 3
     search_grid_points: [1]
-    server_info: 1
     sric_pos: 4
     stationary_obstacles: [1, 2]
     moving_obstacles: [1]

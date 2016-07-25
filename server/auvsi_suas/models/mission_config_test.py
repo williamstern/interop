@@ -5,7 +5,6 @@ from auvsi_suas.models import AerialPosition
 from auvsi_suas.models import FlyZone
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import MissionConfig
-from auvsi_suas.models import ServerInfo
 from auvsi_suas.models import UasTelemetry
 from auvsi_suas.models import Waypoint
 from auvsi_suas.patches.simplekml_patch import Kml
@@ -15,13 +14,6 @@ from django.test import TestCase
 
 class TestMissionConfigModel(TestCase):
     """Tests the MissionConfig model."""
-
-    def setUp(self):
-        info = ServerInfo()
-        info.timestamp = datetime.datetime.now()
-        info.message = "Hello World"
-        info.save()
-        self.info = info
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -43,7 +35,6 @@ class TestMissionConfigModel(TestCase):
         config.off_axis_target_pos = pos
         config.sric_pos = pos
         config.air_drop_pos = pos
-        config.server_info = self.info
         config.save()
         config.mission_waypoints.add(wpt)
         config.search_grid_points.add(wpt)
@@ -93,7 +84,6 @@ class TestMissionConfigModel(TestCase):
         config.off_axis_target_pos = gpos
         config.sric_pos = gpos
         config.air_drop_pos = gpos
-        config.server_info = self.info
         config.save()
 
         # Create waypoints for config
@@ -242,7 +232,7 @@ class TestMissionConfigModelSampleMission(TestCase):
                         self.assertIn(key, t)
 
             self.assertIn('interop_times', val)
-            for key in ['server_info', 'obst_info', 'uas_telem']:
+            for key in ['obst_info', 'uas_telem']:
                 self.assertIn(key, val['interop_times'])
                 self.assertIn('max', val['interop_times'][key])
                 self.assertIn('avg', val['interop_times'][key])
@@ -261,11 +251,6 @@ class TestMissionConfigModelSampleMission(TestCase):
 
         self.assertAlmostEqual(2, teams[user0]['mission_clock_time'])
         self.assertAlmostEqual(0.6, teams[user0]['out_of_bounds_time'])
-
-        self.assertAlmostEqual(
-            0.4, teams[user0]['interop_times']['server_info']['max'])
-        self.assertAlmostEqual(
-            1. / 6, teams[user0]['interop_times']['server_info']['avg'])
 
         self.assertAlmostEqual(
             0.5, teams[user0]['interop_times']['obst_info']['max'])
@@ -301,11 +286,6 @@ class TestMissionConfigModelSampleMission(TestCase):
 
         self.assertAlmostEqual(18, teams[user1]['mission_clock_time'])
         self.assertAlmostEqual(1.0, teams[user1]['out_of_bounds_time'])
-
-        self.assertAlmostEqual(
-            1.0, teams[user1]['interop_times']['server_info']['max'])
-        self.assertAlmostEqual(
-            2. / 4., teams[user1]['interop_times']['server_info']['avg'])
 
         self.assertAlmostEqual(
             1.0, teams[user1]['interop_times']['obst_info']['max'])
