@@ -10,7 +10,6 @@ interoperability seriver is provided along with the server. It can be found in
    :members: Client,
              AsyncClient,
              InteropError,
-             ServerInfo,
              Telemetry,
              StationaryObstacle,
              MovingObstacle,
