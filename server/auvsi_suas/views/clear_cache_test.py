@@ -3,7 +3,6 @@
 import datetime
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import MissionConfig
-from auvsi_suas.models import ServerInfo
 from auvsi_suas.models import StationaryObstacle
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -21,11 +20,6 @@ class TestClearCache(TestCase):
         pos.save()
         self.pos = pos
 
-        info = ServerInfo()
-        info.timestamp = datetime.datetime.now()
-        info.message = "Hello World"
-        info.save()
-
         obst = StationaryObstacle()
         obst.gps_position = pos
         obst.cylinder_radius = 10
@@ -40,7 +34,6 @@ class TestClearCache(TestCase):
         config.off_axis_target_pos = pos
         config.sric_pos = pos
         config.air_drop_pos = pos
-        config.server_info = info
         config.save()
         self.config = config
         config.stationary_obstacles.add(obst)

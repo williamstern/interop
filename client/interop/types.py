@@ -70,26 +70,6 @@ class Telemetry(ClientBaseType):
         self.uas_heading = float(uas_heading)
 
 
-class ServerInfo(ClientBaseType):
-    """Server information to be displayed to judges.
-
-    Attributes:
-        message: Custom message from the server
-        message_timestamp (datetime.datetime): Message timestamp
-        server_time (datetime.datetime): Current server time
-
-    Raises:
-        TypeError, ValueError: Message or server timestamp could not be parsed.
-    """
-
-    attrs = ['message', 'message_timestamp', 'server_time']
-
-    def __init__(self, message, message_timestamp, server_time):
-        self.message = message
-        self.message_timestamp = dateutil.parser.parse(message_timestamp)
-        self.server_time = dateutil.parser.parse(server_time)
-
-
 class StationaryObstacle(ClientBaseType):
     """A stationary obstacle.
 

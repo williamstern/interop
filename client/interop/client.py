@@ -14,7 +14,7 @@ import requests
 import threading
 
 from .exceptions import InteropError
-from .types import ServerInfo, StationaryObstacle, MovingObstacle, Target
+from .types import StationaryObstacle, MovingObstacle, Target
 
 
 class Client(object):
@@ -106,20 +106,6 @@ class Client(object):
         if not r.ok:
             raise InteropError(r)
         return r
-
-    def get_server_info(self):
-        """GET server information, to be displayed to judges.
-
-        Returns:
-            ServerInfo object.
-        Raises:
-            InteropError: Error from server. Note that you may receive this
-                error if the server has no message configured.
-            requests.Timeout: Request timeout.
-            ValueError or AttributeError: Malformed response from server.
-        """
-        r = self.get('/api/server_info')
-        return ServerInfo.deserialize(r.json())
 
     def post_telemetry(self, telem):
         """POST new telemetry.
@@ -303,15 +289,6 @@ class AsyncClient(object):
         """
         self.client = Client(url, username, password, timeout)
         self.executor = ThreadPoolExecutor(max_workers=workers)
-
-    def get_server_info(self):
-        """GET server information, to be displayed to judges.
-
-        Returns:
-            Future object which contains the return value or error from the
-            underlying Client.
-        """
-        return self.executor.submit(self.client.get_server_info)
 
     def post_telemetry(self, telem):
         """POST new telemetry.

@@ -4,7 +4,6 @@ import logging
 from auvsi_suas.models import FlyZone
 from auvsi_suas.models import MissionConfig
 from auvsi_suas.models import MovingObstacle
-from auvsi_suas.models import ServerInfo
 from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.models import Waypoint
 from auvsi_suas.views import logger
@@ -34,7 +33,6 @@ class ClearCache(View):
 @receiver(post_save, sender=FlyZone)
 @receiver(post_save, sender=MissionConfig)
 @receiver(post_save, sender=MovingObstacle)
-@receiver(post_save, sender=ServerInfo)
 @receiver(post_save, sender=StationaryObstacle)
 @receiver(post_save, sender=Waypoint)
 def clear_cache_on_invalidation(sender, **kwargs):

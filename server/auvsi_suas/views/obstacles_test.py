@@ -9,7 +9,6 @@ from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import MissionConfig
 from auvsi_suas.models import MovingObstacle
 from auvsi_suas.models import ObstacleAccessLog
-from auvsi_suas.models import ServerInfo
 from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.models import Waypoint
 from django.conf import settings
@@ -93,10 +92,6 @@ class TestObstaclesViewCommon(TestCase):
         pos.latitude = 10
         pos.longitude = 10
         pos.save()
-        info = ServerInfo()
-        info.timestamp = datetime.datetime.now()
-        info.message = "Hello World"
-        info.save()
         config = MissionConfig()
         config.is_active = True
         config.home_pos = pos
@@ -104,7 +99,6 @@ class TestObstaclesViewCommon(TestCase):
         config.off_axis_target_pos = pos
         config.sric_pos = pos
         config.air_drop_pos = pos
-        config.server_info = info
         config.save()
 
         # Add a couple of stationary obstacles

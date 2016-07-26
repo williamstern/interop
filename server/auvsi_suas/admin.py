@@ -6,8 +6,6 @@ from auvsi_suas.models import MissionClockEvent
 from auvsi_suas.models import MissionConfig
 from auvsi_suas.models import MovingObstacle
 from auvsi_suas.models import ObstacleAccessLog
-from auvsi_suas.models import ServerInfo
-from auvsi_suas.models import ServerInfoAccessLog
 from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.models import TakeoffOrLandingEvent
 from auvsi_suas.models import Target
@@ -61,6 +59,4 @@ admin.site.register(GpsPosition, LargeDataModelAdmin)
 admin.site.register(MissionClockEvent)
 admin.site.register(MovingObstacle)
 admin.site.register(ObstacleAccessLog, LargeDataModelAdmin)
-admin.site.register(ServerInfo)
-admin.site.register(ServerInfoAccessLog, LargeDataModelAdmin)
 admin.site.register(TakeoffOrLandingEvent)

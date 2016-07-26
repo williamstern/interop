@@ -63,7 +63,7 @@ class TestEvaluateTeams(TestCase):
         self.assertEqual(len(csv_data.split('\n')), 5)
         # Check some headers
         self.assertTrue('username' in csv_data)
-        self.assertTrue('interop_times.server_info.max' in csv_data)
+        self.assertTrue('interop_times.uas_telem.max' in csv_data)
         # Check username fields
         self.assertTrue('user0' in csv_data)
         self.assertTrue('user1' in csv_data)

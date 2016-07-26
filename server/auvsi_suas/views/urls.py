@@ -2,7 +2,6 @@ from auvsi_suas.views.clear_cache import ClearCache
 from auvsi_suas.views.login import Login
 from auvsi_suas.views.missions import Missions
 from auvsi_suas.views.obstacles import Obstacles
-from auvsi_suas.views.server_info import ServerInfo
 from auvsi_suas.views.targets import Targets, TargetsId, TargetsIdImage, TargetsAdminReview
 from auvsi_suas.views.teams import Teams, TeamsId
 from auvsi_suas.views.telemetry import Telemetry
@@ -20,7 +19,6 @@ urlpatterns = patterns(
     '',
     # Team interoperability
     url(r'^api/login$', Login.as_view(), name='login'),
-    url(r'^api/server_info$', ServerInfo.as_view(), name='server_info'),
     url(r'^api/obstacles$', Obstacles.as_view(), name='obstacles'),
     url(r'^api/telemetry$', Telemetry.as_view(), name='telemetry'),
     url(r'^api/targets$', Targets.as_view(), name='targets'),

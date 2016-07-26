@@ -54,25 +54,6 @@ class TestClient(unittest.TestCase):
         self.client = Client(server, username, password)
         self.async_client = AsyncClient(server, username, password)
 
-    def test_get_server_info(self):
-        """Test getting server info."""
-        info = self.client.get_server_info()
-        async_info = self.async_client.get_server_info().result()
-
-        # There isn't a whole lot to test. The fact that the call
-        # didn't raise an exception is a good sign.
-        self.assertEqual("Hello World!", info.message)
-        self.assertEqual("Hello World!", async_info.message)
-
-        expected_message_time = \
-            dateutil.parser.parse('2015-08-02T01:16:15.609002+00:00')
-
-        self.assertEqual(expected_message_time, info.message_timestamp)
-        self.assertEqual(expected_message_time, async_info.message_timestamp)
-
-        self.assertIsNotNone(info.server_time)
-        self.assertIsNotNone(async_info.server_time)
-
     def test_post_telemetry(self):
         """Test sending some telemetry."""
         t = Telemetry(latitude=38,
