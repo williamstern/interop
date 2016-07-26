@@ -54,13 +54,8 @@ if [[ $? != 0 || (( ${version} < 1.4 )) ]]; then
 fi
 
 # Update the package list
-log "Updating package list and upgrading packages..."
+log "Updating package list..."
 sudo apt-get -y update
-if [[ ! -v TRAVIS ]]; then
-    # Upgrade old packages
-    # Travis CI recommends againsts apt-get upgrade for speed.
-    sudo apt-get -y upgrade
-fi
 
 # Install Puppet
 log "Installing Puppet and modules..."
