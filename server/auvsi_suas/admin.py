@@ -5,7 +5,6 @@ from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import MissionClockEvent
 from auvsi_suas.models import MissionConfig
 from auvsi_suas.models import MovingObstacle
-from auvsi_suas.models import ObstacleAccessLog
 from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.models import TakeoffOrLandingEvent
 from auvsi_suas.models import Target
@@ -26,6 +25,7 @@ class LargeDataModelAdmin(admin.ModelAdmin):
 @admin.register(AerialPosition)
 class AerialPositionModelAdmin(LargeDataModelAdmin):
     raw_id_fields = ("gps_position", )
+    show_full_result_count = False
 
 
 @admin.register(MissionConfig)
@@ -47,6 +47,7 @@ class TargetModelAdmin(LargeDataModelAdmin):
 @admin.register(UasTelemetry)
 class UasTelemetryModelAdmin(LargeDataModelAdmin):
     raw_id_fields = ("uas_position", )
+    show_full_result_count = False
 
 
 @admin.register(Waypoint)
@@ -58,5 +59,4 @@ admin.site.register(FlyZone)
 admin.site.register(GpsPosition, LargeDataModelAdmin)
 admin.site.register(MissionClockEvent)
 admin.site.register(MovingObstacle)
-admin.site.register(ObstacleAccessLog, LargeDataModelAdmin)
 admin.site.register(TakeoffOrLandingEvent)

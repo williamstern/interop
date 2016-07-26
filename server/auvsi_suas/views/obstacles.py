@@ -3,7 +3,6 @@
 import iso8601
 import json
 from auvsi_suas.models import MovingObstacle
-from auvsi_suas.models import ObstacleAccessLog
 from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.views import boolean_param
 from auvsi_suas.views import logger
@@ -25,19 +24,7 @@ class Obstacles(View):
         return super(Obstacles, self).dispatch(*args, **kwargs)
 
     def get(self, request):
-        log_access = True
         time = timezone.now()
-
-        # ?log=(true|false) to enable/disable logging of superusers
-        if 'log' in request.GET:
-            if not request.user.is_superuser:
-                return HttpResponseBadRequest(
-                    'Only superusers may set the log parameter')
-
-            try:
-                log_access = boolean_param(request.GET['log'])
-            except ValueError as e:
-                return HttpResponseBadRequest(e)
 
         # ?time=TIMESTAMP to get obstacle location at specific time
         if 'time' in request.GET:
@@ -54,8 +41,6 @@ class Obstacles(View):
         # Log user access to obstacle info
         logger.info('User downloaded obstacle info: %s.' %
                     request.user.username)
-        if log_access:
-            ObstacleAccessLog(user=request.user).save()
 
         # Get active mission for forming responses.
         (mission, err) = active_mission()
