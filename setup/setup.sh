@@ -22,17 +22,17 @@ function ensure_puppet_module() {
     local module="$1"
     local installed=0
 
-    if sudo ${PUPPET} module list | grep -q ${module}; then
+    if ${PUPPET} module list | grep -q ${module}; then
         installed=1
     fi
 
     if [[ ${installed} == 0 ]]; then
-        sudo ${PUPPET} module install ${version_arg} ${module}
+        ${PUPPET} module install ${version_arg} ${module}
     else
         log "Puppet module \"${module}\" already installed"
     fi
 
-    sudo ${PUPPET} module upgrade ${module}
+    ${PUPPET} module upgrade ${module}
 }
 
 # Save all output to a log file.
@@ -40,7 +40,7 @@ exec &> >(tee ${SETUP}/setup-$(date +%F-%H-%M-%S).log)
 
 # Create soft link from repo to standardize scripts
 log "Creating softlinks..."
-sudo ln -snf ${REPO} /interop
+ln -snf ${REPO} /interop
 
 # Install puppet repo.
 set +e
@@ -49,18 +49,18 @@ set -e
 if [[ $? != 0 || (( ${version} < 1.4 )) ]]; then
     log "Installing puppetlab repo..."
     wget https://apt.puppetlabs.com/puppetlabs-release-pc1-precise.deb -O /tmp/puppetlabs-release-pc1-precise.deb
-    sudo dpkg -i /tmp/puppetlabs-release-pc1-precise.deb
+    dpkg -i /tmp/puppetlabs-release-pc1-precise.deb
     rm /tmp/puppetlabs-release-pc1-precise.deb
 fi
 
 # Update the package list
 log "Updating package list..."
-sudo apt-get -y update
+apt-get -y update
 
 # Install Puppet
 log "Installing Puppet and modules..."
-sudo apt-get -y install puppet-agent
-sudo mkdir -p /etc/puppet/modules/
+apt-get -y install puppet-agent
+mkdir -p /etc/puppet/modules/
 ensure_puppet_module puppetlabs-stdlib
 ensure_puppet_module puppetlabs-concat
 ensure_puppet_module puppetlabs-apt
@@ -72,7 +72,7 @@ ensure_puppet_module stankevich-python
 # Launch the Puppet process. Prepares machine.
 log "Executing Puppet setup..."
 set +e
-sudo ${PUPPET} apply \
+${PUPPET} apply \
     --detailed-exitcodes \
     --modulepath=${SETUP}/puppet_files:/etc/puppetlabs/code/environments/production/modules \
     ${SETUP}/puppet_files/auvsi_suas.pp
