@@ -8,7 +8,6 @@ from auvsi_suas.models import AerialPosition
 from auvsi_suas.models import GpsPosition
 from auvsi_suas.models import MissionConfig
 from auvsi_suas.models import MovingObstacle
-from auvsi_suas.models import ObstacleAccessLog
 from auvsi_suas.models import StationaryObstacle
 from auvsi_suas.models import Waypoint
 from django.conf import settings
@@ -174,18 +173,6 @@ class TestObstaclesView(TestObstaclesViewCommon):
             self.assertIn('altitude_msl', obstacle)
             self.assertIn('sphere_radius', obstacle)
 
-    def test_access_logged(self):
-        """Tests that access is logged."""
-        response = self.client.get(obstacle_url)
-        self.assertEqual(200, response.status_code)
-
-        self.assertEqual(1, len(ObstacleAccessLog.objects.all()))
-
-    def test_disable_log(self):
-        """Normal users cannot disable logging."""
-        response = self.client.get(obstacle_url, {'log': 'false'})
-        self.assertEqual(400, response.status_code)
-
     def test_different(self):
         """Responses at different times are different (moving obstacles move)"""
         response = self.client.get(obstacle_url)
@@ -242,25 +229,6 @@ class TestObstaclesViewSuperuser(TestObstaclesViewCommon):
             'password': 'superpass'
         })
         self.assertEqual(200, response.status_code)
-
-    def test_bad_param(self):
-        """Non true/false doesn't work."""
-        response = self.client.get(obstacle_url, {'log': '42'})
-        self.assertEqual(400, response.status_code)
-
-    def test_disable_log(self):
-        """Superuser can disable logging."""
-        response = self.client.get(obstacle_url, {'log': 'false'})
-        self.assertEqual(200, response.status_code)
-
-        self.assertEqual(0, len(ObstacleAccessLog.objects.all()))
-
-    def test_enable_log(self):
-        """Log stays enabled."""
-        response = self.client.get(obstacle_url, {'log': 'true'})
-        self.assertEqual(200, response.status_code)
-
-        self.assertEqual(1, len(ObstacleAccessLog.objects.all()))
 
     def test_bad_time(self):
         """Bad time format rejected."""

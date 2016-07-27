@@ -816,62 +816,6 @@
 },
 {
     "fields": {
-        "timestamp": "1970-01-01T00:00:00Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 144
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.100Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 145
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.600Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 146
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:00.700Z",
-        "user": 53
-    },
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 147
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:01.100Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 158
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:01.200Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 159
-},
-{
-    "fields": {
-        "timestamp": "1970-01-01T00:00:01.600Z",
-        "user": 54
-    },
-    "model": "auvsi_suas.obstacleaccesslog",
-    "pk": 160
-},
-{
-    "fields": {
         "team_on_timeout": false,
         "team_on_clock": true,
         "timestamp": "1970-01-01T00:00:00Z",

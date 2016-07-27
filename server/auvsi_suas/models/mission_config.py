@@ -14,7 +14,6 @@ from fly_zone import FlyZone
 from gps_position import GpsPosition
 from mission_clock_event import MissionClockEvent
 from moving_obstacle import MovingObstacle
-from obstacle_access_log import ObstacleAccessLog
 from stationary_obstacle import StationaryObstacle
 from takeoff_or_landing_event import TakeoffOrLandingEvent
 from target import Target
@@ -221,9 +220,9 @@ class MissionConfig(models.Model):
                 }
                 'out_of_bounds_time': Seconds spent out of bounds,
                 'targets': Data from TargetEvaluation,
-                'interop_times': {
-                    'obst_info': {'max': Value, 'avg': Value},
-                    'uas_telem': {'max': Value, 'avg': Value},
+                'uas_telem_time': {
+                    'max': Value,
+                    'avg': Value,
                 },
                 'stationary_obst_collision': {
                     id: Boolean
@@ -308,20 +307,12 @@ class MissionConfig(models.Model):
                 evaluator = TargetEvaluator(targets, self.targets.all())
                 eval_data['targets'][target_set] = evaluator.evaluation_dict()
 
-            # Determine interop rates.
-            interop_times = eval_data.setdefault('interop_times', {})
-
-            obstacle_times = ObstacleAccessLog.rates(user, flight_periods)
+            # Determine interop telemetry rates.
             uas_telemetry_times = UasTelemetry.rates(
                 user,
                 flight_periods,
                 time_period_logs=uas_period_logs)
-
-            interop_times['obst_info'] = {
-                'max': obstacle_times[0],
-                'avg': obstacle_times[1]
-            }
-            interop_times['uas_telem'] = {
+            eval_data['uas_telem_times'] = {
                 'max': uas_telemetry_times[0],
                 'avg': uas_telemetry_times[1]
             }
