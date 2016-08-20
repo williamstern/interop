@@ -11,8 +11,6 @@ except ImportError:
     # Python 2
     from SimpleXMLRPCServer import SimpleXMLRPCServer
 
-__author__ = 'Joseph Moster'
-
 
 class RelayService:
     def __init__(self, url, username, password):

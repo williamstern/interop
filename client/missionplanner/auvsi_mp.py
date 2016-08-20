@@ -3,8 +3,6 @@ sys.path.append('c:\python27\lib')
 import xmlrpclib
 from time import time
 
-__author__ = 'Joseph Moster'
-
 server = xmlrpclib.ServerProxy('http://127.0.0.1:9000')
 print 'Server Info: {}'.format(server.server_info())
 
