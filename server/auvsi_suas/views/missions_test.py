@@ -184,42 +184,37 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
 
         self.assertIn('mission_waypoints', data[0])
         for waypoint in data[0]['mission_waypoints']:
-            self.assertIn('id', waypoint)
+            self.assertIn('order', waypoint)
             self.assertIn('latitude', waypoint)
             self.assertIn('longitude', waypoint)
             self.assertIn('altitude_msl', waypoint)
-            self.assertIn('order', waypoint)
 
         self.assertEqual(2, len(data[0]['mission_waypoints']))
 
-        self.assertEqual(155, data[0]['mission_waypoints'][0]['id'])
+        self.assertEqual(0, data[0]['mission_waypoints'][0]['order'])
         self.assertEqual(38.0, data[0]['mission_waypoints'][0]['latitude'])
         self.assertEqual(-76.0, data[0]['mission_waypoints'][0]['longitude'])
         self.assertEqual(30.0, data[0]['mission_waypoints'][0]['altitude_msl'])
-        self.assertEqual(0, data[0]['mission_waypoints'][0]['order'])
 
-        self.assertEqual(156, data[0]['mission_waypoints'][1]['id'])
+        self.assertEqual(1, data[0]['mission_waypoints'][1]['order'])
         self.assertEqual(38.0, data[0]['mission_waypoints'][1]['latitude'])
         self.assertEqual(-77.0, data[0]['mission_waypoints'][1]['longitude'])
         self.assertEqual(60.0, data[0]['mission_waypoints'][1]['altitude_msl'])
-        self.assertEqual(1, data[0]['mission_waypoints'][1]['order'])
 
         self.assertIn('search_grid_points', data[0])
         for point in data[0]['search_grid_points']:
-            self.assertIn('id', point)
+            self.assertIn('order', point)
             self.assertIn('latitude', point)
             self.assertIn('longitude', point)
             self.assertIn('altitude_msl', point)
-            self.assertIn('order', point)
 
         self.assertEqual(1, len(data[0]['search_grid_points']))
 
-        self.assertEqual(150, data[0]['search_grid_points'][0]['id'])
+        self.assertEqual(10, data[0]['search_grid_points'][0]['order'])
         self.assertEqual(38.0, data[0]['search_grid_points'][0]['latitude'])
         self.assertEqual(-79.0, data[0]['search_grid_points'][0]['longitude'])
         self.assertEqual(1000.0,
                          data[0]['search_grid_points'][0]['altitude_msl'])
-        self.assertEqual(10, data[0]['search_grid_points'][0]['order'])
 
         self.assertIn('off_axis_target_pos', data[0])
         self.assertIn('latitude', data[0]['off_axis_target_pos'])
