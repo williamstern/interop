@@ -33,7 +33,7 @@ Full Resource URL
 
 The full resource URL is the combination of the hostname, port, and relative
 URL. This is the URL that must be used to make requests. An example full
-resource URL is "http://192.168.1.2:8080/api/server_info".
+resource URL is "http://192.168.1.2:80/api/login".
 
 Endpoints
 ---------
@@ -47,8 +47,9 @@ A quick summary of the endpoints:
   that future requests will be authenticated. Teams cannot make other requests
   without logging in successfully.
 
-* :http:get:`/api/server_info`: Used to download server
-  information from the competition server for purpose of displaying it.
+* :http:get:`/api/missions`: Used to get details for available missions.
+
+* :http:get:`/api/missions/(int:id)`: Used to get details for a mission.
 
 * :http:get:`/api/obstacles`: Used to download
   obstacle information from the competition server for purpose of
@@ -151,20 +152,19 @@ User Login
                 the request was missing one of the required parameters, or
                 had invalid login information.
 
-Server Information
-^^^^^^^^^^^^^^^^^^
 
-.. http:get:: /api/server_info
+Missions
+^^^^^^^^
 
-   Teams make requests to obtain server information for purpose of displaying
-   the information. This request is a GET request with no parameters. The data
-   returned will be in JSON format.
+.. http:get:: /api/missions
+
+   This endpoint is used to retrieve a list of available missions and details.
 
    **Example Request**:
 
    .. sourcecode:: http
 
-      GET /api/server_info HTTP/1.1
+      GET /api/missions HTTP/1.1
       Host: 192.168.1.2:8000
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
 
@@ -178,41 +178,230 @@ Server Information
       HTTP/1.1 200 OK
       Content-Type: application/json
 
-      {
-          "message": "Fly Safe",
-          "message_timestamp": "2015-06-14 18:18:55.642000+00:00",
-          "server_time": "2015-08-14 03:37:13.331402"
-      }
+      [
+          {
+              "id": 1,
+              "active": true,
+              "air_drop_pos": {
+                  "latitude": 38.141833,
+                  "longitude": -76.425263
+              },
+              "fly_zones": [
+                  {
+                      "altitude_msl_max": 200.0,
+                      "altitude_msl_min": 100.0,
+                      "boundary_pts": [
+                          {
+                              "latitude": 38.142544,
+                              "longitude": -76.434088,
+                              "order": 1
+                          },
+                          {
+                              "latitude": 38.141833,
+                              "longitude": -76.425263,
+                              "order": 2
+                          },
+                          {
+                              "latitude": 38.144678,
+                              "longitude": -76.427995,
+                              "order": 3
+                          }
+                      ]
+                  }
+              ],
+              "home_pos": {
+                  "latitude": 38.14792,
+                  "longitude": -76.427995
+              },
+              "mission_waypoints": [
+                  {
+                      "order": 1
+                      "altitude_msl": 200.0,
+                      "latitude": 38.142544,
+                      "longitude": -76.434088,
+                  }
+              ],
+              "off_axis_target_pos": {
+                  "latitude": 38.142544,
+                  "longitude": -76.434088
+              },
+              "search_grid_points": [
+                  {
+                      "order": 1
+                      "altitude_msl": 200.0,
+                      "latitude": 38.142544,
+                      "longitude": -76.434088,
+                  }
+              ],
+              "sric_pos": {
+                  "latitude": 38.141833,
+                  "longitude": -76.425263
+              },
+          }
+      ]
 
+   The response format is a list of mission objects. Each is in the same as
+   :http:get:`/api/missions/(int:id)` and is described in detail there.
+
+   If no missions have been created, the response will contain an empty list.
 
    :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
                       must be sent to authenticate the request.
 
-   :resheader Content-Type: The response ``application/json`` on success.
+   :resheader Content-Type: The response is ``application/json`` on success.
 
-   :>json string message: A unique message stored on the server that proves the
-                          team has correctly downloaded the server information.
-                          This information must be displayed as part of
-                          interoperability.
+   :status 200: Success. Response contains missions.
 
-   :>json string message_timestamp: The time that the unique message was
-                                    created, in ISO 8601 format.  This
-                                    information must be displayed as part of
-                                    interoperability.
+   :status 403: User not authenticated. Login is required before using this
+                endpoint.  Ensure :http:post:`/api/login` was successful, and
+                the login cookie was sent to this endpoint.
 
-   :>json string server_time: The current time on the server, in ISO 8601
-                              format. This information must be displayed as
-                              part of interoperability.
+.. http:get:: /api/missions/(int:id)
 
-   :status 200: The team made a valid request. The request will be logged to
-                later evaluate request rates. The response will have status code
-                200 to indicate success, and it will have content in JSON
-                format. This JSON data is the server information that teams must
-                display. The format for the JSON data is given below.
+   This endpoint gets the details about a mission with id ``id``.
+
+   **Example request**:
+
+   .. sourcecode:: http
+
+      GET /api/missions/1 HTTP/1.1
+      Host: 192.168.1.2:8000
+      Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
+
+   **Example response**:
+
+   Note: This example reformatted for readability; actual response may be
+   entirely on one line.
+
+   .. sourcecode:: http
+
+      HTTP/1.1 200 OK
+      Content-Type: application/json
+
+      {
+          "id": 1,
+          "active": true,
+          "air_drop_pos": {
+              "latitude": 38.141833,
+              "longitude": -76.425263
+          },
+          "fly_zones": [
+              {
+                  "altitude_msl_max": 200.0,
+                  "altitude_msl_min": 100.0,
+                  "boundary_pts": [
+                      {
+                          "latitude": 38.142544,
+                          "longitude": -76.434088,
+                          "order": 1
+                      },
+                      {
+                          "latitude": 38.141833,
+                          "longitude": -76.425263,
+                          "order": 2
+                      },
+                      {
+                          "latitude": 38.144678,
+                          "longitude": -76.427995,
+                          "order": 3
+                      }
+                  ]
+              }
+          ],
+          "home_pos": {
+              "latitude": 38.14792,
+              "longitude": -76.427995
+          },
+          "mission_waypoints": [
+              {
+                  "order": 1
+                  "altitude_msl": 200.0,
+                  "latitude": 38.142544,
+                  "longitude": -76.434088,
+              }
+          ],
+          "off_axis_target_pos": {
+              "latitude": 38.142544,
+              "longitude": -76.434088
+          },
+          "search_grid_points": [
+              {
+                  "order": 1
+                  "altitude_msl": 200.0,
+                  "latitude": 38.142544,
+                  "longitude": -76.434088,
+              }
+          ],
+          "sric_pos": {
+              "latitude": 38.141833,
+              "longitude": -76.425263
+          },
+      }
+
+   :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
+                      must be sent to authenticate the request.
+
+   :resheader Content-Type: The response is ``application/json`` on success.
+
+   :>json int id: Unique identifier for this mission.
+
+   :>json boolean active: Whether the mission is active. Only a single mission
+                          should be active, and it should be the mission the
+                          team is interacting with.
+
+   :>json object air_drop_pos: The position of the air drop.
+
+   :>json array fly_zones: A list of fly_zone boundaries. The UAS must be within
+                           one of these boundaries at all times. A single
+                           boundary consists of a GPS polygon and an altitude
+                           range. The UAS is within the boundary if it is both
+                           inside the polygon and the altitude range.
+
+   :>json float altitude_msl_min: (member of ``fly_zones``) The minimum
+                                  altitude in feet MSL.
+
+   :>json float altitude_msl_max: (member of ``fly_zones``) The maximum
+                                  altitude in feet MSL.
+
+   :>json array boundary_pts: (member of ``fly_zones``) A list of waypoints
+                              defining a polygon.
+
+   :>json object home_pos: The launch point of the UAVs (flight-line tents).
+
+   :>json array mission_waypoints: A list of waypoints the UAS must traverse.
+
+   :>json object off_axis_target_pos: The GPS position of the off-axis target.
+
+   :>json array search_grid_points: A list of waypoints defining the search
+                                    grid polygon.
+
+   :>json object sric_pos: The GPS position of the SRIC.
+
+   :>json object gps_position: (Type for ``air_drop_ops``, ``home_pos``,
+                               ``off_axis_target_pos``, and ``sric_pos``)
+                               Consists of a latitude and longitude.
+
+   :>json object waypoint: (Type for ``boundary_pts``, ``mission_waypoints``,
+                           and ``search_grid_points``) Consists of a order
+                           number (relative ordering between set of waypoints),
+                           latitude, longitude, and optional altitude.
+
+   :>json float latitude: (Member of ``gps_position`` and ``waypoint``)
+                          Latitude in decimal degrees.
+
+   :>json float longitude: (Member of ``gps_position`` and ``waypoint``)
+                           Longitude in decimal degrees.
+
+   :>json float altitude_msl: (Member of ``waypoint``) Altitude in feet MSL.
+
+   :status 200: Success. Response contains mission details.
 
    :status 403: User not authenticated. Login is required before using this
                 endpoint. Ensure :http:post:`/api/login` was successful, and
                 the login cookie was sent to this endpoint.
+
+   :status 404: Mission not found. Check ID.
+
 
 Obstacle Information
 ^^^^^^^^^^^^^^^^^^^^
