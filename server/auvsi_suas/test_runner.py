@@ -3,8 +3,9 @@
 import logging
 import shutil
 import tempfile
-from django.test import runner
 from django.conf import settings
+from django.core.cache import cache
+from django.test import runner
 
 
 class AuvsiSuasTestRunner(runner.DiscoverRunner):
@@ -29,6 +30,9 @@ class AuvsiSuasTestRunner(runner.DiscoverRunner):
         # Disable logging
         logging.disable(logging.CRITICAL)
 
+        # Clear any stale data in cache.
+        cache.clear()
+
     def teardown_test_environment(self):
         shutil.rmtree(settings.MEDIA_ROOT)
 
@@ -36,5 +40,8 @@ class AuvsiSuasTestRunner(runner.DiscoverRunner):
         settings.SENDFILE_BACKEND = self.sendfile_backend
 
         logging.disable(logging.NOTSET)
+
+        # Clear any test data in the cache.
+        cache.clear()
 
         super(AuvsiSuasTestRunner, self).teardown_test_environment()
