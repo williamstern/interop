@@ -168,7 +168,7 @@ class TestClient(unittest.TestCase):
 
         # Upload target image.
         test_image_filepath = os.path.join(
-            os.path.dirname(__file__), "../testdata/A.jpg")
+            os.path.dirname(__file__), "testdata/A.jpg")
         with open(test_image_filepath, 'rb') as f:
             image_data = f.read()
         self.client.put_target_image(post_target.id, image_data)
@@ -184,7 +184,7 @@ class TestClient(unittest.TestCase):
 
         # Delete the target image.
         self.client.delete_target_image(post_target.id)
-        self.async_client.delete_target_image(async_post_target.id)
+        self.async_client.delete_target_image(async_post_target.id).result()
         with self.assertRaises(InteropError):
             self.client.get_target_image(post_target.id)
         with self.assertRaises(InteropError):
