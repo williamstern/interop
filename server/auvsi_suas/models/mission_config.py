@@ -372,19 +372,17 @@ class MissionConfig(models.Model):
             })
         for waypoint in self.mission_waypoints.all():
             ret['mission_waypoints'].append({
-                'id': waypoint.pk,
+                'order': waypoint.order,
                 'latitude': waypoint.position.gps_position.latitude,
                 'longitude': waypoint.position.gps_position.longitude,
                 'altitude_msl': waypoint.position.altitude_msl,
-                'order': waypoint.order,
             })
         for point in self.search_grid_points.all():
             ret['search_grid_points'].append({
-                'id': point.pk,
+                'order': point.order,
                 'latitude': point.position.gps_position.latitude,
                 'longitude': point.position.gps_position.longitude,
                 'altitude_msl': point.position.altitude_msl,
-                'order': point.order,
             })
         if not is_superuser:
             return ret
@@ -399,7 +397,6 @@ class MissionConfig(models.Model):
         })
         for obst in self.stationary_obstacles.all():
             ret['stationary_obstacles'].append({
-                'id': obst.pk,
                 'latitude': obst.gps_position.latitude,
                 'longitude': obst.gps_position.longitude,
                 'cylinder_radius': obst.cylinder_radius,
@@ -407,7 +404,6 @@ class MissionConfig(models.Model):
             })
         for obst in self.moving_obstacles.all():
             ret['moving_obstacles'].append({
-                'id': obst.pk,
                 'speed_avg': obst.speed_avg,
                 'sphere_radius': obst.sphere_radius,
             })
