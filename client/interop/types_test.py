@@ -1,6 +1,120 @@
 import unittest
 
-from . import Telemetry, StationaryObstacle, MovingObstacle, Target
+from . import FlyZone
+from . import GpsPosition
+from . import Mission
+from . import MovingObstacle
+from . import StationaryObstacle
+from . import Target
+from . import Telemetry
+from . import Waypoint
+
+
+class TestMission(unittest.TestCase):
+    """Test the Mission object. There is very little to see here."""
+
+    def test_valid(self):
+        """Test valid inputs"""
+        # No exceptions
+        Mission(id=1,
+                active=True,
+                air_drop_pos=GpsPosition(latitude=38,
+                                         longitude=-76),
+                fly_zones=[FlyZone(boundary_pts=[Waypoint(order=1,
+                                                          latitude=37,
+                                                          longitude=-70,
+                                                          altitude_msl=10)],
+                                   altitude_msl_min=10,
+                                   altitude_msl_max=20)],
+                home_pos=GpsPosition(latitude=39,
+                                     longitude=-77),
+                mission_waypoints=[Waypoint(order=1,
+                                            latitude=37,
+                                            longitude=-70,
+                                            altitude_msl=10)],
+                off_axis_target_pos=GpsPosition(latitude=37,
+                                                longitude=-75),
+                search_grid_points=[Waypoint(order=1,
+                                             latitude=37,
+                                             longitude=-70,
+                                             altitude_msl=10)],
+                sric_pos=GpsPosition(latitude=38,
+                                     longitude=-76))
+
+    def test_deserialize(self):
+        """Test deserialization."""
+        return
+        m = Mission.deserialize({
+            'id': 1,
+            'active': True,
+            'air_drop_pos': {
+                'latitude': 38,
+                'longitude': -76,
+            },
+            'fly_zones': [
+                {
+                    'altitude_msl_min': 10,
+                    'altitude_msl_max': 20,
+                    'boundary_pts': [
+                        {
+                            'order': 1,
+                            'latitude': 37,
+                            'longitude': -77,
+                        },
+                    ],
+                },
+            ],
+            'home_pos': {
+                'latitude': 39,
+                'longitude': -75,
+            },
+            'mission_waypoints': [
+                {
+                    'order': 2,
+                    'latitude': 30,
+                    'longitude': -70,
+                    'altitude_msl': 5,
+                }
+            ],
+            'off_axis_target_pos': {
+                'latitude': 31,
+                'longitude': -71,
+            },
+            'search_grid_points': [
+                {
+                    'order': 3,
+                    'latitude': 29,
+                    'longitude': -72,
+                },
+            ],
+            'sric_pos': {
+                'latitude': 28,
+                'longitude': -71,
+            },
+        })
+
+        self.assertEqual(1, m.id)
+        self.assertTrue(m.active)
+        self.assertEqual(38, m.air_drop_pos.latitude)
+        self.assertEqual(-76, m.air_drop_pos.longitude)
+        self.assertEqual(10, m.fly_zones[0].altitude_msl_min)
+        self.assertEqual(20, m.fly_zones[0].altitude_msl_max)
+        self.assertEqual(1, m.fly_zones[0].boundary_pts[0].order)
+        self.assertEqual(37, m.fly_zones[0].boundary_pts[0].latitude)
+        self.assertEqual(-77, m.fly_zones[0].boundary_pts[0].longitude)
+        self.assertEqual(39, m.home_pos.latitude)
+        self.assertEqual(-75, m.home_pos.latitude)
+        self.assertEqual(2, m.mission_waypoints[0].order)
+        self.assertEqual(30, m.mission_waypoints[0].latitude)
+        self.assertEqual(-70, m.mission_waypoints[0].longitude)
+        self.assertEqual(5, m.mission_waypoints[0].altitude_msl)
+        self.assertEqual(31, m.off_axis_target_pos.latitude)
+        self.assertEqual(-71, m.off_axis_target_pos.latitude)
+        self.assertEqual(3, m.search_grid_points[0].order)
+        self.assertEqual(29, m.search_grid_points[0].latitude)
+        self.assertEqual(-72, m.search_grid_points[0].longitude)
+        self.assertEqual(28, m.sric_pos.latitude)
+        self.assertEqual(-71, m.sric_pos.latitude)
 
 
 class TestTelemetry(unittest.TestCase):
