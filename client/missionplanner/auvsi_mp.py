@@ -22,6 +22,9 @@ except ImportError as e:
         'Failed to import interop libraries. Have you added the libs to '
         'the path? Error: %s' % e)
 
+# Create a client and connect to interop.
+client = AsyncClient(INTEROP_URL, INTEROP_USERNAME, INTEROP_PASSWORD)
+
 # Tracks the uploads since last print.
 sent_lock = threading.Lock()
 last_print = datetime.datetime.now()
