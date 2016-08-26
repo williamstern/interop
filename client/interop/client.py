@@ -14,7 +14,10 @@ import requests
 import threading
 
 from .exceptions import InteropError
-from .types import StationaryObstacle, MovingObstacle, Target
+from .types import Mission
+from .types import MovingObstacle
+from .types import StationaryObstacle
+from .types import Target
 
 
 class Client(object):
@@ -106,6 +109,19 @@ class Client(object):
         if not r.ok:
             raise InteropError(r)
         return r
+
+    def get_missions(self):
+        """GET missions.
+
+        Returns:
+            List of Mission.
+        Raises:
+            InteropError: Error from server.
+            requests.Timeout: Request timeout.
+            ValueError or AttributeError: Malformed response from server.
+        """
+        r = self.get('/api/missions')
+        return [Mission.deserialize(m) for m in r.json()]
 
     def post_telemetry(self, telem):
         """POST new telemetry.
@@ -289,6 +305,15 @@ class AsyncClient(object):
         """
         self.client = Client(url, username, password, timeout)
         self.executor = ThreadPoolExecutor(max_workers=workers)
+
+    def get_missions(self):
+        """GET missions.
+
+        Returns:
+            Future object which contains the return value or error from the
+            underlying Client.
+        """
+        return self.executor.submit(self.client.get_missions)
 
     def post_telemetry(self, telem):
         """POST new telemetry.

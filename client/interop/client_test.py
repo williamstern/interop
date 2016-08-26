@@ -2,7 +2,12 @@ import os
 import requests
 import unittest
 
-from . import Client, AsyncClient, InteropError, Target, Telemetry
+from . import AsyncClient
+from . import Client
+from . import InteropError
+from . import Mission
+from . import Target
+from . import Telemetry
 
 # These tests run against a real interop server.
 # The server be loaded with the data from the test fixture in
@@ -59,6 +64,22 @@ class TestClient(unittest.TestCase):
         # Test rest with non-admin clients.
         self.client = Client(server, username, password)
         self.async_client = AsyncClient(server, username, password)
+
+    def test_get_missions(self):
+        """Test getting missions."""
+        missions = self.client.get_missions()
+        async_missions = self.async_client.get_missions().result()
+
+        # Check one mission returned.
+        self.assertEqual(1, len(missions))
+        self.assertEqual(1, len(async_missions))
+        # Check a few fields.
+        self.assertTrue(missions[0].active)
+        self.assertTrue(async_missions[0].active)
+        self.assertEqual(1, missions[0].id)
+        self.assertEqual(1, async_missions[0].id)
+        self.assertEqual(38.14792, missions[0].home_pos.latitude)
+        self.assertEqual(38.14792, async_missions[0].home_pos.latitude)
 
     def test_post_telemetry(self):
         """Test sending some telemetry."""
