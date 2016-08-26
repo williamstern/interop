@@ -1,9 +1,5 @@
-"""Interoperability Prober.
-
-Uses Interoperability Client and implementations of DataGenerator interface to
-probe the interoperability server with requests. This can be used to
-continuously validate the server is available to teams.
-"""
+#!/usr/bin/env python
+# Program to probe the interop server for continuous validation.
 
 import argparse
 import datetime
