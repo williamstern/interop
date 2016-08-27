@@ -23,7 +23,6 @@ Repository Contents
   Interoperability API specification.
 * `/client`: Client libraries for interacting with the server.
 * `/tools`: Small management tools.
-* `/data`: Datasets for the system (e.g. previous year's configuration).
 * `/docs`: The documentation source.
 
 * `/LICENSE`: The license for this repository.
