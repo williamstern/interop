@@ -3,6 +3,7 @@
 
 import argparse
 import datetime
+import getpass
 import logging
 import signal
 import sys
@@ -13,32 +14,37 @@ import flightsim
 from interop import AsyncClient, InteropError, Telemetry, StationaryObstacle, MovingObstacle
 
 
-def run(client, data_generator, interop_time, logger):
-    """Executes interoperability using the given configuration.
+def main(url, username, password, generator, flightsim_kml_path=None):
+    """Probes the interop server.
 
     Args:
-        client: The interop client.
-        data_generator: The generator of UAS telemetry.
-        interop_time: The time between interoperability execution.
-        logger: The logger to write status to.
+        url: The interoperability URL.
+        username: The interoperability username.
+        password: The interoperability password.
+        generator: The data generator name to use.
+        flightsim_kml_path: The KML path to use if flightsim generator.
     """
-    # Continually execute interop requests until signaled to stop
+    # Create client and data generator.
+    client = AsyncClient(url, username, password)
+    if generator == 'zeros':
+        data_generator = datagen.ZeroValueGenerator()
+    else:
+        data_generator = flightsim.KmlGenerator(flightsim_kml_path)
+
+    # Continually execute interop requests until signaled to stop.
     while True:
-        # Get start time of the round
         start_time = datetime.datetime.now()
-        # Get generated data
         telemetry = data_generator.get_uas_telemetry(start_time)
-        # Execute interop requests
+
         telemetry_resp = client.post_telemetry(telemetry)
         obstacle_resp = client.get_obstacles()
-        # Wait for completion
         telemetry_resp.result()
         obstacle_resp.result()
-        # Note elapsed time
+
         end_time = datetime.datetime.now()
         elapsed_time = (end_time - start_time).total_seconds()
         logging.info('Executed interop. Total latency: %f', elapsed_time)
-        # Delay for interop timing
+
         delay_time = interop_time - elapsed_time
         if delay_time > 0:
             try:
@@ -47,8 +53,7 @@ def run(client, data_generator, interop_time, logger):
                 sys.exit(0)
 
 
-def main():
-    """Configures the interoperability binary."""
+if __name__ == '__main__':
     # Setup logging
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
@@ -61,47 +66,31 @@ def main():
 
     # Get parameters from command line
     parser = argparse.ArgumentParser(description='Interoperability prober.')
-    parser.add_argument(
-        'interop_server_host',
-        type=str,
-        help='Host and port of interoperability server. E.g. localhost:80')
-    parser.add_argument(
-        'interop_time',
-        type=float,
-        help='Time between interoperability request sets. Floating point '
-        'seconds.')
-    parser.add_argument('username',
-                        type=str,
-                        help='Username for interoperability login.')
-    parser.add_argument('password',
-                        type=str,
-                        help='Password for interoperability login.')
-    parser.add_argument('generator',
+    parser.add_argument('--url',
+                        required=True,
+                        help='URL for interoperability.')
+    parser.add_argument('--username',
+                        required=True,
+                        help='Username for interoperability.')
+    parser.add_argument('--password', help='Password for interoperability.')
+    parser.add_argument('--interop_time',
+                        type=float,
+                        help='Time between sent requests (sec).')
+    parser.add_argument('--generator',
                         type=str,
                         choices=['zeros', 'flightsim'],
+                        default='zeros',
                         help='Data generation implementation.')
-    parser.add_argument('flightsim_kml_path',
+    parser.add_argument('--flightsim_kml_path',
                         nargs='?',
                         type=str,
                         help='Path to the KML file for flightsim generation.')
     args = parser.parse_args()
 
-    logging.info('Interop host: %s.', args.interop_server_host)
-    logging.info('Interop time: %f.', args.interop_time)
-    logging.info('Interop username: %s', args.username)
-    logging.info('Generator: %s', args.generator)
-
-    # Create client and data generator from parameters
-    client = AsyncClient(args.interop_server_host, args.username,
-                         args.password)
-    if args.generator == 'zeros':
-        data_generator = datagen.ZeroValueGenerator()
+    if args.password:
+        password = args.password
     else:
-        data_generator = flightsim.KmlGenerator(args.flightsim_kml_path)
+        password = getpass.getpass('Interoperability Password: ')
 
-    # Launch prober
-    run(client, data_generator, args.interop_time, logger)
-
-
-if __name__ == '__main__':
-    main()
+    main(args.url, args.username, password, args.interop_time, args.generator,
+         args.flightsim_kml_path)
