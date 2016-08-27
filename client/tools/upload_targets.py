@@ -143,17 +143,13 @@ if __name__ == '__main__':
     parser.add_argument('--username',
                         required=True,
                         help='Username for interoperability.')
-    parser.add_argument(
-        '--password',
-        help=
-        'Passowrd for interoperability. If not provided, it will be requested.')
+    parser.add_argument('--password', help='Passowrd for interoperability.')
     parser.add_argument('--target_filepath',
                         required=True,
                         help='Filepath to target file.')
-    parser.add_argument(
-        '--imagery_dir',
-        required=True,
-        help='Base filepath prepended to paths in target file.')
+    parser.add_argument('--imagery_dir',
+                        required=True,
+                        help='Filepath prepended to paths in target file.')
     args = parser.parse_args()
 
     if not os.path.exists(args.target_filepath):
