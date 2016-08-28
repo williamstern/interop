@@ -3,7 +3,7 @@
 
 import argparse
 import getpass
-from __future__ import print_statement
+from __future__ import print_function
 
 from interop import Client
 from interop import Target
