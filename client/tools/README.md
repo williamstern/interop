@@ -37,5 +37,5 @@ system is working and recieving data. Assuming tests passed before deployment,
 this can be used to continuously validate the system is accessible by teams.
 
 ```
-./prober.py http://localhost:80 0.1 testuser testpass zeros
+./prober.py --url http://localhost:80 0.1 --username testuser --interop_time 1.0 --generator zeros
 ```
