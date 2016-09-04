@@ -1,3 +1,4 @@
 futures
+nose
 requests
 LatLon

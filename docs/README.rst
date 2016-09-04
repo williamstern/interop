@@ -2,7 +2,8 @@ Some helpful hints for using Sphinx:
 
 To build the documentation::
 
-    $ source venv/bin/activate
+    $ source tools/venv/bin/activate
+    $ cd docs
     $ make html
 
 The homepage is at ``_build/html/index.html``. You should be able to navigate

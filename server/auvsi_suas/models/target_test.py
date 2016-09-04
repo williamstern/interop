@@ -21,6 +21,7 @@ class TestTarget(TestCase):
 
     def setUp(self):
         """Sets up the tests."""
+        super(TestTarget, self).setUp()
         self.user = User.objects.create_user('user', 'email@example.com',
                                              'pass')
 
@@ -288,6 +289,7 @@ class TestTargetEvaluator(TestCase):
     def setUp(self):
         """Setup the test case."""
         super(TestTargetEvaluator, self).setUp()
+        self.maxDiff = None
         self.user = User.objects.create_user('user', 'email@example.com',
                                              'pass')
 
@@ -310,7 +312,7 @@ class TestTargetEvaluator(TestCase):
                               background_color=Color.white,
                               alphanumeric='ABC',
                               alphanumeric_color=Color.black,
-                              description='Test target 1',
+                              description='Submit test target 1',
                               autonomous=False,
                               thumbnail_approved=True)
         self.submit1.save()
@@ -322,7 +324,7 @@ class TestTargetEvaluator(TestCase):
                             background_color=Color.white,
                             alphanumeric='ABC',
                             alphanumeric_color=Color.black,
-                            description='Test target 1')
+                            description='Real target 1')
         self.real1.save()
 
         # A target worth less than full points.
@@ -334,7 +336,7 @@ class TestTargetEvaluator(TestCase):
                               background_color=Color.white,
                               # alphanumeric set below
                               alphanumeric_color=Color.black,
-                              description='Test target 2',
+                              description='Submit test target 2',
                               autonomous=False,
                               thumbnail_approved=True)
         self.submit2.save()
@@ -346,7 +348,7 @@ class TestTargetEvaluator(TestCase):
                             background_color=Color.white,
                             alphanumeric='ABC',
                             alphanumeric_color=Color.black,
-                            description='Test target 2')
+                            description='Real test target 2')
         self.real2.save()
 
         # A target worth no common traits, so unmatched.
@@ -415,8 +417,8 @@ class TestTargetEvaluator(TestCase):
         self.submit2.alphanumeric = 'ABC'
         self.submit2.save()
 
-        self.submitted_targets = [self.submit1, self.submit2, self.submit3,
-                                  self.submit4, self.submit5]
+        self.submitted_targets = [self.submit5, self.submit4, self.submit3,
+                                  self.submit2, self.submit1]
         self.real_targets = [self.real1, self.real2, self.real3, self.real4,
                              self.real5]
         self.real_matched_targets = [self.real1, self.real2, self.real4,
@@ -430,6 +432,9 @@ class TestTargetEvaluator(TestCase):
         self.assertEqual(0, e.match_value(self.submit3, self.real3))
         self.assertEqual(6, e.match_value(self.submit4, self.real4))
         self.assertEqual(2, e.match_value(self.submit5, self.real5))
+
+        self.assertEqual(3, e.match_value(self.submit1, self.real2))
+        self.assertEqual(5, e.match_value(self.submit2, self.real1))
 
     def test_match_targets(self):
         """Tests that matching targets produce maximal matches."""
@@ -464,6 +469,8 @@ class TestTargetEvaluator(TestCase):
 
         self.assertEqual(19, d['matched_target_value'])
         self.assertEqual(1, d['unmatched_target_count'])
+        self.assertEqual(self.submit1.pk,
+                         d['targets'][self.real1.pk]['submitted_target'])
         self.assertEqual(8, d['targets'][self.real1.pk]['match_value'])
         self.assertEqual(True, d['targets'][self.real1.pk]['image_approved'])
         self.assertEqual(1.0, d['targets'][self.real1.pk]['classifications'])
@@ -485,7 +492,7 @@ class TestTargetEvaluator(TestCase):
                 self.assertEqual('', v)
 
     def test_evaluation_dict_no_real_targets(self):
-        """Tests that evaluation_dict works with no submitted targets."""
+        """Tests that evaluation_dict works with no real targets."""
         e = TargetEvaluator(self.submitted_targets, [])
         d = e.evaluation_dict()
 

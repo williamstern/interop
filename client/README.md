@@ -1,9 +1,6 @@
-AUVSI SUAS Interoperabilty: Client Library
-=========================================
+AUVSI SUAS Interoperabilty: Client Library & Tools
+==================================================
 
-This library provides a simple Python API for sending and receiving data from
-the SUAS interoperability server.
-
-* `interop/`: Client library.
-* `missionplanner/`: Integration of client library into Mission Planner.
+* `interop/`: Client library to communicate with Interoperability Server.
+* `missionplanner/`: Integration of client library with Mission Planner.
 * `tools/`: Tools that leverage the client library.

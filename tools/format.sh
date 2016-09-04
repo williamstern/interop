@@ -12,8 +12,8 @@ repo=$(readlink -f ${tools}/..)
 
 orig_args="$@"
 
-# yapf is installed in the server venv
-source ${repo}/server/venv/bin/activate
+# Source the tools virtualenv.
+source ${tools}/venv/bin/activate
 
 # Diff against master by default
 commitish=master

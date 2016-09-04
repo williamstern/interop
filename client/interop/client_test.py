@@ -15,7 +15,7 @@ from . import Telemetry
 
 # Set these environmental variables to the proper values
 # if the defaults are not correct.
-server = os.getenv('TEST_INTEROP_SERVER', 'http://localhost')
+server = os.getenv('TEST_INTEROP_SERVER', 'http://localhost:8000')
 username = os.getenv('TEST_INTEROP_USER', 'testuser')
 password = os.getenv('TEST_INTEROP_USER_PASS', 'testpass')
 admin_username = os.getenv('TEST_INTEROP_ADMIN', 'testadmin')
