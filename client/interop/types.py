@@ -65,7 +65,7 @@ class GpsPosition(ClientBaseType):
 
     def __init__(self, latitude, longitude):
         self.latitude = float(latitude)
-        self.longtiude = float(longitude)
+        self.longitude = float(longitude)
 
 
 class FlyZone(ClientBaseType):
