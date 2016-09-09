@@ -104,7 +104,7 @@ class Waypoint(ClientBaseType):
         ValueError: Argument not convertable to int or float.
     """
 
-    attrs = ['order', 'latitute', 'longitude', 'altitude_msl']
+    attrs = ['order', 'latitude', 'longitude', 'altitude_msl']
 
     def __init__(self, order, latitude, longitude, altitude_msl=None):
         self.order = int(order)
