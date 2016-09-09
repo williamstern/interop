@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # Program to request and print mission details.
 
+from __future__ import print_function
 import argparse
 import getpass
-from __future__ import print_function
 
 from interop import Client
 from interop import Target
