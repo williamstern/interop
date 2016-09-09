@@ -77,6 +77,7 @@ if __name__ == '__main__':
     parser.add_argument('--password', help='Password for interoperability.')
     parser.add_argument('--interop_time',
                         type=float,
+                        default=1.0,
                         help='Time between sent requests (sec).')
     parser.add_argument('--generator',
                         type=str,
