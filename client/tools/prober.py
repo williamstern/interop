@@ -14,13 +14,15 @@ import flightsim
 from interop import AsyncClient, InteropError, Telemetry, StationaryObstacle, MovingObstacle
 
 
-def main(url, username, password, generator, flightsim_kml_path=None):
+def main(url, username, password, interop_time, generator,
+        flightsim_kml_path=None):
     """Probes the interop server.
 
     Args:
         url: The interoperability URL.
         username: The interoperability username.
         password: The interoperability password.
+        interop_time: The time between interop requests.
         generator: The data generator name to use.
         flightsim_kml_path: The KML path to use if flightsim generator.
     """
