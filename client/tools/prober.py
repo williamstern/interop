@@ -14,8 +14,12 @@ import flightsim
 from interop import AsyncClient, InteropError, Telemetry, StationaryObstacle, MovingObstacle
 
 
-def main(url, username, password, interop_time, generator,
-        flightsim_kml_path=None):
+def main(url,
+         username,
+         password,
+         interop_time,
+         generator,
+         flightsim_kml_path=None):
     """Probes the interop server.
 
     Args:
