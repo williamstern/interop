@@ -109,7 +109,7 @@ class Waypoint(ClientBaseType):
     def __init__(self, order, latitude, longitude, altitude_msl=None):
         self.order = int(order)
         self.latitude = float(latitude)
-        self.longtiude = float(longitude)
+        self.longitude = float(longitude)
         self.altitude_msl = None
         if altitude_msl is not None:
             self.altitude_msl = float(altitude_msl)
