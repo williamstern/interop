@@ -425,15 +425,15 @@ class TargetEvaluator(object):
         # Create a bipartite graph from submitted to real targets with match
         # values as edge weights. Skip edges with no match value.
         g = nx.Graph()
-        g.add_nodes_from(submitted_targets, bipartite=0)
-        g.add_nodes_from(real_targets, bipartite=1)
+        g.add_nodes_from(submitted_targets)
+        g.add_nodes_from(real_targets)
         for submitted in submitted_targets:
             for real in real_targets:
                 match_value = self.match_value(submitted, real)
                 if match_value:
                     g.add_edge(submitted, real, weight=match_value)
         # Compute the full matching
-        return nx.bipartite.maximum_matching(g)
+        return nx.algorithms.matching.max_weight_matching(g)
 
     def evaluation_dict(self):
         """Gets the evaluation dictionary.
