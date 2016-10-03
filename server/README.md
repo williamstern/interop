@@ -11,8 +11,7 @@ Django project, with the following components:
   3. `manage.py`: A utility program provided by Django which can be used to
      manage the application. This includes creating databases, running the
      development server, etc.
-  4. `requirements.txt`: The dependencies which are installed as part of
-     automated setup.
+  4. `requirements.txt`: The dependencies required by the server.
   5. `fixtures`: Data which can be loaded into the server.
 
 If the automated setup is utilized, this server is installed in a

@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class MissionConfig(models.Model):
-    """The details for the active mission. There should only be one."""
+    """The details for the mission."""
     # Whether the mission is active. Only one mission can be active at a time.
     is_active = models.BooleanField(default=False)
 
@@ -118,10 +118,10 @@ class MissionConfig(models.Model):
         Returns:
             satisifed: Total number of waypoints hit (must be in order).
             satisfied_track: Total number of waypoints hit while remaining
-                             along the track. Once the UAV leaves the track
-                             no more waypoints will count towards this metric.
-            closest:         Dictionary of closest approach distances to each
-                             waypoint.
+                along the track. Once the UAV leaves the track no
+                more waypoints will count towards this metric.
+            closest: Dictionary of closest approach distances to
+                each waypoint.
         """
         # Use a common projection in distance_to_line based on the home
         # position.

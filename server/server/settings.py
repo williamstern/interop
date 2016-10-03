@@ -91,8 +91,9 @@ DATABASES = {
         'NAME': 'auvsi_suas_db',
         'USER': 'postgresql_user',
         'PASSWORD': 'postgresql_pass',
-        'CONN_MAX_AGE': 60,
+        'CONN_MAX_AGE': None,
         'HOST': 'localhost',
+        'PORT': '5432',
         'TEST': {
             'NAME': 'test_auvsi_suas_db',
         },
@@ -193,7 +194,7 @@ TEST_ENABLE_PLOTTING = False
 TEST_ENABLE_LOADTEST = True
 
 # The time to execute each loadtest for
-TEST_LOADTEST_TIME = 10.0
+TEST_LOADTEST_TIME = 2.0
 # The minimum rate of an individual interop interface
 # (1.5x safety factor, 10Hz, 4 interfaces)
 TEST_LOADTEST_INTEROP_MIN_RATE = 1.5 * 10.0 * 4

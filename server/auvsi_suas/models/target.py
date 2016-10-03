@@ -399,7 +399,7 @@ class TargetEvaluator(object):
                                                location_dist,
                                                start_operator=operator.gt)
 
-        # Actionable intelligence value
+        # Actionable intelligence value.
         actionable = self.actionable(submitted, num_similar, location_dist)
         if actionable == 'objective':
             actionable_value = \
@@ -432,7 +432,7 @@ class TargetEvaluator(object):
                 match_value = self.match_value(submitted, real)
                 if match_value:
                     g.add_edge(submitted, real, weight=match_value)
-        # Compute the full matching
+        # Compute the full matching.
         return nx.algorithms.matching.max_weight_matching(g)
 
     def evaluation_dict(self):
