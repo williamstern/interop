@@ -38,8 +38,16 @@ class ClientBaseType(object):
 
     def serialize(self):
         """Serialize the current state of the object."""
-        return {k: self.__dict__[k]
-                for k in self.attrs if self.__dict__[k] is not None}
+        serial = {}
+        for attr in self.attrs:
+            data = self.__dict__[attr]
+            if isinstance(data, ClientBaseType):
+                serial[attr] = data.serialize()
+            elif isinstance(data, list):
+                serial[attr] = [d.serialize() for d in data]
+            else:
+                serial[attr] = data
+        return serial
 
     @classmethod
     def deserialize(cls, d):
@@ -86,9 +94,6 @@ class FlyZone(ClientBaseType):
         self.boundary_pts = [Waypoint.deserialize(bp) for bp in boundary_pts]
         self.altitude_msl_min = float(altitude_msl_min)
         self.altitude_msl_max = float(altitude_msl_max)
-
-    def serialize(self):
-        raise NotImplementedError('FlyZone does not support serialize().')
 
 
 class Waypoint(ClientBaseType):
@@ -151,9 +156,6 @@ class Mission(ClientBaseType):
         self.search_grid_points = [Waypoint.deserialize(sg)
                                    for sg in search_grid_points]
         self.sric_pos = GpsPosition.deserialize(sric_pos)
-
-    def serialize(self):
-        raise NotImplementedError('Mission does not support serialize().')
 
 
 class Telemetry(ClientBaseType):

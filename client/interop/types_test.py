@@ -13,33 +13,42 @@ from . import Waypoint
 class TestMission(unittest.TestCase):
     """Test the Mission object. There is very little to see here."""
 
-    def test_valid(self):
-        """Test valid inputs"""
+    def test_serialize(self):
+        """Test valid inputs serialize"""
         # No exceptions
-        Mission(id=1,
-                active=True,
-                air_drop_pos=GpsPosition(latitude=38,
-                                         longitude=-76),
-                fly_zones=[FlyZone(boundary_pts=[Waypoint(order=1,
-                                                          latitude=37,
-                                                          longitude=-70,
-                                                          altitude_msl=10)],
-                                   altitude_msl_min=10,
-                                   altitude_msl_max=20)],
-                home_pos=GpsPosition(latitude=39,
-                                     longitude=-77),
-                mission_waypoints=[Waypoint(order=1,
-                                            latitude=37,
-                                            longitude=-70,
-                                            altitude_msl=10)],
-                off_axis_target_pos=GpsPosition(latitude=37,
-                                                longitude=-75),
-                search_grid_points=[Waypoint(order=1,
-                                             latitude=37,
-                                             longitude=-70,
-                                             altitude_msl=10)],
-                sric_pos=GpsPosition(latitude=38,
-                                     longitude=-76))
+        mission = Mission(
+            id=1,
+            active=True,
+            air_drop_pos=GpsPosition(latitude=38,
+                                     longitude=-76),
+            fly_zones=[FlyZone(boundary_pts=[Waypoint(order=1,
+                                                      latitude=37,
+                                                      longitude=-70,
+                                                      altitude_msl=10)],
+                               altitude_msl_min=10,
+                               altitude_msl_max=20)],
+            home_pos=GpsPosition(latitude=39,
+                                 longitude=-77),
+            mission_waypoints=[Waypoint(order=1,
+                                        latitude=37,
+                                        longitude=-70,
+                                        altitude_msl=10)],
+            off_axis_target_pos=GpsPosition(latitude=37,
+                                            longitude=-75),
+            search_grid_points=[Waypoint(order=1,
+                                         latitude=37,
+                                         longitude=-70,
+                                         altitude_msl=10)],
+            sric_pos=GpsPosition(latitude=38,
+                                 longitude=-76))
+        d = mission.serialize()
+        self.assertEqual(1, d['id'])
+        self.assertEqual(38, d['air_drop_pos']['latitude'])
+        self.assertEqual(-77, d['home_pos']['longitude'])
+        self.assertEqual(1, d['mission_waypoints'][0]['order'])
+        self.assertEqual(37, d['off_axis_target_pos']['latitude'])
+        self.assertEqual(10, d['search_grid_points'][0]['altitude_msl'])
+        self.assertEqual(38, d['sric_pos']['latitude'])
 
     def test_deserialize(self):
         """Test deserialization."""
@@ -382,7 +391,7 @@ class TestTarget(unittest.TestCase):
                    autonomous=True)
         s = o.serialize()
 
-        self.assertEqual(11, len(s))
+        self.assertEqual(12, len(s))
         self.assertEqual(1, s['id'])
         self.assertEqual(2, s['user'])
         self.assertEqual('standard', s['type'])
