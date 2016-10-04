@@ -10,12 +10,15 @@ from waypoint import Waypoint
 
 
 class FlyZone(models.Model):
-    """An approved area for UAS flight. UAS shall be in at least one zone."""
-    # The polygon defining the boundary of the zone.
+    """An approved area for UAS flight. UAS shall be in at least one zone.
+
+    Attributes:
+        boundary_pts: The polygon defining the boundary of the zone.
+        altitude_msl_min: The minimum altitude of the zone (MSL) in feet.
+        altitude_msl_max: The maximum altitude of the zone (MSL) in feet.
+    """
     boundary_pts = models.ManyToManyField(Waypoint)
-    # The minimum altitude of the zone (MSL) in feet
     altitude_msl_min = models.FloatField()
-    # The maximum altitude of the zone (MSL) in feet
     altitude_msl_max = models.FloatField()
 
     def __unicode__(self):

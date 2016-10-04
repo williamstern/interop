@@ -15,12 +15,15 @@ from auvsi_suas.patches.simplekml_patch import Types
 
 
 class MovingObstacle(models.Model):
-    """A moving obstacle that teams must avoid."""
-    # The waypoints the obstacle attempts to follow
+    """A moving obstacle that teams must avoid.
+
+    Attributes:
+        waypoints: The waypoints the obstacle attempts to follow.
+        speed_avg: The average speed of the obstacle in knots.
+        sphere_radius: The radius of the sphere in feet.
+    """
     waypoints = models.ManyToManyField(Waypoint)
-    # The average speed of the obstacle in knots
     speed_avg = models.FloatField()
-    # The radius of the sphere in feet
     sphere_radius = models.FloatField()
 
     def __unicode__(self):

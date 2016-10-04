@@ -6,10 +6,13 @@ from gps_position import GpsPosition
 
 
 class AerialPosition(models.Model):
-    """Aerial position which consists of a GPS position and an altitude."""
-    # GPS position
+    """Aerial position which consists of a GPS position and an altitude.
+
+    Attributes:
+        gps_position: GPS position.
+        altitude_msl: Altitude (MSL) in feet.
+    """
     gps_position = models.ForeignKey(GpsPosition)
-    # Altitude (MSL) in feet
     altitude_msl = models.FloatField()
 
     def __unicode__(self):

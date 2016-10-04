@@ -27,53 +27,47 @@ logger = logging.getLogger(__name__)
 
 
 class MissionConfig(models.Model):
-    """The details for the mission."""
-    # Whether the mission is active. Only one mission can be active at a time.
-    is_active = models.BooleanField(default=False)
+    """The details for the mission.
 
-    # The home position for use as a reference point. Should be the tents.
+    Attributes:
+        is_active: Whether the mission is active. Only one mission can be
+            active at a time.
+        home_pos: The home position for use as a reference point. Should be the
+            tents.
+        fly_zones: Valid areas for the UAS to fly.
+        mission_waypoints: The waypoints that define the mission waypoint path
+        search_grid_points: The polygon that defines the search grid.
+        targets: The judge created targets.
+        emergent_last_known_pos: The last known position of the emergent target.
+        off_axis_target_pos: Off-axis target position.
+        sric_pos: The SRIC position.
+        air_drop_pos: The air drop position.
+        stationary_obstacles: The stationary obstacles.
+        moving_obstacles: The moving obstacles.
+    """
+    is_active = models.BooleanField(default=False)
     home_pos = models.ForeignKey(GpsPosition,
                                  related_name="missionconfig_home_pos")
-
-    # Valid areas for the UAS to fly.
     fly_zones = models.ManyToManyField(FlyZone)
-
-    # The waypoints that define the mission waypoint path
     mission_waypoints = models.ManyToManyField(
         Waypoint,
         related_name='missionconfig_mission_waypoints')
-
-    # The polygon that defines the search grid
     search_grid_points = models.ManyToManyField(
         Waypoint,
         related_name='missionconfig_search_grid_points')
-
-    # The judge created targets.
     targets = models.ManyToManyField(Target,
                                      related_name='missionconfig_targets')
-
-    # The last known position of the emergent target
     emergent_last_known_pos = models.ForeignKey(
         GpsPosition,
         related_name='missionconfig_emergent_last_known_pos')
-
-    # Off-axis target position
     off_axis_target_pos = models.ForeignKey(
         GpsPosition,
         related_name='missionconfig_off_axis_target_pos')
-
-    # The SRIC position
     sric_pos = models.ForeignKey(GpsPosition,
                                  related_name='missionconfig_sric_pos')
-
-    # The air drop position
     air_drop_pos = models.ForeignKey(GpsPosition,
                                      related_name='missionconfig_air_drop_pos')
-
-    # The stationary obstacles
     stationary_obstacles = models.ManyToManyField(StationaryObstacle)
-
-    # The moving obstacles
     moving_obstacles = models.ManyToManyField(MovingObstacle)
 
     def __unicode__(self):

@@ -7,10 +7,13 @@ from django.utils import timezone
 
 
 class MissionClockEvent(AccessLog):
-    """Marker for a team going on/off mission clock."""
-    # Whether the team is now on the mission clock.
+    """Marker for a team going on/off mission clock.
+
+    Attributes:
+        team_on_clock: Whether the team is now on the mission clock.
+        team_on_timeout: Whether the team is now in a timeout.
+    """
     team_on_clock = models.BooleanField()
-    # Whether the team is now in a timeout.
     team_on_timeout = models.BooleanField()
 
     def __unicode__(self):

@@ -5,12 +5,15 @@ from django.db import models
 
 
 class StationaryObstacle(models.Model):
-    """A stationary obstacle that teams must avoid."""
-    # The position of the obstacle center
+    """A stationary obstacle that teams must avoid.
+
+    Attributes:
+        gps_position: The position of the obstacle center.
+        cylinder_radius: The radius of the cylinder in feet.
+        cylinder_height: The height of the cylinder in feet.
+    """
     gps_position = models.ForeignKey(GpsPosition)
-    # The radius of the cylinder in feet
     cylinder_radius = models.FloatField()
-    # The height of the cylinder in feet
     cylinder_height = models.FloatField()
 
     def __unicode__(self):

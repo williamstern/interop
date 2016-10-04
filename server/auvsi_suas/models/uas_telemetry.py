@@ -14,10 +14,13 @@ import units
 
 
 class UasTelemetry(AccessLog):
-    """UAS telemetry reported by teams."""
-    # The position of the UAS
+    """UAS telemetry reported by teams.
+
+    Attributes:
+        uas_position: The position of the UAS.
+        uas_heading: The (true north) heading of the UAS in degrees.
+    """
     uas_position = models.ForeignKey(AerialPosition)
-    # The (true north) heading of the UAS in degrees
     uas_heading = models.FloatField()
 
     def __unicode__(self):

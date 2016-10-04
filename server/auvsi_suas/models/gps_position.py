@@ -5,10 +5,13 @@ from django.db import models
 
 
 class GpsPosition(models.Model):
-    """GPS position consisting of a latitude and longitude degree value."""
-    # Latitude in degrees
+    """GPS position consisting of a latitude and longitude degree value.
+
+    Attributes:
+        latitude: Latitude in degrees.
+        longitude: Longitude in degrees.
+    """
     latitude = models.FloatField()
-    # Longitude in degrees
     longitude = models.FloatField()
 
     def __unicode__(self):

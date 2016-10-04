@@ -7,8 +7,11 @@ from django.utils import timezone
 
 
 class TakeoffOrLandingEvent(AccessLog):
-    """Marker for a UAS takeoff/landing. UAS must interop during that time."""
-    # Whether the UAS is now in the air
+    """Marker for a UAS takeoff/landing. UAS must interop during that time.
+
+    Attributes:
+        uas_in_air: Whether the UAS is now in the air.
+    """
     uas_in_air = models.BooleanField()
 
     def __unicode__(self):

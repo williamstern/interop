@@ -9,10 +9,13 @@ from django.utils import timezone
 
 
 class AccessLog(models.Model):
-    """Base class which logs access of information."""
-    # Timestamp of the access
+    """Base class which logs access of information.
+
+    Attributes:
+        timestamp: Timestamp of the access.
+        user: The user which accessed the data.
+    """
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
-    # The user which accessed the data
     user = models.ForeignKey(settings.AUTH_USER_MODEL, db_index=True)
 
     class Meta:
