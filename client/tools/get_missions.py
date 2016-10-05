@@ -4,6 +4,7 @@
 from __future__ import print_function
 import argparse
 import getpass
+import pprint
 
 from interop import Client
 from interop import Target
@@ -13,7 +14,8 @@ def main(url, username, password):
     """Program to get and print the mission details."""
     client = Client(url, username, password)
     missions = client.get_missions()
-    print(missions)
+    for m in missions:
+        pprint.pprint(m.serialize())
 
 
 if __name__ == '__main__':
