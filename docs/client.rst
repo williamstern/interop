@@ -23,3 +23,4 @@ invalid shape.
              StationaryObstacle,
              MovingObstacle,
              Target
+   :special-members: __init__

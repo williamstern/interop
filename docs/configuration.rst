@@ -26,8 +26,6 @@ Object Configuration
 The following describes the individual model objects in greater
 detail than what is presented in :doc:`getting_started`.
 
-TODO: Upgrade following classes with attribute documentation.
-
 .. autoclass:: auvsi_suas.models.GpsPosition
 .. autoclass:: auvsi_suas.models.AerialPosition
 .. autoclass:: auvsi_suas.models.UasTelemetry

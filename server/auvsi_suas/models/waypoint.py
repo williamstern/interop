@@ -5,10 +5,14 @@ from django.db import models
 
 
 class Waypoint(models.Model):
-    """A waypoint consists of an aerial position and its order in a set."""
-    # Aerial position
+    """A waypoint consists of an aerial position and its order in a set.
+
+    Attributes:
+        position: Aerial position.
+        order: Waypoint relative order number. Should be unique per waypoint
+            set.
+    """
     position = models.ForeignKey(AerialPosition)
-    # Waypoint relative order number. Should be unique per waypoint set.
     order = models.IntegerField(db_index=True)
 
     def __unicode__(self):

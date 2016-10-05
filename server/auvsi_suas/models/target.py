@@ -125,55 +125,43 @@ class Color(Choices):
 
 
 class Target(models.Model):
-    """Target represents a single target submission for a team."""
-    # The user which submitted and owns this target.
+    """Target represents a single target submission for a team.
+
+    Attributes:
+        user: The user which submitted and owns this target.
+        target_type: Target type.
+        location: Target location.
+        orientation: Target orientation.
+        shape: Target shape.
+        background_color: Target background color.
+        alphanumeric: Target alphanumeric.
+        alphanumeric_color: Target alphanumeric color.
+        description: Free-form target description.
+        autonomous: Target is an ADLC submission.
+        thumbnail: Uploaded target image thumbnail.
+        thumbnail_approved: Whether judge considers thumbnail valid for target.
+        creation_time: Time that this target was first created.
+        last_modified_time: Time that this target was last modified.
+    """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, db_index=True)
-
-    # Target type.
     target_type = models.IntegerField(choices=TargetType.choices())
-
-    # Target location.
     location = models.ForeignKey(GpsPosition, null=True, blank=True)
-
-    # Target orientation.
     orientation = models.IntegerField(choices=Orientation.choices(),
                                       null=True,
                                       blank=True)
-
-    # Target shape.
     shape = models.IntegerField(choices=Shape.choices(), null=True, blank=True)
-
-    # Target background color.
     background_color = models.IntegerField(choices=Color.choices(),
                                            null=True,
                                            blank=True)
-
-    # Target alphanumeric.
     alphanumeric = models.TextField(default='', blank=True)
-
-    # Target alphanumeric color.
     alphanumeric_color = models.IntegerField(choices=Color.choices(),
                                              null=True,
                                              blank=True)
-
-    # Free-form target description.
     description = models.TextField(default='', blank=True)
-
-    # Target is an ADLC submission.
     autonomous = models.BooleanField(default=False)
-
-    # Uploaded target image thumbnail.
     thumbnail = models.ImageField(upload_to='targets', blank=True)
-
-    # Whether judge considers thumbnail valid for target.
     thumbnail_approved = models.NullBooleanField()
-
-    # Time that this target was first created.
-    # auto_now_add automatically sets this field on initial creation.
     creation_time = models.DateTimeField(auto_now_add=True)
-
-    # Time that this target was last modified.
-    # auto_now automatically updates this field on save().
     last_modified_time = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
