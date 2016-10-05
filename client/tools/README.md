@@ -1,22 +1,26 @@
 AUVSI SUAS: Interoperability Client Tools
 =========================================
 
-get_missions.py
----------------
+interop_cli.py
+--------------
 
-This script can get the mission details from the interoperability server.
+This command line tool can be used to get mission details, upload targets, and
+probe the server with dummy data.
 
 ```
-./get_missions.py --url http://localhost --username testuser
+URL=http://10.10.130.2:8000
+USER=testuser
+./interop_cli.py --url $URL --username $USER missions
+./interop_cli.py --url $URL --username $USER targets \
+    --target_filepath tools/testdata/targets.txt \
+    --imagery_dir tools/testdata/
+./interop_cli.py --url $URL --username $USER probe
 ```
 
-upload_targets.py
------------------
+The target upload currently uses the old text file "Electronic Target Data
+Format" as defined by the competition 2016 rules.
 
-This script can upload targets defined in the old text file "Electronic Target
-Data Format" as defined by the competition rules.
-
-Limitations:
+Uploader Limitations:
 * Only non-ADLC targets.
 * Only upload (POST), no retrieval (GET) or removal (DELETE).
 * Only performs format conversion, not client-side data validation. Invalid
@@ -24,18 +28,3 @@ Limitations:
   reject it.
 * Does not detect duplicates- executing the script twice will upload two sets
   of targets.
-
-```
-./upload_targets.py --url http://localhost --username testuser --target_filepath testdata/targets.txt --imagery_dir testdata/
-```
-
-prober.py
----------
-
-The prober is a simple use of the interoperability client which validates the
-system is working and recieving data. Assuming tests passed before deployment,
-this can be used to continuously validate the system is accessible by teams.
-
-```
-./prober.py --url http://localhost:80 0.1 --username testuser --interop_time 1.0 --generator zeros
-```
