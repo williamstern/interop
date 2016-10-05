@@ -38,7 +38,7 @@ teams should replicate this setup to test their integration.
 **IP Addresses, Username, & Password.** At Check-In and Orientation, teams will
 be given a static IP address, a DHCP IP address range, the server IP address
 and port, a username, and a password. The static IP address (e.g.
-``10.10.10.3``) will be a single address unique to the team which can be used
+``10.10.130.100``) will be a single address unique to the team which can be used
 to connect to the system. The DHCP range will be a common range that will be
 provisioned to teams automatically by the interop router. The router will be on
 the subnet ``10.10.130.XXX`` with subnet mask ``255.255.255.0``. The server IP
