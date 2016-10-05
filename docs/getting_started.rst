@@ -155,7 +155,7 @@ Engine Installation <https://docs.docker.com/engine/installation/>`__ guide.
     sudo ./tools/setup_tools.sh
 
 
-auvsisuas/interop.server
+auvsisuas/interop-server
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Create and Start Container**. The interop server is provided as a Docker
@@ -176,8 +176,8 @@ the container.
 
 .. code-block:: bash
 
-    sudo docker stop interop.server
-    sudo docker start interop.server
+    sudo docker stop interop-server
+    sudo docker start interop-server
 
 **Container Shell**. To inspect state, use local server tools (e.g. Django's
 management tool), or do other container-local actions, you can start a bash
@@ -185,7 +185,7 @@ shell inside of the container. The following shows how to start the shell.
 
 .. code-block:: bash
 
-    sudo docker exec -it interop.server bash
+    sudo docker exec -it interop-server bash
 
 **Dump Database, Dump Server Log**. The shell will start the user inside of the
 working directory (server source code) at ``/interop/server``. The following
@@ -209,11 +209,11 @@ following can remove a container.
 
 .. code-block:: bash
 
-    sudo docker stop interop.server
-    sudo docker rm interop.server
+    sudo docker stop interop-server
+    sudo docker rm interop-server
 
 
-auvsisuas/interop.client
+auvsisuas/interop-client
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Create Container & Start Shell**. The interop client library and tools are
