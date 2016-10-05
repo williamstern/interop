@@ -455,10 +455,9 @@ The following shows how to upload a target and it's image.
                             alphanumeric_color='white')
     target = client.post_target(target)
 
-    impage_data = None
     with open('path/to/image/A.jpg', 'rb') as f:
         image_data = f.read()
-    client.put_target_image(target.id, image_data)
+        client.put_target_image(target.id, image_data)
 
 
 Mission Planner Script
