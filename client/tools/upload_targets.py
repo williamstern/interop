@@ -9,7 +9,6 @@ import imghdr
 import os
 import re
 
-from interop import Client
 from interop import Target
 
 TARGET_TYPE_MAP = {
@@ -99,13 +98,11 @@ def load_target_file(target_filepath):
     return targets
 
 
-def main(url, username, password, target_filepath, imagery_dir):
-    """Program to load targets and upload via interoperability.
+def upload_targets(client, target_filepath, imagery_dir):
+    """Load targets and upload via interoperability.
 
     Args:
-        url: The interoperability URL.
-        username: The interoperability username.
-        password: The interoperability password.
+        client: The interop client.
         target_filepath: Filepath to the tab-delimited target file.
         imagery_dir: Base to form paths to imagery files.
     """
@@ -125,41 +122,10 @@ def main(url, username, password, target_filepath, imagery_dir):
         if image_type not in ['jpeg', 'png']:
             raise ValueError('Invalid imagery type: %s' % image_type)
 
-    # Create client and upload targets.
-    client = Client(url, username, password)
+    # Upload targets.
     for target, image_filepath in targets:
         image_data = None
         with open(image_filepath, 'rb') as f:
             image_data = f.read()
         target = client.post_target(target)
         client.put_target_image(target.id, image_data)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='AUVSI SUAS Target Upload.')
-    parser.add_argument('--url',
-                        required=True,
-                        help='URL for interoperability.')
-    parser.add_argument('--username',
-                        required=True,
-                        help='Username for interoperability.')
-    parser.add_argument('--password', help='Passowrd for interoperability.')
-    parser.add_argument('--target_filepath',
-                        required=True,
-                        help='Filepath to target file.')
-    parser.add_argument('--imagery_dir',
-                        required=True,
-                        help='Filepath prepended to paths in target file.')
-    args = parser.parse_args()
-
-    if not os.path.exists(args.target_filepath):
-        raise ValueError('Target file provided does not exist: %s' %
-                         args.target_filepath)
-
-    if args.password:
-        password = args.password
-    else:
-        password = getpass.getpass('Interoperability Password: ')
-
-    main(args.url, args.username, password, args.target_filepath,
-         args.imagery_dir)
