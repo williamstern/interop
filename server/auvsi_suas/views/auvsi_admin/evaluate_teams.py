@@ -9,19 +9,24 @@ from auvsi_suas.views.decorators import require_superuser
 from auvsi_suas.views.missions import mission_for_request
 from django.http import HttpResponse
 from django.http import HttpResponseServerError
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
 
-class EvaluateTeams(View):
-    """Evaluates the teams by forming a CSV containing useful stats."""
+class EvaluateTeamsBase(View):
+    """Evaluates the teams and delegates to subclasses for format."""
 
     @method_decorator(require_superuser)
     def dispatch(self, *args, **kwargs):
-        return super(EvaluateTeams, self).dispatch(*args, **kwargs)
+        return super(EvaluateTeamsBase, self).dispatch(*args, **kwargs)
+
+    def format_response(self, user_eval_data):
+        """Format and return the response for given evaluation dat.a"""
+        logging.fatal('Not implemented.')
 
     def get(self, request):
-        logger.info('Admin downloaded team evaluation.')
+        logger.info('Admin downloading team evaluation.')
 
         # Get the mission to evaluate a team for.
         mission, error = mission_for_request(request.GET)
@@ -35,12 +40,27 @@ class EvaluateTeams(View):
             logger.warning('No data for team evaluation.')
             return HttpResponseServerError(
                 'Could not get user evaluation data.')
+        # Convert to username key-d map.
+        user_eval_data = {u.username: d for u, d in user_eval_data.iteritems()}
+        return self.format_response(user_eval_data)
 
+
+class EvaluateTeamsJson(EvaluateTeamsBase):
+    """Evaluates the teams and returns JSON."""
+
+    def format_response(self, user_eval_data):
+        return JsonResponse(user_eval_data)
+
+
+class EvaluateTeamsCsv(EvaluateTeamsBase):
+    """Evaluates the teams and returns CSV."""
+
+    def format_response(self, user_eval_data):
         # Reformat to column oriented
         user_col_data = {}
-        for (user, eval_data) in user_eval_data.iteritems():
-            col_data = user_col_data.setdefault(user, {})
-            col_data['username'] = user.username
+        for (username, eval_data) in user_eval_data.iteritems():
+            col_data = user_col_data.setdefault(username, {})
+            col_data['username'] = username
             work_queue = [([], eval_data)]
             while len(work_queue) > 0:
                 (cur_prefixes, cur_map) = work_queue.pop()
