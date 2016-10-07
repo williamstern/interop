@@ -1,5 +1,6 @@
 """Tests for the evaluate_teams module."""
 
+import json
 import logging
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -27,43 +28,44 @@ class TestEvaluateTeams(TestCase):
         # Create URLs for testing
         self.login_url = reverse('auvsi_suas:login')
         self.eval_url = reverse('auvsi_suas:evaluate_teams')
+        self.eval_url_csv = reverse('auvsi_suas:evaluate_teams_csv')
 
     def test_evaluate_teams_nonadmin(self):
         """Tests that you can only access data as admin."""
-        client = self.client
-        login_url = self.login_url
-        eval_url = self.eval_url
-        client.post(login_url, {'username': 'testuser',
-                                'password': 'testpass'})
-        response = client.get(eval_url)
+        self.client.post(self.login_url, {'username': 'testuser',
+                                          'password': 'testpass'})
+        response = self.client.get(self.eval_url)
         self.assertEqual(403, response.status_code)
 
     def test_invalid_mission(self):
         """Tests that an invalid mission ID results in error."""
-        client = self.client
-        login_url = self.login_url
-        eval_url = self.eval_url
-        client.post(login_url, {'username': 'testuser',
-                                'password': 'testpass'})
+        self.client.post(self.login_url, {'username': 'testuser',
+                                          'password': 'testpass'})
 
-        response = client.get(eval_url, {'mission': 100000})
+        response = self.client.get(self.eval_url, {'mission': 100000})
         self.assertGreaterEqual(response.status_code, 400)
 
     def test_evaluate_teams(self):
+        """Tests the eval Json method."""
+        self.client.post(self.login_url, {'username': 'testuser2',
+                                          'password': 'testpass'})
+        response = self.client.get(self.eval_url)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(len(data), 3)
+        self.assertIn('user0', data)
+        self.assertIn('user1', data)
+        self.assertIn('uas_telem_times', data['user0'])
+
+    def test_evaluate_teams_csv(self):
         """Tests the CSV method."""
-        client = self.client
-        login_url = self.login_url
-        eval_url = self.eval_url
-        client.post(login_url, {'username': 'testuser2',
-                                'password': 'testpass'})
-        response = client.get(eval_url)
+        self.client.post(self.login_url, {'username': 'testuser2',
+                                          'password': 'testpass'})
+        response = self.client.get(self.eval_url_csv)
         self.assertEqual(response.status_code, 200)
         csv_data = response.content
-        # Check correct number of rows
         self.assertEqual(len(csv_data.split('\n')), 5)
-        # Check some headers
-        self.assertTrue('username' in csv_data)
-        self.assertTrue('uas_telem_times.max' in csv_data)
-        # Check username fields
-        self.assertTrue('user0' in csv_data)
-        self.assertTrue('user1' in csv_data)
+        self.assertIn('username', csv_data)
+        self.assertIn('uas_telem_times.max', csv_data)
+        self.assertIn('user0', csv_data)
+        self.assertIn('user1', csv_data)
