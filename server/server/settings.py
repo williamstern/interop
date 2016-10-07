@@ -43,7 +43,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'auvsi_suas',
     'auvsi_suas.views.auvsi_admin',
-    'debug_toolbar',
 )  # yapf: disable
 
 MIDDLEWARE_CLASSES = (
@@ -59,6 +58,7 @@ MIDDLEWARE_CLASSES = (
 # response, allowing the use of Django Debug Toolbar with the endpoints.
 if DEBUG:
     import debug
+    INSTALLED_APPS += 'debug_toolbar',
     MIDDLEWARE_CLASSES += debug.middleware
 
 # All of the default panels, plus the profiling panel.
