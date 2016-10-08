@@ -229,13 +229,11 @@ container and starts a pre-configured shell.
 **Get Missions**. The client image provides a script to request mission details
 from the interoperability server, and it can be executed from the container
 shell. The following shows how to execute it for the default testing user
-(``testuser``) if the interop server was at ``192.168.1.2:8000``.
+(``testuser``) if the interop server was at ``10.10.130.2:8000``.
 
 .. code-block:: bash
 
-    cd /interop/client
-    ./tools/get_missions.py --url http://192.168.1.2:8000 \
-        --username testuser --password testpass
+    ./tools/interop_cli.py --url http://10.10.130.2:8000 --username testuser missions
 
 **Upload Targets**. The client image provides a script to upload targets to the
 interop server from a tab-delimited text file and a set of target images. The
@@ -247,9 +245,7 @@ TODO: Migrate to Object File Format.
 
 .. code-block:: bash
 
-    cd /interop/client
-    ./tools/upload_targets.py --url http://192.168.1.2:8000 \
-        --username testuser --password testpass \
+    ./tools/interop_cli.py --url http://10.10.130.2:8000 --username testuser targets \
         --target_filepath tools/testdata/targets.txt --imagery_dir tools/testdata/
 
 **Probe Server**. The client image provides a script to continuously execute
@@ -258,10 +254,7 @@ execute the prober from the client container shell.
 
 .. code-block:: bash
 
-    cd /interop/client
-    ./tools/prober.py --url http://192.168.1.2:8000 \
-        --username testuser --password testpass \
-        --interop_time 1.0
+    ./tools/interop_cli.py --url http://10.10.130.2:8000 --username testuser probe
 
 
 Mission Configuration
