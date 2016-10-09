@@ -7,7 +7,10 @@ from auvsi_suas.models import MissionConfig
 from auvsi_suas.views import logger
 from auvsi_suas.views.decorators import require_superuser
 from auvsi_suas.views.missions import mission_for_request
+from django.contrib.auth.models import User
 from django.http import HttpResponse
+from django.http import HttpResponseBadRequest
+from django.http import HttpResponseNotFound
 from django.http import HttpResponseServerError
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
@@ -34,8 +37,19 @@ class EvaluateTeamsBase(View):
             logger.warning('Could not get mission to evaluate teams.')
             return error
 
+        # Get the optional team to eval.
+        users = None
+        if 'team' in request.GET:
+            try:
+                team = int(request.GET['team'])
+                users = [User.objects.get(pk=team)]
+            except TypeError:
+                return HttpResponseBadRequest('Team not an ID.')
+            except User.DoesNotExist:
+                return HttpResponseNotFound('Team not found.')
+
         # Get the eval data for the teams
-        user_eval_data = mission.evaluate_teams()
+        user_eval_data = mission.evaluate_teams(users)
         if not user_eval_data:
             logger.warning('No data for team evaluation.')
             return HttpResponseServerError(

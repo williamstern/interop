@@ -287,6 +287,18 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertEqual(False, teams[user1]['moving_obst_collision'][25])
         self.assertEqual(False, teams[user1]['moving_obst_collision'][26])
 
+    def test_evaluate_teams_specific_users(self):
+        """Tests the evaluation of teams method with specific users."""
+        user0 = User.objects.get(username='user0')
+        user1 = User.objects.get(username='user1')
+        config = MissionConfig.objects.get()
+
+        teams = config.evaluate_teams([user0])
+
+        self.assertEqual(1, len(teams))
+        self.assertIn(user0, teams)
+        self.assertNotIn(user1, teams)
+
     def assert_non_superuser_data(self, data):
         """Tests non-superuser data is correct."""
         self.assertIn('id', data)
