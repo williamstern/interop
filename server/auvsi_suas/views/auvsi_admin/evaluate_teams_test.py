@@ -57,6 +57,17 @@ class TestEvaluateTeams(TestCase):
         self.assertIn('user1', data)
         self.assertIn('uas_telem_times', data['user0'])
 
+    def test_evaluate_teams_specific_team(self):
+        """Tests the eval Json method on a specific team."""
+        self.client.post(self.login_url, {'username': 'testuser2',
+                                          'password': 'testpass'})
+        response = self.client.get(self.eval_url, {'team': 53})
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(len(data), 1)
+        self.assertIn('user0', data)
+        self.assertNotIn('user1', data)
+
     def test_evaluate_teams_csv(self):
         """Tests the CSV method."""
         self.client.post(self.login_url, {'username': 'testuser2',

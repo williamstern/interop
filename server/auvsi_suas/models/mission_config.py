@@ -197,9 +197,11 @@ class MissionConfig(models.Model):
 
         return best["satisfied"], best["satisfied_track"], closest
 
-    def evaluate_teams(self):
+    def evaluate_teams(self, users=None):
         """Evaluates the teams (non admin users) of the competition.
 
+        Args:
+            users: Optional list of users to eval. If None will evaluate all.
         Returns:
             A map from user to evaluate data. The evaluation data has the
             following map structure:
@@ -228,15 +230,15 @@ class MissionConfig(models.Model):
         # Start a results map from user to evaluation data
         results = {}
 
-        # Fill in evaluation data for each user except admins
-        users = User.objects.all()
-        logger.info('Starting team evaluations.')
+        # If not provided, eval all users.
+        if users is None:
+            users = User.objects.all()
 
+        logger.info('Starting team evaluations.')
         for user in users:
             # Ignore admins.
             if user.is_superuser:
                 continue
-
             logger.info('Evaluation starting for user: %s.' % user.username)
 
             # Start the evaluation data structure.
