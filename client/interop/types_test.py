@@ -38,9 +38,7 @@ class TestMission(unittest.TestCase):
             search_grid_points=[Waypoint(order=1,
                                          latitude=37,
                                          longitude=-70,
-                                         altitude_msl=10)],
-            sric_pos=GpsPosition(latitude=38,
-                                 longitude=-76))
+                                         altitude_msl=10)])
         d = mission.serialize()
         self.assertEqual(1, d['id'])
         self.assertEqual(38, d['air_drop_pos']['latitude'])
@@ -48,7 +46,6 @@ class TestMission(unittest.TestCase):
         self.assertEqual(1, d['mission_waypoints'][0]['order'])
         self.assertEqual(37, d['off_axis_target_pos']['latitude'])
         self.assertEqual(10, d['search_grid_points'][0]['altitude_msl'])
-        self.assertEqual(38, d['sric_pos']['latitude'])
 
     def test_deserialize(self):
         """Test deserialization."""
@@ -96,10 +93,6 @@ class TestMission(unittest.TestCase):
                     'longitude': -72,
                 },
             ],
-            'sric_pos': {
-                'latitude': 28,
-                'longitude': -71,
-            },
         })
 
         self.assertEqual(1, m.id)
@@ -122,8 +115,6 @@ class TestMission(unittest.TestCase):
         self.assertEqual(3, m.search_grid_points[0].order)
         self.assertEqual(29, m.search_grid_points[0].latitude)
         self.assertEqual(-72, m.search_grid_points[0].longitude)
-        self.assertEqual(28, m.sric_pos.latitude)
-        self.assertEqual(-71, m.sric_pos.latitude)
 
 
 class TestTelemetry(unittest.TestCase):

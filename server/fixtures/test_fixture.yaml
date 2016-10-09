@@ -83,6 +83,5 @@
     mission_waypoints: [1]
     off_axis_target_pos: 3
     search_grid_points: [1]
-    sric_pos: 4
     stationary_obstacles: [1, 2]
     moving_obstacles: [1]

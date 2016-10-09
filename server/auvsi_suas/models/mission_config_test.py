@@ -33,7 +33,6 @@ class TestMissionConfigModel(TestCase):
         config.home_pos = pos
         config.emergent_last_known_pos = pos
         config.off_axis_target_pos = pos
-        config.sric_pos = pos
         config.air_drop_pos = pos
         config.save()
         config.mission_waypoints.add(wpt)
@@ -82,7 +81,6 @@ class TestMissionConfigModel(TestCase):
         config.home_pos = gpos
         config.emergent_last_known_pos = gpos
         config.off_axis_target_pos = gpos
-        config.sric_pos = gpos
         config.air_drop_pos = gpos
         config.save()
 
@@ -353,12 +351,6 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertEqual(38.0, data['off_axis_target_pos']['latitude'])
         self.assertEqual(-79.0, data['off_axis_target_pos']['longitude'])
 
-        self.assertIn('sric_pos', data)
-        self.assertIn('latitude', data['sric_pos'])
-        self.assertIn('longitude', data['sric_pos'])
-        self.assertEqual(38.0, data['sric_pos']['latitude'])
-        self.assertEqual(-79.0, data['sric_pos']['longitude'])
-
         self.assertIn('air_drop_pos', data)
         self.assertIn('latitude', data['air_drop_pos'])
         self.assertIn('longitude', data['air_drop_pos'])
@@ -416,7 +408,6 @@ class TestMissionConfigModelSampleMission(TestCase):
         data = kml.kml()
         names = [
             'Off Axis',
-            'SRIC',
             'Home Position',
             'Air Drop',
             'Emergent LKP',

@@ -233,10 +233,6 @@ Missions
                       "longitude": -76.434088,
                   }
               ],
-              "sric_pos": {
-                  "latitude": 38.141833,
-                  "longitude": -76.425263
-              },
           }
       ]
 
@@ -332,10 +328,6 @@ Missions
                   "longitude": -76.434088,
               }
           ],
-          "sric_pos": {
-              "latitude": 38.141833,
-              "longitude": -76.425263
-          },
       }
 
    :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
@@ -375,10 +367,8 @@ Missions
    :>json array search_grid_points: A list of waypoints defining the search
                                     grid polygon.
 
-   :>json object sric_pos: The GPS position of the SRIC.
-
    :>json object gps_position: (Type for ``air_drop_ops``, ``home_pos``,
-                               ``off_axis_target_pos``, and ``sric_pos``)
+                               ``off_axis_target_pos``)
                                Consists of a latitude and longitude.
 
    :>json object waypoint: (Type for ``boundary_pts``, ``mission_waypoints``,
