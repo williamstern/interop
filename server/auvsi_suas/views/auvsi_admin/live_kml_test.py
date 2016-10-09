@@ -45,7 +45,6 @@ class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
         config.home_pos = pos
         config.emergent_last_known_pos = pos
         config.off_axis_target_pos = pos
-        config.sric_pos = pos
         config.air_drop_pos = pos
         config.save()
         self.config = config

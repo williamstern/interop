@@ -41,7 +41,6 @@ class TestMissionForRequest(TestCase):
         config.home_pos = pos
         config.emergent_last_known_pos = pos
         config.off_axis_target_pos = pos
-        config.sric_pos = pos
         config.air_drop_pos = pos
         return config
 
@@ -221,12 +220,6 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertIn('longitude', data[0]['off_axis_target_pos'])
         self.assertEqual(38.0, data[0]['off_axis_target_pos']['latitude'])
         self.assertEqual(-79.0, data[0]['off_axis_target_pos']['longitude'])
-
-        self.assertIn('sric_pos', data[0])
-        self.assertIn('latitude', data[0]['sric_pos'])
-        self.assertIn('longitude', data[0]['sric_pos'])
-        self.assertEqual(38.0, data[0]['sric_pos']['latitude'])
-        self.assertEqual(-79.0, data[0]['sric_pos']['longitude'])
 
         self.assertIn('air_drop_pos', data[0])
         self.assertIn('latitude', data[0]['air_drop_pos'])
