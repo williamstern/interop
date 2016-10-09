@@ -320,6 +320,10 @@ Missions
               "latitude": 38.142544,
               "longitude": -76.434088
           },
+          "emergent_last_known_pos": {
+              "latitude": 38.142544,
+              "longitude": -76.434088
+          },
           "search_grid_points": [
               {
                   "order": 1
@@ -363,6 +367,9 @@ Missions
    :>json array mission_waypoints: A list of waypoints the UAS must traverse.
 
    :>json object off_axis_target_pos: The GPS position of the off-axis target.
+
+   :>json object emergent_last_known_pos: The last known GPS position of the
+                                          emergent target.
 
    :>json array search_grid_points: A list of waypoints defining the search
                                     grid polygon.
