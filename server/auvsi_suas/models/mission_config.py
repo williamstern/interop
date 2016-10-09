@@ -340,6 +340,10 @@ class MissionConfig(models.Model):
                 'latitude': self.off_axis_target_pos.latitude,
                 'longitude': self.off_axis_target_pos.longitude,
             },
+            "emergent_last_known_pos": {
+                "latitude": self.emergent_last_known_pos.latitude,
+                "longitude": self.emergent_last_known_pos.longitude,
+            },
             'air_drop_pos': {
                 'latitude': self.air_drop_pos.latitude,
                 'longitude': self.air_drop_pos.longitude,
@@ -376,10 +380,6 @@ class MissionConfig(models.Model):
             return ret
 
         ret.update({
-            "emergent_last_known_pos": {
-                "latitude": self.emergent_last_known_pos.latitude,
-                "longitude": self.emergent_last_known_pos.longitude,
-            },
             'stationary_obstacles': [],  # Filled in below
             'moving_obstacles': [],  # Filled in below
         })

@@ -363,6 +363,12 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertEqual(38.0, data['off_axis_target_pos']['latitude'])
         self.assertEqual(-79.0, data['off_axis_target_pos']['longitude'])
 
+        self.assertIn('emergent_last_known_pos', data)
+        self.assertIn('latitude', data['emergent_last_known_pos'])
+        self.assertIn('longitude', data['emergent_last_known_pos'])
+        self.assertEqual(38.0, data['emergent_last_known_pos']['latitude'])
+        self.assertEqual(-79.0, data['emergent_last_known_pos']['longitude'])
+
         self.assertIn('air_drop_pos', data)
         self.assertIn('latitude', data['air_drop_pos'])
         self.assertIn('longitude', data['air_drop_pos'])
@@ -375,7 +381,6 @@ class TestMissionConfigModelSampleMission(TestCase):
         data = config.json(is_superuser=False)
         self.assert_non_superuser_data(data)
 
-        self.assertNotIn('emergent_last_known_pos', data)
         self.assertNotIn('stationary_obstacles', data)
         self.assertNotIn('moving_obstacles', data)
 
@@ -384,12 +389,6 @@ class TestMissionConfigModelSampleMission(TestCase):
         config = MissionConfig.objects.get()
         data = config.json(is_superuser=True)
         self.assert_non_superuser_data(data)
-
-        self.assertIn('emergent_last_known_pos', data)
-        self.assertIn('latitude', data['emergent_last_known_pos'])
-        self.assertIn('longitude', data['emergent_last_known_pos'])
-        self.assertEqual(38.0, data['emergent_last_known_pos']['latitude'])
-        self.assertEqual(-79.0, data['emergent_last_known_pos']['longitude'])
 
         self.assertIn('stationary_obstacles', data)
         self.assertEqual(2, len(data['stationary_obstacles']))

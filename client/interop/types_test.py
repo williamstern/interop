@@ -35,6 +35,8 @@ class TestMission(unittest.TestCase):
                                         altitude_msl=10)],
             off_axis_target_pos=GpsPosition(latitude=37,
                                             longitude=-75),
+            emergent_last_known_pos=GpsPosition(latitude=34,
+                                                longitude=-75),
             search_grid_points=[Waypoint(order=1,
                                          latitude=37,
                                          longitude=-70,
@@ -45,6 +47,7 @@ class TestMission(unittest.TestCase):
         self.assertEqual(-77, d['home_pos']['longitude'])
         self.assertEqual(1, d['mission_waypoints'][0]['order'])
         self.assertEqual(37, d['off_axis_target_pos']['latitude'])
+        self.assertEqual(34, d['emergent_last_known_pos']['latitude'])
         self.assertEqual(10, d['search_grid_points'][0]['altitude_msl'])
 
     def test_deserialize(self):
@@ -86,6 +89,10 @@ class TestMission(unittest.TestCase):
                 'latitude': 31,
                 'longitude': -71,
             },
+            'emergent_last_known_pos': {
+                'latitude': 32,
+                'longitude': -71,
+            },
             'search_grid_points': [
                 {
                     'order': 3,
@@ -112,6 +119,8 @@ class TestMission(unittest.TestCase):
         self.assertEqual(5, m.mission_waypoints[0].altitude_msl)
         self.assertEqual(31, m.off_axis_target_pos.latitude)
         self.assertEqual(-71, m.off_axis_target_pos.latitude)
+        self.assertEqual(32, m.emergent_last_known_pos.latitude)
+        self.assertEqual(-71, m.emergent_last_known_pos.latitude)
         self.assertEqual(3, m.search_grid_points[0].order)
         self.assertEqual(29, m.search_grid_points[0].latitude)
         self.assertEqual(-72, m.search_grid_points[0].longitude)
