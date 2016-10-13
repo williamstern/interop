@@ -13,7 +13,7 @@ import time
 from interop import Client
 from interop import Target
 from interop import Telemetry
-from upload_targets import upload_targets
+from upload_targets import upload_targets, upload_legacy_targets
 
 
 def missions(args, client):
@@ -23,7 +23,10 @@ def missions(args, client):
 
 
 def targets(args, client):
-    upload_targets(client, args.target_filepath, args.imagery_dir)
+    if args.legacy_filepath:
+        upload_legacy_targets(client, args.legacy_filepath, args.target_dir)
+    else:
+        upload_targets(client, args.target_dir)
 
 
 def probe(args, client):
@@ -48,14 +51,10 @@ def probe(args, client):
 
 def main():
     # Setup logging
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    stream = logging.StreamHandler(sys.stdout)
-    stream.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        '%(asctime)s. %(name)s. %(levelname)s. %(message)s')
-    stream.setFormatter(formatter)
-    logger.addHandler(stream)
+    logging.basicConfig(
+        level=logging.DEBUG,
+        stream=sys.stdout,
+        format='%(asctime)s: %(name)s: %(levelname)s: %(message)s')
 
     # Parse command line args.
     parser = argparse.ArgumentParser(description='AUVSI SUAS Interop CLI.')
@@ -71,14 +70,29 @@ def main():
     subparser = subparsers.add_parser('missions', help='Get missions.')
     subparser.set_defaults(func=missions)
 
-    subparser = subparsers.add_parser('targets', help='Upload targets.')
+    subparser = subparsers.add_parser(
+        'targets',
+        help='Upload targets.',
+        description='''Upload targets to the interoperability server.
+
+This tool searches for target JSON and images files within --target_dir
+conforming to the 2017 Object File Format and uploads the target
+characteristics and thumbnails to the interoperability server.
+
+Alternatively, if --legacy_filepath is specified, that file is parsed as the
+legacy 2016 tab-delimited target file format. Image paths referenced in the
+file are relative to --target_dir.
+
+There is no deduplication logic. Targets will be uploaded multiple times, as
+unique targets, if the tool is run multiple times.''',
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     subparser.set_defaults(func=targets)
-    subparser.add_argument('--target_filepath',
+    subparser.add_argument(
+        '--legacy_filepath',
+        help='Target file in the legacy 2016 tab-delimited format.')
+    subparser.add_argument('--target_dir',
                            required=True,
-                           help='Filepath to target file.')
-    subparser.add_argument('--imagery_dir',
-                           required=True,
-                           help='Filepath prepended to paths in target file.')
+                           help='Directory containing target data.')
 
     subparser = subparsers.add_parser('probe', help='Send dummy requests.')
     subparser.set_defaults(func=probe)
