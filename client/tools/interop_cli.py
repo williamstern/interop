@@ -15,6 +15,8 @@ from interop import Target
 from interop import Telemetry
 from upload_targets import upload_targets, upload_legacy_targets
 
+logger = logging.getLogger(__name__)
+
 
 def missions(args, client):
     missions = client.get_missions()
@@ -24,9 +26,15 @@ def missions(args, client):
 
 def targets(args, client):
     if args.legacy_filepath:
+        if not args.target_dir:
+            raise ValueError('--target_dir is required.')
         upload_legacy_targets(client, args.legacy_filepath, args.target_dir)
-    else:
+    elif args.target_dir:
         upload_targets(client, args.target_dir)
+    else:
+        targets = client.get_targets()
+        for target in targets:
+            logger.info('%r' % target)
 
 
 def probe(args, client):
@@ -39,7 +47,7 @@ def probe(args, client):
 
         end_time = datetime.datetime.now()
         elapsed_time = (end_time - start_time).total_seconds()
-        logging.info('Executed interop. Total latency: %f', elapsed_time)
+        logger.info('Executed interop. Total latency: %f', elapsed_time)
 
         delay_time = args.interop_time - elapsed_time
         if delay_time > 0:
@@ -73,7 +81,13 @@ def main():
     subparser = subparsers.add_parser(
         'targets',
         help='Upload targets.',
-        description='''Upload targets to the interoperability server.
+        description='''Download or upload targets to/from the interoperability
+server.
+
+Without extra arguments, this prints all targets that have been uploaded to the
+server.
+
+With --target_dir, this uploads new targets to the server.
 
 This tool searches for target JSON and images files within --target_dir
 conforming to the 2017 Object File Format and uploads the target
@@ -90,9 +104,9 @@ unique targets, if the tool is run multiple times.''',
     subparser.add_argument(
         '--legacy_filepath',
         help='Target file in the legacy 2016 tab-delimited format.')
-    subparser.add_argument('--target_dir',
-                           required=True,
-                           help='Directory containing target data.')
+    subparser.add_argument(
+        '--target_dir',
+        help='Enables target upload. Directory containing target data.')
 
     subparser = subparsers.add_parser('probe', help='Send dummy requests.')
     subparser.set_defaults(func=probe)
