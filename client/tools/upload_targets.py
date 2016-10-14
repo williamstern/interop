@@ -6,10 +6,14 @@ import concurrent
 import csv
 import getpass
 import imghdr
+import json
+import logging
 import os
 import re
 
 from interop import Target
+
+logger = logging.getLogger(__name__)
 
 TARGET_TYPE_MAP = {
     'STD': 'standard',
@@ -98,8 +102,10 @@ def load_target_file(target_filepath):
     return targets
 
 
-def upload_targets(client, target_filepath, imagery_dir):
+def upload_legacy_targets(client, target_filepath, imagery_dir):
     """Load targets and upload via interoperability.
+
+    Loads targets from the legacy 2016 tab-delimited format.
 
     Args:
         client: The interop client.
@@ -129,3 +135,65 @@ def upload_targets(client, target_filepath, imagery_dir):
             image_data = f.read()
         target = client.post_target(target)
         client.put_target_image(target.id, image_data)
+
+
+def upload_target(client, target_file, image_file):
+    """Upload a single target to the server
+
+    Args:
+        client: interop.Client connected to the server
+        target_file: Path to file containing target details in the Object
+            File Format.
+        image_file: Path to target thumbnail. May be None.
+    """
+    with open(target_file) as f:
+        target = Target.deserialize(json.load(f))
+
+    logger.info('Uploading target %s: %r' % (target_file, target))
+    target = client.post_target(target)
+    if image_file:
+        logger.info('Uploading target thumbnail %s' % image_file)
+        with open(image_file) as img:
+            client.post_target_image(target.id, img.read())
+    else:
+        logger.warning('No thumbnail for target %s' % target_file)
+
+
+def upload_targets(client, target_dir):
+    """Upload all targets found in directory
+
+    Args:
+        client: interop.Client connected to the server
+        target_dir: Path to directory containing target files in the Object
+            File Format and target thumbnails.
+    """
+    targets = {}
+    images = {}
+
+    for entry in os.listdir(target_dir):
+        name, ext = os.path.splitext(entry)
+
+        if ext.lower() == '.json':
+            if name in targets:
+                raise ValueError(
+                    'Found duplicate target files for %s: %s and %s' %
+                    (name, targets[name], entry))
+            targets[name] = os.path.join(target_dir, entry)
+        elif ext.lower() in ['.png', '.jpg', '.jpeg']:
+            if name in images:
+                raise ValueError(
+                    'Found duplicate target images for %s: %s and %s' %
+                    (name, images[name], entry))
+            images[name] = os.path.join(target_dir, entry)
+
+    pairs = {}
+    for k, v in targets.items():
+        if k in images:
+            pairs[v] = images[k]
+        else:
+            pairs[v] = None
+
+    logger.info('Found target-image pairs: %s' % pairs)
+
+    for target, image in pairs.items():
+        upload_target(client, target, image)
