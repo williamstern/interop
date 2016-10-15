@@ -236,17 +236,14 @@ shell. The following shows how to execute it for the default testing user
     ./tools/interop_cli.py --url http://10.10.130.2:8000 --username testuser missions
 
 **Upload Targets**. The client image provides a script to upload targets to the
-interop server from a tab-delimited text file and a set of target images. The
-required file format can be found in the `competition rules
-<http://www.auvsi-suas.org/static/competitions/2016/auvsi_suas-2016-rules.pdf>`__.
-The following shows how to upload targets from the client container shell.
-
-TODO: Migrate to Object File Format.
+interop server from a directory of targets and target thumbnails in the "Object
+File Format", described in the appendix of the 2017 rules. The following shows
+how to upload targets from the client container shell.
 
 .. code-block:: bash
 
     ./tools/interop_cli.py --url http://10.10.130.2:8000 --username testuser targets \
-        --target_filepath tools/testdata/targets.txt --imagery_dir tools/testdata/
+        --target_dir /path/to/target/directory/
 
 **Probe Server**. The client image provides a script to continuously execute
 dummy interop requests to test server availability. The following shows how to
