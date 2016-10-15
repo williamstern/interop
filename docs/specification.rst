@@ -215,26 +215,31 @@ Missions
               },
               "mission_waypoints": [
                   {
-                      "order": 1
                       "altitude_msl": 200.0,
                       "latitude": 38.142544,
                       "longitude": -76.434088,
+                      "order": 1
                   }
               ],
               "off_axis_target_pos": {
                   "latitude": 38.142544,
                   "longitude": -76.434088
               },
+              "emergent_last_known_pos": {
+                  "latitude": 38.145823,
+                  "longitude": -76.422396
+              },
               "search_grid_points": [
                   {
-                      "order": 1
                       "altitude_msl": 200.0,
                       "latitude": 38.142544,
                       "longitude": -76.434088,
+                      "order": 1
                   }
-              ],
+              ]
           }
       ]
+
 
    The response format is a list of mission objects. Each is in the same as
    :http:get:`/api/missions/(int:id)` and is described in detail there.
@@ -310,10 +315,10 @@ Missions
           },
           "mission_waypoints": [
               {
-                  "order": 1
                   "altitude_msl": 200.0,
                   "latitude": 38.142544,
                   "longitude": -76.434088,
+                  "order": 1
               }
           ],
           "off_axis_target_pos": {
@@ -321,18 +326,19 @@ Missions
               "longitude": -76.434088
           },
           "emergent_last_known_pos": {
-              "latitude": 38.142544,
-              "longitude": -76.434088
+              "latitude": 38.145823,
+              "longitude": -76.422396
           },
           "search_grid_points": [
               {
-                  "order": 1
                   "altitude_msl": 200.0,
                   "latitude": 38.142544,
                   "longitude": -76.434088,
+                  "order": 1
               }
-          ],
+          ]
       }
+
 
    :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
                       must be sent to authenticate the request.
@@ -599,7 +605,7 @@ Targets
           "shape": "star",
           "background_color": "orange",
           "alphanumeric": "C",
-          "alphanumeric_color": "black",
+          "alphanumeric_color": "black"
       }
 
    **Example Response**:
@@ -624,7 +630,7 @@ Targets
           "alphanumeric": "C",
           "alphanumeric_color": "black",
           "description": null,
-          "autonomous": false,
+          "autonomous": false
       }
 
    The response format is the same as :http:get:`/api/targets/(int:id)` and
@@ -736,7 +742,7 @@ Targets
               "alphanumeric": "C",
               "alphanumeric_color": "black",
               "description": null,
-              "autonomous": false,
+              "autonomous": false
           },
           {
               "id": 2,
@@ -750,7 +756,7 @@ Targets
               "alphanumeric": null,
               "alphanumeric_color": null,
               "description": "http://auvsi-seafarer.org",
-              "autonomous": false,
+              "autonomous": false
           }
       ]
 
@@ -812,7 +818,7 @@ Targets
           "alphanumeric": "C",
           "alphanumeric_color": "black",
           "description": null,
-          "autonomous": false,
+          "autonomous": false
       }
 
    :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
@@ -917,7 +923,7 @@ Targets
           "alphanumeric": "O",
           "alphanumeric_color": "black",
           "description": null,
-          "autonomous": false,
+          "autonomous": false
       }
 
    This endpoint accepts all fields described in :http:post:`/api/targets` in
