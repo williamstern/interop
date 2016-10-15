@@ -12,6 +12,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseNotFound
 from django.http import HttpResponseServerError
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
@@ -90,7 +91,9 @@ class Missions(View):
         for mission in missions:
             out.append(mission.json(request.user.is_superuser))
 
-        return HttpResponse(json.dumps(out), content_type="application/json")
+        # Older versions of JS allow hijacking the Array constructor to steal
+        # JSON data. It is not a problem in recent versions.
+        return JsonResponse(out, safe=False)
 
 
 class MissionsId(View):

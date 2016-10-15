@@ -167,72 +167,72 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
     fixtures = ['testdata/sample_mission.json']
 
     def assert_non_superuser_data(self, data):
-        self.assertEqual(1, len(data))
+        self.assertIn('id', data)
+        self.assertEqual(3, data['id'])
 
-        self.assertIn('id', data[0])
-        self.assertEqual(3, data[0]['id'])
+        self.assertIn('active', data)
+        self.assertEqual(True, data['active'])
 
-        self.assertIn('active', data[0])
-        self.assertEqual(True, data[0]['active'])
+        self.assertIn('home_pos', data)
+        self.assertIn('latitude', data['home_pos'])
+        self.assertIn('longitude', data['home_pos'])
+        self.assertEqual(38.0, data['home_pos']['latitude'])
+        self.assertEqual(-79.0, data['home_pos']['longitude'])
 
-        self.assertIn('home_pos', data[0])
-        self.assertIn('latitude', data[0]['home_pos'])
-        self.assertIn('longitude', data[0]['home_pos'])
-        self.assertEqual(38.0, data[0]['home_pos']['latitude'])
-        self.assertEqual(-79.0, data[0]['home_pos']['longitude'])
-
-        self.assertIn('mission_waypoints', data[0])
-        for waypoint in data[0]['mission_waypoints']:
+        self.assertIn('mission_waypoints', data)
+        for waypoint in data['mission_waypoints']:
             self.assertIn('order', waypoint)
             self.assertIn('latitude', waypoint)
             self.assertIn('longitude', waypoint)
             self.assertIn('altitude_msl', waypoint)
 
-        self.assertEqual(2, len(data[0]['mission_waypoints']))
+        self.assertEqual(2, len(data['mission_waypoints']))
 
-        self.assertEqual(0, data[0]['mission_waypoints'][0]['order'])
-        self.assertEqual(38.0, data[0]['mission_waypoints'][0]['latitude'])
-        self.assertEqual(-76.0, data[0]['mission_waypoints'][0]['longitude'])
-        self.assertEqual(30.0, data[0]['mission_waypoints'][0]['altitude_msl'])
+        self.assertEqual(0, data['mission_waypoints'][0]['order'])
+        self.assertEqual(38.0, data['mission_waypoints'][0]['latitude'])
+        self.assertEqual(-76.0, data['mission_waypoints'][0]['longitude'])
+        self.assertEqual(30.0, data['mission_waypoints'][0]['altitude_msl'])
 
-        self.assertEqual(1, data[0]['mission_waypoints'][1]['order'])
-        self.assertEqual(38.0, data[0]['mission_waypoints'][1]['latitude'])
-        self.assertEqual(-77.0, data[0]['mission_waypoints'][1]['longitude'])
-        self.assertEqual(60.0, data[0]['mission_waypoints'][1]['altitude_msl'])
+        self.assertEqual(1, data['mission_waypoints'][1]['order'])
+        self.assertEqual(38.0, data['mission_waypoints'][1]['latitude'])
+        self.assertEqual(-77.0, data['mission_waypoints'][1]['longitude'])
+        self.assertEqual(60.0, data['mission_waypoints'][1]['altitude_msl'])
 
-        self.assertIn('search_grid_points', data[0])
-        for point in data[0]['search_grid_points']:
+        self.assertIn('search_grid_points', data)
+        for point in data['search_grid_points']:
             self.assertIn('order', point)
             self.assertIn('latitude', point)
             self.assertIn('longitude', point)
             self.assertIn('altitude_msl', point)
 
-        self.assertEqual(1, len(data[0]['search_grid_points']))
+        self.assertEqual(1, len(data['search_grid_points']))
 
-        self.assertEqual(10, data[0]['search_grid_points'][0]['order'])
-        self.assertEqual(38.0, data[0]['search_grid_points'][0]['latitude'])
-        self.assertEqual(-79.0, data[0]['search_grid_points'][0]['longitude'])
-        self.assertEqual(1000.0,
-                         data[0]['search_grid_points'][0]['altitude_msl'])
+        self.assertEqual(10, data['search_grid_points'][0]['order'])
+        self.assertEqual(38.0, data['search_grid_points'][0]['latitude'])
+        self.assertEqual(-79.0, data['search_grid_points'][0]['longitude'])
+        self.assertEqual(1000.0, data['search_grid_points'][0]['altitude_msl'])
 
-        self.assertIn('off_axis_target_pos', data[0])
-        self.assertIn('latitude', data[0]['off_axis_target_pos'])
-        self.assertIn('longitude', data[0]['off_axis_target_pos'])
-        self.assertEqual(38.0, data[0]['off_axis_target_pos']['latitude'])
-        self.assertEqual(-79.0, data[0]['off_axis_target_pos']['longitude'])
+        self.assertIn('off_axis_target_pos', data)
+        self.assertIn('latitude', data['off_axis_target_pos'])
+        self.assertIn('longitude', data['off_axis_target_pos'])
+        self.assertEqual(38.0, data['off_axis_target_pos']['latitude'])
+        self.assertEqual(-79.0, data['off_axis_target_pos']['longitude'])
 
-        self.assertIn('emergent_last_known_pos', data[0])
-        self.assertIn('latitude', data[0]['emergent_last_known_pos'])
-        self.assertIn('longitude', data[0]['emergent_last_known_pos'])
-        self.assertEqual(38.0, data[0]['emergent_last_known_pos']['latitude'])
-        self.assertEqual(-79.0,
-                         data[0]['emergent_last_known_pos']['longitude'])
+        self.assertIn('emergent_last_known_pos', data)
+        self.assertIn('latitude', data['emergent_last_known_pos'])
+        self.assertIn('longitude', data['emergent_last_known_pos'])
+        self.assertEqual(38.0, data['emergent_last_known_pos']['latitude'])
+        self.assertEqual(-79.0, data['emergent_last_known_pos']['longitude'])
 
-        self.assertIn('air_drop_pos', data[0])
-        self.assertIn('latitude', data[0]['air_drop_pos'])
-        self.assertIn('longitude', data[0]['air_drop_pos'])
-        self.assertEqual(38.0, data[0]['air_drop_pos']['latitude'])
-        self.assertEqual(-79.0, data[0]['air_drop_pos']['longitude'])
+        self.assertIn('air_drop_pos', data)
+        self.assertIn('latitude', data['air_drop_pos'])
+        self.assertIn('longitude', data['air_drop_pos'])
+        self.assertEqual(38.0, data['air_drop_pos']['latitude'])
+        self.assertEqual(-79.0, data['air_drop_pos']['longitude'])
+
+    def assert_non_superuser_data_array(self, data):
+        self.assertEqual(1, len(data))
+        self.assert_non_superuser_data(data[0])
 
     def test_non_superuser(self):
         """Response JSON is properly formatted for non-superuser."""
@@ -241,7 +241,7 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
 
-        self.assert_non_superuser_data(data)
+        self.assert_non_superuser_data_array(data)
         self.assertNotIn('stationary_obstacles', data[0])
         self.assertNotIn('moving_obstacles', data[0])
 
@@ -250,16 +250,38 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertEqual(data, json.loads(response.content))
 
     def test_superuser(self):
-        """Response JSON is properly formatted for non-superuser."""
+        """Response JSON is properly formatted for superuser."""
         self.Login(is_superuser=True)
         response = self.client.get(missions_url)
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
 
-        self.assert_non_superuser_data(data)
+        self.assert_non_superuser_data_array(data)
         self.assertIn('stationary_obstacles', data[0])
         self.assertIn('moving_obstacles', data[0])
 
         response = self.client.get(missions_url)
         self.assertEqual(200, response.status_code)
         self.assertEqual(data, json.loads(response.content))
+
+    def test_non_superuser_id(self):
+        """Mission ID response JSON is properly formatted for non-superuser."""
+        self.Login(is_superuser=False)
+        response = self.client.get(missions_id_url(args=[3]))
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+
+        self.assert_non_superuser_data(data)
+        self.assertNotIn('stationary_obstacles', data)
+        self.assertNotIn('moving_obstacles', data)
+
+    def test_superuser_id(self):
+        """Mission ID response JSON is properly formatted for superuser."""
+        self.Login(is_superuser=True)
+        response = self.client.get(missions_id_url(args=[3]))
+        self.assertEqual(200, response.status_code)
+        data = json.loads(response.content)
+
+        self.assert_non_superuser_data(data)
+        self.assertIn('stationary_obstacles', data)
+        self.assertIn('moving_obstacles', data)
