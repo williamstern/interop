@@ -40,7 +40,6 @@ module.exports = function(config) {
       // Test files.
       'components/settings/settings-service_test.js',
       'components/navigation/navigation_test.js',
-      'components/backend/backend-service_test.js',
       'components/units/units-service_test.js',
       'components/distance/distance-service_test.js',
       'components/team-status/team-status-controller_test.js',

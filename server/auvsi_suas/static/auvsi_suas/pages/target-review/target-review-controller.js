@@ -3,7 +3,6 @@
  */
 
 
-
 /**
  * Controller for the Target Review page.
  * @param {!angular.Window} $window The window service.
@@ -20,9 +19,9 @@ TargetReviewCtrl = function($window, Backend) {
     this.window_ = $window;
 
     /**
-     * @private @const {!Object} The backend service.
+     * @private{?Array<Object>} The targets for review.
      */
-    this.backend_ = Backend;
+    this.targets_ = null;
 
     /**
      * @private {?Object} The target under review.
@@ -33,6 +32,10 @@ TargetReviewCtrl = function($window, Backend) {
      * @private {?Array<Object>} The target review details.
      */
     this.targetDetails_ = null;
+
+    // Query the backend for targets to review.
+    Backend.targetReviewResource.query({}).$promise.then(
+            angular.bind(this, this.setTargets_));
 };
 
 
@@ -42,7 +45,23 @@ TargetReviewCtrl = function($window, Backend) {
  * @export
  */
 TargetReviewCtrl.prototype.getReviewTargets = function() {
-    return this.backend_.reviewTargets;
+    return this.targets_;
+};
+
+
+/**
+ * @return {?Object} The target under review.
+ */
+TargetReviewCtrl.prototype.getReviewTarget = function() {
+    return this.target_;
+};
+
+
+/**
+ * @return {?Object} The target details.
+ */
+TargetReviewCtrl.prototype.getReviewTargetDetails = function() {
+    return this.targetDetails_;
 };
 
 
@@ -110,29 +129,48 @@ TargetReviewCtrl.prototype.setReviewTarget = function(target) {
 
 
 /**
- * @return {?Object} The target under review.
- */
-TargetReviewCtrl.prototype.getReviewTarget = function() {
-    return this.target_;
-};
-
-/**
- * @return {?Object} The target details.
- */
-TargetReviewCtrl.prototype.getReviewTargetDetails = function() {
-    return this.targetDetails_;
-};
-
-
-/**
  * Sets the review status for the target under review. Advances to
  * the next target for review.
  * @param {bool} approved The review status to set.
  */
 TargetReviewCtrl.prototype.setReview = function(approved) {
     this.target_.thumbnail_approved = approved;
-    this.target_.$update().then(
+    this.target_.$put().then(
             angular.bind(this, this.nextTarget_));
+};
+
+
+/**
+ * @return {string} The class info for the target image review.
+ */
+TargetReviewCtrl.prototype.getTargetImgStyle = function() {
+    if (!!this.target_) {
+        return 'background-image: url(/api/targets/' + this.target_.id +
+                '/image); height: ' + this.getTargetImgHeight() + 'px;';
+    } else {
+        return '';
+    }
+};
+
+
+/**
+ * @return {number} The height of the target image display.
+ */
+TargetReviewCtrl.prototype.getTargetImgHeight = function() {
+    return this.window_.innerHeight - 95;
+};
+
+
+/**
+ * @param {Array<Object>} targets The targets to review.
+ */
+TargetReviewCtrl.prototype.setTargets_ = function(targets) {
+    this.targets_ = targets;
+    if (this.targets_.length > 0) {
+        this.target_ = this.targets_[0];
+    } else {
+        this.target_ = null;
+    }
 };
 
 
@@ -150,27 +188,6 @@ TargetReviewCtrl.prototype.nextTarget_ = function() {
     }
 
     this.setReviewTarget(targets[targets.length-1]);
-};
-
-
-/**
- * @return {string} The class info for the target image review.
- */
-TargetReviewCtrl.prototype.getTargetImgStyle = function() {
-    if (!!this.target_) {
-        return 'background-image: url(/api/targets/' + this.target_.id +
-                '/image); height: ' + this.getTargetImgHeight() + 'px;';
-    } else {
-        return '';
-    }
-}
-
-
-/**
- * @return {number} The height of the target image display.
- */
-TargetReviewCtrl.prototype.getTargetImgHeight = function() {
-    return this.window_.innerHeight - 95;
 };
 
 

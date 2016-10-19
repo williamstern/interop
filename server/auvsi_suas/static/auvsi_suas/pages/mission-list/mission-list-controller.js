@@ -3,7 +3,6 @@
  */
 
 
-
 /**
  * Controller for the Mission List page.
  * @param {!Object} Backend The backend service.
@@ -14,9 +13,13 @@
  */
 MissionListCtrl = function(Backend) {
     /**
-     * @export @const {!Object} The backend service.
+     * @private {?Array<Object>} The missions data.
      */
-    this.backend = Backend;
+    this.missions_ = null;
+
+    // Query the backend for missions.
+    Backend.missionResource.query({}).$promise.then(
+            angular.bind(this, this.setMissions_));
 };
 
 
@@ -26,7 +29,24 @@ MissionListCtrl = function(Backend) {
  * @export
  */
 MissionListCtrl.prototype.hasMissions = function() {
-    return !!this.backend.missions && this.backend.missions.length != 0;
+    return !!this.missions_ && this.missions_.length != 0;
+};
+
+
+/**
+ * @return {?Array<Object>} The missions data.
+ * @export
+ */
+MissionListCtrl.prototype.getMissions = function() {
+    return this.missions_;
+};
+
+
+/**
+ * @param {Array<Object>} missions The missions data.
+ */
+MissionListCtrl.prototype.setMissions_ = function(missions) {
+    this.missions_ = missions;
 };
 
 

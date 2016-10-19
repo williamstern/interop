@@ -4,43 +4,15 @@
 
 
 describe("MissionDashboardCtrl controller", function() {
-    var routeParams, backend;
+    var teams;
+    var routeParams, httpBackend, interval;
     var missionDashboardCtrl;
 
     beforeEach(module('auvsiSuasApp'));
 
-    beforeEach(inject(function($rootScope, $controller) {
-        routeParams = {
-            missionId: 1
-        };
-        backend = {
-            missions: [{id: 1}, {id: 2}],
-            obstacles: [],
-        };
-
-        missionDashboardCtrl = $controller('MissionDashboardCtrl',
-                                           {$rootScope: $rootScope,
-                                            $routeParams: routeParams,
-                                            Backend: backend});
-    }));
-
-    it("Should get current mission", function() {
-        expect(missionDashboardCtrl.getCurrentMission()).toEqual({id: 1});
-
-        routeParams.missionId = 1000;
-        expect(missionDashboardCtrl.getCurrentMission()).toBe(null);
-
-        missions = backend.missions;
-        backend.missions = null;
-        expect(missionDashboardCtrl.getCurrentMission()).toBe(null);
-        backend.missions = missions;
-
-        routeParams.missionId = null;
-        expect(missionDashboardCtrl.getCurrentMission()).toBe(null);
-    });
-
-    it("Should get teams to display", function() {
-        var teams = [
+    beforeEach(inject(function($q, $rootScope, $interval, $httpBackend,
+                               $controller, Backend) {
+        teams = [
             {
                 id: 1,
                 on_clock: false,
@@ -77,10 +49,37 @@ describe("MissionDashboardCtrl controller", function() {
                 in_air: true
             },
         ];
-        teams_to_display = [teams[1], teams[2], teams[3], teams[4]];
-        backend.teams = teams;
 
-        expect(missionDashboardCtrl.getTeamsToDisplay())
-            .toEqual(teams_to_display);
+        routeParams = {
+            missionId: 1
+        };
+
+        missionDashboardCtrl = $controller('MissionDashboardCtrl', {
+            $q: $q,
+            $rootScope: $rootScope,
+            $routeParams: routeParams,
+            $interval: $interval,
+            Backend: Backend
+        });
+
+        interval = $interval;
+        httpBackend = $httpBackend;
+        httpBackend.whenGET('/api/missions/1').respond({id: 1});
+        httpBackend.whenGET('/api/teams').respond(teams);
+        httpBackend.whenGET('/api/telemetry?limit=1&user=4')
+            .respond([{user: 4, id: 10, latitude: 10}]);
+        httpBackend.whenGET('/api/obstacles').respond({id: 300});
+    }));
+
+    it("Should get current mission", function() {
+        httpBackend.flush();
+        expect(missionDashboardCtrl.getMission().toJSON()).toEqual({id: 1});
+    });
+
+    it("Should get teams to display", function() {
+        interval.flush(2000);
+        httpBackend.flush();
+        // Team 5 is not active, so expect 4.
+        expect(missionDashboardCtrl.getTeamsToDisplay().length).toEqual(4);
     });
 });
