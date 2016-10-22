@@ -163,6 +163,7 @@ class Target(models.Model):
     thumbnail_approved = models.NullBooleanField()
     creation_time = models.DateTimeField(auto_now_add=True)
     last_modified_time = models.DateTimeField(auto_now=True)
+    actionable_override = models.BooleanField(default=False)
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
@@ -227,6 +228,7 @@ class Target(models.Model):
             d['thumbnail_approved'] = self.thumbnail_approved
             d['creation_time'] = self.creation_time
             d['last_modified_time'] = self.last_modified_time
+            d['actionable_override'] = self.actionable_override
 
         return d
 
@@ -259,8 +261,11 @@ class Target(models.Model):
     def actionable_submission(self, flights=None):
         """Checks if Target meets Actionable Intelligence submission criteria.
 
-        A target is "actionable" if it was submitted and last updated during the
-        aircraft's first flight.
+        A target is "actionable" if one of the following conditions is met:
+            (a) If it was submitted over interop and last updated during the
+                aircraft's first flight.
+            (b) If the target was submitted via USB, the target's
+                actionable_override flag was set by an admin.
 
         Args:
             flights: Optional memoized flights for this target's user. If
@@ -272,13 +277,14 @@ class Target(models.Model):
         if flights is None:
             flights = TakeoffOrLandingEvent.flights(self.user)
 
+        actionable = False
         if len(flights) > 0:
             flight = flights[0]
             if flight.within(self.creation_time) and \
                 flight.within(self.last_modified_time):
-                return True
+                actionable = True
 
-        return False
+        return self.actionable_override or actionable
 
     def interop_submission(self, missions=None):
         """Checks if Target meets Interoperability submission criteria.

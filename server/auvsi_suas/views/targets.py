@@ -115,6 +115,11 @@ def normalize_data(data):
         if data['autonomous'] is not True and data['autonomous'] is not False:
             raise ValueError('"autonmous" must be true or false')
 
+    if 'actionable_override' in data:
+        if (data['actionable_override'] is not True and
+            data['actionable_override'] is not False): # yapf: disable
+            raise ValueError('"actionable_override" must be true or false')
+
     return data
 
 
@@ -163,6 +168,11 @@ class Targets(View):
             return HttpResponseBadRequest(
                 'Either none or both of latitude and longitude required.')
 
+        # Cannot submit JSON with actionable_override if not superuser.
+        if 'actionable_override' in data and not request.user.is_superuser:
+            return HttpResponseForbidden(
+                'Non-admin users cannot submit actionable override.')
+
         try:
             data = normalize_data(data)
         except ValueError as e:
@@ -184,7 +194,8 @@ class Targets(View):
                    alphanumeric=data.get('alphanumeric', ''),
                    alphanumeric_color=data.get('alphanumeric_color'),
                    description=data.get('description', ''),
-                   autonomous=data.get('autonomous', False))
+                   autonomous=data.get('autonomous', False),
+                   actionable_override=data.get('actionable_override', False))
         t.save()
 
         return JsonResponse(
@@ -245,6 +256,11 @@ class TargetsId(View):
         except ValueError:
             return HttpResponseBadRequest('Request body is not valid JSON.')
 
+        # Cannot submit JSON with actionable_override if not superuser.
+        if 'actionable_override' in data and not request.user.is_superuser:
+            return HttpResponseForbidden(
+                'Non-admin users cannot submit actionable override.')
+
         try:
             data = normalize_data(data)
         except ValueError as e:
@@ -267,6 +283,8 @@ class TargetsId(View):
             target.description = data['description']
         if 'autonomous' in data:
             target.autonomous = data['autonomous']
+        if 'actionable_override' in data:
+            target.actionable_override = data['actionable_override']
 
         # Location is special because it is in a GpsPosition model
 
