@@ -32,7 +32,7 @@ class UasTelemetry(AccessLog):
                         self.uas_position.__unicode__()))
 
     @classmethod
-    def by_user(cls, user):
+    def by_user(cls, *args, **kwargs):
         """Gets the time-sorted list of access log for the given user.
 
         Note: This prefetches the related AerialPosition and GpsPosition
@@ -47,7 +47,7 @@ class UasTelemetry(AccessLog):
         # Almost every user of UasTelemetry.by_user wants to use
         # the related AerialPosition and GpsPosition.  To avoid excessive
         # database queries, we select these values from the database up front.
-        return super(UasTelemetry, cls).by_user(user) \
+        return super(UasTelemetry, cls).by_user(*args, **kwargs) \
                 .select_related('uas_position__gps_position')
 
     @classmethod

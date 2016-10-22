@@ -789,7 +789,7 @@
 {
     "fields": {
         "uas_in_air": false,
-        "timestamp": "1970-01-01T00:00:02Z",
+        "timestamp": "1970-01-01T00:00:03Z",
         "user": 54
     },
     "model": "auvsi_suas.takeofforlandingevent",
@@ -807,7 +807,7 @@
 {
     "fields": {
         "uas_in_air": false,
-        "timestamp": "1970-01-01T00:00:10Z",
+        "timestamp": "1970-01-01T00:00:11Z",
         "user": 54
     },
     "model": "auvsi_suas.takeofforlandingevent",

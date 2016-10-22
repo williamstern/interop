@@ -1,31 +1,31 @@
-<div class="panel team-status {{teamStatusCtrl.getTeamColorClasses()}}">
+<div class="panel team-status {{teamStatusCtrl.getTeamColorClasses()}}" ng-show="teamStatusCtrl.shouldShow()">
     <h4>{{teamStatusCtrl.team.id}}: {{teamStatusCtrl.team.name}}</h4>
-    <div class="row">
-        <div class="small-4 columns">
-            <h6>Lat: {{teamStatusCtrl.telemetry.latitude | number : 6}}</h6>
+    <div class="row team-status-telemetry">
+        <div title="Latitude in Degrees" class="small-4 columns">
+            Lat: {{teamStatusCtrl.team.telemetry.latitude | number : 6}}
         </div>
-        <div class="small-4 columns">
-            <h6>Lon: {{teamStatusCtrl.telemetry.longitude | number: 6}}</h6>
+        <div title="Longitude in Degrees" class="small-4 columns">
+            Lon: {{teamStatusCtrl.team.telemetry.longitude | number: 6}}
         </div>
-        <div class="small-4 columns">
-            <h6>Alt (ft MSL): {{teamStatusCtrl.telemetry.altitude_msl | number: 6}}</h6>
+        <div title="Altitude in Feet MSL" class="small-4 columns">
+            Alt: {{teamStatusCtrl.team.telemetry.altitude_msl | number: 1}}
         </div>
     </div>
     <div class="row">
         <div class="small-12 columns">
-            <span class="team-status-icon label" ng-if="teamStatusCtrl.team.on_clock"
+            <span class="team-status-icon label" ng-show="teamStatusCtrl.team.on_clock"
                   title="On Mission Clock">
                 &#128336;  <!-- CLOCK FACE ONE OCLOCK --!>
             </span>
-            <span class="team-status-icon label" ng-if="teamStatusCtrl.team.on_timeout"
+            <span class="team-status-icon label" ng-show="teamStatusCtrl.team.on_timeout"
                   title="On Timeout">
                 &#9208;  <!-- DOUBLE VERTICAL BAR --!>
             </span>
-            <span class="team-status-icon label" ng-if="teamStatusCtrl.team.active"
+            <span class="team-status-icon label" ng-show="teamStatusCtrl.isActive()"
                   title="Sending Telemtry">
                 &#8633;  <!-- LEFTWARDS ARROW TO BAR OVER RIGHTWARDS ARROW TO BAR --!>
             </span>
-            <span class="team-status-icon label" ng-if="teamStatusCtrl.team.in_air"
+            <span class="team-status-icon label" ng-show="teamStatusCtrl.team.in_air"
                   title="In Air">
                 &#9992;  <!-- AIRPLANE --!>
             </span>

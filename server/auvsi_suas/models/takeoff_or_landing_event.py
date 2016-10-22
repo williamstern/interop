@@ -45,7 +45,7 @@ class TakeoffOrLandingEvent(AccessLog):
         Returns:
             True if user is currently in-flight, False otherwise
         """
-        event = cls.last_for_user(user, time)
+        event = cls.last_for_user(user, end_time=time)
         if event:
             return event.uas_in_air
         return False

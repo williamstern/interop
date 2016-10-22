@@ -1,5 +1,6 @@
 """Tests for the teams module."""
 
+import dateutil.parser
 import functools
 import json
 from auvsi_suas.models import AerialPosition
@@ -73,10 +74,14 @@ class TestTeamsView(TestCase):
         pos = AerialPosition(gps_position=gps, altitude_msl=0)
         pos.save()
 
-        telem = UasTelemetry(user=self.user2, uas_position=pos, uas_heading=90)
-        telem.save()
-        telem.timestamp = self.timestamp
-        telem.save()
+        self.telem = UasTelemetry(user=self.user2,
+                                  uas_position=pos,
+                                  uas_heading=90)
+        self.telem.save()
+        self.telem.timestamp = dateutil.parser.parse(
+            u'2016-10-01T00:00:00.0+00:00')
+
+        self.telem.save()
 
     def test_normal_user(self):
         """Normal users not allowed access."""
@@ -123,7 +128,7 @@ class TestTeamsView(TestCase):
             self.assertIn('on_clock', user)
             self.assertIn('on_timeout', user)
             self.assertIn('in_air', user)
-            self.assertIn('active', user)
+            self.assertIn('telemetry', user)
 
     def test_users_correct(self):
         """User names and status correct."""
@@ -142,13 +147,22 @@ class TestTeamsView(TestCase):
         self.assertEqual(True, user1['on_clock'])
         self.assertEqual(False, user1['on_timeout'])
         self.assertEqual(True, user1['in_air'])
-        self.assertEqual(False, user1['active'])
+        self.assertEqual(None, user1['telemetry'])
 
         user2 = data[names.index('user2')]
         self.assertEqual(False, user2['on_clock'])
         self.assertEqual(False, user2['on_timeout'])
         self.assertEqual(False, user2['in_air'])
-        self.assertEqual(True, user2['active'])
+        self.assertEqual(
+            {
+                u'id': self.telem.pk,
+                u'user': user2['id'],
+                u'timestamp': u'2016-10-01T00:00:00+00:00',
+                u'latitude': 38.6462,
+                u'longitude': -76.2452,
+                u'altitude_msl': 0.0,
+                u'heading': 90.0,
+            }, user2['telemetry'])
 
 
 class TestTeamsIdViewLoggedOut(TestCase):
@@ -194,7 +208,7 @@ class TestTeamsIdView(TestCase):
         self.assertEqual(False, data['on_clock'])
         self.assertEqual(False, data['on_timeout'])
         self.assertEqual(False, data['in_air'])
-        self.assertEqual(False, data['active'])
+        self.assertEqual(None, data['telemetry'])
 
     def test_bad_json(self):
         """Invalid json rejected"""
@@ -222,7 +236,7 @@ class TestTeamsIdView(TestCase):
             data = json.dumps({
                 'name': self.user1.username,
                 'id': self.user1.pk,
-                'active': False,
+                'telemetry': None,
                 'on_clock': on_clock,
                 'on_timeout': on_timeout,
             })
@@ -237,7 +251,7 @@ class TestTeamsIdView(TestCase):
         data = json.dumps({
             'name': self.user1.username,
             'id': self.user1.pk,
-            'active': False,
+            'telemetry': None,
             'on_clock': False,
             'on_timeout': False,
             'in_air': False,
@@ -256,7 +270,7 @@ class TestTeamsIdView(TestCase):
         data = json.dumps({
             'name': self.user1.username,
             'id': self.user1.pk,
-            'active': False,
+            'telemetry': None,
             'in_air': True,
         })
 
@@ -277,7 +291,7 @@ class TestTeamsIdView(TestCase):
         data = json.dumps({
             'name': self.user1.username,
             'id': self.user1.pk,
-            'active': False,
+            'telemetry': None,
             'on_clock': True,
         })
 
@@ -299,7 +313,7 @@ class TestTeamsIdView(TestCase):
         data = json.dumps({
             'name': self.user1.username,
             'id': self.user1.pk,
-            'active': False,
+            'telemetry': None,
             'on_timeout': True,
         })
 
@@ -323,7 +337,7 @@ class TestTeamsIdView(TestCase):
         data = json.dumps({
             'name': 'Hello World!',
             'id': self.user1.pk,
-            'active': False,
+            'telemetery': False,
             'in_air': False,
         })
 
@@ -341,7 +355,7 @@ class TestTeamsIdView(TestCase):
         data = json.dumps({
             'name': self.user1.username,
             'id': 999,
-            'active': False,
+            'telemetry': None,
             'in_air': False,
         })
 
@@ -352,12 +366,12 @@ class TestTeamsIdView(TestCase):
 
         self.assertEqual(expected, data['id'])
 
-    def test_active_ignored(self):
-        """active field ignored"""
+    def test_telemetry_ignored(self):
+        """telemetry field ignored"""
         data = json.dumps({
             'name': self.user1.username,
             'id': self.user1.pk,
-            'active': True,
+            'telemetry': {'id': 1},
             'in_air': False,
         })
 
@@ -366,4 +380,4 @@ class TestTeamsIdView(TestCase):
 
         data = json.loads(response.content)
 
-        self.assertEqual(False, data['active'])
+        self.assertEqual(None, data['telemetry'])

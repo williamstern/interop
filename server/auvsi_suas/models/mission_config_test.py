@@ -276,8 +276,8 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertAlmostEqual(18, teams[user1]['mission_clock_time'])
         self.assertAlmostEqual(1.0, teams[user1]['out_of_bounds_time'])
 
-        self.assertAlmostEqual(1.0, teams[user1]['uas_telem_times']['max'])
-        self.assertAlmostEqual(2. / 4, teams[user1]['uas_telem_times']['avg'])
+        self.assertAlmostEqual(2.0, teams[user1]['uas_telem_times']['max'])
+        self.assertAlmostEqual(1.0, teams[user1]['uas_telem_times']['avg'])
 
         self.assertEqual(False, teams[user1]['stationary_obst_collision'][25])
         self.assertEqual(False, teams[user1]['stationary_obst_collision'][26])

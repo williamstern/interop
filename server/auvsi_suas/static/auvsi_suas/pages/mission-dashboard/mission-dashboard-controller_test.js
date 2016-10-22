@@ -17,35 +17,43 @@ describe("MissionDashboardCtrl controller", function() {
                 id: 1,
                 on_clock: false,
                 on_timeout: false,
-                active: false,
+                telemetry: null,
                 in_air: false
             },
             {
                 id: 2,
                 on_clock: true,
                 on_timeout: false,
-                active: false,
+                telemetry: null,
                 in_air: false
             },
             {
                 id: 3,
                 on_clock: false,
                 on_timeout: true,
-                active: false,
+                telemetry: null,
                 in_air: false
             },
             {
                 id: 4,
                 on_clock: false,
                 on_timeout: false,
-                active: true,
+                telemetry: {
+                    id: 10,
+                    user: 4,
+                    timestamp: '3000-10-01T00:00:00+00:00',
+                    latitude: 38,
+                    longitude: -76,
+                    altitude_msl: 0,
+                    heading: 90
+                },
                 in_air: false
             },
             {
                 id: 5,
                 on_clock: false,
                 on_timeout: false,
-                active: false,
+                telemetry: null,
                 in_air: true
             },
         ];
@@ -66,8 +74,6 @@ describe("MissionDashboardCtrl controller", function() {
         httpBackend = $httpBackend;
         httpBackend.whenGET('/api/missions/1').respond({id: 1});
         httpBackend.whenGET('/api/teams').respond(teams);
-        httpBackend.whenGET('/api/telemetry?limit=1&user=4')
-            .respond([{user: 4, id: 10, latitude: 10}]);
         httpBackend.whenGET('/api/obstacles').respond({id: 300});
     }));
 
@@ -76,10 +82,11 @@ describe("MissionDashboardCtrl controller", function() {
         expect(missionDashboardCtrl.getMission().toJSON()).toEqual({id: 1});
     });
 
-    it("Should get teams to display", function() {
+    it("Should get teams", function() {
         interval.flush(2000);
         httpBackend.flush();
-        // Team 5 is not active, so expect 4.
-        expect(missionDashboardCtrl.getTeamsToDisplay().length).toEqual(4);
+        for (var i = 0; i < teams.length; i++) {
+            expect(missionDashboardCtrl.teams[i].toJSON()).toEqual(teams[i]);
+        }
     });
 });
