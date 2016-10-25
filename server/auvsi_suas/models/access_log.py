@@ -12,14 +12,15 @@ class AccessLog(models.Model):
     """Base class which logs access of information.
 
     Attributes:
-        timestamp: Timestamp of the access.
         user: The user which accessed the data.
+        timestamp: Timestamp of the access.
     """
-    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, db_index=True)
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         abstract = True
+        index_together = (('user', 'timestamp'), )
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
@@ -28,58 +29,35 @@ class AccessLog(models.Model):
                         self.user.__unicode__(), str(self.timestamp)))
 
     @classmethod
-    def last_for_user(cls, user, before_time=None):
-        """Gets the last access log for the user.
-
-        Args:
-            user: The user to get the access log for.
-            before_time: Optional. Gets the last log before this time.
-        Returns:
-            The last access log for the user.
-        """
-        if before_time is None:
-            before_time = timezone.now()
-        return cls.objects \
-            .order_by('timestamp') \
-            .filter(user=user.pk) \
-            .filter(timestamp__lt=before_time) \
-            .last()
-
-    @classmethod
-    def by_user(cls, user):
+    def by_user(cls, user, start_time=None, end_time=None):
         """Gets the time-sorted list of access log for the given user.
 
         Args:
             user: The user to get the access log for.
+            start_time: Optional. Inclusive start time.
+            end_time: Optional. Exclusive end time.
         Returns:
             A list of access log objects for the given user sorted by timestamp.
         """
-        return cls.objects.filter(user_id=user.pk).order_by('timestamp')
+        query = cls.objects.filter(user_id=user.pk)
+        if start_time:
+            query = query.filter(timestamp__gte=start_time)
+        if end_time:
+            query = query.filter(timestamp__lt=end_time)
+        return query.order_by('timestamp')
 
     @classmethod
-    def user_active(cls, user, base=None, delta=None):
-        """Determines if a user is 'active'.
-
-        A user is 'active' if they have reported telemetry since delta
-        time in the past.
+    def last_for_user(cls, user, start_time=None, end_time=None):
+        """Gets the last access log for the user.
 
         Args:
-            user: User to determine if is active
-            base: Base time for active period, defaults to now
-            delta: time period before base to consider user active
+            user: The user to get the access log for.
+            start_time: Optional. Inclusive start time.
+            end_time: Optional. Exclusive end time.
         Returns:
-            True if user reported telemetry since base - delta
+            The last access log for the user.
         """
-        if base is None:
-            base = timezone.now()
-        if delta is None:
-            delta = datetime.timedelta(seconds=10)
-
-        since = base - delta
-
-        return 0 != cls.by_user(user) \
-            .filter(timestamp__gt=since) \
-            .filter(timestamp__lt=base).count()
+        return cls.by_user(user, start_time, end_time).last()
 
     @classmethod
     def by_time_period(cls, user, time_periods):
@@ -96,19 +74,7 @@ class AccessLog(models.Model):
             A list of AccessLog lists, where each AccessLog list contains all
             AccessLogs corresponding to the related TimePeriod.
         """
-        ret = []
-
-        for period in time_periods:
-            logs = cls.by_user(user)
-
-            if period.start:
-                logs = logs.filter(timestamp__gte=period.start)
-            if period.end:
-                logs = logs.filter(timestamp__lte=period.end)
-
-            ret.append(logs)
-
-        return ret
+        return [cls.by_user(user, p.start, p.end) for p in time_periods]
 
     @classmethod
     def rates(cls, user, time_periods, time_period_logs=None):

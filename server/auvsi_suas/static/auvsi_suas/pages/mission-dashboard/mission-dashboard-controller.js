@@ -33,11 +33,6 @@ MissionDashboardCtrl = function($q, $rootScope, $routeParams, $interval,
     this.obstacles = null;
 
     /**
-     * @export {!Object} Map from user to telemetry data.
-     */
-    this.telemetry = {};
-
-    /**
      * @private @const {?Object} The scene built by the map view, via template.
      */
     this.missionScene = null;
@@ -79,39 +74,6 @@ MissionDashboardCtrl.prototype.getMission = function() {
 
 
 /**
- * Gets a list of teams which should be displayed.
- * @return {!Array} A list of teams.
- * @export
- */
-MissionDashboardCtrl.prototype.getTeamsToDisplay = function() {
-    // Check that data has been loaded.
-    if (!this.teams || this.teams.length == 0) {
-        return [];
-    }
-
-    // Get all teams which are relevant.
-    teams = [];
-    for (var i = 0; i < this.teams.length; i++) {
-        if (this.shouldDisplayTeam_(this.teams[i])) {
-            teams.push(this.teams[i]);
-        }
-    }
-    return teams;
-};
-
-
-/**
- * Gets the telemetry for a team.
- * @param{!Object} team The team for which to get telemetry.
- * @return {?Object} The telemetry for the team.
- * @export
- */
-MissionDashboardCtrl.prototype.getTelemetry = function(team) {
-    return this.telemetry[team.id];
-};
-
-
-/**
  * @param {!Object} mission The mission data.
  */
 MissionDashboardCtrl.prototype.setMission_ = function(mission) {
@@ -127,8 +89,7 @@ MissionDashboardCtrl.prototype.update_ = function() {
     // Execute backend requests.
     var requests = [];
     requests.push(this.backend_.teamsResource.query({}).$promise
-        .then(angular.bind(this, this.setTeams_))
-        .then(angular.bind(this, this.updateTelemetry_)));
+        .then(angular.bind(this, this.setTeams_)));
     requests.push(this.backend_.obstaclesResource.get({}).$promise.then(
             angular.bind(this, this.setObstacles_)));
 
@@ -158,39 +119,6 @@ MissionDashboardCtrl.prototype.setObstacles_ = function(obstacles) {
 
 
 /**
- * Updates the telemetry for active teams.
- * @return {!Object} Promise for updating telemetry requests.
- * @private
- */
-MissionDashboardCtrl.prototype.updateTelemetry_ = function() {
-    var requests = [];
-    for (var i = 0; i < this.teams.length; i++) {
-        if (this.teams[i].active) {
-            var query = this.backend_.telemetryResource.query({
-                limit: 1,
-                user: this.teams[i].id
-            });
-            requests.push(query.$promise.then(angular.bind(this, this.setTelemetry_)));
-        }
-    }
-    return this.q_.all(requests);
-}
-
-
-/**
- * Sets the telemetry.
- * @param {!Object} telemetry The telemetry to set.
- * @private
- */
-MissionDashboardCtrl.prototype.setTelemetry_ = function(telemetry) {
-    for (var i = 0; i < telemetry.length; i++) {
-        this.telemetry[telemetry[i].user] = telemetry[i];
-    }
-};
-
-
-
-/**
  * Rebuild the mission scene using the backend data.
  * @private
  */
@@ -203,8 +131,8 @@ MissionDashboardCtrl.prototype.rebuildMissionScene_ = function() {
     if (this.teams) {
         for (var i = 0; i < this.teams.length; i++) {
             var team = this.teams[i];
-            if (team.active && this.telemetry[team.id]) {
-                telemetry.push(this.telemetry[team.id]);
+            if (team.telemetry) {
+                telemetry.push(team.telemetry);
             }
         }
     }
@@ -214,17 +142,6 @@ MissionDashboardCtrl.prototype.rebuildMissionScene_ = function() {
         this.missionScene.rebuildScene(
                 this.mission, this.obstacles, telemetry);
     }
-};
-
-
-/**
- * Determines whether a team should be displayed.
- * @param {!Object} team The team to evaluate.
- * @return {!boolean} Whether team should be displayed.
- * @private
- */
-MissionDashboardCtrl.prototype.shouldDisplayTeam_ = function(team) {
-    return team.on_clock || team.on_timeout || team.active || team.in_air;
 };
 
 

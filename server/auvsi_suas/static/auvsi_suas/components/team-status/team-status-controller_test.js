@@ -9,30 +9,40 @@ describe("TeamStatusCtrl controller", function() {
 
     beforeEach(inject(function($controller) {
         team = {
-            active: true,
-            in_air: true
+            id: 4,
+            on_clock: false,
+            on_timeout: false,
+            telemetry: {
+                id: 10,
+                user: 4,
+                timestamp: '1990-10-01T00:00:00+00:00',
+                latitude: 38,
+                longitude: -76,
+                altitude_msl: 0,
+                heading: 90
+            },
+            in_air: false
         };
         teamStatusCtrl = new TeamStatusCtrl();
         teamStatusCtrl.team = team;
     }));
 
     it("Should get the team color class", function() {
-        expect(teamStatusCtrl.getTeamColorClasses())
-            .toEqual('team-status-active team-status-in-air');
-
         team.in_air = false;
-        team.active = true;
         expect(teamStatusCtrl.getTeamColorClasses())
-            .toEqual('team-status-active');
+            .toEqual('');
 
         team.in_air = true;
-        team.active = false;
         expect(teamStatusCtrl.getTeamColorClasses())
             .toEqual('team-status-in-air');
 
         team.in_air = false;
-        team.active = false;
+        team.telemetry.timestamp = '3000-10-01T00:00:00+00:00';
         expect(teamStatusCtrl.getTeamColorClasses())
-            .toEqual('');
+            .toEqual('team-status-active');
+
+        team.in_air = true;
+        expect(teamStatusCtrl.getTeamColorClasses())
+            .toEqual('team-status-active team-status-in-air');
     });
 });

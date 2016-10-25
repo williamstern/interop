@@ -50,7 +50,7 @@ class TestAccessLogCommon(TestCase):
             uas_position.save()
             log = UasTelemetry(user=user,
                                uas_position=uas_position,
-                               uas_heading=0)
+                               uas_heading=0.0)
             log.save()
             log.timestamp = start + i * delta
             log.save()
@@ -76,7 +76,7 @@ class TestAccessLogBasic(TestAccessLogCommon):
         self.assertEqual(len(logs), 0)
 
         logs = UasTelemetry.by_time_period(self.user1, [])
-        self.assertEqual(len(logs), 0)
+        self.assertSequenceEqual([], logs)
 
         log_rates = UasTelemetry.rates(self.user1, [])
         self.assertTupleEqual(log_rates, (None, None))
@@ -104,36 +104,39 @@ class TestAccessLogBasic(TestAccessLogCommon):
         results = UasTelemetry.by_user(self.user1)
         self.assertSequenceEqual(logs, results)
 
-    def test_last_for_user_before_time(self):
+    def test_by_user_time_restrict(self):
+        start = timezone.now()
+        delta = datetime.timedelta(seconds=1)
+        expect_logs = self.create_logs(self.user1,
+                                       num=10,
+                                       start=start,
+                                       delta=delta)
+
+        logs = UasTelemetry.by_user(self.user1,
+                                    start_time=start,
+                                    end_time=start + delta * 10)
+        self.assertSequenceEqual(expect_logs, logs)
+
+        logs = UasTelemetry.by_user(self.user1, start_time=start + delta * 11)
+        self.assertSequenceEqual([], logs)
+        logs = UasTelemetry.by_user(self.user1, end_time=start)
+        self.assertSequenceEqual([], logs)
+
+    def test_last_for_user_time_restrict(self):
         start = timezone.now()
         delta = datetime.timedelta(seconds=1)
         logs = self.create_logs(self.user1, num=10, start=start, delta=delta)
 
-        before_time = start + delta * 3
-        log = UasTelemetry.last_for_user(self.user1, before_time=before_time)
+        log = UasTelemetry.last_for_user(self.user1,
+                                         start_time=start,
+                                         end_time=start + delta * 3)
         self.assertEqual(logs[2], log)
 
-    def test_user_active(self):
-        delta = datetime.timedelta(seconds=1)
-
-        self.create_logs(self.user1, start=self.year2000, num=10, delta=delta)
-
-        latest_time = self.year2000 + 10 * delta
-
-        # Active for user with recent logs
-        self.assertTrue(UasTelemetry.user_active(self.user1, base=latest_time))
-
-        # Not active for user with no logs
-        self.assertFalse(UasTelemetry.user_active(self.user2,
-                                                  base=latest_time))
-
-        # Not active for user with no recent logs
-        self.assertFalse(UasTelemetry.user_active(self.user1,
-                                                  base=self.year2001))
-
-        # Active now
-        self.create_logs(self.user1, num=10, delta=delta)
-        self.assertTrue(UasTelemetry.user_active(self.user1))
+        log = UasTelemetry.last_for_user(self.user1,
+                                         start_time=start + delta * 11)
+        self.assertIsNone(log)
+        log = UasTelemetry.last_for_user(self.user1, end_time=start - delta)
+        self.assertIsNone(log)
 
 
 class TestAccessLogByTimePeriod(TestAccessLogCommon):

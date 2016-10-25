@@ -14,13 +14,14 @@ from django.views.generic import View
 
 def user_json(user):
     """Generate JSON-style dict for user."""
+    telemetry = UasTelemetry.last_for_user(user)
     return {
         'name': user.username,
         'id': user.pk,
         'on_clock': MissionClockEvent.user_on_clock(user),
         'on_timeout': MissionClockEvent.user_on_timeout(user),
         'in_air': TakeoffOrLandingEvent.user_in_air(user),
-        'active': UasTelemetry.user_active(user),
+        'telemetry': telemetry.json() if telemetry else None
     }
 
 
