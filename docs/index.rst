@@ -29,6 +29,7 @@ Contents
    specification
    client
    debugging
+   automation
 
 
 Indices & Tables
