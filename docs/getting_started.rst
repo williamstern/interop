@@ -308,23 +308,8 @@ button on the mission dashboard to learn how to use this interface.
 
 **Django Admin Dashboard**. From the SUAS Admin Dashboard, you can use the menu
 ``System > Edit Data`` to open the Django Admin dashboard. You should know how
-to use this interface from the Prerequisite work. The following explains the
-key models for configuration.
-
-==================  ===========================================================
-Model Name          Description
-==================  ===========================================================
-User                The user accounts.
-GpsPosition         A GPS position (latitude & longitude).
-AerialPosition      An aerial position (GPS position & altitude).
-Waypoint            An ordered aerial position (aerial position & order ID).
-FlyZone             A flight boundary polygon (Waypoints and min/max altitude).
-StationaryObstacle  A stationary obstacle (GPS position, radius, & height).
-MovingObstacle      A moving obstacle (Waypoints, speed, & radius).
-Targets             The user submitted targets, and judge "true" targets.
-MissionConfig       Mission configuration that groups sub-objects logically.
-UasTelemetry        The user uploaded telemetry (aerial position & time).
-==================  ===========================================================
+to use this interface from the Prerequisite work. See :doc:`configuration` for
+more details.
 
 **Mission Configuration**. To configure a mission, create or edit the
 ``MissionConfig`` object to specify the desired flight boundaries, waypoints,
