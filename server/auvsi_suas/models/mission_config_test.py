@@ -251,17 +251,25 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertAlmostEqual(0.5, teams[user0]['uas_telem_times']['max'])
         self.assertAlmostEqual(1. / 6, teams[user0]['uas_telem_times']['avg'])
 
-        self.assertEqual(
-            11, teams[user0]['targets']['manual']['matched_target_value'])
+        self.assertAlmostEqual(
+            0.28,
+            teams[user0]['targets']['manual']['matched_target_value'],
+            places=3)
         self.assertEqual(
             1, teams[user0]['targets']['manual']['unmatched_target_count'])
+
+        self.assertAlmostEqual(
+            1,
+            teams[user0]['targets']['auto']['matched_target_value'],
+            places=3)
+        self.assertEqual(
+            0, teams[user0]['targets']['auto']['unmatched_target_count'])
+
         # Real targets are PKs 1, 2, and 3.
         self.assertEqual(
-            'objective',
-            teams[user0]['targets']['manual']['targets'][1]['actionable'])
+            0.0, teams[user0]['targets']['manual']['targets'][1]['actionable'])
         self.assertEqual(
-            None,
-            teams[user0]['targets']['manual']['targets'][2]['actionable'])
+            1.0, teams[user0]['targets']['auto']['targets'][1]['actionable'])
 
         self.assertEqual(True, teams[user0]['stationary_obst_collision'][25])
         self.assertEqual(False, teams[user0]['stationary_obst_collision'][26])

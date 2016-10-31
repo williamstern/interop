@@ -8,6 +8,7 @@ from django.conf import settings
 from django.db import models
 from gps_position import GpsPosition
 from takeoff_or_landing_event import TakeoffOrLandingEvent
+from mission_clock_event import MissionClockEvent
 
 
 class Choices(enum.IntEnum):
@@ -260,9 +261,8 @@ class Target(models.Model):
     def actionable_submission(self, flights=None):
         """Checks if Target meets Actionable Intelligence submission criteria.
 
-        A target is "actionable" if the aircraft was in flight from initial
-        target submission until the last update. Note that this does not check
-        the localization or characterization Actionable Intelligence criteria.
+        A target is "actionable" if it was submitted and last updated during the
+        aircraft's first flight.
 
         Args:
             flights: Optional memoized flights for this target's user. If
@@ -274,9 +274,33 @@ class Target(models.Model):
         if flights is None:
             flights = TakeoffOrLandingEvent.flights(self.user)
 
-        for flight in flights:
+        if len(flights) > 0:
+            flight = flights[0]
             if flight.within(self.creation_time) and \
                 flight.within(self.last_modified_time):
+                return True
+
+        return False
+
+    def interop_submission(self, missions=None):
+        """Checks if Target meets Interoperability submission criteria.
+
+        A target counts as being submitted over interoperability system if it
+        was submitted and last updated while the team was on the mission clock.
+
+        Args:
+            missions: Optional memoized missions for this target's user. If
+                     omitted, the missions will be looked up.
+
+        Returns:
+            True if target may be considered an "interoperability" submission.
+        """
+        if missions is None:
+            missions = MissionClockEvent.missions(self.user)
+
+        for mission in missions:
+            if mission.within(self.creation_time) and \
+                mission.within(self.last_modified_time):
                 return True
 
         return False
@@ -307,31 +331,9 @@ class TargetEvaluator(object):
                         "All submitted targets must be from the same user")
 
             self.flights = TakeoffOrLandingEvent.flights(self.user)
+            self.missions = MissionClockEvent.missions(self.user)
 
         self.matches = self.match_targets(submitted_targets, real_targets)
-
-    def actionable(self, target, classifications, location_accuracy):
-        """Determines level of target actionable intelligence.
-
-        Args:
-            target: Target to test
-            classifications: Number of correct classifications
-            location_accuracy: Target location accuracy
-
-        Returns:
-            Threshold met: one of None, 'threshold', or 'objective'
-        """
-        if target.target_type == TargetType.standard and \
-            target.actionable_submission(flights=self.flights):
-            params = settings.TARGET_ACTIONABLE_PARAMS
-            if classifications >= params['objective']['characteristics'] \
-                and location_accuracy <= params['objective']['location']:
-                return 'objective'
-            elif classifications >= params['objective']['characteristics'] \
-                and location_accuracy <= params['objective']['location']:
-                return 'threshold'
-
-        return None
 
     def range_lookup(self,
                      ranges,
@@ -370,35 +372,31 @@ class TargetEvaluator(object):
             return 0
 
         # Compute the classification point value.
-        num_similar = real.similar_classifications(submitted)
-        classify_value = self.range_lookup(settings.TARGET_CLASSIFY_RANGES,
-                                           num_similar,
-                                           end_operator=operator.lt)
-        if not classify_value:
-            # Targets which don't have threshold classification have no value.
-            return 0
+        classify_value = (settings.CHARACTERISTICS_WEIGHT *
+                          real.similar_classifications(submitted))
 
         # Compute the location value.
-        location_dist = float('inf')
         location_value = 0
         if submitted.location:
             location_dist = submitted.location.distance_to(real.location)
-            location_value = self.range_lookup(settings.TARGET_LOCATION_RANGES,
-                                               location_dist,
-                                               start_operator=operator.gt)
+            location_value = (settings.GEOLOCATION_WEIGHT * max(0.0, (
+                float(settings.TARGET_LOCATION_THRESHOLD - location_dist) /
+                settings.TARGET_LOCATION_THRESHOLD)))
 
-        # Actionable intelligence value.
-        actionable = self.actionable(submitted, num_similar, location_dist)
-        if actionable == 'objective':
-            actionable_value = \
-                settings.TARGET_ACTIONABLE_PARAMS['objective']['value']
-        elif actionable == 'threshold':
-            actionable_value = \
-                settings.TARGET_ACTIONABLE_PARAMS['threshold']['value']
-        else:
-            actionable_value = 0
+        # Actionable intelligence value
+        actionable_value = (
+            settings.ACTIONABLE_WEIGHT *
+            submitted.actionable_submission(flights=self.flights))
 
-        return classify_value + location_value + actionable_value
+        # Value for submitting over interop system.
+        interop_value = (settings.INTEROPERABILITY_WEIGHT *
+                         submitted.interop_submission(missions=self.missions))
+
+        # Autonomy value.
+        autonomy_value = settings.AUTONOMY_WEIGHT * submitted.autonomous
+
+        return (classify_value + location_value + actionable_value +
+                interop_value + autonomy_value)
 
     def match_targets(self, submitted_targets, real_targets):
         """Matches the targets to maximize match value.
@@ -438,27 +436,32 @@ class TargetEvaluator(object):
                         'image_approved': whether the image was approved
                         'classifications': proportion of similar classifications
                         'location_accuracy': distance from actual
-                        'actionable': level of Actionable Intelligence criteria
-                            met: one of False, 'threshold', or 'objective'
+                        'actionable': 1 if actionable submission, 0 of not
+                        'interop_submission': 1 if target submitted over
+                            interop, 0 if not
                     }
                 }
             }
         """
         matched_target_value = 0
+        unmatched_targets = len(self.submitted_targets)
         target_dict = collections.defaultdict(dict)
         for real in self.real_targets:
             submitted = self.matches.get(real)
             if submitted:
                 match_value = self.match_value(submitted, real)
                 matched_target_value += match_value
+                unmatched_targets -= 1
 
                 classifications = submitted.similar_classifications(real)
                 location_accuracy = None
                 if submitted.location:
                     location_accuracy = submitted.location.distance_to(
                         real.location)
-                actionable = self.actionable(submitted, classifications,
-                                             location_accuracy)
+                actionable = submitted.actionable_submission(
+                    flights=self.flights)
+                interop_submission = submitted.interop_submission(
+                    missions=self.missions)
 
                 target_dict[real.pk] = {
                     'submitted_target': submitted.pk,
@@ -467,6 +470,7 @@ class TargetEvaluator(object):
                     'classifications': classifications,
                     'location_accuracy': location_accuracy,
                     'actionable': actionable,
+                    'interop_submission': interop_submission,
                 }
             else:
                 target_dict[real.pk] = {
@@ -476,9 +480,9 @@ class TargetEvaluator(object):
                     'classifications': '',
                     'location_accuracy': '',
                     'actionable': '',
+                    'interop_submission': '',
                 }
 
-        unmatched_targets = len(self.submitted_targets) - len(self.matches) / 2
         return {
             'matched_target_value': matched_target_value,
             'unmatched_target_count': unmatched_targets,

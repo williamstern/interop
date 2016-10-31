@@ -205,45 +205,20 @@ SATISFIED_WAYPOINT_DIST_MAX_FT = 50
 # The max distance for a UAS to diverge from the waypoint track.
 WAYPOINT_TRACK_DIST_MAX_FT = 100
 
-# The max number of autonomous targets.
-TARGET_MAX_NUM_AUTONOMOUS = 6
+# The lowest allowed location accuracy (in feet)
+TARGET_LOCATION_THRESHOLD = 150
 
-# The target classification match values: [start, end) -> value
-TARGET_CLASSIFY_RANGES = [
-    {"start": float("-inf"),
-     "end": 2. / 5,
-     "value": 0},
-    {"start": 2. / 5,
-     "end": 1,
-     "value": 1},
-    {"start": 1,
-     "end": float("inf"),
-     "value": 2},
-]
+# The weight of geolocation accuracy when calculating a target match score.
+GEOLOCATION_WEIGHT = 0.2
 
-# The location accuracy match values: (start, end] -> value
-TARGET_LOCATION_RANGES = [
-    {"start": float("-inf"),
-     "end": 75,
-     "value": 4},
-    {"start": 75,
-     "end": 150,
-     "value": 2},
-    {"start": 150,
-     "end": float("inf"),
-     "value": 0},
-]
+# The weight of classification accuracy when calculating a target match score.
+CHARACTERISTICS_WEIGHT = 0.2
 
-# Actionable Intelligence threshold and objective level parameters.
-TARGET_ACTIONABLE_PARAMS = {
-    "threshold": {
-        "characteristics": 3. / 5.,
-        "location": 150,  # ft
-        "value": 1,
-    },
-    "objective": {
-        "characteristics": 5. / 5.,
-        "location": 75,  # ft
-        "value": 2,
-    },
-}
+# The weight of actionable intelligence when calculating a target match score.
+ACTIONABLE_WEIGHT = 0.1
+
+# The weight of submission over interop when calculating a target match score.
+INTEROPERABILITY_WEIGHT = 0.3
+
+# The weight of autonomy when calculating a target match score.
+AUTONOMY_WEIGHT = 0.2
