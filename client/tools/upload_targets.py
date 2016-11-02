@@ -15,12 +15,7 @@ from interop import Target
 
 logger = logging.getLogger(__name__)
 
-TARGET_TYPE_MAP = {
-    'STD': 'standard',
-    'QRC': 'qrc',
-    'OAX': 'off_axis',
-    'EMG': 'emergent',
-}
+TARGET_TYPE_MAP = {'STD': 'standard', 'OAX': 'off_axis', 'EMG': 'emergent', }
 
 LATITUDE_REGEX = re.compile(
     '(?P<dir>[NS])(?P<deg>\d\d) (?P<min>\d\d) (?P<sec>\d\d\.\d{0,3})')

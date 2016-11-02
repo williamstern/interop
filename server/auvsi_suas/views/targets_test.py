@@ -62,7 +62,7 @@ class TestGetTarget(TestCase):
         t1 = Target(user=self.user, target_type=TargetType.standard)
         t1.save()
 
-        t2 = Target(user=self.user, target_type=TargetType.qrc)
+        t2 = Target(user=self.user, target_type=TargetType.standard)
         t2.save()
 
         response = self.client.get(targets_url)
@@ -80,7 +80,7 @@ class TestGetTarget(TestCase):
         mine = Target(user=self.user, target_type=TargetType.standard)
         mine.save()
 
-        theirs = Target(user=user2, target_type=TargetType.qrc)
+        theirs = Target(user=user2, target_type=TargetType.standard)
         theirs.save()
 
         response = self.client.get(targets_url)
@@ -877,7 +877,7 @@ class TestTargetsAdminReview(TestCase):
         MissionClockEvent(user=self.team,
                           team_on_clock=True,
                           team_on_timeout=False).save()
-        Target(user=self.team, target_type=TargetType.qrc).save()
+        Target(user=self.team, target_type=TargetType.standard).save()
 
         response = self.client.get(targets_review_url)
         self.assertEqual(200, response.status_code)
@@ -891,7 +891,7 @@ class TestTargetsAdminReview(TestCase):
         MissionClockEvent(user=self.team,
                           team_on_clock=False,
                           team_on_timeout=False).save()
-        target = Target(user=self.team, target_type=TargetType.qrc)
+        target = Target(user=self.team, target_type=TargetType.standard)
         target.save()
 
         response = self.client.get(targets_review_url)
@@ -907,7 +907,7 @@ class TestTargetsAdminReview(TestCase):
         MissionClockEvent(user=self.team,
                           team_on_clock=False,
                           team_on_timeout=False).save()
-        target = Target(user=self.team, target_type=TargetType.qrc)
+        target = Target(user=self.team, target_type=TargetType.standard)
         target.save()
 
         with open(test_image('A.jpg')) as f:
@@ -919,11 +919,11 @@ class TestTargetsAdminReview(TestCase):
         data = json.loads(response.content)
         self.assertEqual(1, len(data))
         self.assertIn('type', data[0])
-        self.assertEqual('qrc', data[0]['type'])
+        self.assertEqual('standard', data[0]['type'])
 
     def test_put_review_no_approved(self):
         """Test PUT review with no approved field."""
-        target = Target(user=self.team, target_type=TargetType.qrc)
+        target = Target(user=self.team, target_type=TargetType.standard)
         target.save()
 
         response = self.client.put(targets_review_id_url(args=[target.pk]))
@@ -938,7 +938,7 @@ class TestTargetsAdminReview(TestCase):
 
     def test_put_review(self):
         """Test PUT review is saved."""
-        target = Target(user=self.team, target_type=TargetType.qrc)
+        target = Target(user=self.team, target_type=TargetType.standard)
         target.save()
 
         response = self.client.put(
