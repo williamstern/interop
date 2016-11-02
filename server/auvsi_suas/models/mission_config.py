@@ -292,8 +292,7 @@ class MissionConfig(models.Model):
             user_targets = Target.objects.filter(user=user).all()
             target_sets = {
                 'manual': [t for t in user_targets if not t.autonomous],
-                'auto': [t for t in user_targets
-                         if t.autonomous][:settings.TARGET_MAX_NUM_AUTONOMOUS],
+                'auto': [t for t in user_targets if t.autonomous],
             }
             for target_set, targets in target_sets.iteritems():
                 evaluator = TargetEvaluator(targets, self.targets.all())
