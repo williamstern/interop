@@ -3,7 +3,7 @@
 import copy
 import cStringIO
 import csv
-from auvsi_suas.models import MissionConfig
+from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.views import logger
 from auvsi_suas.views.decorators import require_superuser
 from auvsi_suas.views.missions import mission_for_request

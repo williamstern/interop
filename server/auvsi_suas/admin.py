@@ -1,15 +1,15 @@
 from django.contrib import admin
-from auvsi_suas.models import AerialPosition
-from auvsi_suas.models import FlyZone
-from auvsi_suas.models import GpsPosition
-from auvsi_suas.models import MissionClockEvent
-from auvsi_suas.models import MissionConfig
-from auvsi_suas.models import MovingObstacle
-from auvsi_suas.models import StationaryObstacle
-from auvsi_suas.models import TakeoffOrLandingEvent
-from auvsi_suas.models import Target
-from auvsi_suas.models import UasTelemetry
-from auvsi_suas.models import Waypoint
+from auvsi_suas.models.aerial_position import AerialPosition
+from auvsi_suas.models.fly_zone import FlyZone
+from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.mission_clock_event import MissionClockEvent
+from auvsi_suas.models.mission_config import MissionConfig
+from auvsi_suas.models.moving_obstacle import MovingObstacle
+from auvsi_suas.models.stationary_obstacle import StationaryObstacle
+from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
+from auvsi_suas.models.target import Target
+from auvsi_suas.models.uas_telemetry import UasTelemetry
+from auvsi_suas.models.waypoint import Waypoint
 
 
 # Define model admin which has better defaults for large amounts of data.

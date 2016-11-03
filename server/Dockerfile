@@ -1,6 +1,7 @@
 FROM ubuntu:14.04
 WORKDIR /interop/server
 
+# Install server base dependencies.
 RUN sudo apt-get -qq update && sudo apt-get -qq install -y \
         apache2 \
         apache2-utils \
@@ -23,6 +24,7 @@ RUN sudo apt-get -qq update && sudo apt-get -qq install -y \
         python-pyproj \
         python-scipy
 
+# Install server Javascript requirements.
 RUN sudo ln -snf /usr/bin/nodejs /usr/local/bin/node && \
     sudo npm install -g \
         karma \
@@ -31,18 +33,36 @@ RUN sudo ln -snf /usr/bin/nodejs /usr/local/bin/node && \
         karma-phantomjs-launcher \
         phantomjs
 
+# Install server Python requirements.
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
+# Copy over just enough to setup, for faster dev iteration.
+COPY manage.py manage.py
+COPY server server
+COPY auvsi_suas/__init__.py auvsi_suas/__init__.py
+COPY auvsi_suas/models/__init__.py auvsi_suas/models/__init__.py
+COPY auvsi_suas/views/__init__.py auvsi_suas/views/__init__.py
+COPY auvsi_suas/views/auvsi_admin/__init__.py auvsi_suas/views/auvsi_admin/__init__.py
+COPY auvsi_suas/migrations auvsi_suas/migrations
 COPY config config
+COPY fixtures fixtures
+# Configure database, web server, Django.
 RUN ./config/configure_postgresql.sh && \
-    ./config/configure_apache.sh
+    ./config/configure_apache.sh && \
+    ./config/configure_django.sh
 
+# Copy remaining code.
 COPY . .
-RUN ./config/configure_django.sh
 
+# Load initial data.
+RUN sudo service postgresql start && \
+    python manage.py loaddata fixtures/test_fixture.yaml
+
+# Host-mountable sections.
 VOLUME /var/log/apache2 /var/lib/postgresql/9.3/data
 
+# On run: start database, cache, server, and don't exit.
 CMD sudo service postgresql start && \
   sudo service memcached start && \
   sudo service apache2 start && \

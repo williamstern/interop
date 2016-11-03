@@ -1,15 +1,15 @@
 """Tests for the target module."""
 
 import os.path
-from auvsi_suas.models import GpsPosition
-from auvsi_suas.models import TakeoffOrLandingEvent
-from auvsi_suas.models import Target
-from auvsi_suas.models import TargetEvaluator
-from auvsi_suas.models import TargetType
-from auvsi_suas.models import Color
-from auvsi_suas.models import Shape
-from auvsi_suas.models import Orientation
-from auvsi_suas.models import MissionClockEvent
+from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.mission_clock_event import MissionClockEvent
+from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
+from auvsi_suas.models.target import Color
+from auvsi_suas.models.target import Target
+from auvsi_suas.models.target import TargetEvaluator
+from auvsi_suas.models.target import TargetType
+from auvsi_suas.models.target import Shape
+from auvsi_suas.models.target import Orientation
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
