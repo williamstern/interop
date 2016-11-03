@@ -59,10 +59,9 @@ class TargetType(Choices):
     """Valid target types.
 
     Warning: DO NOT change/reuse values, or compatibility will be lost with
-    old data sets. Only add new values to the end.
+    old data sets. Only add new values to the end. Next value is 5.
     """
     standard = 1
-    qrc = 2
     off_axis = 3
     emergent = 4
 
@@ -89,7 +88,7 @@ class Shape(Choices):
     """Valid target shapes.
 
     Warning: DO NOT change/reuse values, or compatibility will be lost with
-    old data sets. Only add new values to the end.
+    old data sets. Only add new values to the end. Next value is 14.
     """
     circle = 1
     semicircle = 2
@@ -111,7 +110,7 @@ class Color(Choices):
     """Valid target colors.
 
     Warning: DO NOT change/reuse values, or compatibility will be lost with
-    old data sets. Only add new values to the end.
+    old data sets. Only add new values to the end. Next value is 11.
     """
     white = 1
     black = 2
@@ -247,7 +246,6 @@ class Target(models.Model):
                            'alphanumeric', 'alphanumeric_color']
         classify_fields = {
             TargetType.standard: standard_fields,
-            TargetType.qrc: ['description'],
             TargetType.off_axis: standard_fields,
             TargetType.emergent: [],
         }

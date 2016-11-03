@@ -340,11 +340,6 @@ class TestTarget(unittest.TestCase):
                alphanumeric='a',
                alphanumeric_color='black')
 
-        Target(type='qrc',
-               latitude=10,
-               longitude=-10,
-               description='http://test.com')
-
         Target(type='off_axis',
                latitude=10,
                longitude=-10,
@@ -365,16 +360,16 @@ class TestTarget(unittest.TestCase):
         """Test invalid inputs."""
         # Bad latitude.
         with self.assertRaises(ValueError):
-            Target(type='qrc',
+            Target(type='emergent',
                    latitude='a',
                    longitude=-10,
-                   description='http://test.com')
+                   description='Firefighter')
 
         with self.assertRaises(ValueError):
-            Target(type='qrc',
+            Target(type='emergent',
                    latitude=10,
                    longitude='a',
-                   description='http://test.com')
+                   description='Firefighter')
 
     def test_serialize(self):
         """Test serialization."""
@@ -428,6 +423,6 @@ class TestTarget(unittest.TestCase):
         self.assertEqual('black', o.alphanumeric_color)
         self.assertEqual(True, o.autonomous)
 
-        o = Target.deserialize({'type': 'qrc'})
+        o = Target.deserialize({'type': 'emergent'})
 
-        self.assertEqual('qrc', o.type)
+        self.assertEqual('emergent', o.type)

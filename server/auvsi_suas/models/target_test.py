@@ -227,16 +227,6 @@ class TestTarget(TestCase):
         t2.save()
         self.assertAlmostEqual(1.0, t1.similar_classifications(t2))
 
-        # Test QRC is only description.
-        t1.target_type = TargetType.qrc
-        t1.save()
-        t2.target_type = TargetType.qrc
-        t2.save()
-        self.assertAlmostEqual(0.0, t1.similar_classifications(t2))
-        t2.description = 'Test target'
-        t2.save()
-        self.assertAlmostEqual(1.0, t1.similar_classifications(t2))
-
     def test_actionable_submission(self):
         """Tests actionable_submission correctly filters submissions."""
         # t1 created and updated before take off.
@@ -466,14 +456,14 @@ class TestTargetEvaluator(TestCase):
 
         # Targets without approved image may still match.
         self.submit4 = Target(user=self.user,
-                              target_type=TargetType.qrc,
+                              target_type=TargetType.emergent,
                               location=l1,
                               description='Test target 4',
                               autonomous=False,
                               thumbnail_approved=False)
         self.submit4.save()
         self.real4 = Target(user=self.user,
-                            target_type=TargetType.qrc,
+                            target_type=TargetType.emergent,
                             location=l1,
                             description='Test target 4')
         self.real4.save()

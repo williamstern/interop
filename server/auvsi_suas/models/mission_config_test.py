@@ -252,11 +252,11 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertAlmostEqual(1. / 6, teams[user0]['uas_telem_times']['avg'])
 
         self.assertAlmostEqual(
-            0.28,
+            0.48,
             teams[user0]['targets']['manual']['matched_target_value'],
             places=3)
         self.assertEqual(
-            1, teams[user0]['targets']['manual']['unmatched_target_count'])
+            0, teams[user0]['targets']['manual']['unmatched_target_count'])
 
         self.assertAlmostEqual(
             1,
