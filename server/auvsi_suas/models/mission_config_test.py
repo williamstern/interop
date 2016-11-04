@@ -1,12 +1,12 @@
 """Tests for the mission_config module."""
 
 import datetime
-from auvsi_suas.models import AerialPosition
-from auvsi_suas.models import FlyZone
-from auvsi_suas.models import GpsPosition
-from auvsi_suas.models import MissionConfig
-from auvsi_suas.models import UasTelemetry
-from auvsi_suas.models import Waypoint
+from auvsi_suas.models.aerial_position import AerialPosition
+from auvsi_suas.models.fly_zone import FlyZone
+from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.mission_config import MissionConfig
+from auvsi_suas.models.uas_telemetry import UasTelemetry
+from auvsi_suas.models.waypoint import Waypoint
 from auvsi_suas.patches.simplekml_patch import Kml
 from django.contrib.auth.models import User
 from django.test import TestCase

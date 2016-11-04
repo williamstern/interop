@@ -7,11 +7,11 @@ from django.test import TestCase
 from django.utils import timezone
 from simplekml import Kml
 
-from auvsi_suas.models import AerialPosition
-from auvsi_suas.models import GpsPosition
-from auvsi_suas.models import TakeoffOrLandingEvent
-from auvsi_suas.models import UasTelemetry
 from auvsi_suas.models import units
+from auvsi_suas.models.aerial_position import AerialPosition
+from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
+from auvsi_suas.models.uas_telemetry import UasTelemetry
 
 
 class TestUasTelemetryBase(TestCase):

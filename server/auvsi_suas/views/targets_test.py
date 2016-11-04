@@ -3,7 +3,13 @@
 import functools
 import json
 import os.path
-from auvsi_suas.models import Color, GpsPosition, MissionClockEvent, Orientation, Shape, Target, TargetType
+from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.mission_clock_event import MissionClockEvent
+from auvsi_suas.models.target import Color
+from auvsi_suas.models.target import Orientation
+from auvsi_suas.models.target import Shape
+from auvsi_suas.models.target import Target
+from auvsi_suas.models.target import TargetType
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.images import ImageFile
