@@ -199,6 +199,11 @@ TEST_LOADTEST_TIME = 2.0
 # (1.5x safety factor, 10Hz, 4 interfaces)
 TEST_LOADTEST_INTEROP_MIN_RATE = 1.5 * 10.0 * 4
 
+# The time window (in seconds) in which a plane cannot be counted as going out
+# of bounds multiple times. This prevents noisy input data from recording
+# significant more violations than a human observer.
+OUT_OF_BOUNDS_DEBOUNCE_SEC = 10.0
+
 # The max distance for a waypoint to be considered satisfied.
 SATISFIED_WAYPOINT_DIST_MAX_FT = 100
 

@@ -272,11 +272,15 @@ class MissionConfig(models.Model):
             # each period individually so time between periods isn't counted as
             # out of bounds time. Note that this calculates reported time out
             # of bounds, not actual or possible time spent out of bounds.
-            out_of_bounds_time = 0
+            total_out_of_bounds_time = 0
+            total_boundary_violations = 0
             for logs in uas_period_logs:
-                out_of_bounds_time += FlyZone.out_of_bounds(
+                boundary_violations, out_of_bounds_time = FlyZone.out_of_bounds(
                     self.fly_zones.all(), logs)
-            eval_data['out_of_bounds_time'] = out_of_bounds_time
+                total_out_of_bounds_time += out_of_bounds_time
+                total_boundary_violations += boundary_violations
+            eval_data['out_of_bounds_time'] = total_out_of_bounds_time
+            eval_data['boundary_violations'] = total_boundary_violations
 
             # Evaluate the targets.
             eval_data['targets'] = {}
