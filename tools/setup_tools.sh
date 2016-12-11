@@ -21,4 +21,4 @@ apt-get -qq install -y \
 log "Building tools virtualenv."
 (cd ${REPO}/tools && \
     virtualenv -p /usr/bin/python2 venv && \
-    pip install -r requirements.txt)
+    pip install -U -r requirements.txt)
