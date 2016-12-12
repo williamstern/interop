@@ -227,6 +227,7 @@ class TestMissionConfigModelSampleMission(TestCase):
 
             self.assertIn('mission_clock_time', val)
             self.assertIn('out_of_bounds_time', val)
+            self.assertIn('boundary_violations', val)
 
             self.assertIn('targets', val)
             for target_set in ['manual', 'auto']:
