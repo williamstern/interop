@@ -132,7 +132,7 @@ def upload_legacy_targets(client, target_filepath, imagery_dir):
         client.put_target_image(target.id, image_data)
 
 
-def upload_target(client, target_file, image_file):
+def upload_target(client, target_file, image_file, team_id=None):
     """Upload a single target to the server
 
     Args:
@@ -140,10 +140,13 @@ def upload_target(client, target_file, image_file):
         target_file: Path to file containing target details in the Object
             File Format.
         image_file: Path to target thumbnail. May be None.
+        team_id: The username of the team on whose behalf to submit targets.
+            Defaults to None.
     """
     with open(target_file) as f:
         target = Target.deserialize(json.load(f))
 
+    target.team_id = team_id
     logger.info('Uploading target %s: %r' % (target_file, target))
     target = client.post_target(target)
     if image_file:
@@ -154,13 +157,15 @@ def upload_target(client, target_file, image_file):
         logger.warning('No thumbnail for target %s' % target_file)
 
 
-def upload_targets(client, target_dir):
+def upload_targets(client, target_dir, team_id=None):
     """Upload all targets found in directory
 
     Args:
         client: interop.Client connected to the server
         target_dir: Path to directory containing target files in the Object
             File Format and target thumbnails.
+        team_id: The username of the team on whose behalf to submit targets.
+            Defaults to None.
     """
     targets = {}
     images = {}
@@ -191,4 +196,4 @@ def upload_targets(client, target_dir):
     logger.info('Found target-image pairs: %s' % pairs)
 
     for target, image in pairs.items():
-        upload_target(client, target, image)
+        upload_target(client, target, image, team_id)

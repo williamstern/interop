@@ -45,7 +45,7 @@ class ClientBaseType(object):
                 serial[attr] = data.serialize()
             elif isinstance(data, list):
                 serial[attr] = [d.serialize() for d in data]
-            else:
+            elif data is not None:
                 serial[attr] = data
         return serial
 
@@ -252,6 +252,8 @@ class Target(ClientBaseType):
             certain target types.
         autonomous: Optional; defaults to False. Indicates that this is an
             ADLC target.
+        team_id: Optional. The username of the team on whose behalf to submit
+            targets. Must be admin user to specify.
 
     Raises:
         ValueError: Argument not valid.
@@ -259,7 +261,7 @@ class Target(ClientBaseType):
 
     attrs = ['id', 'user', 'type', 'latitude', 'longitude', 'orientation',
              'shape', 'background_color', 'alphanumeric', 'alphanumeric_color',
-             'description', 'autonomous']
+             'description', 'autonomous', 'team_id']
 
     def __init__(self,
                  id=None,
@@ -273,7 +275,8 @@ class Target(ClientBaseType):
                  alphanumeric=None,
                  alphanumeric_color=None,
                  description=None,
-                 autonomous=False):
+                 autonomous=False,
+                 team_id=None):
         self.id = id
         self.user = user
         self.type = type
@@ -286,3 +289,4 @@ class Target(ClientBaseType):
         self.alphanumeric_color = alphanumeric_color
         self.description = description
         self.autonomous = autonomous
+        self.team_id = team_id

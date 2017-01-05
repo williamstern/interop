@@ -358,6 +358,36 @@ class TestPostTarget(TestCase):
                                         content_type='application/json')
             self.assertEqual(400, response.status_code)
 
+    def test_create_target_team_id(self):
+        """Request fails if non-admin user specifies team_id."""
+        target = {'type': 'standard', 'team_id': self.user.username}
+        response = self.client.post(targets_url,
+                                    data=json.dumps(target),
+                                    content_type='application/json')
+        self.assertEqual(403, response.status_code)
+
+    def test_superuser_create_target(self):
+        """Admin user can create target on behalf of another team."""
+        # Login as superuser.
+        superuser = User.objects.create_superuser(
+            'testsuperuser', 'testsuperemail@x.com', 'testsuperpass')
+        response = self.client.post(login_url, {
+            'username': 'testsuperuser',
+            'password': 'testsuperpass'
+        })
+        self.assertEqual(200, response.status_code)
+
+        # Create target.
+        target = {'type': 'standard', 'team_id': self.user.username}
+        response = self.client.post(targets_url,
+                                    data=json.dumps(target),
+                                    content_type='application/json')
+        self.assertEqual(201, response.status_code)
+
+        # Ensure target created for proper user.
+        created = json.loads(response.content)
+        self.assertEqual(self.user.id, created['user'])
+
 
 class TestTargetsIdLoggedOut(TestCase):
     """Tests logged out targets_id."""

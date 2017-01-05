@@ -30,7 +30,7 @@ def targets(args, client):
             raise ValueError('--target_dir is required.')
         upload_legacy_targets(client, args.legacy_filepath, args.target_dir)
     elif args.target_dir:
-        upload_targets(client, args.target_dir)
+        upload_targets(client, args.target_dir, args.team_id)
     else:
         targets = client.get_targets()
         for target in targets:
@@ -73,6 +73,7 @@ def main():
                         required=True,
                         help='Username for interoperability.')
     parser.add_argument('--password', help='Password for interoperability.')
+
     subparsers = parser.add_subparsers(help='Sub-command help.')
 
     subparser = subparsers.add_parser('missions', help='Get missions.')
@@ -107,6 +108,10 @@ unique targets, if the tool is run multiple times.''',
     subparser.add_argument(
         '--target_dir',
         help='Enables target upload. Directory containing target data.')
+    subparser.add_argument(
+        '--team_id',
+        help='''The username of the team on whose behalf to submit targets.
+Must be admin user to specify''')
 
     subparser = subparsers.add_parser('probe', help='Send dummy requests.')
     subparser.set_defaults(func=probe)
