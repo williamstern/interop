@@ -13,6 +13,7 @@ import time
 from interop import Client
 from interop import Target
 from interop import Telemetry
+from proxy_mavlink import proxy_mavlink
 from upload_targets import upload_targets, upload_legacy_targets
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,7 @@ def targets(args, client):
     else:
         targets = client.get_targets()
         for target in targets:
-            logger.info('%r' % target)
+            pprint.pprint(target.serialize())
 
 
 def probe(args, client):
@@ -55,6 +56,10 @@ def probe(args, client):
                 time.sleep(delay_time)
             except KeyboardInterrupt:
                 sys.exit(0)
+
+
+def mavlink(args, client):
+    proxy_mavlink(args.device, client)
 
 
 def main():
@@ -119,6 +124,16 @@ Must be admin user to specify''')
                            type=float,
                            default=1.0,
                            help='Time between sent requests (sec).')
+
+    subparser = subparsers.add_parser(
+        'mavlink',
+        help='''Receive MAVLink GLOBAL_POSITION_INT packets and
+forward as telemetry to interop server.''')
+    subparser.set_defaults(func=mavlink)
+    subparser.add_argument(
+        '--device',
+        type=str,
+        help='pymavlink device name to read from. E.g. tcp:localhost:8080.')
 
     # Parse args, get password if not provided.
     args = parser.parse_args()
