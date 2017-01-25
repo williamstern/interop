@@ -388,6 +388,36 @@ class TestPostTarget(TestCase):
         created = json.loads(response.content)
         self.assertEqual(self.user.id, created['user'])
 
+    def test_actionable_override(self):
+        """Request fails if non-admin user specifies actionable_override."""
+        target = {'type': 'standard', 'actionable_override': True}
+        response = self.client.post(targets_url,
+                                    data=json.dumps(target),
+                                    content_type='application/json')
+        self.assertEqual(403, response.status_code)
+
+    def test_superuser_actionable_override(self):
+        """Admin user can set actionable_override flag."""
+        # Login as superuser.
+        superuser = User.objects.create_superuser(
+            'testsuperuser', 'testsuperemail@x.com', 'testsuperpass')
+        response = self.client.post(login_url, {
+            'username': 'testsuperuser',
+            'password': 'testsuperpass'
+        })
+        self.assertEqual(200, response.status_code)
+
+        # Create target.
+        target = {'type': 'standard', 'actionable_override': True}
+        response = self.client.post(targets_url,
+                                    data=json.dumps(target),
+                                    content_type='application/json')
+        self.assertEqual(201, response.status_code)
+
+        # Ensure target has actionable_override flag set.
+        created = json.loads(response.content)
+        self.assertEqual(True, created['actionable_override'])
+
 
 class TestTargetsIdLoggedOut(TestCase):
     """Tests logged out targets_id."""
@@ -631,6 +661,42 @@ class TestTargetId(TestCase):
 
         t.refresh_from_db()
         self.assertEqual(True, t.autonomous)
+
+    def test_put_change_actionable_override(self):
+        """PUT fails if non-admin user tries to change actionable_override."""
+        t = Target(user=self.user, target_type=TargetType.standard)
+        t.save()
+
+        data = {'actionable_override': True}
+
+        response = self.client.put(
+            targets_id_url(args=[t.pk]),
+            data=json.dumps(data))
+        self.assertEqual(403, response.status_code)
+
+    def test_put_superuser_change_actionable_override(self):
+        """Admin user can update actionable_override flag."""
+        # Login as superuser.
+        superuser = User.objects.create_superuser(
+            'testsuperuser', 'testsuperemail@x.com', 'testsuperpass')
+        response = self.client.post(login_url, {
+            'username': 'testsuperuser',
+            'password': 'testsuperpass'
+        })
+        self.assertEqual(200, response.status_code)
+
+        t = Target(user=self.user, target_type=TargetType.standard)
+        t.save()
+
+        data = {'actionable_override': True}
+
+        response = self.client.put(
+            targets_id_url(args=[t.pk]),
+            data=json.dumps(data))
+        self.assertEqual(200, response.status_code)
+
+        t.refresh_from_db()
+        self.assertEqual(True, t.actionable_override)
 
     def test_delete_own(self):
         """Test DELETEing a target owned by the correct user."""

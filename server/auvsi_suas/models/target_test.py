@@ -145,10 +145,12 @@ class TestTarget(TestCase):
         self.assertIn('thumbnail_approved', d)
 
         t.thumbnail_approved = True
+        t.actionable_override = True
         t.save()
         d = t.json(is_superuser=True)
         self.assertEqual(None, d['thumbnail'])
         self.assertEqual(True, d['thumbnail_approved'])
+        self.assertEqual(True, d['actionable_override'])
 
     def test_minimal_json(self):
         """Test target JSON with minimal data."""
@@ -277,12 +279,23 @@ class TestTarget(TestCase):
         event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
         event.save()
 
+        # t7 with actionable_override set.
+        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=True)
+        event.save()
+        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
+        event.save()
+        t7 = Target(user=self.user,
+                    target_type=TargetType.standard,
+                    actionable_override=True)
+        t7.save()
+
         self.assertFalse(t1.actionable_submission())
         self.assertFalse(t2.actionable_submission())
         self.assertTrue(t3.actionable_submission())
         self.assertFalse(t4.actionable_submission())
         self.assertFalse(t5.actionable_submission())
         self.assertFalse(t6.actionable_submission())
+        self.assertTrue(t7.actionable_submission())
 
     def test_interop_submission(self):
         """Tests interop_submission correctly filters submissions."""
