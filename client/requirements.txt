@@ -1,4 +1,6 @@
+LatLon
 futures
 nose
+pymavlink
+pyserial
 requests
-LatLon

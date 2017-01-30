@@ -1,10 +1,6 @@
-#!/usr/bin/env python
-# Program to load targets from file and upload via interoperability.
+# Module to load targets from file and upload via interoperability.
 
-import argparse
-import concurrent
 import csv
-import getpass
 import imghdr
 import json
 import logging
