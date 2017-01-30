@@ -5,6 +5,7 @@ import imghdr
 import json
 import logging
 import os
+import pprint
 import re
 
 from interop import Target
@@ -124,7 +125,9 @@ def upload_legacy_targets(client, target_filepath, imagery_dir):
         image_data = None
         with open(image_filepath, 'rb') as f:
             image_data = f.read()
+        logger.info('Uploading target %r' % target)
         target = client.post_target(target)
+        logger.info('Uploading target thumbnail %s' % image_filepath)
         client.put_target_image(target.id, image_data)
 
 
@@ -198,7 +201,7 @@ def upload_targets(client, target_dir, team_id=None, actionable_override=None):
         else:
             pairs[v] = None
 
-    logger.info('Found target-image pairs: %s' % pairs)
+    logger.info('Found target-image pairs:\n%s' % pprint.pformat(pairs))
 
     for target, image in pairs.items():
         upload_target(client, target, image, team_id, actionable_override)
