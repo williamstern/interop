@@ -8,11 +8,13 @@ RUN sudo apt-get -qq update && sudo apt-get -qq install -y \
         python-pip \
         python-pyproj \
         python-virtualenv \
+        python-lxml \
         python3 \
         python3-dev \
         python3-nose \
         python3-pip \
-        python3-pyproj
+        python3-pyproj \
+        python3-lxml
 
 COPY requirements.txt requirements.txt
 RUN bash -c "virtualenv --system-site-packages -p /usr/bin/python2 \

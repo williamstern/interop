@@ -1,4 +1,5 @@
 LatLon
+future
 futures
 nose
 pymavlink
