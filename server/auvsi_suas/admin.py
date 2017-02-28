@@ -3,6 +3,7 @@ from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_clock_event import MissionClockEvent
+from auvsi_suas.models.mission_judge_feedback import MissionJudgeFeedback
 from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.moving_obstacle import MovingObstacle
 from auvsi_suas.models.stationary_obstacle import StationaryObstacle
@@ -58,5 +59,6 @@ class WaypointModelAdmin(LargeDataModelAdmin):
 admin.site.register(FlyZone)
 admin.site.register(GpsPosition, LargeDataModelAdmin)
 admin.site.register(MissionClockEvent)
+admin.site.register(MissionJudgeFeedback)
 admin.site.register(MovingObstacle)
 admin.site.register(TakeoffOrLandingEvent)
