@@ -5,6 +5,7 @@ WORKDIR /interop/server
 RUN sudo apt-get -qq update && sudo apt-get -qq install -y \
         apache2 \
         apache2-utils \
+        curl \
         libapache2-mod-auth-pgsql \
         libapache2-mod-auth-plain \
         libapache2-mod-python \
@@ -67,3 +68,6 @@ CMD sudo service postgresql start && \
   sudo service memcached start && \
   sudo service apache2 start && \
   tail -f /dev/null
+
+HEALTHCHECK --interval=10s --timeout=3s \
+    CMD curl -f http://localhost/ || exit 1
