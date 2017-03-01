@@ -1,4 +1,5 @@
 """Fly zone model."""
+import datetime
 import numpy as np
 from django.conf import settings
 from django.db import models
@@ -101,8 +102,8 @@ class FlyZone(models.Model):
                 which demonstrate the flight of the UAS.
         Returns:
             num_violations: The number of times fly zone boundaries violated.
-            total_time: The floating point total time in seconds spent out of
-                bounds as indicated by the telemetry logs.
+            total_time: The timedelta for time spent out of bounds
+                as indicated by the telemetry logs.
         """
         # Get the aerial positions for the logs
         aerial_pos_list = [cur_log.uas_position
@@ -124,7 +125,7 @@ class FlyZone(models.Model):
                                   for cur_id in range(len(log_ids_to_process))
                                   if not satisfied_positions[cur_id]]
 
-        out_of_bounds_time = 0
+        out_of_bounds_time = datetime.timedelta()
         violations = 0
         prev_event_id = -1
         currently_in_bounds = True
@@ -148,7 +149,7 @@ class FlyZone(models.Model):
             if not currently_in_bounds and i > 0:
                 time_diff = (uas_telemetry_logs[i].timestamp -
                              uas_telemetry_logs[i - 1].timestamp)
-                out_of_bounds_time += time_diff.total_seconds()
+                out_of_bounds_time += time_diff
 
         return (violations, out_of_bounds_time)
 

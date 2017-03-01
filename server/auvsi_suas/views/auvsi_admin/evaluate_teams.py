@@ -1,6 +1,5 @@
 """Admin automatic evaluation of teams view."""
 
-import copy
 import cStringIO
 import csv
 from auvsi_suas.models.mission_config import MissionConfig
@@ -48,7 +47,7 @@ class EvaluateTeamsBase(View):
             except User.DoesNotExist:
                 return HttpResponseNotFound('Team not found.')
 
-        # Get the eval data for the teams
+        # Get the eval data for the teams.
         user_eval_data = mission.evaluate_teams(users)
         if not user_eval_data:
             logger.warning('No data for team evaluation.')
@@ -63,6 +62,7 @@ class EvaluateTeamsJson(EvaluateTeamsBase):
     """Evaluates the teams and returns JSON."""
 
     def format_response(self, user_eval_data):
+        user_eval_data = {u: e.json() for u, e in user_eval_data.iteritems()}
         return JsonResponse(user_eval_data)
 
 
@@ -70,33 +70,17 @@ class EvaluateTeamsCsv(EvaluateTeamsBase):
     """Evaluates the teams and returns CSV."""
 
     def format_response(self, user_eval_data):
-        # Reformat to column oriented
-        user_col_data = {}
-        for (username, eval_data) in user_eval_data.iteritems():
-            col_data = user_col_data.setdefault(username, {})
-            col_data['username'] = username
-            work_queue = [([], eval_data)]
-            while len(work_queue) > 0:
-                (cur_prefixes, cur_map) = work_queue.pop()
-                for (key, val) in cur_map.iteritems():
-                    new_prefixes = copy.copy(cur_prefixes)
-                    new_prefixes.append(str(key))
-                    if isinstance(val, dict):
-                        work_queue.append((new_prefixes, val))
-                    else:
-                        column_key = '.'.join(new_prefixes)
-                        if isinstance(val, list):
-                            col_data[column_key] = ','.join(val)
-                        else:
-                            col_data[column_key] = val
-        # Get column headers
+        # Reformat to CSV.
+        user_col_data = {u: e.csv() for u, e in user_eval_data.iteritems()}
+
+        # Get column headers.
         col_headers = set()
         for col_data in user_col_data.values():
             for header in col_data.keys():
                 col_headers.add(header)
         col_headers = sorted(col_headers)
 
-        # Write output
+        # Write output.
         csv_output = cStringIO.StringIO()
         writer = csv.DictWriter(csv_output, fieldnames=col_headers)
         writer.writeheader()

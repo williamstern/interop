@@ -55,7 +55,7 @@ class TestEvaluateTeams(TestCase):
         self.assertEqual(len(data), 3)
         self.assertIn('user0', data)
         self.assertIn('user1', data)
-        self.assertIn('uas_telem_times', data['user0'])
+        self.assertIn('uas_telemetry_time_max', data['user0'])
 
     def test_evaluate_teams_specific_team(self):
         """Tests the eval Json method on a specific team."""
@@ -76,7 +76,7 @@ class TestEvaluateTeams(TestCase):
         self.assertEqual(response.status_code, 200)
         csv_data = response.content
         self.assertEqual(len(csv_data.split('\n')), 5)
-        self.assertIn('username', csv_data)
-        self.assertIn('uas_telem_times.max', csv_data)
+        self.assertIn('team', csv_data)
+        self.assertIn('uas_telemetry_time_max', csv_data)
         self.assertIn('user0', csv_data)
         self.assertIn('user1', csv_data)
