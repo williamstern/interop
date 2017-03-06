@@ -5,6 +5,7 @@ from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_config import MissionConfig
+from auvsi_suas.models.mission_config import MissionEval
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.waypoint import Waypoint
 from auvsi_suas.patches.simplekml_patch import Kml
@@ -204,6 +205,67 @@ class TestMissionConfigModel(TestCase):
         self.assertSatisfiedWaypoints(expect, config.satisfied_waypoints(logs))
 
 
+class TestMissionEval(TestCase):
+    def setUp(self):
+        self.maxDiff = None
+        self.eval = MissionEval()
+        user = User.objects.create_user('testuser', 'testemail@x.com',
+                                        'testpass')
+        self.eval.team = user
+        self.eval.warnings.append('warning1')
+        self.eval.uas_telemetry_time_max = 1
+        self.eval.uas_telemetry_time_avg = 0.2
+        self.eval.mission_clock_time = datetime.timedelta(seconds=1)
+        self.eval.out_of_bounds_time = datetime.timedelta(seconds=2)
+        self.eval.boundary_violations = 3
+        self.eval.waypoint_closest_for_scores = {1: 2}
+        self.eval.waypoint_closest_approaches = {1: 1}
+        self.eval.waypoint_scores = {1: 0.5}
+        self.eval.obst_collision_stationary = {1: False}
+        self.eval.obst_collision_moving = {2: True}
+        self.eval.targets = {'auto': 'test', 'manual': 'test', }
+
+    def test_json(self):
+        self.assertEqual(
+            {
+                'team': 'testuser',
+                'warnings': ['warning1'],
+                'uas_telemetry_time_max': 1,
+                'uas_telemetry_time_avg': 0.2,
+                'mission_clock_time': 1.0,
+                'out_of_bounds_time': 2.0,
+                'boundary_violations': 3,
+                'waypoint_closest_for_scores': {1: 2},
+                'waypoint_closest_approaches': {1: 1},
+                'waypoint_scores': {1: 0.5},
+                'obst_collision_stationary': {1: False},
+                'obst_collision_moving': {2: True},
+                'targets': {
+                    'auto': 'test',
+                    'manual': 'test',
+                },
+            }, self.eval.json())
+
+    def test_csv(self):
+        self.assertEqual(
+            {
+                'team': 'testuser',
+                'warnings': 'warning1',
+                'uas_telemetry_time_max': 1,
+                'uas_telemetry_time_avg': 0.2,
+                'mission_clock_time': 1.0,
+                'out_of_bounds_time': 2.0,
+                'boundary_violations': 3,
+                'waypoint_closest_for_scores.1': 2,
+                'waypoint_closest_approaches.1': 1,
+                'waypoint_scores.1': 0.5,
+                'obst_collision_stationary.1': False,
+                'obst_collision_moving.2': True,
+                'targets.auto': 'test',
+                'targets.manual': 'test',
+            }, self.eval.csv())
+
+
 class TestMissionConfigModelSampleMission(TestCase):
 
     fixtures = ['testdata/sample_mission.json']
@@ -219,99 +281,68 @@ class TestMissionConfigModelSampleMission(TestCase):
         # Contains user0 and user1
         self.assertEqual(2, len(teams))
 
-        # Verify dictionary structure
-        for user, val in teams.iteritems():
-            self.assertIn('waypoint_scores', val)
-            self.assertIn('waypoint_closest_approaches', val)
-            self.assertIn('waypoint_closest_for_scores', val)
-
-            self.assertIn('mission_clock_time', val)
-            self.assertIn('out_of_bounds_time', val)
-            self.assertIn('boundary_violations', val)
-
-            self.assertIn('targets', val)
-            for target_set in ['manual', 'auto']:
-                self.assertIn(target_set, val['targets'])
-                keys = ['matched_target_value', 'unmatched_target_count',
-                        'targets']
-                for key in keys:
-                    self.assertIn(key, val['targets'][target_set])
-                for t in val['targets'][target_set]['targets'].values():
-                    keys = ['match_value', 'image_approved', 'classifications',
-                            'location_accuracy', 'actionable']
-                    for key in keys:
-                        self.assertIn(key, t)
-
-            self.assertIn('uas_telem_times', val)
-            self.assertIn('max', val['uas_telem_times'])
-            self.assertIn('avg', val['uas_telem_times'])
-
-            self.assertIn('stationary_obst_collision', val)
-            self.assertIn(25, val['stationary_obst_collision'])
-            self.assertIn(26, val['stationary_obst_collision'])
-
-            self.assertIn('moving_obst_collision', val)
-            self.assertIn(25, val['moving_obst_collision'])
-            self.assertIn(26, val['moving_obst_collision'])
-
         # user0 data
-        self.assertEqual({0: 0.0}, teams[user0]['waypoint_closest_for_scores'])
-        self.assertEqual({0: 1.0, 1: 0.0}, teams[user0]['waypoint_scores'])
-        self.assertEqual({0: 0.0}, teams[user0]['waypoint_closest_approaches'])
+        self.assertEqual({0: 0.0}, teams[user0].waypoint_closest_for_scores)
+        self.assertEqual({0: 1.0, 1: 0.0}, teams[user0].waypoint_scores)
+        self.assertEqual({0: 0.0}, teams[user0].waypoint_closest_approaches)
 
-        self.assertAlmostEqual(2, teams[user0]['mission_clock_time'])
-        self.assertAlmostEqual(0.6, teams[user0]['out_of_bounds_time'])
+        self.assertAlmostEqual(2,
+                               teams[user0].mission_clock_time.total_seconds())
+        self.assertAlmostEqual(0.6,
+                               teams[user0].out_of_bounds_time.total_seconds())
 
-        self.assertAlmostEqual(0.5, teams[user0]['uas_telem_times']['max'])
-        self.assertAlmostEqual(1. / 6, teams[user0]['uas_telem_times']['avg'])
+        self.assertAlmostEqual(0.5, teams[user0].uas_telemetry_time_max)
+        self.assertAlmostEqual(1. / 6, teams[user0].uas_telemetry_time_avg)
 
         self.assertAlmostEqual(
             0.48,
-            teams[user0]['targets']['manual']['matched_target_value'],
+            teams[user0].targets['manual']['matched_target_value'],
             places=3)
         self.assertEqual(
-            0, teams[user0]['targets']['manual']['unmatched_target_count'])
+            0, teams[user0].targets['manual']['unmatched_target_count'])
 
         self.assertAlmostEqual(
             1,
-            teams[user0]['targets']['auto']['matched_target_value'],
+            teams[user0].targets['auto']['matched_target_value'],
             places=3)
         self.assertEqual(
-            0, teams[user0]['targets']['auto']['unmatched_target_count'])
+            0, teams[user0].targets['auto']['unmatched_target_count'])
 
         # Real targets are PKs 1, 2, and 3.
         self.assertEqual(
-            0.0, teams[user0]['targets']['manual']['targets'][1]['actionable'])
+            0.0, teams[user0].targets['manual']['targets'][1]['actionable'])
         self.assertEqual(
-            1.0, teams[user0]['targets']['auto']['targets'][1]['actionable'])
+            1.0, teams[user0].targets['auto']['targets'][1]['actionable'])
 
-        self.assertEqual(True, teams[user0]['stationary_obst_collision'][25])
-        self.assertEqual(False, teams[user0]['stationary_obst_collision'][26])
+        self.assertEqual(True, teams[user0].obst_collision_stationary[25])
+        self.assertEqual(False, teams[user0].obst_collision_stationary[26])
 
-        self.assertEqual(True, teams[user0]['moving_obst_collision'][25])
-        self.assertEqual(False, teams[user0]['moving_obst_collision'][26])
+        self.assertEqual(True, teams[user0].obst_collision_moving[25])
+        self.assertEqual(False, teams[user0].obst_collision_moving[26])
 
         # user1 data
 
         # yapf: disable
         self.assertEqual({0: 0.0, 1: 0.0},
-                         teams[user1]['waypoint_closest_for_scores'])
-        self.assertEqual({0: 1.0, 1: 1.0}, teams[user1]['waypoint_scores'])
+                         teams[user1].waypoint_closest_for_scores)
+        self.assertEqual({0: 1.0, 1: 1.0}, teams[user1].waypoint_scores)
         self.assertEqual({0: 0.0, 1: 0.0},
-                         teams[user1]['waypoint_closest_approaches'])
+                         teams[user1].waypoint_closest_approaches)
         # yapf: enable
 
-        self.assertAlmostEqual(18, teams[user1]['mission_clock_time'])
-        self.assertAlmostEqual(1.0, teams[user1]['out_of_bounds_time'])
+        self.assertAlmostEqual(18,
+                               teams[user1].mission_clock_time.total_seconds())
+        self.assertAlmostEqual(1.0,
+                               teams[user1].out_of_bounds_time.total_seconds())
 
-        self.assertAlmostEqual(2.0, teams[user1]['uas_telem_times']['max'])
-        self.assertAlmostEqual(1.0, teams[user1]['uas_telem_times']['avg'])
+        self.assertAlmostEqual(2.0, teams[user1].uas_telemetry_time_max)
+        self.assertAlmostEqual(1.0, teams[user1].uas_telemetry_time_avg)
 
-        self.assertEqual(False, teams[user1]['stationary_obst_collision'][25])
-        self.assertEqual(False, teams[user1]['stationary_obst_collision'][26])
+        self.assertEqual(False, teams[user1].obst_collision_stationary[25])
+        self.assertEqual(False, teams[user1].obst_collision_stationary[26])
 
-        self.assertEqual(False, teams[user1]['moving_obst_collision'][25])
-        self.assertEqual(False, teams[user1]['moving_obst_collision'][26])
+        self.assertEqual(False, teams[user1].obst_collision_moving[25])
+        self.assertEqual(False, teams[user1].obst_collision_moving[26])
 
     def test_evaluate_teams_specific_users(self):
         """Tests the evaluation of teams method with specific users."""

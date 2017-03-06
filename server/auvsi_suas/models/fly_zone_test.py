@@ -320,4 +320,5 @@ class TestFlyZone(TestCase):
             num_violations, out_of_bounds_time = \
                 FlyZone.out_of_bounds(zones, uas_logs)
             self.assertEqual(num_violations, exp_violations)
-            self.assertAlmostEqual(out_of_bounds_time, exp_out_of_bounds_time)
+            self.assertAlmostEqual(out_of_bounds_time.total_seconds(),
+                                   exp_out_of_bounds_time)
