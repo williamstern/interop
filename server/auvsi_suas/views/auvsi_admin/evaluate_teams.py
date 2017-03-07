@@ -2,6 +2,8 @@
 
 import cStringIO
 import csv
+import json
+import zipfile
 from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.views import logger
 from auvsi_suas.views.decorators import require_superuser
@@ -11,21 +13,20 @@ from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseNotFound
 from django.http import HttpResponseServerError
-from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
 
-class EvaluateTeamsBase(View):
-    """Evaluates the teams and delegates to subclasses for format."""
+class EvaluateTeams(View):
+    """Evaluates the teams and returns a zip file with CSV & JSON data.
+
+    Zip file contains a master CSV and JSON file with all evaluation data.
+    It also contains per-team JSON files for individual team feedback.
+    """
 
     @method_decorator(require_superuser)
     def dispatch(self, *args, **kwargs):
-        return super(EvaluateTeamsBase, self).dispatch(*args, **kwargs)
-
-    def format_response(self, user_eval_data):
-        """Format and return the response for given evaluation dat.a"""
-        logging.fatal('Not implemented.')
+        return super(EvaluateTeams, self).dispatch(*args, **kwargs)
 
     def get(self, request):
         logger.info('Admin downloading team evaluation.')
@@ -53,39 +54,40 @@ class EvaluateTeamsBase(View):
             logger.warning('No data for team evaluation.')
             return HttpResponseServerError(
                 'Could not get user evaluation data.')
+
         # Convert to username key-d map.
-        user_eval_data = {u.username: d for u, d in user_eval_data.iteritems()}
-        return self.format_response(user_eval_data)
+        user_eval_data = {u.username: e for u, e in user_eval_data.iteritems()}
 
+        # Get JSON output.
+        json_data = {u: e.json() for u, e in user_eval_data.iteritems()}
 
-class EvaluateTeamsJson(EvaluateTeamsBase):
-    """Evaluates the teams and returns JSON."""
-
-    def format_response(self, user_eval_data):
-        user_eval_data = {u: e.json() for u, e in user_eval_data.iteritems()}
-        return JsonResponse(user_eval_data)
-
-
-class EvaluateTeamsCsv(EvaluateTeamsBase):
-    """Evaluates the teams and returns CSV."""
-
-    def format_response(self, user_eval_data):
-        # Reformat to CSV.
+        # Get CSV output.
         user_col_data = {u: e.csv() for u, e in user_eval_data.iteritems()}
-
-        # Get column headers.
         col_headers = set()
         for col_data in user_col_data.values():
             for header in col_data.keys():
                 col_headers.add(header)
         col_headers = sorted(col_headers)
-
-        # Write output.
-        csv_output = cStringIO.StringIO()
-        writer = csv.DictWriter(csv_output, fieldnames=col_headers)
+        csv_io = cStringIO.StringIO()
+        writer = csv.DictWriter(csv_io, fieldnames=col_headers)
         writer.writeheader()
         for col_data in user_col_data.values():
             writer.writerow(col_data)
-        output = csv_output.getvalue()
-        csv_output.close()
-        return HttpResponse(output, content_type='text/csv')
+        csv_output = csv_io.getvalue()
+        csv_io.close()
+
+        # Form Zip file.
+        zip_io = cStringIO.StringIO()
+        with zipfile.ZipFile(zip_io, 'w') as zip_file:
+            zip_file.writestr('/evaluate_teams/all.csv', csv_output)
+            zip_file.writestr('/evaluate_teams/all.json',
+                              json.dumps(json_data,
+                                         indent=4))
+            for u, e in json_data.iteritems():
+                zip_file.writestr('/evaluate_teams/teams/%s.json' % u,
+                                  json.dumps(e,
+                                             indent=4))
+        zip_output = zip_io.getvalue()
+        zip_io.close()
+
+        return HttpResponse(zip_output, content_type='application/zip')
