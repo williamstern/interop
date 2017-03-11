@@ -152,7 +152,6 @@ Engine Installation <https://docs.docker.com/engine/installation/>`__ guide.
 
     cd ~/interop
     sudo ./tools/setup_docker.sh
-    sudo ./tools/setup_tools.sh
 
 
 auvsisuas/interop-server
@@ -302,8 +301,7 @@ button on the mission dashboard to learn how to use this interface.
    * *Dashboard*. Navigates to the dashboard showing all mission elements,
      active team details, etc.
    * *Review Targets*. Navigates to the page to review targets submitted.
-   * *Evaluate Teams (CSV)*. Evaluates the teams for the mission being viewed.
-     This is otherwise the same as the System link.
+   * *Evaluate Teams*. Navigates to the page to download team evaluations.
 
 
 **Django Admin Dashboard**. From the SUAS Admin Dashboard, you can use the menu
