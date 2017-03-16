@@ -4,6 +4,7 @@ import collections
 import enum
 import networkx as nx
 import operator
+from auvsi_suas.proto import target_pb2
 from django.conf import settings
 from django.db import models
 from gps_position import GpsPosition
@@ -232,7 +233,7 @@ class Target(models.Model):
 
         return d
 
-    def similar_classifications(self, other):
+    def similar_classifications_ratio(self, other):
         """Counts the number of similar classification attributes.
 
         Args:
@@ -338,6 +339,8 @@ class TargetEvaluator(object):
             self.missions = MissionClockEvent.missions(self.user)
 
         self.matches = self.match_targets(submitted_targets, real_targets)
+        self.unmatched = self.find_unmatched(submitted_targets, real_targets,
+                                             self.matches)
 
     def range_lookup(self,
                      ranges,
@@ -359,8 +362,8 @@ class TargetEvaluator(object):
                 return r['value']
         return None
 
-    def match_value(self, submitted, real):
-        """Computes the match value if the two targets were paired.
+    def evaluate_match(self, submitted, real):
+        """Evaluates the match if the two targets were to be paired.
 
         Args:
             submitted: The team submitted target. Must be one of
@@ -368,39 +371,56 @@ class TargetEvaluator(object):
             real: The real target made by the judges. Must be one of
                 self.real_targets.
         Returns:
-            The match value, which is proportional to the points a team would
-            receive if the targets were paired.
+            auvsi_suas.proto.TargetEvaluation. The match evaluation.
         """
+        target_eval = target_pb2.TargetEvaluation()
+        target_eval.real_target = real.pk
+        target_eval.submitted_target = submitted.pk
+
         # Targets which are not the same type have no match value.
         if submitted.target_type != real.target_type:
-            return 0
+            return target_eval
 
-        # Compute the classification point value.
-        classify_value = (settings.CHARACTERISTICS_WEIGHT *
-                          real.similar_classifications(submitted))
-
-        # Compute the location value.
-        location_value = 0
+        # Compute values which influence score and are provided as feedback.
+        target_eval.image_approved = submitted.thumbnail_approved
+        target_eval.classifications_ratio = real.similar_classifications_ratio(
+            submitted)
         if submitted.location:
-            location_dist = submitted.location.distance_to(real.location)
-            location_value = (settings.GEOLOCATION_WEIGHT * max(0.0, (
-                float(settings.TARGET_LOCATION_THRESHOLD - location_dist) /
-                settings.TARGET_LOCATION_THRESHOLD)))
+            target_eval.geolocation_accuracy_ft = \
+                    submitted.location.distance_to(real.location)
+        target_eval.actionable_submission = submitted.actionable_submission(
+            flights=self.flights)
+        target_eval.autonomous_submission = submitted.autonomous
+        target_eval.interop_submission = submitted.interop_submission(
+            missions=self.missions)
 
-        # Actionable intelligence value
-        actionable_value = (
-            settings.ACTIONABLE_WEIGHT *
-            submitted.actionable_submission(flights=self.flights))
+        # Compute score.
+        target_eval.classifications_score_ratio = \
+                target_eval.classifications_ratio
+        if target_eval.HasField('geolocation_accuracy_ft'):
+            target_eval.geolocation_score_ratio = max(
+                0, (float(settings.TARGET_LOCATION_THRESHOLD) -
+                    target_eval.geolocation_accuracy_ft) /
+                float(settings.TARGET_LOCATION_THRESHOLD))
+        else:
+            target_eval.geolocation_score_ratio = 0
+        target_eval.actionable_score_ratio = \
+                1 if target_eval.actionable_submission else 0
+        target_eval.autonomous_score_ratio = \
+                1 if target_eval.autonomous_submission else 0
+        target_eval.interop_score_ratio = \
+                1 if target_eval.interop_submission else 0
+        target_eval.score_ratio = (
+            (settings.CHARACTERISTICS_WEIGHT *
+             target_eval.classifications_score_ratio) +
+            (settings.GEOLOCATION_WEIGHT *
+             target_eval.geolocation_score_ratio) +
+            (settings.ACTIONABLE_WEIGHT * target_eval.actionable_score_ratio) +
+            (settings.AUTONOMY_WEIGHT * target_eval.autonomous_score_ratio) +
+            (settings.INTEROPERABILITY_WEIGHT *
+             target_eval.interop_score_ratio))
 
-        # Value for submitting over interop system.
-        interop_value = (settings.INTEROPERABILITY_WEIGHT *
-                         submitted.interop_submission(missions=self.missions))
-
-        # Autonomy value.
-        autonomy_value = settings.AUTONOMY_WEIGHT * submitted.autonomous
-
-        return (classify_value + location_value + actionable_value +
-                interop_value + autonomy_value)
+        return target_eval
 
     def match_targets(self, submitted_targets, real_targets):
         """Matches the targets to maximize match value.
@@ -413,82 +433,76 @@ class TargetEvaluator(object):
             submitted target, if they are matched.
         """
         # Create a bipartite graph from submitted to real targets with match
-        # values as edge weights. Skip edges with no match value.
+        # values (score ratio) as edge weights. Skip edges with no match value.
         g = nx.Graph()
         g.add_nodes_from(submitted_targets)
         g.add_nodes_from(real_targets)
         for submitted in submitted_targets:
             for real in real_targets:
-                match_value = self.match_value(submitted, real)
+                match_value = self.evaluate_match(submitted, real).score_ratio
                 if match_value:
                     g.add_edge(submitted, real, weight=match_value)
         # Compute the full matching.
         return nx.algorithms.matching.max_weight_matching(g)
 
-    def evaluation_dict(self):
-        """Gets the evaluation dictionary.
+    def find_unmatched(self, submitted_targets, real_targets, matches):
+        """Finds unmatched targets, filtering double-counts by autonomy.
+
+        Args:
+            submitted_targets: List of submitted Target objects.
+            real_targets: List of real Target objects made by judges.
+            matches: Map from submitted to real targets indicating matches.
+        Returns:
+            List of targets which are unmatched after filtering autonomy
+            duplicates.
+        """
+        # Create a bipartite graph from unsubmitted to real targets with match
+        # values (score ratio) as edge weights. Skip edges with no match value.
+        # Skip edges if not inverse autonomy for existing match.
+        remaining_targets = [t for t in submitted_targets if t not in matches]
+        g = nx.Graph()
+        g.add_nodes_from(remaining_targets)
+        g.add_nodes_from(real_targets)
+        for submitted in remaining_targets:
+            for real in real_targets:
+                match_value = self.evaluate_match(submitted, real).score_ratio
+                inverted_autonomy = (
+                    real in matches and
+                    submitted.autonomous != matches[real].autonomous)
+                if match_value and inverted_autonomy:
+                    # We care about minimiznig unmatched, not match weight, so
+                    # use weight of 1.
+                    g.add_edge(submitted, real, weight=1)
+        # Compute the matching to find unused objects.
+        unused_match = nx.algorithms.matching.max_weight_matching(g)
+        # Difference between remaining and unused is unmatched.
+        return [t for t in remaining_targets if t not in unused_match]
+
+    def evaluate(self):
+        """Evaluates the submitted targets.
 
         Returns:
-            A dictionary of the form:
-            {
-                'matched_target_value': Total value from matched targets
-                'unmatched_target_count': Count of unmatched targets
-                'targets': {
-                    pk: {
-                        'submitted_target': The pk of the submitted target.
-                        'match_value': the value for the target
-                        'image_approved': whether the image was approved
-                        'classifications': proportion of similar classifications
-                        'location_accuracy': distance from actual
-                        'actionable': 1 if actionable submission, 0 of not
-                        'interop_submission': 1 if target submitted over
-                            interop, 0 if not
-                    }
-                }
-            }
+            auvsi_suas.proto.MultiTargetEvaluation.
         """
-        matched_target_value = 0
-        unmatched_targets = len(self.submitted_targets)
-        target_dict = collections.defaultdict(dict)
+        multi_eval = target_pb2.MultiTargetEvaluation()
+        # Compute match value.
         for real in self.real_targets:
             submitted = self.matches.get(real)
             if submitted:
-                match_value = self.match_value(submitted, real)
-                matched_target_value += match_value
-                unmatched_targets -= 1
-
-                classifications = submitted.similar_classifications(real)
-                location_accuracy = None
-                if submitted.location:
-                    location_accuracy = submitted.location.distance_to(
-                        real.location)
-                actionable = submitted.actionable_submission(
-                    flights=self.flights)
-                interop_submission = submitted.interop_submission(
-                    missions=self.missions)
-
-                target_dict[real.pk] = {
-                    'submitted_target': submitted.pk,
-                    'match_value': match_value,
-                    'image_approved': submitted.thumbnail_approved,
-                    'classifications': classifications,
-                    'location_accuracy': location_accuracy,
-                    'actionable': actionable,
-                    'interop_submission': interop_submission,
-                }
-            else:
-                target_dict[real.pk] = {
-                    'submitted_target': '',
-                    'match_value': '',
-                    'image_approved': '',
-                    'classifications': '',
-                    'location_accuracy': '',
-                    'actionable': '',
-                    'interop_submission': '',
-                }
-
-        return {
-            'matched_target_value': matched_target_value,
-            'unmatched_target_count': unmatched_targets,
-            'targets': target_dict,
-        }
+                target_eval = multi_eval.targets.add()
+                target_eval.CopyFrom(self.evaluate_match(submitted, real))
+        if self.real_targets:
+            multi_eval.matched_score_ratio = sum(
+                [e.score_ratio for e in multi_eval.targets]) / len(
+                    self.real_targets)
+        else:
+            multi_eval.matched_score_ratio = 0
+        # Compute extra object penalty.
+        multi_eval.unmatched_target_count = len(self.unmatched)
+        multi_eval.extra_object_penalty_ratio = \
+                (multi_eval.unmatched_target_count *
+                        settings.EXTRA_OBJECT_PENALTY_RATIO)
+        # Compute total score.
+        multi_eval.score_ratio = (multi_eval.matched_score_ratio -
+                                  multi_eval.extra_object_penalty_ratio)
+        return multi_eval

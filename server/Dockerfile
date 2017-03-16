@@ -16,6 +16,7 @@ RUN sudo apt-get -qq update && sudo apt-get -qq install -y \
         npm \
         postgresql \
         postgresql-client \
+        protobuf-compiler \
         python \
         # Install from apt as it's much faster.
         python-matplotlib \
@@ -38,7 +39,7 @@ RUN sudo ln -snf /usr/bin/nodejs /usr/local/bin/node && \
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
-# Copy over just enough to setup, for faster dev iteration.
+# Configure database, web server, Django.
 COPY manage.py manage.py
 COPY server server
 COPY auvsi_suas/__init__.py auvsi_suas/__init__.py
@@ -48,10 +49,13 @@ COPY auvsi_suas/views/auvsi_admin/__init__.py auvsi_suas/views/auvsi_admin/__ini
 COPY auvsi_suas/migrations auvsi_suas/migrations
 COPY config config
 COPY fixtures fixtures
-# Configure database, web server, Django.
 RUN ./config/configure_postgresql.sh && \
     ./config/configure_apache.sh && \
     ./config/configure_django.sh
+
+# Compile protobuf definitions.
+COPY auvsi_suas/proto auvsi_suas/proto
+RUN ./config/configure_proto.sh
 
 # Copy remaining code.
 COPY . .

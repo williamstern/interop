@@ -1,5 +1,6 @@
 """Admin automatic evaluation of teams view."""
 
+import copy
 import cStringIO
 import csv
 import json
@@ -15,6 +16,7 @@ from django.http import HttpResponseNotFound
 from django.http import HttpResponseServerError
 from django.utils.decorators import method_decorator
 from django.views.generic import View
+from google.protobuf import json_format
 
 
 class EvaluateTeams(View):
@@ -27,6 +29,48 @@ class EvaluateTeams(View):
     @method_decorator(require_superuser)
     def dispatch(self, *args, **kwargs):
         return super(EvaluateTeams, self).dispatch(*args, **kwargs)
+
+    def pretty_json(self, json_str):
+        """Generates a pretty-print json from any json."""
+        return json.dumps(json.loads(json_str), indent=4)
+
+    def csv_from_json(self, json_list):
+        """Generates a CSV string from a list of rows as JSON strings."""
+        csv_list = []
+        for json_row in json_list:
+            csv_dict = {}
+            work_queue = [([], json.loads(json_row))]
+            while len(work_queue) > 0:
+                (cur_prefixes, cur_val) = work_queue.pop()
+                if isinstance(cur_val, dict):
+                    for (key, val) in cur_val.iteritems():
+                        new_prefixes = copy.copy(cur_prefixes)
+                        new_prefixes.append(str(key))
+                        work_queue.append((new_prefixes, val))
+                elif isinstance(cur_val, list):
+                    for ix, val in enumerate(cur_val):
+                        new_prefixes = copy.copy(cur_prefixes)
+                        new_prefixes.append(str(ix))
+                        work_queue.append((new_prefixes, val))
+                else:
+                    column_key = '.'.join(cur_prefixes)
+                    csv_dict[column_key] = val
+            csv_list.append(csv_dict)
+
+        col_headers = set()
+        for csv_dict in csv_list:
+            col_headers.update(csv_dict.keys())
+        col_headers = sorted(col_headers)
+
+        csv_io = cStringIO.StringIO()
+        writer = csv.DictWriter(csv_io, fieldnames=col_headers)
+        writer.writeheader()
+        for csv_dict in csv_list:
+            writer.writerow(csv_dict)
+        csv_output = csv_io.getvalue()
+        csv_io.close()
+
+        return csv_output
 
     def get(self, request):
         logger.info('Admin downloading team evaluation.')
@@ -49,44 +93,28 @@ class EvaluateTeams(View):
                 return HttpResponseNotFound('Team not found.')
 
         # Get the eval data for the teams.
-        user_eval_data = mission.evaluate_teams(users)
-        if not user_eval_data:
+        mission_eval = mission.evaluate_teams(users)
+        if not mission_eval:
             logger.warning('No data for team evaluation.')
             return HttpResponseServerError(
                 'Could not get user evaluation data.')
 
-        # Convert to username key-d map.
-        user_eval_data = {u.username: e for u, e in user_eval_data.iteritems()}
-
-        # Get JSON output.
-        json_data = {u: e.json() for u, e in user_eval_data.iteritems()}
-
-        # Get CSV output.
-        user_col_data = {u: e.csv() for u, e in user_eval_data.iteritems()}
-        col_headers = set()
-        for col_data in user_col_data.values():
-            for header in col_data.keys():
-                col_headers.add(header)
-        col_headers = sorted(col_headers)
-        csv_io = cStringIO.StringIO()
-        writer = csv.DictWriter(csv_io, fieldnames=col_headers)
-        writer.writeheader()
-        for col_data in user_col_data.values():
-            writer.writerow(col_data)
-        csv_output = csv_io.getvalue()
-        csv_io.close()
-
         # Form Zip file.
         zip_io = cStringIO.StringIO()
         with zipfile.ZipFile(zip_io, 'w') as zip_file:
-            zip_file.writestr('/evaluate_teams/all.csv', csv_output)
-            zip_file.writestr('/evaluate_teams/all.json',
-                              json.dumps(json_data,
-                                         indent=4))
-            for u, e in json_data.iteritems():
-                zip_file.writestr('/evaluate_teams/teams/%s.json' % u,
-                                  json.dumps(e,
-                                             indent=4))
+            zip_file.writestr(
+                '/evaluate_teams/all.json',
+                self.pretty_json(json_format.MessageToJson(mission_eval)))
+            team_jsons = []
+            for team_eval in mission_eval.teams:
+                team_json = self.pretty_json(json_format.MessageToJson(
+                    team_eval))
+                zip_file.writestr('/evaluate_teams/teams/%s.json' %
+                                  team_eval.team, team_json)
+                team_jsons.append(team_json)
+
+            zip_file.writestr('/evaluate_teams/all.csv',
+                              self.csv_from_json(team_jsons))
         zip_output = zip_io.getvalue()
         zip_io.close()
 

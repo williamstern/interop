@@ -172,8 +172,8 @@ class TestTarget(TestCase):
         self.assertEqual(None, d['description'])
         self.assertEqual(False, d['autonomous'])
 
-    def test_similar_classifications(self):
-        """Tests similar classification counts are computed correctly."""
+    def test_similar_classifications_ratio(self):
+        """Tests similar classification ratios are computed correctly."""
         # Test equal standard targets.
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
@@ -199,35 +199,35 @@ class TestTarget(TestCase):
                     description='Test other target',
                     autonomous=True)
         t2.save()
-        self.assertAlmostEqual(1.0, t1.similar_classifications(t2))
+        self.assertAlmostEqual(1.0, t1.similar_classifications_ratio(t2))
 
         # Test unequal standard targets.
         t1.alphanumeric = 'DEF'
         t1.alphanumeric_color = Color.blue
         t1.save()
-        self.assertAlmostEqual(3.0 / 5.0, t1.similar_classifications(t2))
+        self.assertAlmostEqual(3.0 / 5.0, t1.similar_classifications_ratio(t2))
         t1.shape = Shape.circle
         t1.background_color = Color.orange
         t1.save()
-        self.assertAlmostEqual(1.0 / 5.0, t1.similar_classifications(t2))
+        self.assertAlmostEqual(1.0 / 5.0, t1.similar_classifications_ratio(t2))
 
         # Test different types.
         t1.target_type = TargetType.off_axis
         t1.save()
-        self.assertAlmostEqual(0, t1.similar_classifications(t2))
+        self.assertAlmostEqual(0, t1.similar_classifications_ratio(t2))
 
         # Test off_axis is same as standard.
         t2.target_type = TargetType.off_axis
         t2.alphanumeric = 'DEF'
         t2.save()
-        self.assertAlmostEqual(2.0 / 5.0, t1.similar_classifications(t2))
+        self.assertAlmostEqual(2.0 / 5.0, t1.similar_classifications_ratio(t2))
 
         # Test emergent type is always 1.
         t1.target_type = TargetType.emergent
         t1.save()
         t2.target_type = TargetType.emergent
         t2.save()
-        self.assertAlmostEqual(1.0, t1.similar_classifications(t2))
+        self.assertAlmostEqual(1.0, t1.similar_classifications_ratio(t2))
 
     def test_actionable_submission(self):
         """Tests actionable_submission correctly filters submissions."""
@@ -510,12 +510,20 @@ class TestTargetEvaluator(TestCase):
         # submit2 updated after landing.
         self.submit2.alphanumeric = 'ABC'
         self.submit2.save()
-
         self.submit3.alphanumeric_color = Color.yellow
         self.submit3.save()
+        # Unused but not unmatched target.
+        self.submit6 = Target(user=self.user,
+                              target_type=TargetType.standard,
+                              location=l1,
+                              alphanumeric_color=Color.black,
+                              description='Submit unused test target 1',
+                              autonomous=False,
+                              thumbnail_approved=True)
+        self.submit6.save()
 
-        self.submitted_targets = [self.submit5, self.submit4, self.submit3,
-                                  self.submit2, self.submit1]
+        self.submitted_targets = [self.submit6, self.submit5, self.submit4,
+                                  self.submit3, self.submit2, self.submit1]
         self.real_targets = [self.real1, self.real2, self.real3, self.real4,
                              self.real5]
         self.real_matched_targets = [self.real1, self.real2, self.real4,
@@ -524,33 +532,44 @@ class TestTargetEvaluator(TestCase):
     def test_match_value(self):
         """Tests the match value for two targets."""
         e = TargetEvaluator(self.submitted_targets, self.real_targets)
-        self.assertAlmostEqual(1,
-                               e.match_value(self.submit1, self.real1),
-                               places=3)
-        self.assertAlmostEqual(0.174,
-                               e.match_value(self.submit2, self.real2),
-                               places=3)
-        self.assertAlmostEqual(0.0,
-                               e.match_value(self.submit3, self.real3),
-                               places=3)
-        self.assertAlmostEqual(0.5,
-                               e.match_value(self.submit4, self.real4),
-                               places=3)
-        self.assertAlmostEqual(0.3,
-                               e.match_value(self.submit5, self.real5),
-                               places=3)
+        self.assertAlmostEqual(
+            1.0,
+            e.evaluate_match(self.submit1, self.real1).score_ratio,
+            places=3)
+        self.assertAlmostEqual(
+            0.174,
+            e.evaluate_match(self.submit2, self.real2).score_ratio,
+            places=3)
+        self.assertAlmostEqual(
+            0.0,
+            e.evaluate_match(self.submit3, self.real3).score_ratio,
+            places=3)
+        self.assertAlmostEqual(
+            0.5,
+            e.evaluate_match(self.submit4, self.real4).score_ratio,
+            places=3)
+        self.assertAlmostEqual(
+            0.3,
+            e.evaluate_match(self.submit5, self.real5).score_ratio,
+            places=3)
+        self.assertAlmostEqual(
+            0.240,
+            e.evaluate_match(self.submit6, self.real1).score_ratio,
+            places=3)
 
-        self.assertAlmostEqual(0.814,
-                               e.match_value(self.submit1, self.real2),
-                               places=3)
-        self.assertAlmostEqual(0.32,
-                               e.match_value(self.submit2, self.real1),
-                               places=3)
+        self.assertAlmostEqual(
+            0.814,
+            e.evaluate_match(self.submit1, self.real2).score_ratio,
+            places=3)
+        self.assertAlmostEqual(
+            0.32,
+            e.evaluate_match(self.submit2, self.real1).score_ratio,
+            places=3)
 
     def test_match_targets(self):
         """Tests that matching targets produce maximal matches."""
         e = TargetEvaluator(self.submitted_targets, self.real_targets)
-        self.assertEqual(
+        self.assertDictEqual(
             {
                 self.submit1: self.real1,
                 self.submit2: self.real2,
@@ -562,56 +581,59 @@ class TestTargetEvaluator(TestCase):
                 self.real5: self.submit5,
             }, e.match_targets(self.submitted_targets, self.real_targets))
 
-    def test_evaluation_dict(self):
-        """Tests that the evaluation dictionary is generated correctly."""
+    def test_evaluate(self):
+        """Tests that the evaluation is generated correctly."""
         e = TargetEvaluator(self.submitted_targets, self.real_targets)
-        d = e.evaluation_dict()
+        d = e.evaluate()
+        td = {t.real_target: t for t in d.targets}
 
-        self.assertIn('matched_target_value', d)
-        self.assertIn('unmatched_target_count', d)
-        self.assertIn('targets', d)
-        for t in d['targets'].values():
-            keys = ['match_value', 'image_approved', 'classifications',
-                    'location_accuracy', 'actionable', 'interop_submission']
-            for key in keys:
-                self.assertIn(key, t)
-        for s in self.real_targets:
-            self.assertIn(s.pk, d['targets'].keys())
+        self.assertEqual(self.submit1.pk, td[self.real1.pk].submitted_target)
+        self.assertEqual(True, td[self.real1.pk].image_approved)
+        self.assertEqual(1.0, td[self.real1.pk].classifications_ratio)
+        self.assertEqual(0.0, td[self.real1.pk].geolocation_accuracy_ft)
+        self.assertEqual(True, td[self.real1.pk].actionable_submission)
+        self.assertEqual(True, td[self.real1.pk].interop_submission)
+        self.assertEqual(1.0, td[self.real1.pk].classifications_score_ratio)
+        self.assertEqual(1.0, td[self.real1.pk].geolocation_score_ratio)
+        self.assertEqual(1.0, td[self.real1.pk].actionable_score_ratio)
+        self.assertEqual(1.0, td[self.real1.pk].autonomous_score_ratio)
+        self.assertEqual(1.0, td[self.real1.pk].interop_score_ratio)
+        self.assertAlmostEqual(1.0, td[self.real1.pk].score_ratio)
 
-        self.assertAlmostEqual(1.974, d['matched_target_value'], places=3)
-        self.assertEqual(1, d['unmatched_target_count'])
-        self.assertEqual(self.submit1.pk,
-                         d['targets'][self.real1.pk]['submitted_target'])
-        self.assertAlmostEqual(1.0,
-                               d['targets'][self.real1.pk]['match_value'],
+        self.assertEqual(self.submit2.pk, td[self.real2.pk].submitted_target)
+        self.assertEqual(True, td[self.real2.pk].image_approved)
+        self.assertEqual(0.6, td[self.real2.pk].classifications_ratio)
+        self.assertAlmostEqual(109.444,
+                               td[self.real2.pk].geolocation_accuracy_ft,
                                places=3)
-        self.assertEqual(True, d['targets'][self.real1.pk]['image_approved'])
-        self.assertEqual(1.0, d['targets'][self.real1.pk]['classifications'])
-        self.assertEqual(0.0, d['targets'][self.real1.pk]['location_accuracy'])
-        self.assertEqual(True, d['targets'][self.real1.pk]['actionable'])
-        self.assertEqual(True,
-                         d['targets'][self.real1.pk]['interop_submission'])
+        self.assertEqual(False, td[self.real2.pk].actionable_submission)
+        self.assertEqual(False, td[self.real2.pk].interop_submission)
+        self.assertEqual(0.6, td[self.real2.pk].classifications_score_ratio)
+        self.assertAlmostEqual(0.270,
+                               td[self.real2.pk].geolocation_score_ratio,
+                               places=3)
+        self.assertEqual(0.0, td[self.real2.pk].actionable_score_ratio)
+        self.assertEqual(0.0, td[self.real2.pk].interop_score_ratio)
+        self.assertAlmostEqual(0.174, td[self.real2.pk].score_ratio, places=3)
 
-        self.assertEqual(False, d['targets'][self.real2.pk]['actionable'])
-        self.assertEqual(False,
-                         d['targets'][self.real2.pk]['interop_submission'])
+        self.assertAlmostEqual(0.345, d.score_ratio, places=3)
+        self.assertEqual(1, d.unmatched_target_count)
 
-    def test_evaluation_dict_no_submitted_targets(self):
-        """Tests that evaluation_dict works with no submitted targets."""
+    def test_evaluate_no_submitted_targets(self):
+        """Tests that evaluation works with no submitted targets."""
         e = TargetEvaluator([], self.real_targets)
-        d = e.evaluation_dict()
+        d = e.evaluate()
 
-        self.assertEqual(0, d['matched_target_value'])
-        self.assertEqual(0, d['unmatched_target_count'])
-        for td in d['targets'].values():
-            for v in td.values():
-                self.assertEqual('', v)
+        self.assertEqual(0, d.matched_score_ratio)
+        self.assertEqual(0, d.unmatched_target_count)
+        self.assertEqual(0, len(d.targets))
 
-    def test_evaluation_dict_no_real_targets(self):
-        """Tests that evaluation_dict works with no real targets."""
+    def test_evaluate_no_real_targets(self):
+        """Tests that evaluation works with no real targets."""
         e = TargetEvaluator(self.submitted_targets, [])
-        d = e.evaluation_dict()
+        d = e.evaluate()
 
-        self.assertEqual(0, d['matched_target_value'])
-        self.assertEqual(5, d['unmatched_target_count'])
-        self.assertEqual({}, d['targets'])
+        self.assertEqual(0, d.matched_score_ratio)
+        self.assertEqual(6, d.unmatched_target_count)
+        self.assertAlmostEqual(-0.3, d.score_ratio, places=3)
+        self.assertEqual(0, len(d.targets))

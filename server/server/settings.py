@@ -207,20 +207,23 @@ OUT_OF_BOUNDS_DEBOUNCE_SEC = 10.0
 # The max distance for a waypoint to be considered satisfied.
 SATISFIED_WAYPOINT_DIST_MAX_FT = 100
 
+# Ratio of object points to lose for every extra unmatched object submitted.
+EXTRA_OBJECT_PENALTY_RATIO = 0.05
+
+# The weight of classification accuracy when calculating a target match score.
+CHARACTERISTICS_WEIGHT = 0.2
+
 # The lowest allowed location accuracy (in feet)
 TARGET_LOCATION_THRESHOLD = 150
 
 # The weight of geolocation accuracy when calculating a target match score.
 GEOLOCATION_WEIGHT = 0.2
 
-# The weight of classification accuracy when calculating a target match score.
-CHARACTERISTICS_WEIGHT = 0.2
-
 # The weight of actionable intelligence when calculating a target match score.
 ACTIONABLE_WEIGHT = 0.1
 
-# The weight of submission over interop when calculating a target match score.
-INTEROPERABILITY_WEIGHT = 0.3
-
 # The weight of autonomy when calculating a target match score.
 AUTONOMY_WEIGHT = 0.2
+
+# The weight of submission over interop when calculating a target match score.
+INTEROPERABILITY_WEIGHT = 0.3

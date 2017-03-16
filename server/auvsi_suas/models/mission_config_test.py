@@ -5,10 +5,10 @@ from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_config import MissionConfig
-from auvsi_suas.models.mission_config import MissionEval
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.waypoint import Waypoint
 from auvsi_suas.patches.simplekml_patch import Kml
+from auvsi_suas.proto.mission_pb2 import WaypointEvaluation
 from django.contrib.auth.models import User
 from django.test import TestCase
 
@@ -71,18 +71,20 @@ class TestMissionConfigModel(TestCase):
 
         return ret
 
-    def assertDictionaryEqual(self, expect, got):
-        """Assert two dictionaries containing float values are equal."""
-        for k in expect.keys():
-            self.assertIn(k, got)
-            self.assertAlmostEqual(expect[k], got[k], delta=0.01)
-        for k in got.keys():
-            self.assertIn(k, expect)
-
     def assertSatisfiedWaypoints(self, expect, got):
         """Assert two satisfied_waypoints return values are equal."""
-        for i in range(0, 3):
-            self.assertDictionaryEqual(expect[i], got[i])
+        self.assertEqual(len(expect), len(got))
+        for i in xrange(len(expect)):
+            e = expect[i]
+            g = got[i]
+            self.assertEqual(e.id, g.id)
+            self.assertAlmostEqual(e.score_ratio, g.score_ratio, places=2)
+            self.assertAlmostEqual(e.closest_for_scored_approach_ft,
+                                   g.closest_for_scored_approach_ft,
+                                   places=2)
+            self.assertAlmostEqual(e.closest_for_mission_ft,
+                                   g.closest_for_mission_ft,
+                                   places=2)
 
     def test_satisfied_waypoints(self):
         """Tests the evaluation of waypoints method."""
@@ -123,21 +125,46 @@ class TestMissionConfigModel(TestCase):
 
         # Only first is valid.
         entries = [(38, -76, 140), (40, -78, 600), (37, -75, 40)]
-        expect = ({0: 40}, {0: 0.6, 1: 0.0, 2: 0.0}, {0: 40, 1: 460785.17})
         logs = self.create_uas_logs(user, entries)
+        expect = [WaypointEvaluation(id=0,
+                                     score_ratio=0.6,
+                                     closest_for_scored_approach_ft=40,
+                                     closest_for_mission_ft=40),
+                  WaypointEvaluation(id=1,
+                                     score_ratio=0,
+                                     closest_for_mission_ft=460785.17),
+                  WaypointEvaluation(id=2,
+                                     score_ratio=0)]
         self.assertSatisfiedWaypoints(expect, config.satisfied_waypoints(logs))
 
         # First and last are valid, but missed second, so third doesn't count.
         entries = [(38, -76, 140), (40, -78, 600), (40, -78, 40)]
-        expect = ({0: 40}, {0: 0.6, 1: 0.0, 2: 0.0}, {0: 40, 1: 460785.03})
         logs = self.create_uas_logs(user, entries)
+        expect = [WaypointEvaluation(id=0,
+                                     score_ratio=0.6,
+                                     closest_for_scored_approach_ft=40,
+                                     closest_for_mission_ft=40),
+                  WaypointEvaluation(id=1,
+                                     score_ratio=0,
+                                     closest_for_mission_ft=460785.03),
+                  WaypointEvaluation(id=2,
+                                     score_ratio=0)]
         self.assertSatisfiedWaypoints(expect, config.satisfied_waypoints(logs))
 
         # Hit all.
         entries = [(38, -76, 140), (39, -77, 180), (40, -78, 40)]
-        expect = ({0: 40, 1: 20, 2: 40},
-                  {0: 0.6, 1: 0.8, 2: 0.6},
-                  {0: 40, 1: 20, 2: 40}) # yapf: disable
+        expect = [WaypointEvaluation(id=0,
+                                     score_ratio=0.6,
+                                     closest_for_scored_approach_ft=40,
+                                     closest_for_mission_ft=40),
+                  WaypointEvaluation(id=1,
+                                     score_ratio=0.8,
+                                     closest_for_scored_approach_ft=20,
+                                     closest_for_mission_ft=20),
+                  WaypointEvaluation(id=2,
+                                     score_ratio=0.6,
+                                     closest_for_scored_approach_ft=40,
+                                     closest_for_mission_ft=40)]
         logs = self.create_uas_logs(user, entries)
         self.assertSatisfiedWaypoints(expect, config.satisfied_waypoints(logs))
 
@@ -149,10 +176,19 @@ class TestMissionConfigModel(TestCase):
                    (38, -76, 140),
                    (39, -77, 180),
                    (40, -78, 40)]
-        expect = ({0: 40, 1: 20, 2: 40},
-                  {0: 0.6, 1: 0.8, 2: 0.6},
-                  {0: 40, 1: 20, 2: 40}) # yapf: disable
         logs = self.create_uas_logs(user, entries)
+        expect = [WaypointEvaluation(id=0,
+                                     score_ratio=0.6,
+                                     closest_for_scored_approach_ft=40,
+                                     closest_for_mission_ft=40),
+                  WaypointEvaluation(id=1,
+                                     score_ratio=0.8,
+                                     closest_for_scored_approach_ft=20,
+                                     closest_for_mission_ft=20),
+                  WaypointEvaluation(id=2,
+                                     score_ratio=0.6,
+                                     closest_for_scored_approach_ft=40,
+                                     closest_for_mission_ft=40)]
         self.assertSatisfiedWaypoints(expect, config.satisfied_waypoints(logs))
 
         # Hit all on run one, only hit the first waypoint on run two.
@@ -163,19 +199,37 @@ class TestMissionConfigModel(TestCase):
                    (38, -76, 140),
                    (40, -78, 600),
                    (37, -75, 40)]
-        expect = ({0: 40, 1: 20, 2: 40},
-                  {0: 0.6, 1: 0.8, 2: 0.6},
-                  {0: 40, 1: 20, 2: 40}) # yapf: disable
+        expect = [WaypointEvaluation(id=0,
+                                     score_ratio=0.6,
+                                     closest_for_scored_approach_ft=40,
+                                     closest_for_mission_ft=40),
+                  WaypointEvaluation(id=1,
+                                     score_ratio=0.8,
+                                     closest_for_scored_approach_ft=20,
+                                     closest_for_mission_ft=20),
+                  WaypointEvaluation(id=2,
+                                     score_ratio=0.6,
+                                     closest_for_scored_approach_ft=40,
+                                     closest_for_mission_ft=40)]
         logs = self.create_uas_logs(user, entries)
         self.assertSatisfiedWaypoints(expect, config.satisfied_waypoints(logs))
 
         # Keep flying after hitting all waypoints.
         entries = [(38, -76, 140), (39, -77, 180), (40, -78, 40),
                    (30.1, -78.1, 100)]
-        expect = ({0: 40, 1: 20, 2: 40},
-                  {0: 0.6, 1: 0.8, 2: 0.6},
-                  {0: 40, 1: 20, 2: 40}) # yapf: disable
         logs = self.create_uas_logs(user, entries)
+        expect = [WaypointEvaluation(id=0,
+                                     score_ratio=0.6,
+                                     closest_for_scored_approach_ft=40,
+                                     closest_for_mission_ft=40),
+                  WaypointEvaluation(id=1,
+                                     score_ratio=0.8,
+                                     closest_for_scored_approach_ft=20,
+                                     closest_for_mission_ft=20),
+                  WaypointEvaluation(id=2,
+                                     score_ratio=0.6,
+                                     closest_for_scored_approach_ft=40,
+                                     closest_for_mission_ft=40)]
         self.assertSatisfiedWaypoints(expect, config.satisfied_waypoints(logs))
 
         # Hit all in first run, but second is higher scoring.
@@ -186,8 +240,18 @@ class TestMissionConfigModel(TestCase):
                    (38, -76, 100),
                    (39, -77, 200),
                    (40, -78, 110)]
-        expect = ({0: 0, 1: 0}, {0: 1, 1: 1, 2: 0}, {0: 0, 1: 0, 2: 60})
         logs = self.create_uas_logs(user, entries)
+        expect = [WaypointEvaluation(id=0,
+                                     score_ratio=1,
+                                     closest_for_scored_approach_ft=0,
+                                     closest_for_mission_ft=0),
+                  WaypointEvaluation(id=1,
+                                     score_ratio=1,
+                                     closest_for_scored_approach_ft=0,
+                                     closest_for_mission_ft=0),
+                  WaypointEvaluation(id=2,
+                                     score_ratio=0,
+                                     closest_for_mission_ft=60)]
         self.assertSatisfiedWaypoints(expect, config.satisfied_waypoints(logs))
 
         # Restart waypoint path in the middle.
@@ -198,72 +262,20 @@ class TestMissionConfigModel(TestCase):
                    (38, -76, 70),
                    (39, -77, 150),
                    (40, -78, 10)]
-        expect = ({0: 30, 1: 50, 2: 10},
-                  {0: 0.7, 1: 0.5, 2: 0.9},
-                  {0: 30, 1: 20, 2: 10}) # yapf: disable
         logs = self.create_uas_logs(user, entries)
+        expect = [WaypointEvaluation(id=0,
+                                     score_ratio=0.7,
+                                     closest_for_scored_approach_ft=30,
+                                     closest_for_mission_ft=30),
+                  WaypointEvaluation(id=1,
+                                     score_ratio=0.5,
+                                     closest_for_scored_approach_ft=50,
+                                     closest_for_mission_ft=20),
+                  WaypointEvaluation(id=2,
+                                     score_ratio=0.9,
+                                     closest_for_scored_approach_ft=10,
+                                     closest_for_mission_ft=10)]
         self.assertSatisfiedWaypoints(expect, config.satisfied_waypoints(logs))
-
-
-class TestMissionEval(TestCase):
-    def setUp(self):
-        self.maxDiff = None
-        self.eval = MissionEval()
-        user = User.objects.create_user('testuser', 'testemail@x.com',
-                                        'testpass')
-        self.eval.team = user
-        self.eval.warnings.append('warning1')
-        self.eval.uas_telemetry_time_max = 1
-        self.eval.uas_telemetry_time_avg = 0.2
-        self.eval.mission_clock_time = datetime.timedelta(seconds=1)
-        self.eval.out_of_bounds_time = datetime.timedelta(seconds=2)
-        self.eval.boundary_violations = 3
-        self.eval.waypoint_closest_for_scores = {1: 2}
-        self.eval.waypoint_closest_approaches = {1: 1}
-        self.eval.waypoint_scores = {1: 0.5}
-        self.eval.obst_collision_stationary = {1: False}
-        self.eval.obst_collision_moving = {2: True}
-        self.eval.targets = {'auto': 'test', 'manual': 'test', }
-
-    def test_json(self):
-        self.assertEqual(
-            {
-                'team': 'testuser',
-                'warnings': ['warning1'],
-                'uas_telemetry_time_max': 1,
-                'uas_telemetry_time_avg': 0.2,
-                'mission_clock_time': 1.0,
-                'out_of_bounds_time': 2.0,
-                'boundary_violations': 3,
-                'waypoint_closest_for_scores': {1: 2},
-                'waypoint_closest_approaches': {1: 1},
-                'waypoint_scores': {1: 0.5},
-                'obst_collision_stationary': {1: False},
-                'obst_collision_moving': {2: True},
-                'targets': {
-                    'auto': 'test',
-                    'manual': 'test',
-                },
-            }, self.eval.json())
-
-    def test_csv(self):
-        self.assertEqual(
-            {
-                'team': 'testuser',
-                'warnings': 'warning1',
-                'uas_telemetry_time_max': 1,
-                'uas_telemetry_time_avg': 0.2,
-                'mission_clock_time': 1.0,
-                'out_of_bounds_time': 2.0,
-                'boundary_violations': 3,
-                'waypoint_closest_for_scores.1': 2,
-                'waypoint_closest_approaches.1': 1,
-                'waypoint_scores.1': 0.5,
-                'obst_collision_stationary.1': False,
-                'obst_collision_moving.2': True,
-                'targets.auto': 'test',
-                'targets.manual': 'test',
-            }, self.eval.csv())
 
 
 class TestMissionConfigModelSampleMission(TestCase):
@@ -276,73 +288,64 @@ class TestMissionConfigModelSampleMission(TestCase):
         user1 = User.objects.get(username='user1')
         config = MissionConfig.objects.get()
 
-        teams = config.evaluate_teams()
+        mission_eval = config.evaluate_teams()
 
         # Contains user0 and user1
-        self.assertEqual(2, len(teams))
+        self.assertEqual(2, len(mission_eval.teams))
 
         # user0 data
-        self.assertEqual({0: 0.0}, teams[user0].waypoint_closest_for_scores)
-        self.assertEqual({0: 1.0, 1: 0.0}, teams[user0].waypoint_scores)
-        self.assertEqual({0: 0.0}, teams[user0].waypoint_closest_approaches)
+        user_eval = mission_eval.teams[0]
+        self.assertEqual(user0.username, user_eval.team)
+        feedback = user_eval.feedback
+        self.assertEqual(0.0,
+                         feedback.waypoints[0].closest_for_scored_approach_ft)
+        self.assertEqual(1.0, feedback.waypoints[0].score_ratio)
+        self.assertEqual(0.0,
+                         feedback.waypoints[1].closest_for_scored_approach_ft)
+        self.assertAlmostEqual(2, feedback.mission_clock_time_sec)
+        self.assertAlmostEqual(0.6, feedback.out_of_bounds_time_sec)
 
-        self.assertAlmostEqual(2,
-                               teams[user0].mission_clock_time.total_seconds())
-        self.assertAlmostEqual(0.6,
-                               teams[user0].out_of_bounds_time.total_seconds())
+        self.assertAlmostEqual(0.5, feedback.uas_telemetry_time_max_sec)
+        self.assertAlmostEqual(1. / 6, feedback.uas_telemetry_time_avg_sec)
 
-        self.assertAlmostEqual(0.5, teams[user0].uas_telemetry_time_max)
-        self.assertAlmostEqual(1. / 6, teams[user0].uas_telemetry_time_avg)
+        self.assertAlmostEqual(0.445, feedback.target.score_ratio, places=3)
 
-        self.assertAlmostEqual(
-            0.48,
-            teams[user0].targets['manual']['matched_target_value'],
-            places=3)
-        self.assertEqual(
-            0, teams[user0].targets['manual']['unmatched_target_count'])
+        self.assertEqual(25, feedback.stationary_obstacles[0].id)
+        self.assertEqual(True, feedback.stationary_obstacles[0].hit)
+        self.assertEqual(26, feedback.stationary_obstacles[1].id)
+        self.assertEqual(False, feedback.stationary_obstacles[1].hit)
 
-        self.assertAlmostEqual(
-            1,
-            teams[user0].targets['auto']['matched_target_value'],
-            places=3)
-        self.assertEqual(
-            0, teams[user0].targets['auto']['unmatched_target_count'])
-
-        # Real targets are PKs 1, 2, and 3.
-        self.assertEqual(
-            0.0, teams[user0].targets['manual']['targets'][1]['actionable'])
-        self.assertEqual(
-            1.0, teams[user0].targets['auto']['targets'][1]['actionable'])
-
-        self.assertEqual(True, teams[user0].obst_collision_stationary[25])
-        self.assertEqual(False, teams[user0].obst_collision_stationary[26])
-
-        self.assertEqual(True, teams[user0].obst_collision_moving[25])
-        self.assertEqual(False, teams[user0].obst_collision_moving[26])
+        self.assertEqual(25, feedback.moving_obstacles[0].id)
+        self.assertEqual(True, feedback.moving_obstacles[0].hit)
+        self.assertEqual(26, feedback.moving_obstacles[1].id)
+        self.assertEqual(False, feedback.moving_obstacles[1].hit)
 
         # user1 data
+        user_eval = mission_eval.teams[1]
+        self.assertEqual(user1.username, user_eval.team)
+        feedback = user_eval.feedback
+        self.assertEqual(0.0,
+                         feedback.waypoints[0].closest_for_scored_approach_ft)
+        self.assertEqual(1.0, feedback.waypoints[0].score_ratio)
+        self.assertEqual(0.0,
+                         feedback.waypoints[1].closest_for_scored_approach_ft)
+        self.assertAlmostEqual(18, feedback.mission_clock_time_sec)
+        self.assertAlmostEqual(1.0, feedback.out_of_bounds_time_sec)
 
-        # yapf: disable
-        self.assertEqual({0: 0.0, 1: 0.0},
-                         teams[user1].waypoint_closest_for_scores)
-        self.assertEqual({0: 1.0, 1: 1.0}, teams[user1].waypoint_scores)
-        self.assertEqual({0: 0.0, 1: 0.0},
-                         teams[user1].waypoint_closest_approaches)
-        # yapf: enable
+        self.assertAlmostEqual(2.0, feedback.uas_telemetry_time_max_sec)
+        self.assertAlmostEqual(1.0, feedback.uas_telemetry_time_avg_sec)
 
-        self.assertAlmostEqual(18,
-                               teams[user1].mission_clock_time.total_seconds())
-        self.assertAlmostEqual(1.0,
-                               teams[user1].out_of_bounds_time.total_seconds())
+        self.assertAlmostEqual(0, feedback.target.score_ratio, places=3)
 
-        self.assertAlmostEqual(2.0, teams[user1].uas_telemetry_time_max)
-        self.assertAlmostEqual(1.0, teams[user1].uas_telemetry_time_avg)
+        self.assertEqual(25, feedback.stationary_obstacles[0].id)
+        self.assertEqual(False, feedback.stationary_obstacles[0].hit)
+        self.assertEqual(26, feedback.stationary_obstacles[1].id)
+        self.assertEqual(False, feedback.stationary_obstacles[1].hit)
 
-        self.assertEqual(False, teams[user1].obst_collision_stationary[25])
-        self.assertEqual(False, teams[user1].obst_collision_stationary[26])
-
-        self.assertEqual(False, teams[user1].obst_collision_moving[25])
-        self.assertEqual(False, teams[user1].obst_collision_moving[26])
+        self.assertEqual(25, feedback.moving_obstacles[0].id)
+        self.assertEqual(False, feedback.moving_obstacles[0].hit)
+        self.assertEqual(26, feedback.moving_obstacles[1].id)
+        self.assertEqual(False, feedback.moving_obstacles[1].hit)
 
     def test_evaluate_teams_specific_users(self):
         """Tests the evaluation of teams method with specific users."""
@@ -350,11 +353,10 @@ class TestMissionConfigModelSampleMission(TestCase):
         user1 = User.objects.get(username='user1')
         config = MissionConfig.objects.get()
 
-        teams = config.evaluate_teams([user0])
+        mission_eval = config.evaluate_teams([user0])
 
-        self.assertEqual(1, len(teams))
-        self.assertIn(user0, teams)
-        self.assertNotIn(user1, teams)
+        self.assertEqual(1, len(mission_eval.teams))
+        self.assertEqual(user0.username, mission_eval.teams[0].team)
 
     def assert_non_superuser_data(self, data):
         """Tests non-superuser data is correct."""

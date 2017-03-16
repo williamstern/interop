@@ -10,6 +10,7 @@ apt-get -qq update
 apt-get -qq install -y \
     graphviz \
     postgresql-client \
+    protobuf-compiler \
     python-matplotlib \
     python-nose \
     python-numpy \
