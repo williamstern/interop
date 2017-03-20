@@ -1,6 +1,5 @@
 """Mission configuration model."""
 
-import copy
 import datetime
 import itertools
 import logging
@@ -12,6 +11,7 @@ from auvsi_suas.patches.simplekml_patch import Color
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.models import distance
 from auvsi_suas.models import units
+from auvsi_suas.proto import mission_pb2
 from fly_zone import FlyZone
 from gps_position import GpsPosition
 from mission_clock_event import MissionClockEvent
@@ -108,12 +108,7 @@ class MissionConfig(models.Model):
         Args:
             uas_telemetry_logs: A list of UAS Telemetry logs.
         Returns:
-            best: Dictionary of distance to waypoints of the highest scoring
-                attempt.
-            scores: Dictionary of individual waypoint scores of the highest
-                scoring attempt.
-            closest: Dictionary of closest approach distances to
-                each waypoint.
+            A list of auvsi_suas.proto.WaypointEvaluation.
         """
         # Use a common projection in distance_to_line based on the home
         # position.
@@ -187,7 +182,19 @@ class MissionConfig(models.Model):
                 prev_wpt += 1
 
         best, scores = best_run(best, current)
-        return best, scores, closest
+
+        # Convert to evaluation.
+        waypoint_evals = []
+        for ix, waypoint in enumerate(waypoints):
+            waypoint_eval = mission_pb2.WaypointEvaluation()
+            waypoint_eval.id = ix
+            waypoint_eval.score_ratio = scores.get(ix, 0)
+            if ix in best:
+                waypoint_eval.closest_for_scored_approach_ft = best[ix]
+            if ix in closest:
+                waypoint_eval.closest_for_mission_ft = closest[ix]
+            waypoint_evals.append(waypoint_eval)
+        return waypoint_evals
 
     def evaluate_teams(self, users=None):
         """Evaluates the teams (non admin users) of the competition.
@@ -195,10 +202,10 @@ class MissionConfig(models.Model):
         Args:
             users: Optional list of users to eval. If None will evaluate all.
         Returns:
-            A map from user to MissionEval.
+            A auvsi_suas.proto.MultiUserMissionEvaluation.
         """
-        # Start a results map from user to MissionEval.
-        results = {}
+        # Start a results map from user to MissionEvaluation.
+        mission_eval = mission_pb2.MultiUserMissionEvaluation()
 
         # If not provided, eval all users.
         if users is None:
@@ -212,18 +219,20 @@ class MissionConfig(models.Model):
             logger.info('Evaluation starting for user: %s.' % user.username)
 
             # Start the evaluation data structure.
-            user_eval = MissionEval()
-            user_eval.team = user
-            results[user] = user_eval
+            user_eval = mission_eval.teams.add()
+            user_eval.team = user.username
 
             # Calculate the total mission clock time.
             missions = MissionClockEvent.missions(user)
+            mission_clock_time = datetime.timedelta(seconds=0)
             for mission in missions:
                 duration = mission.duration()
                 if duration is None:
                     user_eval.warnings.append('Infinite mission clock.')
                 else:
-                    user_eval.mission_clock_time += duration
+                    mission_clock_time += duration
+            user_eval.feedback.mission_clock_time_sec = \
+                    mission_clock_time.total_seconds()
 
             # Find the user's flights.
             flight_periods = TakeoffOrLandingEvent.flights(user)
@@ -238,50 +247,49 @@ class MissionConfig(models.Model):
             if not uas_logs:
                 user_eval.warnings.append('No UAS telemetry logs.')
 
-            # Determine if the uas hit the waypoints.
-            waypoint_closest_for_scores, waypoint_scores, closest_approaches = \
-                self.satisfied_waypoints(uas_logs)
-            user_eval.waypoint_closest_for_scores = waypoint_closest_for_scores
-            user_eval.waypoint_scores = waypoint_scores
-            user_eval.waypoint_closest_approaches = closest_approaches
+            # Determine interop telemetry rates.
+            telem_max, telem_avg = UasTelemetry.rates(
+                user,
+                flight_periods,
+                time_period_logs=uas_period_logs)
+            if telem_max:
+                user_eval.feedback.uas_telemetry_time_max_sec = telem_max
+            if telem_avg:
+                user_eval.feedback.uas_telemetry_time_avg_sec = telem_avg
 
             # Determine if the uas went out of bounds. This must be done for
             # each period individually so time between periods isn't counted as
             # out of bounds time. Note that this calculates reported time out
             # of bounds, not actual or possible time spent out of bounds.
+            out_of_bounds = datetime.timedelta(seconds=0)
+            user_eval.feedback.boundary_violations = 0
             for logs in uas_period_logs:
-                boundary_violations, out_of_bounds_time = FlyZone.out_of_bounds(
-                    self.fly_zones.all(), logs)
-                user_eval.out_of_bounds_time += out_of_bounds_time
-                user_eval.boundary_violations += boundary_violations
+                bv, bt = FlyZone.out_of_bounds(self.fly_zones.all(), logs)
+                user_eval.feedback.boundary_violations += bv
+                out_of_bounds += bt
+            user_eval.feedback.out_of_bounds_time_sec = \
+                    out_of_bounds.total_seconds()
+
+            # Determine if the uas hit the waypoints.
+            user_eval.feedback.waypoints.extend(self.satisfied_waypoints(
+                uas_logs))
 
             # Evaluate the targets.
             user_targets = Target.objects.filter(user=user).all()
-            target_sets = {
-                'manual': [t for t in user_targets if not t.autonomous],
-                'auto': [t for t in user_targets if t.autonomous],
-            }
-            for target_set, targets in target_sets.iteritems():
-                evaluator = TargetEvaluator(targets, self.targets.all())
-                user_eval.targets[target_set] = evaluator.evaluation_dict()
-
-            # Determine interop telemetry rates.
-            uas_telemetry_time_max, uas_telemetry_time_avg = UasTelemetry.rates(
-                user,
-                flight_periods,
-                time_period_logs=uas_period_logs)
-            user_eval.uas_telemetry_time_max = uas_telemetry_time_max
-            user_eval.uas_telemetry_time_avg = uas_telemetry_time_avg
+            evaluator = TargetEvaluator(user_targets, self.targets.all())
+            user_eval.feedback.target.CopyFrom(evaluator.evaluate())
 
             # Determine collisions with stationary and moving obstacles.
             for obst in self.stationary_obstacles.all():
-                user_eval.obst_collision_stationary[obst.pk] = \
-                        obst.evaluate_collision_with_uas(uas_logs)
+                obst_eval = user_eval.feedback.stationary_obstacles.add()
+                obst_eval.id = obst.pk
+                obst_eval.hit = obst.evaluate_collision_with_uas(uas_logs)
             for obst in self.moving_obstacles.all():
-                user_eval.obst_collision_moving[obst.pk] = \
-                        obst.evaluate_collision_with_uas(uas_logs)
+                obst_eval = user_eval.feedback.moving_obstacles.add()
+                obst_eval.id = obst.pk
+                obst_eval.hit = obst.evaluate_collision_with_uas(uas_logs)
 
-        return results
+        return mission_eval
 
     def json(self, is_superuser):
         """Return a dict, for conversion to JSON."""
@@ -451,80 +459,3 @@ class MissionConfig(models.Model):
         # Stationary Obstacles
         stationary_obstacles_folder = kml_folder.newfolder(
             name='Stationary Obstacles')
-
-
-class MissionEval(object):
-    """Mission evaluation data for a single team.
-
-    Attributes:
-        team: The team for which this is an evaluation. User object.
-        warnings: List of warnings generated during evaluation. List of strings.
-        uas_telemetry_time_max: Slowest time of telemetry sent. Float seconds.
-        uas_telemetry_time_avg: Average time of telemetry sent. Float seconds.
-        mission_clock_time: Amount of time spent on the clock. timedelta.
-        out_of_bounds_time: Amount of time spent out of bounds. timedelta
-        boundary_violations: Number of boundary violations. Integer.
-        waypoint_closest_for_scores: Map from waypoint to closest distance in
-            scoring sequence. {int: float feet}.
-        waypoint_closest_approaches: Map from waypoint to closest distance
-            overall. {int: float feet}.
-        waypoint_scores: Map from waypoint to score for waypoint. {int: float}.
-        obst_collision_stationary: Map from obstacle ID to whether hit.
-            {int: bool}.
-        obst_collision_moving: Map from obstacle ID to whether hit. {int: bool}.
-        targets: Dict containing TargetEvaluator data.
-    """
-
-    def __init__(self):
-        self.team = None
-        self.warnings = []
-        self.uas_telemetry_time_max = None
-        self.uas_telemetry_time_avg = None
-        self.mission_clock_time = datetime.timedelta()
-        self.out_of_bounds_time = datetime.timedelta()
-        self.boundary_violations = 0
-        self.waypoint_closest_for_scores = {}
-        self.waypoint_closest_approaches = {}
-        self.waypoint_scores = {}
-        self.obst_collision_stationary = {}
-        self.obst_collision_moving = {}
-        self.targets = {}
-
-    def json(self):
-        """Return a dict for conversion to JSON."""
-        return {
-            'team': self.team.username,
-            'warnings': self.warnings,
-            'uas_telemetry_time_max': self.uas_telemetry_time_max,
-            'uas_telemetry_time_avg': self.uas_telemetry_time_avg,
-            'mission_clock_time': self.mission_clock_time.total_seconds(),
-            'out_of_bounds_time': self.out_of_bounds_time.total_seconds(),
-            'boundary_violations': self.boundary_violations,
-            'waypoint_closest_for_scores': self.waypoint_closest_for_scores,
-            'waypoint_closest_approaches': self.waypoint_closest_approaches,
-            'waypoint_scores': self.waypoint_scores,
-            'obst_collision_stationary': self.obst_collision_stationary,
-            'obst_collision_moving': self.obst_collision_moving,
-            'targets': self.targets
-        }
-
-    def csv(self, json=None):
-        """Return a map from column name to row value for conversion to CSV."""
-        if not json:
-            json = self.json()
-        csv = {}
-        work_queue = [([], json)]
-        while len(work_queue) > 0:
-            (cur_prefixes, cur_map) = work_queue.pop()
-            for (key, val) in cur_map.iteritems():
-                new_prefixes = copy.copy(cur_prefixes)
-                new_prefixes.append(str(key))
-                if isinstance(val, dict):
-                    work_queue.append((new_prefixes, val))
-                else:
-                    column_key = '.'.join(new_prefixes)
-                    if isinstance(val, list):
-                        csv[column_key] = ','.join(val)
-                    else:
-                        csv[column_key] = val
-        return csv

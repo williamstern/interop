@@ -66,10 +66,12 @@ class TestEvaluateTeams(TestCase):
         response = self.client.get(self.eval_url)
         self.assertEqual(response.status_code, 200)
         data = self.load_json(response)
-        self.assertEqual(len(data), 3)
-        self.assertIn('user0', data)
-        self.assertIn('user1', data)
-        self.assertIn('uas_telemetry_time_max', data['user0'])
+        self.assertIn('teams', data)
+        teams = data['teams']
+        self.assertEqual(len(teams), 3)
+        self.assertEqual('user0', teams[0]['team'])
+        self.assertEqual('user1', teams[1]['team'])
+        self.assertIn('missionClockTimeSec', teams[0]['feedback'])
 
     def test_evaluate_teams_specific_team(self):
         """Tests the eval Json method on a specific team."""
@@ -78,9 +80,10 @@ class TestEvaluateTeams(TestCase):
         response = self.client.get(self.eval_url, {'team': 53})
         self.assertEqual(response.status_code, 200)
         data = self.load_json(response)
-        self.assertEqual(len(data), 1)
-        self.assertIn('user0', data)
-        self.assertNotIn('user1', data)
+        self.assertIn('teams', data)
+        teams = data['teams']
+        self.assertEqual(len(teams), 1)
+        self.assertEqual('user0', teams[0]['team'])
 
     def test_evaluate_teams_csv(self):
         """Tests the CSV method."""
@@ -91,6 +94,6 @@ class TestEvaluateTeams(TestCase):
         csv_data = self.load_csv(response)
         self.assertEqual(len(csv_data.split('\n')), 5)
         self.assertIn('team', csv_data)
-        self.assertIn('uas_telemetry_time_max', csv_data)
+        self.assertIn('missionClockTimeSec', csv_data)
         self.assertIn('user0', csv_data)
         self.assertIn('user1', csv_data)
