@@ -142,12 +142,15 @@ class TestTarget(TestCase):
         self.assertNotIn('thumbnail_approved', d)
 
         d = t.json(is_superuser=True)
+        self.assertIn('description_approved', d)
         self.assertIn('thumbnail_approved', d)
 
+        t.description_approved = True
         t.thumbnail_approved = True
         t.actionable_override = True
         t.save()
         d = t.json(is_superuser=True)
+        self.assertEqual(True, d['description_approved'])
         self.assertEqual(None, d['thumbnail'])
         self.assertEqual(True, d['thumbnail_approved'])
         self.assertEqual(True, d['actionable_override'])
@@ -186,6 +189,7 @@ class TestTarget(TestCase):
                     alphanumeric='ABC',
                     alphanumeric_color=Color.black,
                     description='Test target',
+                    description_approved=True,
                     autonomous=True)
         t1.save()
         t2 = Target(user=self.user,
@@ -197,6 +201,7 @@ class TestTarget(TestCase):
                     alphanumeric='ABC',
                     alphanumeric_color=Color.black,
                     description='Test other target',
+                    description_approved=False,
                     autonomous=True)
         t2.save()
         self.assertAlmostEqual(1.0, t1.similar_classifications_ratio(t2))
@@ -222,10 +227,13 @@ class TestTarget(TestCase):
         t2.save()
         self.assertAlmostEqual(2.0 / 5.0, t1.similar_classifications_ratio(t2))
 
-        # Test emergent type is always 1.
+        # Test emergent type based on description approval.
         t1.target_type = TargetType.emergent
         t1.save()
         t2.target_type = TargetType.emergent
+        t2.save()
+        self.assertAlmostEqual(0.0, t1.similar_classifications_ratio(t2))
+        t2.description_approved = True
         t2.save()
         self.assertAlmostEqual(1.0, t1.similar_classifications_ratio(t2))
 
@@ -400,6 +408,7 @@ class TestTargetEvaluator(TestCase):
                               alphanumeric='ABC',
                               alphanumeric_color=Color.black,
                               description='Submit test target 1',
+                              description_approved=True,
                               autonomous=True,
                               thumbnail_approved=True)
         self.submit1.save()
@@ -467,7 +476,7 @@ class TestTargetEvaluator(TestCase):
                             description='Test target 3')
         self.real3.save()
 
-        # Targets without approved image may still match.
+        # Targets without approved image has no match value.
         self.submit4 = Target(user=self.user,
                               target_type=TargetType.emergent,
                               location=l1,
@@ -504,6 +513,22 @@ class TestTargetEvaluator(TestCase):
                             description='Test target 5')
         self.real5.save()
 
+        # Emergent target with correct description.
+        self.submit6 = Target(user=self.user,
+                              target_type=TargetType.emergent,
+                              location=l1,
+                              description='Submit test target 6',
+                              description_approved=True,
+                              autonomous=True,
+                              thumbnail_approved=True)
+        self.submit6.save()
+        self.real6 = Target(user=self.user,
+                            target_type=TargetType.emergent,
+                            location=l1,
+                            description='Real target 1',
+                            description_approved=True)
+        self.real6.save()
+
         event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
         event.save()
 
@@ -513,19 +538,20 @@ class TestTargetEvaluator(TestCase):
         self.submit3.alphanumeric_color = Color.yellow
         self.submit3.save()
         # Unused but not unmatched target.
-        self.submit6 = Target(user=self.user,
+        self.submit7 = Target(user=self.user,
                               target_type=TargetType.standard,
                               location=l1,
                               alphanumeric_color=Color.black,
                               description='Submit unused test target 1',
                               autonomous=False,
                               thumbnail_approved=True)
-        self.submit6.save()
+        self.submit7.save()
 
-        self.submitted_targets = [self.submit6, self.submit5, self.submit4,
-                                  self.submit3, self.submit2, self.submit1]
+        self.submitted_targets = [self.submit7, self.submit6, self.submit5,
+                                  self.submit4, self.submit3, self.submit2,
+                                  self.submit1]
         self.real_targets = [self.real1, self.real2, self.real3, self.real4,
-                             self.real5]
+                             self.real5, self.real6]
         self.real_matched_targets = [self.real1, self.real2, self.real4,
                                      self.real5]
 
@@ -545,7 +571,7 @@ class TestTargetEvaluator(TestCase):
             e.evaluate_match(self.submit3, self.real3).score_ratio,
             places=3)
         self.assertAlmostEqual(
-            0.5,
+            0.0,
             e.evaluate_match(self.submit4, self.real4).score_ratio,
             places=3)
         self.assertAlmostEqual(
@@ -553,8 +579,12 @@ class TestTargetEvaluator(TestCase):
             e.evaluate_match(self.submit5, self.real5).score_ratio,
             places=3)
         self.assertAlmostEqual(
+            0.7,
+            e.evaluate_match(self.submit6, self.real6).score_ratio,
+            places=3)
+        self.assertAlmostEqual(
             0.240,
-            e.evaluate_match(self.submit6, self.real1).score_ratio,
+            e.evaluate_match(self.submit7, self.real1).score_ratio,
             places=3)
 
         self.assertAlmostEqual(
@@ -573,12 +603,12 @@ class TestTargetEvaluator(TestCase):
             {
                 self.submit1: self.real1,
                 self.submit2: self.real2,
-                self.submit4: self.real4,
                 self.submit5: self.real5,
+                self.submit6: self.real6,
                 self.real1: self.submit1,
                 self.real2: self.submit2,
-                self.real4: self.submit4,
                 self.real5: self.submit5,
+                self.real6: self.submit6,
             }, e.match_targets(self.submitted_targets, self.real_targets))
 
     def test_evaluate(self):
@@ -616,8 +646,9 @@ class TestTargetEvaluator(TestCase):
         self.assertEqual(0.0, td[self.real2.pk].interop_score_ratio)
         self.assertAlmostEqual(0.174, td[self.real2.pk].score_ratio, places=3)
 
-        self.assertAlmostEqual(0.345, d.score_ratio, places=3)
-        self.assertEqual(1, d.unmatched_target_count)
+        self.assertEqual(True, td[self.real6.pk].description_approved)
+        self.assertAlmostEqual(0.262, d.score_ratio, places=3)
+        self.assertEqual(2, d.unmatched_target_count)
 
     def test_evaluate_no_submitted_targets(self):
         """Tests that evaluation works with no submitted targets."""
@@ -634,6 +665,6 @@ class TestTargetEvaluator(TestCase):
         d = e.evaluate()
 
         self.assertEqual(0, d.matched_score_ratio)
-        self.assertEqual(6, d.unmatched_target_count)
-        self.assertAlmostEqual(-0.3, d.score_ratio, places=3)
+        self.assertEqual(7, d.unmatched_target_count)
+        self.assertAlmostEqual(-0.35, d.score_ratio, places=3)
         self.assertEqual(0, len(d.targets))

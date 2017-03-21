@@ -1035,7 +1035,10 @@ class TestTargetsAdminReview(TestCase):
         """Test PUT reivew with invalid pk."""
         response = self.client.put(
             targets_review_id_url(args=[1]),
-            data=json.dumps({'thumbnail_approved': False}))
+            data=json.dumps({
+                'thumbnail_approved': True,
+                'description_approved': True,
+            }))
         self.assertEqual(404, response.status_code)
 
     def test_put_review(self):
@@ -1045,13 +1048,18 @@ class TestTargetsAdminReview(TestCase):
 
         response = self.client.put(
             targets_review_id_url(args=[target.pk]),
-            data=json.dumps({'thumbnail_approved': False}))
+            data=json.dumps({
+                'thumbnail_approved': True,
+                'description_approved': True,
+            }))
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn('id', data)
         self.assertEqual(target.pk, data['id'])
         self.assertIn('thumbnail_approved', data)
-        self.assertFalse(data['thumbnail_approved'])
+        self.assertTrue(data['thumbnail_approved'])
+        self.assertTrue(data['description_approved'])
 
         target.refresh_from_db()
-        self.assertFalse(target.thumbnail_approved)
+        self.assertTrue(target.thumbnail_approved)
+        self.assertTrue(target.description_approved)

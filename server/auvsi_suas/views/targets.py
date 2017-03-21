@@ -477,7 +477,8 @@ class TargetsAdminReview(View):
         """Updates the review status of a target."""
         try:
             data = json.loads(request.body)
-            approved = bool(data['thumbnail_approved'])
+            thumbnail_approved = bool(data['thumbnail_approved'])
+            description_approved = bool(data['description_approved'])
         except KeyError:
             return HttpResponseBadRequest('Failed to get required field.')
         except ValueError:
@@ -489,7 +490,8 @@ class TargetsAdminReview(View):
             return HttpResponseNotFound('Target %s not found' % pk)
         except ValueError as e:
             return HttpResponseForbidden(str(e))
-        target.thumbnail_approved = approved
+        target.thumbnail_approved = thumbnail_approved
+        target.description_approved = description_approved
         target.save()
         return JsonResponse(target.json(is_superuser=
                                         request.user.is_superuser))
