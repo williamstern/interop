@@ -40,14 +40,16 @@ message TargetEvaluation {
 
     // Whether the image was approved by judge.
     optional bool image_approved = 9;
+    // Whether the emergent description was approved by judge.
+    optional bool description_approved = 10;
     // Ratio of classifications which matched.
-    optional double classifications_ratio = 10;
+    optional double classifications_ratio = 11;
     // Distance of real and submitted target positions (feet).
-    optional double geolocation_accuracy_ft = 11;
+    optional double geolocation_accuracy_ft = 12;
     // Whether the submission is actionable.
-    optional bool actionable_submission = 12;
+    optional bool actionable_submission = 13;
     // Whether the submission was autonomous.
-    optional bool autonomous_submission = 13;
+    optional bool autonomous_submission = 14;
     // Whether the submission was over interop.
-    optional bool interop_submission = 14;
+    optional bool interop_submission = 15;
 }

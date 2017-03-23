@@ -138,6 +138,7 @@ class Target(models.Model):
         alphanumeric: Target alphanumeric.
         alphanumeric_color: Target alphanumeric color.
         description: Free-form target description.
+        description_approved: Whether judge considers description valid.
         autonomous: Target is an ADLC submission.
         thumbnail: Uploaded target image thumbnail.
         thumbnail_approved: Whether judge considers thumbnail valid for target.
@@ -159,6 +160,7 @@ class Target(models.Model):
                                              null=True,
                                              blank=True)
     description = models.TextField(default='', blank=True)
+    description_approved = models.NullBooleanField()
     autonomous = models.BooleanField(default=False)
     thumbnail = models.ImageField(upload_to='targets', blank=True)
     thumbnail_approved = models.NullBooleanField()
@@ -225,6 +227,7 @@ class Target(models.Model):
         }
 
         if is_superuser:
+            d['description_approved'] = self.description_approved
             d['thumbnail'] = self.thumbnail.name if self.thumbnail else None
             d['thumbnail_approved'] = self.thumbnail_approved
             d['creation_time'] = self.creation_time
@@ -250,14 +253,14 @@ class Target(models.Model):
         classify_fields = {
             TargetType.standard: standard_fields,
             TargetType.off_axis: standard_fields,
-            TargetType.emergent: [],
+            TargetType.emergent: ['description_approved'],
         }
         fields = classify_fields[self.target_type]
         count = 0
         for field in fields:
             if getattr(self, field) == getattr(other, field):
                 count += 1
-        return float(count) / len(fields) if fields else 1
+        return float(count) / len(fields)
 
     def actionable_submission(self, flights=None):
         """Checks if Target meets Actionable Intelligence submission criteria.
@@ -376,13 +379,19 @@ class TargetEvaluator(object):
         target_eval = target_pb2.TargetEvaluation()
         target_eval.real_target = real.pk
         target_eval.submitted_target = submitted.pk
+        target_eval.score_ratio = 0
 
         # Targets which are not the same type have no match value.
         if submitted.target_type != real.target_type:
             return target_eval
+        # Targets which don't have an approved thumbnail have no value.
+        if not submitted.thumbnail_approved:
+            return target_eval
 
         # Compute values which influence score and are provided as feedback.
         target_eval.image_approved = submitted.thumbnail_approved
+        if submitted.target_type == TargetType.emergent:
+            target_eval.description_approved = submitted.description_approved
         target_eval.classifications_ratio = real.similar_classifications_ratio(
             submitted)
         if submitted.location:
