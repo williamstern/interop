@@ -5,7 +5,7 @@ import cStringIO
 import csv
 import json
 import zipfile
-from auvsi_suas.models.mission_config import MissionConfig
+from auvsi_suas.models import mission_evaluation
 from auvsi_suas.views import logger
 from auvsi_suas.views.decorators import require_superuser
 from auvsi_suas.views.missions import mission_for_request
@@ -93,7 +93,7 @@ class EvaluateTeams(View):
                 return HttpResponseNotFound('Team not found.')
 
         # Get the eval data for the teams.
-        mission_eval = mission.evaluate_teams(users)
+        mission_eval = mission_evaluation.evaluate_teams(mission, users)
         if not mission_eval:
             logger.warning('No data for team evaluation.')
             return HttpResponseServerError(

@@ -473,6 +473,42 @@
 },
 {
     "fields": {
+        "mission": 3,
+        "user": 53,
+        "flight_time": "00:00:01",
+        "post_process_time": "00:00:02",
+        "used_timeout": false,
+        "safety_pilot_takeovers": 0,
+        "manual_flight_time": "00:00:00",
+        "waypoints_captured": 2,
+        "out_of_bounds": 2,
+        "unsafe_out_of_bounds": 1,
+        "air_delivery_accuracy_ft": null,
+        "operational_excellence_percent": 80
+    },
+    "model": "auvsi_suas.missionjudgefeedback",
+    "pk": 1
+},
+{
+    "fields": {
+        "mission": 3,
+        "user": 54,
+        "flight_time": "00:00:02",
+        "post_process_time": "00:00:01",
+        "used_timeout": true,
+        "safety_pilot_takeovers": 1,
+        "manual_flight_time": "00:00:02",
+        "waypoints_captured": 1,
+        "out_of_bounds": 0,
+        "unsafe_out_of_bounds": 0,
+        "air_delivery_accuracy_ft": 10,
+        "operational_excellence_percent": 80
+    },
+    "model": "auvsi_suas.missionjudgefeedback",
+    "pk": 2
+},
+{
+    "fields": {
         "stationary_obstacles": [
             25,
             26

@@ -37,3 +37,5 @@ detail than what is presented in :doc:`getting_started`.
 .. autoclass:: auvsi_suas.models.mission_config.MissionConfig
 .. autoclass:: auvsi_suas.models.mission_clock_event.MissionClockEvent
 .. autoclass:: auvsi_suas.models.takeoff_or_landing_event.TakeoffOrLandingEvent
+.. autoclass:: auvsi_suas.models.mission_judge_feedback.MissionJudgeFeedback
+
