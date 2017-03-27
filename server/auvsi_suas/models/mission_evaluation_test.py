@@ -26,6 +26,7 @@ class TestMissionEvaluation(TestCase):
         user_eval = mission_eval.teams[0]
         self.assertEqual(user0.username, user_eval.team)
         feedback = user_eval.feedback
+        score = user_eval.score
         self.assertEqual(0.0,
                          feedback.waypoints[0].closest_for_scored_approach_ft)
         self.assertEqual(1.0, feedback.waypoints[0].score_ratio)
@@ -51,10 +52,16 @@ class TestMissionEvaluation(TestCase):
 
         self.assertEqual(1, feedback.judge.flight_time_sec)
 
+        self.assertAlmostEqual(0.99948148, score.timeline.mission_time)
+        self.assertAlmostEqual(0, score.timeline.mission_penalty)
+        self.assertAlmostEqual(1, score.timeline.timeout)
+        self.assertAlmostEqual(0.99958519, score.timeline.score_ratio)
+
         # user1 data
         user_eval = mission_eval.teams[1]
         self.assertEqual(user1.username, user_eval.team)
         feedback = user_eval.feedback
+        score = user_eval.score
         self.assertEqual(0.0,
                          feedback.waypoints[0].closest_for_scored_approach_ft)
         self.assertEqual(1.0, feedback.waypoints[0].score_ratio)
@@ -79,6 +86,11 @@ class TestMissionEvaluation(TestCase):
         self.assertEqual(False, feedback.moving_obstacles[1].hit)
 
         self.assertEqual(2, feedback.judge.flight_time_sec)
+
+        self.assertAlmostEqual(0.99918519, score.timeline.mission_time)
+        self.assertAlmostEqual(0, score.timeline.mission_penalty)
+        self.assertAlmostEqual(0, score.timeline.timeout)
+        self.assertAlmostEqual(0.79934815, score.timeline.score_ratio)
 
     def test_evaluate_teams_specific_users(self):
         """Tests the evaluation of teams method with specific users."""
