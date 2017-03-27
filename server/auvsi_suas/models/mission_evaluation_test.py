@@ -1,51 +1,95 @@
-"""Tests for the mission_config module."""
+"""Tests for the mission_evaluation module."""
 
-import datetime
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from auvsi_suas.models.aerial_position import AerialPosition
-from auvsi_suas.models.fly_zone import FlyZone
-from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.mission_config import MissionConfig
-from auvsi_suas.models.uas_telemetry import UasTelemetry
-from auvsi_suas.models.waypoint import Waypoint
-from auvsi_suas.patches.simplekml_patch import Kml
-from auvsi_suas.proto.mission_pb2 import WaypointEvaluation
+from auvsi_suas.models import mission_evaluation
+from auvsi_suas.models import mission_config
 
 
-class TestMissionConfigModel(TestCase):
-    """Tests the MissionConfig model."""
-
-    def test_unicode(self):
-        """Tests the unicode method executes."""
-        pos = GpsPosition()
-        pos.latitude = 10
-        pos.longitude = 100
-        pos.save()
-        apos = AerialPosition()
-        apos.altitude_msl = 1000
-        apos.gps_position = pos
-        apos.save()
-        wpt = Waypoint()
-        wpt.position = apos
-        wpt.order = 10
-        wpt.save()
-        config = MissionConfig()
-        config.home_pos = pos
-        config.emergent_last_known_pos = pos
-        config.off_axis_target_pos = pos
-        config.air_drop_pos = pos
-        config.save()
-        config.mission_waypoints.add(wpt)
-        config.search_grid_points.add(wpt)
-        config.save()
-        self.assertTrue(config.__unicode__())
-
-
-class TestMissionConfigModelSampleMission(TestCase):
-
+class TestMissionEvaluation(TestCase):
+    """Tests the mission_evaluation module."""
     fixtures = ['testdata/sample_mission.json']
+
+    def test_evaluate_teams(self):
+        """Tests the evaluation of teams method."""
+        user0 = User.objects.get(username='user0')
+        user1 = User.objects.get(username='user1')
+        config = mission_config.MissionConfig.objects.get()
+
+        mission_eval = mission_evaluation.evaluate_teams(config)
+
+        # Contains user0 and user1
+        self.assertEqual(2, len(mission_eval.teams))
+
+        # user0 data
+        user_eval = mission_eval.teams[0]
+        self.assertEqual(user0.username, user_eval.team)
+        feedback = user_eval.feedback
+        self.assertEqual(0.0,
+                         feedback.waypoints[0].closest_for_scored_approach_ft)
+        self.assertEqual(1.0, feedback.waypoints[0].score_ratio)
+        self.assertEqual(0.0,
+                         feedback.waypoints[1].closest_for_scored_approach_ft)
+        self.assertAlmostEqual(2, feedback.mission_clock_time_sec)
+        self.assertAlmostEqual(0.6, feedback.out_of_bounds_time_sec)
+
+        self.assertAlmostEqual(0.5, feedback.uas_telemetry_time_max_sec)
+        self.assertAlmostEqual(1. / 6, feedback.uas_telemetry_time_avg_sec)
+
+        self.assertAlmostEqual(0.445, feedback.target.score_ratio, places=3)
+
+        self.assertEqual(25, feedback.stationary_obstacles[0].id)
+        self.assertEqual(True, feedback.stationary_obstacles[0].hit)
+        self.assertEqual(26, feedback.stationary_obstacles[1].id)
+        self.assertEqual(False, feedback.stationary_obstacles[1].hit)
+
+        self.assertEqual(25, feedback.moving_obstacles[0].id)
+        self.assertEqual(True, feedback.moving_obstacles[0].hit)
+        self.assertEqual(26, feedback.moving_obstacles[1].id)
+        self.assertEqual(False, feedback.moving_obstacles[1].hit)
+
+        self.assertEqual(1, feedback.judge.flight_time_sec)
+
+        # user1 data
+        user_eval = mission_eval.teams[1]
+        self.assertEqual(user1.username, user_eval.team)
+        feedback = user_eval.feedback
+        self.assertEqual(0.0,
+                         feedback.waypoints[0].closest_for_scored_approach_ft)
+        self.assertEqual(1.0, feedback.waypoints[0].score_ratio)
+        self.assertEqual(0.0,
+                         feedback.waypoints[1].closest_for_scored_approach_ft)
+        self.assertAlmostEqual(18, feedback.mission_clock_time_sec)
+        self.assertAlmostEqual(1.0, feedback.out_of_bounds_time_sec)
+
+        self.assertAlmostEqual(2.0, feedback.uas_telemetry_time_max_sec)
+        self.assertAlmostEqual(1.0, feedback.uas_telemetry_time_avg_sec)
+
+        self.assertAlmostEqual(0, feedback.target.score_ratio, places=3)
+
+        self.assertEqual(25, feedback.stationary_obstacles[0].id)
+        self.assertEqual(False, feedback.stationary_obstacles[0].hit)
+        self.assertEqual(26, feedback.stationary_obstacles[1].id)
+        self.assertEqual(False, feedback.stationary_obstacles[1].hit)
+
+        self.assertEqual(25, feedback.moving_obstacles[0].id)
+        self.assertEqual(False, feedback.moving_obstacles[0].hit)
+        self.assertEqual(26, feedback.moving_obstacles[1].id)
+        self.assertEqual(False, feedback.moving_obstacles[1].hit)
+
+        self.assertEqual(2, feedback.judge.flight_time_sec)
+
+    def test_evaluate_teams_specific_users(self):
+        """Tests the evaluation of teams method with specific users."""
+        user0 = User.objects.get(username='user0')
+        user1 = User.objects.get(username='user1')
+        config = mission_config.MissionConfig.objects.get()
+
+        mission_eval = mission_evaluation.evaluate_teams(config, [user0])
+
+        self.assertEqual(1, len(mission_eval.teams))
+        self.assertEqual(user0.username, mission_eval.teams[0].team)
 
     def assert_non_superuser_data(self, data):
         """Tests non-superuser data is correct."""
@@ -124,58 +168,3 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertIn('longitude', data['air_drop_pos'])
         self.assertEqual(38.0, data['air_drop_pos']['latitude'])
         self.assertEqual(-79.0, data['air_drop_pos']['longitude'])
-
-    def test_non_superuser_json(self):
-        """Conversion to dict for JSON."""
-        config = MissionConfig.objects.get()
-        data = config.json(is_superuser=False)
-        self.assert_non_superuser_data(data)
-
-        self.assertNotIn('stationary_obstacles', data)
-        self.assertNotIn('moving_obstacles', data)
-
-    def test_superuser_json(self):
-        """Conversion to dict for JSON."""
-        config = MissionConfig.objects.get()
-        data = config.json(is_superuser=True)
-        self.assert_non_superuser_data(data)
-
-        self.assertIn('stationary_obstacles', data)
-        self.assertEqual(2, len(data['stationary_obstacles']))
-        for obst in data['stationary_obstacles']:
-            self.assertIn('latitude', obst)
-            self.assertIn('longitude', obst)
-            self.assertIn('cylinder_radius', obst)
-            self.assertIn('cylinder_height', obst)
-        self.assertEqual(10.0,
-                         data['stationary_obstacles'][0]['cylinder_height'])
-        self.assertEqual(10.0,
-                         data['stationary_obstacles'][0]['cylinder_radius'])
-        self.assertEqual(38.0, data['stationary_obstacles'][0]['latitude'])
-        self.assertEqual(-76.0, data['stationary_obstacles'][0]['longitude'])
-
-        self.assertIn('moving_obstacles', data)
-        self.assertEqual(2, len(data['moving_obstacles']))
-        for obst in data['moving_obstacles']:
-            self.assertIn('speed_avg', obst)
-            self.assertIn('sphere_radius', obst)
-        self.assertEqual(1.0, data['moving_obstacles'][0]['speed_avg'])
-        self.assertEqual(15.0, data['moving_obstacles'][0]['sphere_radius'])
-
-    def test_toKML(self):
-        """Test Generation of kml for all mission data"""
-        kml = Kml()
-        MissionConfig.kml_all(kml=kml)
-        data = kml.kml()
-        names = [
-            'Off Axis',
-            'Home Position',
-            'Air Drop',
-            'Emergent LKP',
-            'Search Area',
-            'Waypoints',
-        ]
-        for name in names:
-            tag = '<name>{}</name>'.format(name)
-            err = 'tag "{}" not found in {}'.format(tag, data)
-            self.assertIn(tag, data, err)

@@ -1,8 +1,10 @@
 """Feedback from judges on mission performance."""
 
-from mission_config import MissionConfig
 from django.conf import settings
 from django.db import models
+
+from auvsi_suas.proto import mission_pb2
+from mission_config import MissionConfig
 
 
 class MissionJudgeFeedback(models.Model):
@@ -36,9 +38,31 @@ class MissionJudgeFeedback(models.Model):
     out_of_bounds = models.IntegerField()
     unsafe_out_of_bounds = models.IntegerField()
 
-    air_delivery_accuracy_ft = models.FloatField()
+    air_delivery_accuracy_ft = models.FloatField(null=True)
 
     operational_excellence_percent = models.FloatField()
 
     class Meta:
         unique_together = (('mission', 'user'), )
+
+    def proto(self):
+        """Get the proto formatted feedback."""
+        feedback = mission_pb2.MissionJudgeFeedback()
+
+        feedback.flight_time_sec = self.flight_time.total_seconds()
+        feedback.post_process_time_sec = self.post_process_time.total_seconds()
+        feedback.used_timeout = self.used_timeout
+
+        feedback.safety_pilot_takeovers = self.safety_pilot_takeovers
+        feedback.manual_flight_time_sec = self.manual_flight_time.total_seconds(
+        )
+        feedback.waypoints_captured = self.waypoints_captured
+        feedback.out_of_bounds = self.out_of_bounds
+        feedback.unsafe_out_of_bounds = self.unsafe_out_of_bounds
+
+        if self.air_delivery_accuracy_ft:
+            feedback.air_delivery_accuracy_ft = self.air_delivery_accuracy_ft
+
+        feedback.operational_excellence_percent = self.operational_excellence_percent
+
+        return feedback
