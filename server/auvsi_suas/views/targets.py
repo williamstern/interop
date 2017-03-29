@@ -146,6 +146,10 @@ class Targets(View):
         except ValueError:
             return HttpResponseBadRequest('Request body is not valid JSON.')
 
+        # Must be a json dictionary.
+        if not isinstance(data, dict):
+            return HttpResponseBadRequest('Request body not a JSON dict.')
+
         # Target type is required.
         if 'type' not in data:
             return HttpResponseBadRequest('Target type required.')
@@ -255,6 +259,10 @@ class TargetsId(View):
             data = json.loads(request.body)
         except ValueError:
             return HttpResponseBadRequest('Request body is not valid JSON.')
+
+        # Must be a json dictionary.
+        if not isinstance(data, dict):
+            return HttpResponseBadRequest('Request body not a JSON dict.')
 
         # Cannot submit JSON with actionable_override if not superuser.
         if 'actionable_override' in data and not request.user.is_superuser:
@@ -479,6 +487,8 @@ class TargetsAdminReview(View):
             data = json.loads(request.body)
             thumbnail_approved = bool(data['thumbnail_approved'])
             description_approved = bool(data['description_approved'])
+        except TypeError:
+            return HttpResponseBadRequest('JSON not a dict.')
         except KeyError:
             return HttpResponseBadRequest('Failed to get required field.')
         except ValueError:
