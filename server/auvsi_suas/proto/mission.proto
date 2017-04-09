@@ -28,29 +28,31 @@ message MissionEvaluation {
 message MissionFeedback {
     // Time spent on mission clock (seconds) measured by interop.
     optional double mission_clock_time_sec = 1;
+    // Time spent in air measured by interop.
+    optional double flight_time_sec = 2;
 
     // Max time between telemetry uploads (seconds).
-    optional double uas_telemetry_time_max_sec = 2;
+    optional double uas_telemetry_time_max_sec = 3;
     // Avg time between telemetry uploads (seconds).
-    optional double uas_telemetry_time_avg_sec = 3;
+    optional double uas_telemetry_time_avg_sec = 4;
 
     // Time spent out of bounds (seconds).
-    optional double out_of_bounds_time_sec = 4;
+    optional double out_of_bounds_time_sec = 5;
     // Number of boundary violations.
-    optional int32 boundary_violations = 5;
+    optional int32 boundary_violations = 6;
 
     // Waypoint evaluation data.
-    repeated WaypointEvaluation waypoints = 6;
+    repeated WaypointEvaluation waypoints = 7;
 
     // Obstacle evaluation data.
-    repeated ObstacleEvaluation stationary_obstacles = 7;
-    repeated ObstacleEvaluation moving_obstacles = 8;
+    repeated ObstacleEvaluation stationary_obstacles = 8;
+    repeated ObstacleEvaluation moving_obstacles = 9;
 
     // Target evaluation data.
-    optional MultiTargetEvaluation target = 9;
+    optional MultiTargetEvaluation target = 10;
 
     // Feedback from judges.
-    optional MissionJudgeFeedback judge = 10;
+    optional MissionJudgeFeedback judge = 11;
 }
 
 // Data provided manually by the judges.
