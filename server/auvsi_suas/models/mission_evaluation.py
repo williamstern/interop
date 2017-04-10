@@ -42,8 +42,15 @@ def generate_feedback(mission_config, user, team_eval):
             mission_clock_time += duration
     feedback.mission_clock_time_sec = mission_clock_time.total_seconds()
 
-    # Find the user's flights.
+    # Calculate total time in air.
     flight_periods = TakeoffOrLandingEvent.flights(user)
+    if flight_periods:
+        flight_time = reduce(lambda x, y: x + y, [p.duration()
+                                                  for p in flight_periods])
+        feedback.flight_time_sec = flight_time.total_seconds()
+    else:
+        feedback.flight_time_sec = 0
+    # Find the user's flights.
     for period in flight_periods:
         if period.duration() is None:
             team_eval.warnings.append('Infinite flight period.')
@@ -123,19 +130,46 @@ def score_team(team_eval):
     score = team_eval.score
 
     # Score timeline.
+    timeline = score.timeline
     flight_points = feedback.judge.flight_time_sec * settings.FLIGHT_TIME_SEC_TO_POINTS
     process_points = feedback.judge.post_process_time_sec * settings.PROCESS_TIME_SEC_TO_POINTS
     total_time_points = max(
         0, settings.MISSION_TIME_TOTAL_POINTS - flight_points - process_points)
-    score.timeline.mission_time = total_time_points / settings.MISSION_TIME_TOTAL_POINTS
+    timeline.mission_time = total_time_points / settings.MISSION_TIME_TOTAL_POINTS
     total_time = feedback.judge.flight_time_sec + feedback.judge.post_process_time_sec
     over_time = max(0, total_time - settings.MISSION_MAX_TIME_SEC)
-    score.timeline.mission_penalty = over_time * settings.MISSION_TIME_PENALTY_FROM_SEC
-    score.timeline.timeout = 0 if feedback.judge.used_timeout else 1
-    score.timeline.score_ratio = (
-        (settings.MISSION_TIME_WEIGHT * score.timeline.mission_time) +
+    timeline.mission_penalty = over_time * settings.MISSION_TIME_PENALTY_FROM_SEC
+    timeline.timeout = 0 if feedback.judge.used_timeout else 1
+    timeline.score_ratio = (
+        (settings.MISSION_TIME_WEIGHT * timeline.mission_time) +
         (settings.TIMEOUT_WEIGHT *
-         score.timeline.timeout) - score.timeline.mission_penalty)
+         timeline.timeout) - timeline.mission_penalty)
+
+    # Score autonomous flight.
+    flight = score.autonomous_flight
+    manual_flight = feedback.judge.manual_flight_time_sec
+    autonomous_flight = \
+            feedback.flight_time_sec - manual_flight
+    if (autonomous_flight >= settings.AUTONOMOUS_FLIGHT_TIME_SEC and
+            manual_flight <= settings.MANUAL_FLIGHT_TIME_SEC):
+        takeovers = feedback.judge.safety_pilot_takeovers
+        flight.flight = max(0, 1 -
+                            (takeovers * settings.AUTONOMOUS_FLIGHT_TAKEOVER))
+    else:
+        flight.flight = 0
+    flight.waypoint_capture = (float(feedback.judge.waypoints_captured) /
+                               len(feedback.waypoints))
+    wpt_scores = [w.score_ratio for w in feedback.waypoints]
+    flight.waypoint_accuracy = (reduce(lambda x, y: x + y, wpt_scores) /
+                                len(feedback.waypoints))
+    flight.out_of_bounds_penalty = (
+        feedback.judge.out_of_bounds * settings.BOUND_PENALTY +
+        feedback.judge.unsafe_out_of_bounds * settings.SAFETY_BOUND_PENALTY)
+    flight.score_ratio = (
+        settings.AUTONOMOUS_FLIGHT_FLIGHT_WEIGHT * flight.flight +
+        settings.WAYPOINT_CAPTURE_WEIGHT * flight.waypoint_capture +
+        settings.WAYPOINT_ACCURACY_WEIGHT * flight.waypoint_accuracy -
+        flight.out_of_bounds_penalty)
 
     # TODO(pmtischler): Rest of scoring.
 

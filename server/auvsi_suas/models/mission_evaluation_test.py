@@ -17,6 +17,7 @@ class TestMissionScoring(TestCase):
         self.eval.team = 'team'
         feedback = self.eval.feedback
         feedback.mission_clock_time_sec = 60 * 10
+        feedback.flight_time_sec = 60 * 4
         feedback.uas_telemetry_time_max_sec = 1.0
         feedback.uas_telemetry_time_avg_sec = 1.0
         feedback.out_of_bounds_time_sec = 10
@@ -80,6 +81,40 @@ class TestMissionScoring(TestCase):
         self.assertAlmostEqual(1, timeline.timeout)
         self.assertAlmostEqual(-4.12, timeline.score_ratio)
 
+    def test_autonomous_flight(self):
+        """Test the autonomous flight scoring."""
+        feedback = self.eval.feedback
+        judge = feedback.judge
+        flight = self.eval.score.autonomous_flight
+
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(0.5, flight.flight)
+        self.assertAlmostEqual(1, flight.waypoint_capture)
+        self.assertAlmostEqual(0.35, flight.waypoint_accuracy)
+        self.assertAlmostEqual(1.4, flight.out_of_bounds_penalty)
+        self.assertAlmostEqual(-0.925, flight.score_ratio)
+
+        feedback.waypoints[1].score_ratio = 1
+        judge.waypoints_captured = 1
+        judge.manual_flight_time_sec = 0
+        judge.safety_pilot_takeovers = 0
+        judge.out_of_bounds = 0
+        judge.unsafe_out_of_bounds = 0
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(1, flight.flight)
+        self.assertAlmostEqual(0.5, flight.waypoint_capture)
+        self.assertAlmostEqual(0.75, flight.waypoint_accuracy)
+        self.assertAlmostEqual(0, flight.out_of_bounds_penalty)
+        self.assertAlmostEqual(0.825, flight.score_ratio)
+
+        judge.manual_flight_time_sec = 60 * 4
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(0, flight.flight)
+        judge.manual_flight_time_sec = 60 * 4
+        judge.flight_time_sec = 0
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(0, flight.flight)
+
 
 class TestMissionEvaluation(TestCase):
     """Tests the mission_evaluation module."""
@@ -107,6 +142,7 @@ class TestMissionEvaluation(TestCase):
         self.assertEqual(0.0,
                          feedback.waypoints[1].closest_for_scored_approach_ft)
         self.assertAlmostEqual(2, feedback.mission_clock_time_sec)
+        self.assertAlmostEqual(1, feedback.flight_time_sec)
         self.assertAlmostEqual(0.6, feedback.out_of_bounds_time_sec)
 
         self.assertAlmostEqual(0.5, feedback.uas_telemetry_time_max_sec)
@@ -130,6 +166,12 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0, score.timeline.mission_penalty)
         self.assertAlmostEqual(1, score.timeline.timeout)
         self.assertAlmostEqual(0.99958519, score.timeline.score_ratio)
+        self.assertAlmostEqual(0, score.autonomous_flight.flight)
+        self.assertAlmostEqual(1, score.autonomous_flight.waypoint_capture)
+        self.assertAlmostEqual(0.5, score.autonomous_flight.waypoint_accuracy)
+        self.assertAlmostEqual(1.4,
+                               score.autonomous_flight.out_of_bounds_penalty)
+        self.assertAlmostEqual(-1.05, score.autonomous_flight.score_ratio)
 
         # user1 data
         user_eval = mission_eval.teams[1]
@@ -142,6 +184,7 @@ class TestMissionEvaluation(TestCase):
         self.assertEqual(0.0,
                          feedback.waypoints[1].closest_for_scored_approach_ft)
         self.assertAlmostEqual(18, feedback.mission_clock_time_sec)
+        self.assertAlmostEqual(4, feedback.flight_time_sec)
         self.assertAlmostEqual(1.0, feedback.out_of_bounds_time_sec)
 
         self.assertAlmostEqual(2.0, feedback.uas_telemetry_time_max_sec)
@@ -165,6 +208,12 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0, score.timeline.mission_penalty)
         self.assertAlmostEqual(0, score.timeline.timeout)
         self.assertAlmostEqual(0.79934815, score.timeline.score_ratio)
+        self.assertAlmostEqual(0, score.autonomous_flight.flight)
+        self.assertAlmostEqual(0.5, score.autonomous_flight.waypoint_capture)
+        self.assertAlmostEqual(1, score.autonomous_flight.waypoint_accuracy)
+        self.assertAlmostEqual(0,
+                               score.autonomous_flight.out_of_bounds_penalty)
+        self.assertAlmostEqual(.55, score.autonomous_flight.score_ratio)
 
     def test_evaluate_teams_specific_users(self):
         """Tests the evaluation of teams method with specific users."""
