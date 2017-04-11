@@ -389,8 +389,10 @@ class TargetEvaluator(object):
             return target_eval
 
         # Compute values which influence score and are provided as feedback.
-        target_eval.image_approved = submitted.thumbnail_approved
-        if submitted.target_type == TargetType.emergent:
+        if submitted.thumbnail_approved is not None:
+            target_eval.image_approved = submitted.thumbnail_approved
+        if (submitted.target_type == TargetType.emergent and
+                submitted.description_approved is not None):
             target_eval.description_approved = submitted.description_approved
         target_eval.classifications_ratio = real.similar_classifications_ratio(
             submitted)
