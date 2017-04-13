@@ -135,6 +135,6 @@ class AccessLog(models.Model):
 
         # Compute rates using the time between log files.
         times_between_logs = np.array(times_between_logs)
-        times_between_max = np.max(times_between_logs)
-        times_between_avg = np.mean(times_between_logs)
+        times_between_max = float(np.max(times_between_logs))
+        times_between_avg = float(np.mean(times_between_logs))
         return (times_between_max, times_between_avg)

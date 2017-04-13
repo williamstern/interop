@@ -204,6 +204,9 @@ OUT_OF_BOUNDS_DEBOUNCE_SEC = 10.0
 # The max distance for a waypoint to be considered satisfied.
 SATISFIED_WAYPOINT_DIST_MAX_FT = 100
 
+# The time between interop telemetry posts that's a prereq for other tasks.
+INTEROP_TELEM_THRESHOLD_TIME_SEC = 1.0
+
 # Ratio of object points to lose for every extra unmatched object submitted.
 EXTRA_OBJECT_PENALTY_RATIO = 0.05
 # The weight of classification accuracy when calculating a target match score.
@@ -249,3 +252,8 @@ AUTONOMOUS_FLIGHT_FLIGHT_WEIGHT = 0.4
 WAYPOINT_CAPTURE_WEIGHT = 0.1
 # Weight of accuracy points to all autonomous flight.
 WAYPOINT_ACCURACY_WEIGHT = 0.5
+
+# Weight of stationary obstacle avoidance.
+STATIONARY_OBST_WEIGHT = 0.5
+# Weight of moving obstacle avoidance.
+MOVING_OBST_WEIGHT = 0.5
