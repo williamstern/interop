@@ -88,6 +88,7 @@ class TestMissionScoring(TestCase):
         flight = self.eval.score.autonomous_flight
 
         mission_evaluation.score_team(self.eval)
+        self.assertTrue(flight.telemetry_prerequisite)
         self.assertAlmostEqual(0.5, flight.flight)
         self.assertAlmostEqual(1, flight.waypoint_capture)
         self.assertAlmostEqual(0.35, flight.waypoint_accuracy)
@@ -114,6 +115,38 @@ class TestMissionScoring(TestCase):
         judge.flight_time_sec = 0
         mission_evaluation.score_team(self.eval)
         self.assertAlmostEqual(0, flight.flight)
+
+        feedback.uas_telemetry_time_avg_sec = 2.0
+        mission_evaluation.score_team(self.eval)
+        self.assertFalse(flight.telemetry_prerequisite)
+        self.assertAlmostEqual(0, flight.waypoint_accuracy)
+
+    def test_obstacles(self):
+        """Test the obstacle scoring."""
+        feedback = self.eval.feedback
+        judge = feedback.judge
+        avoid = self.eval.score.obstacle_avoidance
+
+        mission_evaluation.score_team(self.eval)
+        self.assertTrue(avoid.telemetry_prerequisite)
+        self.assertAlmostEqual(0.5, avoid.stationary_obstacle)
+        self.assertAlmostEqual(0, avoid.moving_obstacle)
+        self.assertAlmostEqual(0.25, avoid.score_ratio)
+
+        feedback.stationary_obstacles[0].hit = False
+        feedback.moving_obstacles[0].hit = False
+        mission_evaluation.score_team(self.eval)
+        self.assertTrue(avoid.telemetry_prerequisite)
+        self.assertAlmostEqual(1, avoid.stationary_obstacle)
+        self.assertAlmostEqual(0.5, avoid.moving_obstacle)
+        self.assertAlmostEqual(0.75, avoid.score_ratio)
+
+        feedback.uas_telemetry_time_avg_sec = 1.01
+        mission_evaluation.score_team(self.eval)
+        self.assertFalse(avoid.telemetry_prerequisite)
+        self.assertAlmostEqual(0, avoid.stationary_obstacle)
+        self.assertAlmostEqual(0, avoid.moving_obstacle)
+        self.assertAlmostEqual(0, avoid.score_ratio)
 
 
 class TestMissionEvaluation(TestCase):

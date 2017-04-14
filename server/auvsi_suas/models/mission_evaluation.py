@@ -129,6 +129,11 @@ def score_team(team_eval):
     feedback = team_eval.feedback
     score = team_eval.score
 
+    # Determine telemetry prerequisite.
+    telem_prereq = False
+    if (feedback.HasField('uas_telemetry_time_avg_sec') and
+            feedback.uas_telemetry_time_avg_sec > 0):
+        telem_prereq = feedback.uas_telemetry_time_avg_sec <= settings.INTEROP_TELEM_THRESHOLD_TIME_SEC
     # Score timeline.
     timeline = score.timeline
     flight_points = feedback.judge.flight_time_sec * settings.FLIGHT_TIME_SEC_TO_POINTS
@@ -157,11 +162,15 @@ def score_team(team_eval):
                             (takeovers * settings.AUTONOMOUS_FLIGHT_TAKEOVER))
     else:
         flight.flight = 0
+    flight.telemetry_prerequisite = telem_prereq
     flight.waypoint_capture = (float(feedback.judge.waypoints_captured) /
                                len(feedback.waypoints))
     wpt_scores = [w.score_ratio for w in feedback.waypoints]
-    flight.waypoint_accuracy = (reduce(lambda x, y: x + y, wpt_scores) /
-                                len(feedback.waypoints))
+    if telem_prereq:
+        flight.waypoint_accuracy = (reduce(lambda x, y: x + y, wpt_scores) /
+                                    len(feedback.waypoints))
+    else:
+        flight.waypoint_accuracy = 0
     flight.out_of_bounds_penalty = (
         feedback.judge.out_of_bounds * settings.BOUND_PENALTY +
         feedback.judge.unsafe_out_of_bounds * settings.SAFETY_BOUND_PENALTY)
@@ -170,6 +179,25 @@ def score_team(team_eval):
         settings.WAYPOINT_CAPTURE_WEIGHT * flight.waypoint_capture +
         settings.WAYPOINT_ACCURACY_WEIGHT * flight.waypoint_accuracy -
         flight.out_of_bounds_penalty)
+
+    # Score obstacle avoidance.
+    avoid = score.obstacle_avoidance
+    avoid.telemetry_prerequisite = telem_prereq
+    if telem_prereq:
+        avoid.stationary_obstacle = (reduce(
+            lambda x, y: x + y, [0.0 if o.hit else 1.0
+                                 for o in feedback.stationary_obstacles]) /
+                                     len(feedback.stationary_obstacles))
+        avoid.moving_obstacle = (reduce(lambda x, y: x + y,
+                                        [0.0 if o.hit else 1.0
+                                         for o in feedback.moving_obstacles]) /
+                                 len(feedback.moving_obstacles))
+    else:
+        avoid.stationary_obstacle = 0
+        avoid.moving_obstacle = 0
+    avoid.score_ratio = (
+        avoid.stationary_obstacle * settings.STATIONARY_OBST_WEIGHT +
+        avoid.moving_obstacle * settings.STATIONARY_OBST_WEIGHT)
 
     # TODO(pmtischler): Rest of scoring.
 

@@ -127,16 +127,17 @@ message TimelineScore {
 // Scoring data for autonomous flight.
 message AutonomousFlightScore {
     optional double score_ratio = 1;
-    optional double flight = 2;
-    optional double waypoint_capture = 3;
-    optional double waypoint_accuracy = 4;
-    optional double out_of_bounds_penalty = 5;
+    optional bool telemetry_prerequisite = 2;
+    optional double flight = 3;
+    optional double waypoint_capture = 4;
+    optional double waypoint_accuracy = 5;
+    optional double out_of_bounds_penalty = 6;
 }
 
 // Scoring data for obstacle avoidance.
 message ObstacleAvoidanceScore {
-    optional bool telemetry_prerequisite = 1;
-    optional double score_ratio = 2;
+    optional double score_ratio = 1;
+    optional bool telemetry_prerequisite = 2;
     optional double stationary_obstacle = 3;
     optional double moving_obstacle = 4;
 }
