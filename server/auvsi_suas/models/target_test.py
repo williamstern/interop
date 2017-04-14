@@ -657,7 +657,7 @@ class TestTargetEvaluator(TestCase):
 
         self.assertEqual(0, d.matched_score_ratio)
         self.assertEqual(0, d.unmatched_target_count)
-        self.assertEqual(0, len(d.targets))
+        self.assertEqual(6, len(d.targets))
 
     def test_evaluate_no_real_targets(self):
         """Tests that evaluation works with no real targets."""

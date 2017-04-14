@@ -35,7 +35,8 @@ class TestMissionScoring(TestCase):
         obs = feedback.moving_obstacles.add()
         obs.hit = True
         targets = feedback.target
-        targets.score_ratio = 0.56
+        targets.score_ratio = 0.46
+        targets.extra_object_penalty_ratio = 0.1
         t = targets.targets.add()
         t.score_ratio = 0.96
         t.classifications_score_ratio = 0.6
@@ -124,7 +125,6 @@ class TestMissionScoring(TestCase):
     def test_obstacles(self):
         """Test the obstacle scoring."""
         feedback = self.eval.feedback
-        judge = feedback.judge
         avoid = self.eval.score.obstacle_avoidance
 
         mission_evaluation.score_team(self.eval)
@@ -147,6 +147,19 @@ class TestMissionScoring(TestCase):
         self.assertAlmostEqual(0, avoid.stationary_obstacle)
         self.assertAlmostEqual(0, avoid.moving_obstacle)
         self.assertAlmostEqual(0, avoid.score_ratio)
+
+    def test_objects(self):
+        """Test the object scoring."""
+        objects = self.eval.score.object
+
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(0.4, objects.characteristics)
+        self.assertAlmostEqual(0.4, objects.geolocation)
+        self.assertAlmostEqual(0.5, objects.actionable)
+        self.assertAlmostEqual(0.5, objects.autonomy)
+        self.assertAlmostEqual(0.5, objects.interoperability)
+        self.assertAlmostEqual(0.1, objects.extra_object_penalty)
+        self.assertAlmostEqual(0.46, objects.score_ratio)
 
 
 class TestMissionEvaluation(TestCase):
@@ -206,6 +219,14 @@ class TestMissionEvaluation(TestCase):
                                score.autonomous_flight.out_of_bounds_penalty)
         self.assertAlmostEqual(-1.05, score.autonomous_flight.score_ratio)
 
+        self.assertAlmostEqual(0.8, score.object.characteristics)
+        self.assertAlmostEqual(0.423458165692, score.object.geolocation)
+        self.assertAlmostEqual(0.333333333333, score.object.actionable)
+        self.assertAlmostEqual(0.333333333333, score.object.autonomy)
+        self.assertAlmostEqual(0.333333333333, score.object.interoperability)
+        self.assertAlmostEqual(0, score.object.extra_object_penalty)
+        self.assertAlmostEqual(0.444691633138, score.object.score_ratio)
+
         # user1 data
         user_eval = mission_eval.teams[1]
         self.assertEqual(user1.username, user_eval.team)
@@ -247,6 +268,14 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0,
                                score.autonomous_flight.out_of_bounds_penalty)
         self.assertAlmostEqual(.55, score.autonomous_flight.score_ratio)
+
+        self.assertAlmostEqual(0, score.object.characteristics)
+        self.assertAlmostEqual(0, score.object.geolocation)
+        self.assertAlmostEqual(0, score.object.actionable)
+        self.assertAlmostEqual(0, score.object.autonomy)
+        self.assertAlmostEqual(0, score.object.interoperability)
+        self.assertAlmostEqual(0, score.object.extra_object_penalty)
+        self.assertAlmostEqual(0, score.object.score_ratio)
 
     def test_evaluate_teams_specific_users(self):
         """Tests the evaluation of teams method with specific users."""
