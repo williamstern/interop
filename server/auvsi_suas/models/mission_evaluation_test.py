@@ -161,6 +161,36 @@ class TestMissionScoring(TestCase):
         self.assertAlmostEqual(0.1, objects.extra_object_penalty)
         self.assertAlmostEqual(0.46, objects.score_ratio)
 
+    def test_air_delivery(self):
+        """Test the air delivery scoring."""
+        judge = self.eval.feedback.judge
+        air = self.eval.score.air_delivery
+
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(50, air.delivery_accuracy)
+        self.assertAlmostEqual(0.6666667, air.score_ratio)
+
+        judge.air_delivery_accuracy_ft = 200
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(200, air.delivery_accuracy)
+        self.assertAlmostEqual(0, air.score_ratio)
+
+        judge.air_delivery_accuracy_ft = 0
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(1, air.score_ratio)
+
+    def test_operational(self):
+        """Test the operational excellence scoring."""
+        operational = self.eval.score.operational_excellence
+
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(0.9, operational.score_ratio)
+
+    def test_total(self):
+        """Test the total scoring."""
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(0.089077781, self.eval.score.score_ratio)
+
 
 class TestMissionEvaluation(TestCase):
     """Tests the mission_evaluation module."""
@@ -227,6 +257,13 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0, score.object.extra_object_penalty)
         self.assertAlmostEqual(0.444691633138, score.object.score_ratio)
 
+        self.assertAlmostEqual(0, score.air_delivery.delivery_accuracy)
+        self.assertAlmostEqual(1, score.air_delivery.score_ratio)
+
+        self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
+
+        self.assertAlmostEqual(0.153896845146, score.score_ratio)
+
         # user1 data
         user_eval = mission_eval.teams[1]
         self.assertEqual(user1.username, user_eval.team)
@@ -276,6 +313,13 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0, score.object.interoperability)
         self.assertAlmostEqual(0, score.object.extra_object_penalty)
         self.assertAlmostEqual(0, score.object.score_ratio)
+
+        self.assertAlmostEqual(10, score.air_delivery.delivery_accuracy)
+        self.assertAlmostEqual(0.933333333333, score.air_delivery.score_ratio)
+
+        self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
+
+        self.assertAlmostEqual(0.618268148148, score.score_ratio)
 
     def test_evaluate_teams_specific_users(self):
         """Tests the evaluation of teams method with specific users."""
