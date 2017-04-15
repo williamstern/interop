@@ -480,7 +480,12 @@ Note that proper evaluation requires a representative ``MissionConfig``, which
 will include things like the flight boundaries and the details for the true
 targets.
 
-**Review Target Imagery**. The first step is to review any target imagery
+**Provide Human Judge Data**. The first step is to provide the manual judge
+data. Go to ``System > Edit Data``. Select ``Mission judge feedbacks >> add``.
+Fill out the object with the mission, user, and details about the team's
+performance, and then save.
+
+**Review Target Imagery**. The second step is to review any target imagery
 provided. This is used to review whether the provided image is acceptable, and
 whether human graded features are correct (e.g. emergent target description).
 It is not used to grade whether the target details are correct (done
@@ -488,7 +493,13 @@ automatically). Go to the Mission Dashboard, and then use the menu ``Mission >
 Review Targets``. Click on a target ID to see the image and details, and then
 approve or reject the image, and if applicable the emergent description.
 
-**Automatic Evaluation**. The second step is to run the automatic evaluator.
-Use the menu ``Mission > Evaluate Teams (CSV)``. This will generate a CSV file,
-with one line for every team (non superuser account), and one column for every
-gradable deliverable / performance feedback.
+**Automatic Evaluation**. The third step is to run the automatic evaluator.
+Use the menu ``Mission > Evaluate Teams``. Select which users you want to
+evaluate, then hit ``Evaluate``. This will generate a zip file containing Json
+formatted feedback, and a CSV file containing all team's data. Note that this
+operation filters superuser accounts- testing must be done with a nonsuperuser
+(team) account. This output contains the `MissionEvaluation
+<https://github.com/auvsi-suas/interop/blob/master/server/auvsi_suas/proto/mission.proto>`__
+and `MultiTargetEvaluation
+<https://github.com/auvsi-suas/interop/blob/master/server/auvsi_suas/proto/target.proto>`__
+data.
