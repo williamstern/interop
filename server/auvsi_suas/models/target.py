@@ -498,9 +498,11 @@ class TargetEvaluator(object):
         multi_eval = target_pb2.MultiTargetEvaluation()
         # Compute match value.
         for real in self.real_targets:
+            target_eval = multi_eval.targets.add()
+            target_eval.real_target = real.pk
+            target_eval.score_ratio = 0
             submitted = self.matches.get(real)
             if submitted:
-                target_eval = multi_eval.targets.add()
                 target_eval.CopyFrom(self.evaluate_match(submitted, real))
         if self.real_targets:
             multi_eval.matched_score_ratio = sum(

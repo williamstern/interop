@@ -199,6 +199,23 @@ def score_team(team_eval):
         avoid.stationary_obstacle * settings.STATIONARY_OBST_WEIGHT +
         avoid.moving_obstacle * settings.STATIONARY_OBST_WEIGHT)
 
+    # Score objects.
+    objects = score.object
+    object_eval = feedback.target
+    object_field_mapping = [
+        ('classifications_score_ratio', 'characteristics'),
+        ('geolocation_score_ratio', 'geolocation'),
+        ('actionable_score_ratio', 'actionable'),
+        ('autonomous_score_ratio', 'autonomy'),
+        ('interop_score_ratio', 'interoperability'),
+    ]
+    for eval_field, score_field in object_field_mapping:
+        total = reduce(lambda x, y: x + y, [getattr(o, eval_field)
+                                            for o in object_eval.targets])
+        setattr(objects, score_field, float(total) / len(object_eval.targets))
+    objects.extra_object_penalty = object_eval.extra_object_penalty_ratio
+    objects.score_ratio = object_eval.score_ratio
+
     # TODO(pmtischler): Rest of scoring.
 
 
