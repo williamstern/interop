@@ -129,6 +129,11 @@ def score_team(team_eval):
     feedback = team_eval.feedback
     score = team_eval.score
 
+    # Can't score without judge feedback.
+    if not feedback.HasField('judge'):
+        team_eval.warnings.append('Cant score due to no judge feedback.')
+        return
+
     # Determine telemetry prerequisite.
     telem_prereq = False
     if (feedback.HasField('uas_telemetry_time_avg_sec') and
