@@ -216,7 +216,25 @@ def score_team(team_eval):
     objects.extra_object_penalty = object_eval.extra_object_penalty_ratio
     objects.score_ratio = object_eval.score_ratio
 
-    # TODO(pmtischler): Rest of scoring.
+    # Score air delivery.
+    air = score.air_delivery
+    air.delivery_accuracy = feedback.judge.air_delivery_accuracy_ft
+    air.score_ratio = max(
+        0, (settings.AIR_DELIVERY_THRESHOLD_FT - air.delivery_accuracy) /
+        settings.AIR_DELIVERY_THRESHOLD_FT)
+
+    # Score operational excellence.
+    score.operational_excellence.score_ratio = (
+        feedback.judge.operational_excellence_percent / 100.0)
+
+    # Compute total score.
+    score.score_ratio = (
+        settings.TIMELINE_WEIGHT * score.timeline.score_ratio +
+        settings.AUTONOMOUS_WEIGHT * score.autonomous_flight.score_ratio +
+        settings.OBSTACLE_WEIGHT * score.obstacle_avoidance.score_ratio +
+        settings.OBJECT_WEIGHT * score.object.score_ratio +
+        settings.AIR_DELIVERY_WEIGHT * score.air_delivery.score_ratio +
+        settings.OPERATIONAL_WEIGHT * score.operational_excellence.score_ratio)
 
 
 def evaluate_teams(mission_config, users=None):
