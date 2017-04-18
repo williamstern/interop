@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from access_log import AccessLog
 from aerial_position import AerialPosition
+from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models import distance
 from auvsi_suas.models import units
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
@@ -206,6 +207,38 @@ class UasTelemetry(AccessLog):
             linestring.style.polystyle.color = Color.changealphaint(100,
                                                                     Color.blue)
 
+    @staticmethod
+    def closest_interpolated_distance(start_log, end_log, waypoint, utm):
+        """Finds the closest distance to the waypoint by interpolating between
+        start_log and end_log.
+
+        Args:
+            start_log: A UAS telemetry log.
+            end_log: A UAS telemetry log.
+            waypoint: The waypoint for which to find the closest distance.
+            utm: The UTM Proj projection to project into.
+        Returns:
+            The closest distance to the waypoint in feet.
+        """
+        # Verify that aircraft velocity is within bounds. Don't interpolate if
+        # it isn't because the data is probably erroneous.
+        d = start_log.uas_position.distance_to(end_log.uas_position)
+        t = (end_log.timestamp - start_log.timestamp).total_seconds()
+        if (t > settings.MAX_TELMETRY_INTERPOLATE_INTERVAL_SEC or
+            (d / t) > settings.MAX_AIRSPEED_FT_PER_SEC):
+            return end_log.uas_position.distance_to(waypoint.position)
+
+        def uas_position_to_tuple(pos):
+            return (pos.gps_position.latitude, pos.gps_position.longitude,
+                    pos.altitude_msl)
+
+        # Linearly interpolate between start and end telemetry and find the
+        # closest distance to the waypoint.
+        start = uas_position_to_tuple(start_log.uas_position)
+        end = uas_position_to_tuple(end_log.uas_position)
+        point = uas_position_to_tuple(waypoint.position)
+        return distance.distance_to_line(start, end, point, utm)
+
     @classmethod
     def satisfied_waypoints(cls, home_pos, waypoints, uas_telemetry_logs):
         """Determines whether the UAS satisfied the waypoints.
@@ -257,10 +290,15 @@ class UasTelemetry(AccessLog):
 
         prev_wpt, curr_wpt = -1, 0
 
-        for uas_log in uas_telemetry_logs:
+        for i in range(0, len(uas_telemetry_logs)):
+            uas_log = uas_telemetry_logs[i]
             # At any point the UAV may restart the waypoint pattern, at which
             # point we reset the counters.
-            d0 = uas_log.uas_position.distance_to(waypoints[0].position)
+            if i > 0:
+                d0 = cls.closest_interpolated_distance(
+                    uas_telemetry_logs[i - 1], uas_log, waypoints[0], utm)
+            else:
+                d0 = uas_log.uas_position.distance_to(waypoints[0].position)
             if d0 < settings.SATISFIED_WAYPOINT_DIST_MAX_FT:
                 best = best_run(best, current)[0]
 
@@ -272,8 +310,9 @@ class UasTelemetry(AccessLog):
             # threshold. so continue to look for better passes of the previous
             # waypoint until the next is reched.
             if prev_wpt >= 0:
-                dp = uas_log.uas_position.distance_to(waypoints[
-                    prev_wpt].position)
+                dp = cls.closest_interpolated_distance(
+                    uas_telemetry_logs[i - 1], uas_log, waypoints[prev_wpt],
+                    utm)
                 if dp < closest[prev_wpt]:
                     closest[prev_wpt] = dp
                     current[prev_wpt] = dp
@@ -283,7 +322,13 @@ class UasTelemetry(AccessLog):
             if curr_wpt >= len(waypoints):
                 continue
 
-            d = uas_log.uas_position.distance_to(waypoints[curr_wpt].position)
+            if i > 0:
+                d = cls.closest_interpolated_distance(
+                    uas_telemetry_logs[i - 1], uas_log, waypoints[curr_wpt],
+                    utm)
+            else:
+                d = uas_log.uas_position.distance_to(waypoints[
+                    curr_wpt].position)
             if curr_wpt not in closest or d < closest[curr_wpt]:
                 closest[curr_wpt] = d
 
