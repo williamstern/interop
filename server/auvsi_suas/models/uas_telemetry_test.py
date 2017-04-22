@@ -13,6 +13,7 @@ from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.waypoint import Waypoint
+from auvsi_suas.models import distance
 from auvsi_suas.proto.mission_pb2 import WaypointEvaluation
 
 
@@ -227,6 +228,35 @@ class TestUasTelemetryDedupe(TestUasTelemetryBase):
             waypoints.append(wpt)
         return waypoints
 
+    def test_closest_interpolated_distance(self):
+        utm = distance.proj_utm(zone=18, north=True)
+
+        # Test velocity filter.
+        waypoint = self.waypoints_from_data([(38, -76, 100)])[0]
+        entries = [(40, -78, 600), (38, -76, 140)]
+        logs = self.create_uas_logs(self.user, entries)
+        d = UasTelemetry.closest_interpolated_distance(logs[0], logs[1],
+                                                       waypoint, utm)
+        self.assertAlmostEqual(40.0, d, delta=3)
+
+        # Test telemetry rate filter.
+        waypoint = self.waypoints_from_data([(38.145147, -76.427583, 100)])[0]
+        entries = [(38.145148, -76.427645, 100), (38.145144, -76.427400, 100)]
+        logs = self.create_uas_logs(self.user, entries)
+        logs[1].timestamp = logs[0].timestamp + datetime.timedelta(seconds=2)
+        d = UasTelemetry.closest_interpolated_distance(logs[0], logs[1],
+                                                       waypoint, utm)
+        self.assertAlmostEqual(53.0, d, delta=3)
+
+        # Test interpolation (waypoint is halfway between telemetry logs).
+        waypoint = self.waypoints_from_data([(38.145146, -76.427522, 80)])[0]
+        entries = [(38.145148, -76.427645, 100), (38.145144, -76.427400, 100)]
+        logs = self.create_uas_logs(self.user, entries)
+        logs[1].timestamp = logs[0].timestamp + datetime.timedelta(seconds=1)
+        d = UasTelemetry.closest_interpolated_distance(logs[0], logs[1],
+                                                       waypoint, utm)
+        self.assertAlmostEqual(20.0, d, delta=3)
+
     def test_satisfied_waypoints(self):
         """Tests the evaluation of waypoints method."""
         # Create mission config
@@ -401,6 +431,26 @@ class TestUasTelemetryDedupe(TestUasTelemetryBase):
                                      score_ratio=0.9,
                                      closest_for_scored_approach_ft=10,
                                      closest_for_mission_ft=10)]
+        self.assertSatisfiedWaypoints(expect, UasTelemetry.satisfied_waypoints(
+            gpos, waypoints, logs))
+
+        # Sanity check waypoint scoring with interpolation.
+        waypoints = self.waypoints_from_data([(38.145146, -76.427522, 80), (
+            38.1447, -76.4272, 100)])
+        entries = [(38.145148, -76.427645, 100), (38.145144, -76.427400, 100),
+                   (38.1447, -76.4275, 100), (38.145145, -76.427461, 80)]
+        logs = self.create_uas_logs(self.user, entries)
+        for i in range(1, len(logs)):
+            logs[i].timestamp = (
+                logs[i - 1].timestamp + datetime.timedelta(seconds=1))
+        expect = [WaypointEvaluation(id=0,
+                                     score_ratio=0.8,
+                                     closest_for_scored_approach_ft=20,
+                                     closest_for_mission_ft=17.505),
+                  WaypointEvaluation(id=1,
+                                     score_ratio=0.14,
+                                     closest_for_scored_approach_ft=86.072,
+                                     closest_for_mission_ft=86.072)]
         self.assertSatisfiedWaypoints(expect, UasTelemetry.satisfied_waypoints(
             gpos, waypoints, logs))
 
