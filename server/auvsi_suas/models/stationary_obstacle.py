@@ -1,6 +1,10 @@
 """Stationary obstacle model."""
 
+import numpy as np
+
+from auvsi_suas.models import distance
 from gps_position import GpsPosition
+from django.conf import settings
 from django.db import models
 
 
@@ -24,16 +28,23 @@ class StationaryObstacle(models.Model):
                                     self.gps_position.__unicode__()))
 
     def cylinder_collision(self, start_log, end_log, utm):
+        # Verify that aircraft velocity is within bounds. Don't interpolate if
+        # it isn't because the data is probably erroneous.
+        d = start_log.uas_position.distance_to(end_log.uas_position)
+        t = (end_log.timestamp - start_log.timestamp).total_seconds()
+        if (t > settings.MAX_TELMETRY_INTERPOLATE_INTERVAL_SEC or
+            (d / t) > settings.MAX_AIRSPEED_FT_PER_SEC):
+            return self.contains_pos(end_log.uas_position)
+
         def get_projected(aerial_pos):
             lat = aerial_pos.gps_position.latitude
             lon = aerial_pos.gps_position.longitude
-            proj_x, proj_y = pyproj.transform(wgs84, utm, lon, lat)
-            return proj_x, proj_y
+            return pyproj.transform(wgs84, utm, lon, lat)
 
-        x1, y1 = get_projected(start_log.gps_position)
-        z1 = units.feet_to_meters(start_log.altitude_msl)
-        x2, y2 = get_projected(end_log.gps_position)
-        z2 = units.feet_to_meters(end_log.altitude_msl)
+        x1, y1 = get_projected(start_log.uas_position.gps_position)
+        z1 = units.feet_to_meters(start_log.uas_position.altitude_msl)
+        x2, y2 = get_projected(end_log.uas_position.gps_position)
+        z2 = units.feet_to_meters(end_log.uas_position.altitude_msl)
 
         cx, cy = get_projected(self.gps_position)
 
@@ -85,9 +96,12 @@ class StationaryObstacle(models.Model):
                                         self.gps_position.longitude)
         utm = distance.proj_utm(zone, north)
         for i in range(0, len(uas_telemetry_logs)):
+            cur_log = uas_telemetry_logs[i]
             if i > 0:
-                if cylinder_collision(uas_telemetry_logs[i-1],
-                                      uas_telemetry_logs[i], utm):
+                cur_log = uas_telemetry_logs[i]
+                prev_log = uas_telemetry_logs[i - 1]
+                if self.cylinder_collision(uas_telemetry_logs[i-1],
+                                           uas_telemetry_logs[i], utm):
                     return True
             else:
                 if self.contains_pos(cur_log.uas_position):
