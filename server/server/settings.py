@@ -268,3 +268,8 @@ OBSTACLE_WEIGHT = 0.2
 OBJECT_WEIGHT = 0.2
 AIR_DELIVERY_WEIGHT = 0.1
 OPERATIONAL_WEIGHT = 0.1
+
+# Max aircraft airspeed in ft/s. Rules specify 70 KIAS.
+MAX_AIRSPEED_FT_PER_SEC = 118.147
+# Maximum interval between telemetry logs allowed for interpolation.
+MAX_TELMETRY_INTERPOLATE_INTERVAL_SEC = 1.5
