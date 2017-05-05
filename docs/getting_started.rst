@@ -211,6 +211,17 @@ following can remove a container.
     sudo docker stop interop-server
     sudo docker rm interop-server
 
+**Update Container Image**. To update the Docker image to a new version, you
+need to pull the new image, remove the existing container, and run a new
+container. Similar to removing a container, the state will automatically be
+deleted without first setting up volumes to persist the state.
+
+.. code-block:: bash
+
+    sudo docker pull auvsisuas/interop-server
+    sudo docker stop interop-server
+    sudo docker rm interop-server
+    sudo ./server/run.sh
 
 auvsisuas/interop-client
 ~~~~~~~~~~~~~~~~~~~~~~~~
