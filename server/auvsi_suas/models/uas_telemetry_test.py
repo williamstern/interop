@@ -195,18 +195,24 @@ class TestUasTelemetryDedupe(TestUasTelemetryBase):
 
     def assertSatisfiedWaypoints(self, expect, got):
         """Assert two satisfied_waypoints return values are equal."""
-        self.assertEqual(len(expect), len(got))
+        msg = '%s != %s' % (expect, got)
+        self.assertEqual(len(expect), len(got), msg=msg)
         for i in xrange(len(expect)):
             e = expect[i]
             g = got[i]
-            self.assertEqual(e.id, g.id)
-            self.assertAlmostEqual(e.score_ratio, g.score_ratio, places=2)
+            self.assertEqual(e.id, g.id, msg=msg)
+            self.assertAlmostEqual(e.score_ratio,
+                                   g.score_ratio,
+                                   places=2,
+                                   msg=msg)
             self.assertAlmostEqual(e.closest_for_scored_approach_ft,
                                    g.closest_for_scored_approach_ft,
-                                   places=2)
+                                   places=2,
+                                   msg=msg)
             self.assertAlmostEqual(e.closest_for_mission_ft,
                                    g.closest_for_mission_ft,
-                                   places=2)
+                                   places=2,
+                                   msg=msg)
 
     def waypoints_from_data(self, waypoints_data):
         """Converts tuples of lat/lon/alt to a waypoint."""
@@ -233,7 +239,7 @@ class TestUasTelemetryDedupe(TestUasTelemetryBase):
 
         # Test velocity filter.
         waypoint = self.waypoints_from_data([(38, -76, 100)])[0]
-        entries = [(40, -78, 600), (38, -76, 140)]
+        entries = [(38, -76, 140), (40, -78, 600)]
         logs = self.create_uas_logs(self.user, entries)
         d = UasTelemetry.closest_interpolated_distance(logs[0], logs[1],
                                                        waypoint, utm)
@@ -246,7 +252,7 @@ class TestUasTelemetryDedupe(TestUasTelemetryBase):
         logs[1].timestamp = logs[0].timestamp + datetime.timedelta(seconds=2)
         d = UasTelemetry.closest_interpolated_distance(logs[0], logs[1],
                                                        waypoint, utm)
-        self.assertAlmostEqual(53.0, d, delta=3)
+        self.assertAlmostEqual(17.792, d, delta=3)
 
         # Test interpolation (waypoint is halfway between telemetry logs).
         waypoint = self.waypoints_from_data([(38.145146, -76.427522, 80)])[0]
@@ -282,11 +288,12 @@ class TestUasTelemetryDedupe(TestUasTelemetryBase):
                                      score_ratio=0,
                                      closest_for_mission_ft=460785.17),
                   WaypointEvaluation(id=2,
-                                     score_ratio=0)]
+                                     score_ratio=0,
+                                     closest_for_mission_ft=600)]
         self.assertSatisfiedWaypoints(expect, UasTelemetry.satisfied_waypoints(
             gpos, waypoints, logs))
 
-        # First and last are valid, but missed second, so third doesn't count.
+        # First and last are valid.
         entries = [(38, -76, 140), (40, -78, 600), (40, -78, 40)]
         logs = self.create_uas_logs(self.user, entries)
         expect = [WaypointEvaluation(id=0,
@@ -297,7 +304,9 @@ class TestUasTelemetryDedupe(TestUasTelemetryBase):
                                      score_ratio=0,
                                      closest_for_mission_ft=460785.03),
                   WaypointEvaluation(id=2,
-                                     score_ratio=0)]
+                                     score_ratio=0.6,
+                                     closest_for_scored_approach_ft=40,
+                                     closest_for_mission_ft=40)]
         self.assertSatisfiedWaypoints(expect, UasTelemetry.satisfied_waypoints(
             gpos, waypoints, logs))
 
@@ -409,23 +418,24 @@ class TestUasTelemetryDedupe(TestUasTelemetryBase):
         self.assertSatisfiedWaypoints(expect, UasTelemetry.satisfied_waypoints(
             gpos, waypoints, logs))
 
-        # Restart waypoint path in the middle.
-        waypoints = self.waypoints_from_data([(38, -76, 100), (39, -77, 200), (
-            40, -78, 0)])
-        entries = [(38, -76, 140),
-                   (39, -77, 180),
+        # Restart waypoint path in the middle, use path in between points.
+        waypoints = self.waypoints_from_data([
+            (38, -76, 100), (39, -77, 200), (40, -78, 0)
+        ])
+        entries = [(38, -76, 140),  # Use
+                   (39, -77, 180),  # Use
                    # Restart:
                    (38, -76, 70),
                    (39, -77, 150),
-                   (40, -78, 10)]
+                   (40, -78, 10)]  # Use
         logs = self.create_uas_logs(self.user, entries)
         expect = [WaypointEvaluation(id=0,
-                                     score_ratio=0.7,
-                                     closest_for_scored_approach_ft=30,
+                                     score_ratio=0.6,
+                                     closest_for_scored_approach_ft=40,
                                      closest_for_mission_ft=30),
                   WaypointEvaluation(id=1,
-                                     score_ratio=0.5,
-                                     closest_for_scored_approach_ft=50,
+                                     score_ratio=0.8,
+                                     closest_for_scored_approach_ft=20,
                                      closest_for_mission_ft=20),
                   WaypointEvaluation(id=2,
                                      score_ratio=0.9,

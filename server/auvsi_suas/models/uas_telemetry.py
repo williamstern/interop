@@ -1,21 +1,23 @@
 """UAS Telemetry model."""
 
+import itertools
+from collections import defaultdict
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 
-from access_log import AccessLog
-from aerial_position import AerialPosition
-from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models import distance
 from auvsi_suas.models import units
+from auvsi_suas.models.access_log import AccessLog
+from auvsi_suas.models.aerial_position import AerialPosition
+from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.moving_obstacle import MovingObstacle
+from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
 from auvsi_suas.proto import mission_pb2
-from takeoff_or_landing_event import TakeoffOrLandingEvent
-from moving_obstacle import MovingObstacle
-import units
 
 
 class UasTelemetry(AccessLog):
@@ -220,13 +222,17 @@ class UasTelemetry(AccessLog):
         Returns:
             The closest distance to the waypoint in feet.
         """
+        # If no provided end, use start distance.
+        if end_log is None:
+            return start_log.uas_position.distance_to(waypoint.position)
+
         # Verify that aircraft velocity is within bounds. Don't interpolate if
         # it isn't because the data is probably erroneous.
         d = start_log.uas_position.distance_to(end_log.uas_position)
         t = (end_log.timestamp - start_log.timestamp).total_seconds()
         if (t > settings.MAX_TELMETRY_INTERPOLATE_INTERVAL_SEC or
             (d / t) > settings.MAX_AIRSPEED_FT_PER_SEC):
-            return end_log.uas_position.distance_to(waypoint.position)
+            return start_log.uas_position.distance_to(waypoint.position)
 
         def uas_position_to_tuple(pos):
             return (pos.gps_position.latitude, pos.gps_position.longitude,
@@ -238,6 +244,12 @@ class UasTelemetry(AccessLog):
         end = uas_position_to_tuple(end_log.uas_position)
         point = uas_position_to_tuple(waypoint.position)
         return distance.distance_to_line(start, end, point, utm)
+
+    @staticmethod
+    def score_waypoint(distance):
+        """Scores a single waypoint distance."""
+        return max(0, float(settings.SATISFIED_WAYPOINT_DIST_MAX_FT - distance)
+                   / settings.SATISFIED_WAYPOINT_DIST_MAX_FT)
 
     @classmethod
     def satisfied_waypoints(cls, home_pos, waypoints, uas_telemetry_logs):
@@ -257,98 +269,80 @@ class UasTelemetry(AccessLog):
         Returns:
             A list of auvsi_suas.proto.WaypointEvaluation.
         """
-        # Use a common projection in distance_to_line based on the home
-        # position.
+        # Form utm for use as projection in distance calcluations.
         zone, north = distance.utm_zone(home_pos.latitude, home_pos.longitude)
         utm = distance.proj_utm(zone, north)
 
+        # Reduce telemetry from telemetry to waypoint hits.
+        # This will make future processing more efficient via data reduction.
+        # While iterating, compute the best distance seen for feedback.
         best = {}
-        current = {}
-        closest = {}
+        hits = []
+        for iu, start_log in enumerate(uas_telemetry_logs):
+            end_log = None
+            if iu + 1 < len(uas_telemetry_logs):
+                end_log = uas_telemetry_logs[iu + 1]
+            for iw, waypoint in enumerate(waypoints):
+                dist = cls.closest_interpolated_distance(start_log, end_log,
+                                                         waypoint, utm)
+                best[iw] = min(best.get(iw, dist), dist)
+                score = cls.score_waypoint(dist)
+                if score > 0:
+                    hits.append((iw, dist, score))
+        # Remove redundant hits which wouldn't be part of best sequence.
+        # This will make future processing more efficient via data reduction.
+        hits = [max(g,
+                    key=lambda x: x[2])
+                for _, g in itertools.groupby(hits, lambda x: x[0])]
 
-        def score_waypoint(distance):
-            """Scores a single waypoint."""
-            return max(
-                0, float(settings.SATISFIED_WAYPOINT_DIST_MAX_FT - distance) /
-                settings.SATISFIED_WAYPOINT_DIST_MAX_FT)
+        # Find highest scoring sequence via dynamic programming.
+        # Implement recurrence relation:
+        #   S(iw, ih) = s[iw, ih] + max_{k=[0,ih)} S(iw-1, k)
+        dp = defaultdict(lambda: defaultdict(lambda: (0, None, None)))
+        highest_total = None
+        highest_total_pos = (None, None)
+        for iw in xrange(len(waypoints)):
+            for ih, (hiw, hdist, hscore) in enumerate(hits):
+                # Compute score for assigning current hit to current waypoint.
+                score = hscore if iw == hiw else 0.0
+                # Compute best total score, which includes this match score and
+                # best of all which could come before it.
+                prev_iw = iw - 1
+                total_score = score
+                total_score_back = (None, None)
+                if prev_iw >= 0:
+                    for prev_ih in xrange(ih + 1):
+                        (prev_total_score, _) = dp[prev_iw][prev_ih]
+                        new_total_score = prev_total_score + score
+                        if new_total_score > total_score:
+                            total_score = new_total_score
+                            total_score_back = (prev_iw, prev_ih)
+                dp[iw][ih] = (total_score, total_score_back)
+                # Track highest score seen.
+                if total_score > highest_total:
+                    highest_total = total_score
+                    highest_total_pos = (iw, ih)
+        # Traceback sequence to get scores and distance for score.
+        scores = defaultdict(lambda: (0, None))
+        cur_pos = highest_total_pos
+        while cur_pos != (None, None):
+            cur_iw, cur_ih = cur_pos
+            hiw, hdist, hscore = hits[cur_ih]
+            if cur_iw == hiw:
+                scores[cur_iw] = (hscore, hdist)
+            _, cur_pos = dp[cur_iw][cur_ih]
 
-        def score_waypoint_sequence(sequence):
-            """Returns scores given distances to a sequence of waypoints."""
-            score = {}
-            for i in range(0, len(waypoints)):
-                score[i] = \
-                    score_waypoint(sequence[i]) if i in sequence else 0.0
-            return score
-
-        def best_run(prev_best, current):
-            """Returns the best of the current run and the previous best."""
-            prev_best_scores = score_waypoint_sequence(prev_best)
-            current_scores = score_waypoint_sequence(current)
-            if sum(current_scores.values()) > sum(prev_best_scores.values()):
-                return current, current_scores
-            return prev_best, prev_best_scores
-
-        prev_wpt, curr_wpt = -1, 0
-
-        for i in range(0, len(uas_telemetry_logs)):
-            uas_log = uas_telemetry_logs[i]
-            # At any point the UAV may restart the waypoint pattern, at which
-            # point we reset the counters.
-            if i > 0:
-                d0 = cls.closest_interpolated_distance(
-                    uas_telemetry_logs[i - 1], uas_log, waypoints[0], utm)
-            else:
-                d0 = uas_log.uas_position.distance_to(waypoints[0].position)
-            if d0 < settings.SATISFIED_WAYPOINT_DIST_MAX_FT:
-                best = best_run(best, current)[0]
-
-                # Reset current to default values.
-                current = {}
-                prev_wpt, curr_wpt = -1, 0
-
-            # The UAS may pass closer to the waypoint after achieving the capture
-            # threshold. so continue to look for better passes of the previous
-            # waypoint until the next is reched.
-            if prev_wpt >= 0:
-                dp = cls.closest_interpolated_distance(
-                    uas_telemetry_logs[i - 1], uas_log, waypoints[prev_wpt],
-                    utm)
-                if dp < closest[prev_wpt]:
-                    closest[prev_wpt] = dp
-                    current[prev_wpt] = dp
-
-            # If the UAS has satisfied all of the waypoints, await starting the
-            # waypoint pattern again.
-            if curr_wpt >= len(waypoints):
-                continue
-
-            if i > 0:
-                d = cls.closest_interpolated_distance(
-                    uas_telemetry_logs[i - 1], uas_log, waypoints[curr_wpt],
-                    utm)
-            else:
-                d = uas_log.uas_position.distance_to(waypoints[
-                    curr_wpt].position)
-            if curr_wpt not in closest or d < closest[curr_wpt]:
-                closest[curr_wpt] = d
-
-            if d < settings.SATISFIED_WAYPOINT_DIST_MAX_FT:
-                current[curr_wpt] = d
-                curr_wpt += 1
-                prev_wpt += 1
-
-        best, scores = best_run(best, current)
-
-        # Convert to evaluation.
+            # Convert to evaluation.
         waypoint_evals = []
-        for ix, waypoint in enumerate(waypoints):
+        for iw, waypoint in enumerate(waypoints):
+            score, dist = scores[iw]
             waypoint_eval = mission_pb2.WaypointEvaluation()
-            waypoint_eval.id = ix
-            waypoint_eval.score_ratio = scores.get(ix, 0)
-            if ix in best:
-                waypoint_eval.closest_for_scored_approach_ft = best[ix]
-            if ix in closest:
-                waypoint_eval.closest_for_mission_ft = closest[ix]
+            waypoint_eval.id = iw
+            waypoint_eval.score_ratio = score
+            if dist is not None:
+                waypoint_eval.closest_for_scored_approach_ft = dist
+            if iw in best:
+                waypoint_eval.closest_for_mission_ft = best[iw]
             waypoint_evals.append(waypoint_eval)
         return waypoint_evals
 
