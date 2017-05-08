@@ -45,8 +45,8 @@ TESTDATA_STATOBST_EVALCOLLISION = (
 TESTDATA_STATOBST_INTERP_OBS = (38.145146, -76.427522, 30, 100)
 # (lat, lon, alt)
 TESTDATA_STATOBST_INTERP_TELEM = [
-    (38.145148, -76.427645, 100),
-    (38.145144, -76.427400, 100)
+    (38.145148000, -76.427645000, 100),
+    (38.145144000, -76.427400000, 100)
 ]  # yapf: disable
 
 class TestStationaryObstacleModel(TestCase):
@@ -146,6 +146,14 @@ class TestStationaryObstacleModel(TestCase):
         logs[1].timestamp = logs[0].timestamp + datetime.timedelta(seconds=1)
         self.assertEqual(
             obst.determine_interpolated_collision(logs[0], logs[1], utm), True)
+
+        # Test interpolation + obstacle miss.
+        obst.gps_position.latitude = 38.145399000
+        logs = self.create_uas_logs(self.user, TESTDATA_STATOBST_INTERP_TELEM)
+        logs[1].timestamp = logs[0].timestamp + datetime.timedelta(seconds=1)
+        self.assertEqual(
+            obst.determine_interpolated_collision(logs[0], logs[1], utm),
+            False)
 
     def test_evaluate_collision_with_uas(self):
         """Tests the collision with UAS method."""

@@ -8,8 +8,6 @@ from gps_position import GpsPosition
 from django.conf import settings
 from django.db import models
 
-wgs84 = pyproj.Proj(init="epsg:4326")
-
 
 class StationaryObstacle(models.Model):
     """A stationary obstacle that teams must avoid.
@@ -41,36 +39,40 @@ class StationaryObstacle(models.Model):
         Returns:
             True if the UAS collided with the obstacle, False otherwise.
         """
-        lat1 = start_log.uas_position.gps_position.latitude
-        lon1 = start_log.uas_position.gps_position.longitude
-        alt1 = start_log.uas_position.altitude_msl
+        start_lat = start_log.uas_position.gps_position.latitude
+        start_lon = start_log.uas_position.gps_position.longitude
+        start_alt = start_log.uas_position.altitude_msl
 
-        lat2 = end_log.uas_position.gps_position.latitude
-        lon2 = end_log.uas_position.gps_position.longitude
-        alt2 = end_log.uas_position.altitude_msl
+        end_lat = end_log.uas_position.gps_position.latitude
+        end_lon = end_log.uas_position.gps_position.longitude
+        end_alt = end_log.uas_position.altitude_msl
 
         latc = self.gps_position.latitude
         lonc = self.gps_position.longitude
 
-        # Don't interpolate if telemetry data is too sparse or the aircraft
-        # velocity is above the bound.
+        # If the telemetry too sparse or speed too fast, extrapolate rather than
+        # interpolate.
         d = start_log.uas_position.distance_to(end_log.uas_position)
         t = (end_log.timestamp - start_log.timestamp).total_seconds()
         if (t > settings.MAX_TELMETRY_INTERPOLATE_INTERVAL_SEC or
             (d / t) > settings.MAX_AIRSPEED_FT_PER_SEC):
-            # In this case, a collision exists if the UAS could go from
-            # start_log to the obstacle to the end_log while remaining under
-            # the velocity bound. The point in the obstacle we use is
-            # self.gps_position with the altitude set to the mean of start_log
-            # and end_log altitudes (as long as that is within
+            # Determine whether the UAS could have traveled from
+            # start->obst->end within velocity bounds." The point in the
+            # obstacle we use is self.gps_position with the altitude set to the
+            # mean of start_log and end_log altitudes (as long as that is within
             # self.cylinder_height).
-            optimal_alt = min(np.mean([alt1, alt2]), self.cylinder_height)
-            start_to_obst = distance.distance_to(lat1, lon1, alt1, latc, lonc,
-                                                 optimal_alt)
-            obst_to_end = distance.distance_to(latc, lonc, optimal_alt, lat2,
-                                               lon2, alt2)
+            optimal_alt = min(
+                np.mean([start_alt, end_alt]), self.cylinder_height)
+            start_to_obst = distance.distance_to(
+                start_lat, start_lon, start_alt, latc, lonc, optimal_alt)
+            obst_to_end = distance.distance_to(latc, lonc, optimal_alt,
+                                               end_lat, end_lon, end_alt)
             avg_velocity = (start_to_obst + obst_to_end) / t
             return avg_velocity <= settings.MAX_AIRSPEED_FT_PER_SEC
+
+        # First, check if altitude for both logs is above cylinder height.
+        if start_alt > self.cylinder_height and end_alt > self.cylinder_height:
+            return False
 
         # We want to check if the line drawn between start_log and end_log
         # ever crosses the obstacle.
@@ -84,30 +86,47 @@ class StationaryObstacle(models.Model):
         # Convert points to UTM projection.
         # We need a cartesian coordinate system to perform the calculation.
         try:
-            x1, y1 = pyproj.transform(wgs84, utm, lon1, lat1)
-            z1 = units.feet_to_meters(alt1)
-            x2, y2 = pyproj.transform(wgs84, utm, lon2, lat2)
-            z2 = units.feet_to_meters(alt2)
-            cx, cy = pyproj.transform(wgs84, utm, lonc, latc)
+            x1, y1 = pyproj.transform(distance.wgs84, utm, start_lon,
+                                      start_lat)
+            z1 = units.feet_to_meters(start_alt)
+            x2, y2 = pyproj.transform(distance.wgs84, utm, end_lon, end_lat)
+            z2 = units.feet_to_meters(end_alt)
+            cx, cy = pyproj.transform(distance.wgs84, utm, lonc, latc)
         except RuntimeError:
             # pyproj throws RuntimeError if the coordinates are grossly beyond
             # the bounds of the projection. We do not count this as a collision.
             return False
 
-        # Calculate slope and intercept of line between start_log and end_log.
-        m = (y2 - y1) / (x2 - x1)
-        b = y1 - m * x1
+        rm = units.feet_to_meters(self.cylinder_radius)
+        hm = units.feet_to_meters(self.cylinder_height)
 
-        # Equation of obstacle circle: latc^2 + laty^2 = self.cylinder_radius^2
-        # Substitute in line equation and solve for x.
-        p = [m**2 + 1, 2 * m * b, b**2 - self.cylinder_radius**2]
-        roots = np.roots(p)
+        # Calculate equation of line and substitute into circle equation.
+        # Equation of obstacle circle:
+        # (x - latc)^2 + (y - laty)^2 = self.cylinder_radius^2
+        delta_x = x2 - x1
+        if delta_x == 0:
+            # If delta X is 0, substitute X as constant and solve for y.
+            p = [1, -2 * cy, cy**2 + (x1 - cx)**2 - rm**2]
+            roots = np.roots(p)
+            for root in roots:
+                # Solve for altitude and check if within bounds.
+                zcalc = ((root - y1) * (z2 - z1) / (y2 - y1)) + z1
+                if np.isreal(root) and zcalc <= hm:
+                    return True
+        else:
+            # Calculate slope and intercept of line between start and end log.
+            m = (y2 - y1) / (x2 - x1)
+            b = y1 - m * x1
+            # Substitute in line equation and solve for x.
+            p = [m**2 + 1, (2 * m * (b - cy)) - (2 * cx),
+                 cx**2 + (b - cy)**2 - rm**2]
+            roots = np.roots(p)
+            for root in roots:
+                # Solve for altitude and check if within bounds.
+                zcalc = ((root - x1) * (z2 - z1) / (x2 - x1)) + z1
+                if np.isreal(root) and zcalc <= hm:
+                    return True
 
-        for root in roots:
-            # Solve for altitude and check if within bounds.
-            zcalc = ((root - x1) * (z2 - z1) / (x2 - x1)) + z1
-            if (zcalc > 0 and zcalc < self.cylinder_height):
-                return True
         return False
 
     def contains_pos(self, aerial_pos):
