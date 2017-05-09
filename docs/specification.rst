@@ -1210,11 +1210,14 @@ Targets
    Describe the target characteristics with these fields (see
    :http:post:`/api/targets`):
 
+      * ``latitude``
+      * ``longitude``
       * ``orientation``
       * ``shape``
       * ``background_color``
       * ``alphanumeric``
       * ``alphanumeric_color``
+      * ``autonomous``
 
    * ``emergent`` - Emergent targets are described in section 7.6 of the rules.
 
@@ -1224,6 +1227,7 @@ Targets
       * ``latitude``
       * ``longitude``
       * ``description``
+      * ``autonomous``
 
          * This field should contain a general description of the emergent
            target.
