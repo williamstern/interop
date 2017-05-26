@@ -83,8 +83,7 @@ class StationaryObstacle(models.Model):
         # Calculate equation of line and substitute into circle equation.
         # Equation of obstacle circle:
         # (x - latc)^2 + (y - laty)^2 = self.cylinder_radius^2
-        delta_x = x2 - x1
-        if delta_x == 0:
+        if x2 - x1 == 0:
             # If delta X is 0, substitute X as constant and solve for y.
             p = [1, -2 * cy, cy**2 + (x1 - cx)**2 - rm**2]
             roots = np.roots(p)
@@ -141,17 +140,15 @@ class StationaryObstacle(models.Model):
         zone, north = distance.utm_zone(self.gps_position.latitude,
                                         self.gps_position.longitude)
         utm = distance.proj_utm(zone, north)
-        for i in range(0, len(uas_telemetry_logs)):
+        for i, cur_log in enumerate(uas_telemetry_logs):
             cur_log = uas_telemetry_logs[i]
+            if self.contains_pos(cur_log.uas_position):
+                return True
             if i > 0:
-                cur_log = uas_telemetry_logs[i]
-                prev_log = uas_telemetry_logs[i - 1]
                 if self.determine_interpolated_collision(
-                        uas_telemetry_logs[i - 1], uas_telemetry_logs[i], utm):
+                        uas_telemetry_logs[i - 1], cur_log, utm):
                     return True
-            else:
-                if self.contains_pos(cur_log.uas_position):
-                    return True
+
         return False
 
     def json(self):

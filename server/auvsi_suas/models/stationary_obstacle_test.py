@@ -35,7 +35,7 @@ TESTDATA_STATOBST_EVALCOLLISION = (
      (-76.0001, 38.0001, 0),
      (-76.0001, 38.0001, 100)],
     # Outside positions
-    [(-76.001, 38, 150),
+    [(-76.001, 38, 50),
      (-76, 38.002, 150),
      (-76, 38, 150),
      (-76, 38, 101)]
@@ -45,8 +45,14 @@ TESTDATA_STATOBST_EVALCOLLISION = (
 TESTDATA_STATOBST_INTERP_OBS = (38.145146, -76.427522, 30, 100)
 # (lat, lon, alt)
 TESTDATA_STATOBST_INTERP_TELEM = [
-    (38.145148000, -76.427645000, 100),
-    (38.145144000, -76.427400000, 100)
+    (True, [(38.145146000, -76.427522000, -1),
+            (38.145146000, -76.427522000, 101)]),
+    (True, [(38.145148000, -76.427645000, 100),
+            (38.145144000, -76.427400000, 100)]),
+    (False, [(38.145148000, -76.427645000, 110),
+            (38.145144000, -76.427400000, 110)]),
+    (False, [(38.145148000, -76.427645000, 50),
+            (38.145399000, -76.427522000, 50)]),
 ]  # yapf: disable
 
 class TestStationaryObstacleModel(TestCase):
@@ -132,17 +138,11 @@ class TestStationaryObstacleModel(TestCase):
                                   cylinder_radius=orad,
                                   cylinder_height=oheight)
 
-        # Test interpolation + obstacle hit.
-        logs = self.create_uas_logs(self.user, TESTDATA_STATOBST_INTERP_TELEM)
-        self.assertEqual(
-            obst.determine_interpolated_collision(logs[0], logs[1], utm), True)
-
-        # Test interpolation + obstacle miss.
-        obst.gps_position.latitude = 38.145399000
-        logs = self.create_uas_logs(self.user, TESTDATA_STATOBST_INTERP_TELEM)
-        self.assertEqual(
-            obst.determine_interpolated_collision(logs[0], logs[1], utm),
-            False)
+        for (inside, uas_details) in TESTDATA_STATOBST_INTERP_TELEM:
+            logs = self.create_uas_logs(self.user, uas_details)
+            self.assertEqual(
+                obst.determine_interpolated_collision(logs[0], logs[1], utm),
+                inside)
 
     def test_evaluate_collision_with_uas(self):
         """Tests the collision with UAS method."""
