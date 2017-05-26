@@ -50,26 +50,6 @@ class StationaryObstacle(models.Model):
         latc = self.gps_position.latitude
         lonc = self.gps_position.longitude
 
-        # If the telemetry too sparse or speed too fast, extrapolate rather than
-        # interpolate.
-        d = start_log.uas_position.distance_to(end_log.uas_position)
-        t = (end_log.timestamp - start_log.timestamp).total_seconds()
-        if (t > settings.MAX_TELMETRY_INTERPOLATE_INTERVAL_SEC or
-            (d / t) > settings.MAX_AIRSPEED_FT_PER_SEC):
-            # Determine whether the UAS could have traveled from
-            # start->obst->end within velocity bounds." The point in the
-            # obstacle we use is self.gps_position with the altitude set to the
-            # mean of start_log and end_log altitudes (as long as that is within
-            # self.cylinder_height).
-            optimal_alt = min(
-                np.mean([start_alt, end_alt]), self.cylinder_height)
-            start_to_obst = distance.distance_to(
-                start_lat, start_lon, start_alt, latc, lonc, optimal_alt)
-            obst_to_end = distance.distance_to(latc, lonc, optimal_alt,
-                                               end_lat, end_lon, end_alt)
-            avg_velocity = (start_to_obst + obst_to_end) / t
-            return avg_velocity <= settings.MAX_AIRSPEED_FT_PER_SEC
-
         # First, check if altitude for both logs is above cylinder height.
         if start_alt > self.cylinder_height and end_alt > self.cylinder_height:
             return False

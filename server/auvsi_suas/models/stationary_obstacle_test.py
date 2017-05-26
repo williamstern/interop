@@ -7,7 +7,7 @@ from auvsi_suas.models.uas_telemetry import UasTelemetry
 from django.contrib.auth.models import User
 from django.test import TestCase
 from auvsi_suas.models import distance
-import datetime
+from datetime import timedelta
 
 # (lat, lon, rad, height)
 TESTDATA_STATOBST_CONTAINSPOS_OBJ = (-76, 38, 100, 200)
@@ -35,9 +35,9 @@ TESTDATA_STATOBST_EVALCOLLISION = (
      (-76.0001, 38.0001, 0),
      (-76.0001, 38.0001, 100)],
     # Outside positions
-    [(-76.001, 38, 50),
-     (-76, 38.002, 50),
-     (-76, 38, -1),
+    [(-76.001, 38, 150),
+     (-76, 38.002, 150),
+     (-76, 38, 150),
      (-76, 38, 101)]
 )  # yapf: disable
 
@@ -79,7 +79,8 @@ class TestStationaryObstacleModel(TestCase):
         """
         ret = []
 
-        for (lat, lon, alt) in entries:
+        for i in range(len(entries)):
+            lat, lon, alt = entries[i]
             pos = GpsPosition()
             pos.latitude = lat
             pos.longitude = lon
@@ -92,6 +93,8 @@ class TestStationaryObstacleModel(TestCase):
             log.user = user
             log.uas_position = apos
             log.uas_heading = 0
+            if i > 0:
+                log.timetamp = ret[i - 1].timestamp + timedelta(seconds=1)
             log.save()
             ret.append(log)
 
@@ -129,28 +132,14 @@ class TestStationaryObstacleModel(TestCase):
                                   cylinder_radius=orad,
                                   cylinder_height=oheight)
 
-        # Test velocity filter + obstacle miss.
-        logs = self.create_uas_logs(self.user, TESTDATA_STATOBST_INTERP_TELEM)
-        self.assertEqual(
-            obst.determine_interpolated_collision(logs[0], logs[1], utm),
-            False)
-
-        # Test telemetry rate filter + obstacle hit.
-        logs = self.create_uas_logs(self.user, TESTDATA_STATOBST_INTERP_TELEM)
-        logs[1].timestamp = logs[0].timestamp + datetime.timedelta(seconds=2)
-        self.assertEqual(
-            obst.determine_interpolated_collision(logs[0], logs[1], utm), True)
-
         # Test interpolation + obstacle hit.
         logs = self.create_uas_logs(self.user, TESTDATA_STATOBST_INTERP_TELEM)
-        logs[1].timestamp = logs[0].timestamp + datetime.timedelta(seconds=1)
         self.assertEqual(
             obst.determine_interpolated_collision(logs[0], logs[1], utm), True)
 
         # Test interpolation + obstacle miss.
         obst.gps_position.latitude = 38.145399000
         logs = self.create_uas_logs(self.user, TESTDATA_STATOBST_INTERP_TELEM)
-        logs[1].timestamp = logs[0].timestamp + datetime.timedelta(seconds=1)
         self.assertEqual(
             obst.determine_interpolated_collision(logs[0], logs[1], utm),
             False)
