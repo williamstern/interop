@@ -6,6 +6,8 @@ from auvsi_suas.models.stationary_obstacle import StationaryObstacle
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from django.contrib.auth.models import User
 from django.test import TestCase
+from auvsi_suas.models import distance
+from datetime import timedelta
 
 # (lat, lon, rad, height)
 TESTDATA_STATOBST_CONTAINSPOS_OBJ = (-76, 38, 100, 200)
@@ -34,14 +36,32 @@ TESTDATA_STATOBST_EVALCOLLISION = (
      (-76.0001, 38.0001, 100)],
     # Outside positions
     [(-76.001, 38, 50),
-     (-76, 38.002, 50),
-     (-76, 38, -1),
+     (-76, 38.002, 150),
+     (-76, 38, 150),
      (-76, 38, 101)]
 )  # yapf: disable
 
+# (lat, lon, rad, height)
+TESTDATA_STATOBST_INTERP_OBS = (38.145146, -76.427522, 30, 100)
+# (lat, lon, alt)
+TESTDATA_STATOBST_INTERP_TELEM = [
+    (True, [(38.145146000, -76.427522000, -1),
+            (38.145146000, -76.427522000, 101)]),
+    (True, [(38.145148000, -76.427645000, 100),
+            (38.145144000, -76.427400000, 100)]),
+    (False, [(38.145148000, -76.427645000, 110),
+            (38.145144000, -76.427400000, 110)]),
+    (False, [(38.145148000, -76.427645000, 50),
+            (38.145399000, -76.427522000, 50)]),
+]  # yapf: disable
 
 class TestStationaryObstacleModel(TestCase):
     """Tests the StationaryObstacle model."""
+
+    def setUp(self):
+        self.user = User.objects.create_user('testuser', 'testemail@x.com',
+                                             'testpass')
+        self.user.save()
 
     def test_unicode(self):
         """Tests the unicode method executes."""
@@ -52,6 +72,39 @@ class TestStationaryObstacleModel(TestCase):
                                   cylinder_height=100)
         obst.save()
         self.assertTrue(obst.__unicode__())
+
+    def create_uas_logs(self, user, entries):
+        """Create a list of uas telemetry logs.
+
+        Args:
+            user: User to create logs for.
+            entries: List of (lat, lon, alt) tuples for each entry.
+
+        Returns:
+            List of UasTelemetry objects
+        """
+        ret = []
+
+        for i in range(len(entries)):
+            lat, lon, alt = entries[i]
+            pos = GpsPosition()
+            pos.latitude = lat
+            pos.longitude = lon
+            pos.save()
+            apos = AerialPosition()
+            apos.altitude_msl = alt
+            apos.gps_position = pos
+            apos.save()
+            log = UasTelemetry()
+            log.user = user
+            log.uas_position = apos
+            log.uas_heading = 0
+            if i > 0:
+                log.timetamp = ret[i - 1].timestamp + timedelta(seconds=1)
+            log.save()
+            ret.append(log)
+
+        return ret
 
     def test_contains_pos(self):
         """Tests the inside obstacle method."""
@@ -75,12 +128,25 @@ class TestStationaryObstacleModel(TestCase):
                 apos = AerialPosition(gps_position=pos, altitude_msl=alt)
                 self.assertEqual(obst.contains_pos(apos), cur_contains)
 
+    def test_determine_interpolated_collision(self):
+        utm = distance.proj_utm(zone=18, north=True)
+
+        (olat, olon, orad, oheight) = TESTDATA_STATOBST_INTERP_OBS
+        pos = GpsPosition(latitude=olat, longitude=olon)
+        pos.save()
+        obst = StationaryObstacle(gps_position=pos,
+                                  cylinder_radius=orad,
+                                  cylinder_height=oheight)
+
+        for (inside, uas_details) in TESTDATA_STATOBST_INTERP_TELEM:
+            logs = self.create_uas_logs(self.user, uas_details)
+            self.assertEqual(
+                obst.determine_interpolated_collision(logs[0], logs[1], utm),
+                inside)
+
     def test_evaluate_collision_with_uas(self):
         """Tests the collision with UAS method."""
         # Create testing data
-        user = User.objects.create_user('testuser', 'testemail@x.com',
-                                        'testpass')
-        user.save()
 
         (cyl_details, inside_pos,
          outside_pos) = TESTDATA_STATOBST_EVALCOLLISION
@@ -101,14 +167,8 @@ class TestStationaryObstacleModel(TestCase):
         ]
 
         for (positions, log_list) in logs_to_create:
-            for (lat, lon, alt) in positions:
-                gpos = GpsPosition(latitude=lat, longitude=lon)
-                gpos.save()
-                apos = AerialPosition(gps_position=gpos, altitude_msl=alt)
-                apos.save()
-                log = UasTelemetry(user=user, uas_position=apos, uas_heading=0)
-                log.save()
-                log_list.append(log)
+            log_list += self.create_uas_logs(self.user, positions)
+
         # Assert collisions correctly evaluated
         collisions = [(inside_logs, True), (outside_logs, False)]
         for (log_list, inside) in collisions:
