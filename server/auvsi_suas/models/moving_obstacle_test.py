@@ -13,6 +13,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
+from auvsi_suas.models import distance
 
 TESTDATA_COMPETITION_DIST = [
     (-76.428709, 38.145306, -76.426375, 38.146146, 0.22446),
@@ -80,18 +81,33 @@ TESTDATA_MOVOBST_EVALCOLLISION = (
        (38.1, -76.1, 100),
        (38.1, -76.1, 300),
        (38.002, -76.002, 100),
-       (38, -76, 201),
-       (38, -76, -1)]),
+       (38, -76, 201)]),
      (137.526986,
       [(38.1, -76.1, 200),
        (38.1, -76.1, 225),
        (38.1, -76.1, 175)],
-      [(38, -76, 100),
-       (38.1, -76.1, 350),
+      [(38.1, -76.1, 350),
+       (38, -76, 100),
        (38.1, -76.1, 50)])
      ]
 )  # yapf: disable
 
+TESTDATA_MOVOBST_INTERP = (
+    # Obst radius and speed
+    30, 41.5,
+    # Obstacle positions (lat, lon, alt)
+    [(38.14524210878, -76.427522, 100),
+     (38.14504989122, -76.427522, 100)],
+    # Time, Inside pos, outside pos
+    [(True, [(38.14524210878, -76.427522, 100),
+             (38.14524210878, -76.427522, 20)]),
+     (True, [(38.145148000, -76.427645000, 90),
+             (38.145144000, -76.427400000, 90)]),
+     (False, [(38.145148000, -76.427645000, 140),
+              (38.145144000, -76.427400000, 140)]),
+     (False, [(38.145148000, -76.427645000, 100),
+              (38.14534021755, -76.427645, 100)])]
+)  # yapf: disable
 
 class TestMovingObstacle(TestCase):
     """Tests the MovingObstacle model."""
@@ -362,6 +378,68 @@ class TestMovingObstacle(TestCase):
                                       TESTDATA_MOVOBST_CONTAINSPOS_OBJ[1],
                                       TESTDATA_MOVOBST_CONTAINSPOS_OBJ[3],
                                       apos), cur_contains)
+
+    def test_interpolated_collision(self):
+        # Get test data
+        user = User.objects.create_user('testuser', 'testemail@x.com',
+                                        'testpass')
+        user.save()
+        utm = distance.proj_utm(zone=18, north=True)
+        (obst_rad, obst_speed, obst_pos, log_details) = TESTDATA_MOVOBST_INTERP
+        # Create the obstacle
+        obst = MovingObstacle()
+        obst.speed_avg = obst_speed
+        obst.sphere_radius = obst_rad
+        obst.save()
+        for pos_id in xrange(len(obst_pos)):
+            (lat, lon, alt) = obst_pos[pos_id]
+            gpos = GpsPosition()
+            gpos.latitude = lat
+            gpos.longitude = lon
+            gpos.save()
+            apos = AerialPosition()
+            apos.gps_position = gpos
+            apos.altitude_msl = alt
+            apos.save()
+            wpt = Waypoint()
+            wpt.order = pos_id
+            wpt.position = apos
+            wpt.save()
+            obst.waypoints.add(wpt)
+        obst.save()
+
+        for (inside, log_list) in log_details:
+            logs = []
+            for i in range(len(log_list)):
+                lat, lon, alt = log_list[i]
+                pos = GpsPosition()
+                pos.latitude = lat
+                pos.longitude = lon
+                pos.save()
+                apos = AerialPosition()
+                apos.altitude_msl = alt
+                apos.gps_position = pos
+                apos.save()
+                log = UasTelemetry()
+                log.user = user
+                log.uas_position = apos
+                log.uas_heading = 0
+                log.save()
+                if i == 0:
+                    log.timestamp = timezone.now().replace(year=1970,
+                                                           month=1,
+                                                           day=1,
+                                                           hour=0,
+                                                           minute=0,
+                                                           second=0,
+                                                           microsecond=0)
+                if i > 0:
+                    log.timestamp = (
+                        logs[i - 1].timestamp + datetime.timedelta(seconds=1))
+                logs.append(log)
+            self.assertEqual(
+                obst.determine_interpolated_collision(logs[0], logs[1], utm),
+                inside)
 
     def test_evaluate_collision_with_uas(self):
         """Tests the collision with UAS method."""

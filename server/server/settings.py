@@ -273,3 +273,6 @@ OPERATIONAL_WEIGHT = 0.1
 MAX_AIRSPEED_FT_PER_SEC = 118.147
 # Maximum interval between telemetry logs allowed for interpolation.
 MAX_TELMETRY_INTERPOLATE_INTERVAL_SEC = 1.5
+# We should sample moving obstacle position at this time interval when
+# interpolating.
+MOVING_OBSTACLE_INTERPOLATION_INTERVAL = 0.1
