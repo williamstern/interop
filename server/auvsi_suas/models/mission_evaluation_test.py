@@ -90,11 +90,11 @@ class TestMissionScoring(TestCase):
 
         mission_evaluation.score_team(self.eval)
         self.assertTrue(flight.telemetry_prerequisite)
-        self.assertAlmostEqual(0.5, flight.flight)
+        self.assertAlmostEqual(0.8, flight.flight)
         self.assertAlmostEqual(1, flight.waypoint_capture)
         self.assertAlmostEqual(0.35, flight.waypoint_accuracy)
-        self.assertAlmostEqual(1.4, flight.out_of_bounds_penalty)
-        self.assertAlmostEqual(-0.925, flight.score_ratio)
+        self.assertAlmostEqual(0.3, flight.out_of_bounds_penalty)
+        self.assertAlmostEqual(0.295, flight.score_ratio)
 
         feedback.waypoints[1].score_ratio = 1
         judge.waypoints_captured = 1
@@ -189,7 +189,7 @@ class TestMissionScoring(TestCase):
     def test_total(self):
         """Test the total scoring."""
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(0.089077781, self.eval.score.score_ratio)
+        self.assertAlmostEqual(0.455077778, self.eval.score.score_ratio)
 
 
 class TestMissionEvaluation(TestCase):
@@ -245,9 +245,9 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0, score.autonomous_flight.flight)
         self.assertAlmostEqual(1, score.autonomous_flight.waypoint_capture)
         self.assertAlmostEqual(0.5, score.autonomous_flight.waypoint_accuracy)
-        self.assertAlmostEqual(1.4,
+        self.assertAlmostEqual(0.3,
                                score.autonomous_flight.out_of_bounds_penalty)
-        self.assertAlmostEqual(-1.05, score.autonomous_flight.score_ratio)
+        self.assertAlmostEqual(0.05, score.autonomous_flight.score_ratio)
 
         self.assertAlmostEqual(0.8, score.object.characteristics)
         self.assertAlmostEqual(0.423458165692, score.object.geolocation)
@@ -262,7 +262,7 @@ class TestMissionEvaluation(TestCase):
 
         self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
 
-        self.assertAlmostEqual(0.153896845146, score.score_ratio)
+        self.assertAlmostEqual(0.48389684514619274, score.score_ratio)
 
         # user1 data
         user_eval = mission_eval.teams[1]
