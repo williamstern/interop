@@ -238,9 +238,6 @@ MISSION_TIME_TOTAL_POINTS = MISSION_MAX_TIME_SEC * max(
 # Mission time points lost due for every second over time.
 MISSION_TIME_PENALTY_FROM_SEC = MISSION_TIME_WEIGHT * 0.01
 
-# Threshold time for getting autonomous flight points.
-AUTONOMOUS_FLIGHT_TIME_SEC = 60.0 * 3.0
-MANUAL_FLIGHT_TIME_SEC = 60.0 * 3.0
 # Ratio of points lost per takeover.
 AUTONOMOUS_FLIGHT_TAKEOVER = 0.10
 # Ratio of points lost per out of bounds.

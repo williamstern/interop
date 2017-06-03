@@ -157,11 +157,7 @@ def score_team(team_eval):
 
     # Score autonomous flight.
     flight = score.autonomous_flight
-    manual_flight = feedback.judge.manual_flight_time_sec
-    autonomous_flight = \
-            feedback.flight_time_sec - manual_flight
-    if (autonomous_flight >= settings.AUTONOMOUS_FLIGHT_TIME_SEC and
-            manual_flight <= settings.MANUAL_FLIGHT_TIME_SEC):
+    if feedback.judge.min_auto_flight_time:
         takeovers = feedback.judge.safety_pilot_takeovers
         flight.flight = max(0, 1 -
                             (takeovers * settings.AUTONOMOUS_FLIGHT_TAKEOVER))
