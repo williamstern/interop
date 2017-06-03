@@ -55,8 +55,8 @@ class TestMissionScoring(TestCase):
         judge.flight_time_sec = 60 * 6
         judge.post_process_time_sec = 60 * 4
         judge.used_timeout = True
+        judge.min_auto_flight_time = True
         judge.safety_pilot_takeovers = 2
-        judge.manual_flight_time_sec = 60 * 1
         judge.waypoints_captured = 2
         judge.out_of_bounds = 2
         judge.unsafe_out_of_bounds = 1
@@ -98,7 +98,6 @@ class TestMissionScoring(TestCase):
 
         feedback.waypoints[1].score_ratio = 1
         judge.waypoints_captured = 1
-        judge.manual_flight_time_sec = 0
         judge.safety_pilot_takeovers = 0
         judge.out_of_bounds = 0
         judge.unsafe_out_of_bounds = 0
@@ -109,10 +108,9 @@ class TestMissionScoring(TestCase):
         self.assertAlmostEqual(0, flight.out_of_bounds_penalty)
         self.assertAlmostEqual(0.825, flight.score_ratio)
 
-        judge.manual_flight_time_sec = 60 * 4
+        judge.min_auto_flight_time = False
         mission_evaluation.score_team(self.eval)
         self.assertAlmostEqual(0, flight.flight)
-        judge.manual_flight_time_sec = 60 * 4
         judge.flight_time_sec = 0
         mission_evaluation.score_team(self.eval)
         self.assertAlmostEqual(0, flight.flight)

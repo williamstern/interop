@@ -12,8 +12,8 @@ class TestMissionJudgeFeedback(TestCase):
             flight_time=datetime.timedelta(seconds=1),
             post_process_time=datetime.timedelta(seconds=2),
             used_timeout=True,
+            min_auto_flight_time=True,
             safety_pilot_takeovers=3,
-            manual_flight_time=datetime.timedelta(seconds=4),
             waypoints_captured=5,
             out_of_bounds=6,
             unsafe_out_of_bounds=7,
@@ -24,8 +24,8 @@ class TestMissionJudgeFeedback(TestCase):
         self.assertAlmostEqual(1, pb.flight_time_sec)
         self.assertAlmostEqual(2, pb.post_process_time_sec)
         self.assertTrue(pb.used_timeout)
+        self.assertTrue(pb.min_auto_flight_time)
         self.assertEqual(3, pb.safety_pilot_takeovers)
-        self.assertAlmostEqual(4, pb.manual_flight_time_sec)
         self.assertEqual(5, pb.waypoints_captured)
         self.assertEqual(6, pb.out_of_bounds)
         self.assertEqual(7, pb.unsafe_out_of_bounds)
