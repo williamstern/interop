@@ -17,6 +17,8 @@ class TestMissionJudgeFeedback(TestCase):
             waypoints_captured=5,
             out_of_bounds=6,
             unsafe_out_of_bounds=7,
+            things_fell_off_uas=False,
+            crashed=False,
             air_delivery_accuracy_ft=8,
             operational_excellence_percent=9)
         pb = feedback.proto()
@@ -29,6 +31,8 @@ class TestMissionJudgeFeedback(TestCase):
         self.assertEqual(5, pb.waypoints_captured)
         self.assertEqual(6, pb.out_of_bounds)
         self.assertEqual(7, pb.unsafe_out_of_bounds)
+        self.assertFalse(pb.things_fell_off_uas)
+        self.assertFalse(pb.crashed)
         self.assertAlmostEqual(8, pb.air_delivery_accuracy_ft)
         self.assertAlmostEqual(9, pb.operational_excellence_percent)
 

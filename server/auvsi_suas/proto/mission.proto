@@ -74,12 +74,16 @@ message MissionJudgeFeedback {
     optional int32 out_of_bounds = 7;
     // Number of times gone out of bounds where it compromised safety.
     optional int32 unsafe_out_of_bounds = 8;
+    // Whether things fell off UAS.
+    optional bool things_fell_off_uas = 9;
+    // Whether the UAS crashed.
+    optional bool crashed = 10;
 
     // Air delivery accuracy.
-    optional double air_delivery_accuracy_ft = 9;
+    optional double air_delivery_accuracy_ft = 11;
 
     // Operational excellence score.
-    optional double operational_excellence_percent = 10;
+    optional double operational_excellence_percent = 12;
 }
 
 // Evaluation data for waypoints.
@@ -132,6 +136,8 @@ message AutonomousFlightScore {
     optional double waypoint_capture = 4;
     optional double waypoint_accuracy = 5;
     optional double out_of_bounds_penalty = 6;
+    optional double things_fell_off_penalty = 7;
+    optional double crashed_penalty = 8;
 }
 
 // Scoring data for obstacle avoidance.

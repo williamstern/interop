@@ -60,6 +60,8 @@ class TestMissionScoring(TestCase):
         judge.waypoints_captured = 2
         judge.out_of_bounds = 2
         judge.unsafe_out_of_bounds = 1
+        judge.things_fell_off_uas = False
+        judge.crashed = False
         judge.air_delivery_accuracy_ft = 50
         judge.operational_excellence_percent = 90
 
@@ -94,6 +96,8 @@ class TestMissionScoring(TestCase):
         self.assertAlmostEqual(1, flight.waypoint_capture)
         self.assertAlmostEqual(0.35, flight.waypoint_accuracy)
         self.assertAlmostEqual(0.3, flight.out_of_bounds_penalty)
+        self.assertEqual(0, flight.things_fell_off_penalty)
+        self.assertEqual(0, flight.crashed_penalty)
         self.assertAlmostEqual(0.295, flight.score_ratio)
 
         feedback.waypoints[1].score_ratio = 1
@@ -107,6 +111,13 @@ class TestMissionScoring(TestCase):
         self.assertAlmostEqual(0.75, flight.waypoint_accuracy)
         self.assertAlmostEqual(0, flight.out_of_bounds_penalty)
         self.assertAlmostEqual(0.825, flight.score_ratio)
+
+        judge.things_fell_off_uas = True
+        judge.crashed = True
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(0.25, flight.things_fell_off_penalty)
+        self.assertAlmostEqual(0.35, flight.crashed_penalty)
+        self.assertAlmostEqual(0.225, flight.score_ratio)
 
         judge.min_auto_flight_time = False
         mission_evaluation.score_team(self.eval)
@@ -245,6 +256,9 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0.5, score.autonomous_flight.waypoint_accuracy)
         self.assertAlmostEqual(0.3,
                                score.autonomous_flight.out_of_bounds_penalty)
+        self.assertAlmostEqual(0,
+                               score.autonomous_flight.things_fell_off_penalty)
+        self.assertAlmostEqual(0, score.autonomous_flight.crashed_penalty)
         self.assertAlmostEqual(0.05, score.autonomous_flight.score_ratio)
 
         self.assertAlmostEqual(0.8, score.object.characteristics)
@@ -302,7 +316,10 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(1, score.autonomous_flight.waypoint_accuracy)
         self.assertAlmostEqual(0,
                                score.autonomous_flight.out_of_bounds_penalty)
-        self.assertAlmostEqual(.55, score.autonomous_flight.score_ratio)
+        self.assertAlmostEqual(0.25,
+                               score.autonomous_flight.things_fell_off_penalty)
+        self.assertAlmostEqual(0.35, score.autonomous_flight.crashed_penalty)
+        self.assertAlmostEqual(-0.05, score.autonomous_flight.score_ratio)
 
         self.assertAlmostEqual(0, score.object.characteristics)
         self.assertAlmostEqual(0, score.object.geolocation)
@@ -317,7 +334,7 @@ class TestMissionEvaluation(TestCase):
 
         self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
 
-        self.assertAlmostEqual(0.618268148148, score.score_ratio)
+        self.assertAlmostEqual(0.4382681481481482, score.score_ratio)
 
     def test_evaluate_teams_specific_users(self):
         """Tests the evaluation of teams method with specific users."""
