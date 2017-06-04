@@ -483,6 +483,8 @@
         "waypoints_captured": 2,
         "out_of_bounds": 2,
         "unsafe_out_of_bounds": 1,
+        "things_fell_off_uas": false,
+        "crashed": false,
         "air_delivery_accuracy_ft": null,
         "operational_excellence_percent": 80
     },
@@ -501,6 +503,8 @@
         "waypoints_captured": 1,
         "out_of_bounds": 0,
         "unsafe_out_of_bounds": 0,
+        "things_fell_off_uas": true,
+        "crashed": true,
         "air_delivery_accuracy_ft": 10,
         "operational_excellence_percent": 80
     },

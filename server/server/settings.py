@@ -243,6 +243,9 @@ AUTONOMOUS_FLIGHT_TAKEOVER = 0.10
 # Ratio of points lost per out of bounds.
 BOUND_PENALTY = 0.1
 SAFETY_BOUND_PENALTY = 0.1
+# Ratio of points lost for TFOA and crash.
+TFOA_PENALTY = 0.25
+CRASH_PENALTY = 0.35
 # Weight of flight points to all autonomous flight.
 AUTONOMOUS_FLIGHT_FLIGHT_WEIGHT = 0.4
 # Weight of capture points to all autonomous flight.

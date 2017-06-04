@@ -175,11 +175,20 @@ def score_team(team_eval):
     flight.out_of_bounds_penalty = (
         feedback.judge.out_of_bounds * settings.BOUND_PENALTY +
         feedback.judge.unsafe_out_of_bounds * settings.SAFETY_BOUND_PENALTY)
+    if feedback.judge.things_fell_off_uas:
+        flight.things_fell_off_penalty = settings.TFOA_PENALTY
+    else:
+        flight.things_fell_off_penalty = 0
+    if feedback.judge.crashed:
+        flight.crashed_penalty = settings.CRASH_PENALTY
+    else:
+        flight.crashed_penalty = 0
     flight.score_ratio = (
         settings.AUTONOMOUS_FLIGHT_FLIGHT_WEIGHT * flight.flight +
         settings.WAYPOINT_CAPTURE_WEIGHT * flight.waypoint_capture +
         settings.WAYPOINT_ACCURACY_WEIGHT * flight.waypoint_accuracy -
-        flight.out_of_bounds_penalty)
+        flight.out_of_bounds_penalty - flight.things_fell_off_penalty -
+        flight.crashed_penalty)
 
     # Score obstacle avoidance.
     avoid = score.obstacle_avoidance
