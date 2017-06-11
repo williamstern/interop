@@ -54,7 +54,7 @@ class EvaluateTeams(View):
                         work_queue.append((new_prefixes, val))
                 else:
                     column_key = '.'.join(cur_prefixes)
-                    csv_dict[column_key] = val
+                    csv_dict[column_key] = cur_val
             csv_list.append(csv_dict)
 
         col_headers = set()
