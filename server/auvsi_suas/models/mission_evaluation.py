@@ -238,13 +238,19 @@ def score_team(team_eval):
         feedback.judge.operational_excellence_percent / 100.0)
 
     # Compute total score.
-    score.score_ratio = (
-        settings.TIMELINE_WEIGHT * score.timeline.score_ratio +
-        settings.AUTONOMOUS_WEIGHT * score.autonomous_flight.score_ratio +
-        settings.OBSTACLE_WEIGHT * score.obstacle_avoidance.score_ratio +
-        settings.OBJECT_WEIGHT * score.object.score_ratio +
-        settings.AIR_DELIVERY_WEIGHT * score.air_delivery.score_ratio +
-        settings.OPERATIONAL_WEIGHT * score.operational_excellence.score_ratio)
+    if feedback.judge.min_auto_flight_time:
+        score.score_ratio = (
+            settings.TIMELINE_WEIGHT * score.timeline.score_ratio +
+            settings.AUTONOMOUS_WEIGHT * score.autonomous_flight.score_ratio +
+            settings.OBSTACLE_WEIGHT * score.obstacle_avoidance.score_ratio +
+            settings.OBJECT_WEIGHT * score.object.score_ratio +
+            settings.AIR_DELIVERY_WEIGHT * score.air_delivery.score_ratio +
+            settings.OPERATIONAL_WEIGHT *
+            score.operational_excellence.score_ratio)
+    else:
+        team_eval.warnings.append(
+            'Insufficient flight time to receive any mission points.')
+        score.score_ratio = 0
 
 
 def evaluate_teams(mission_config, users=None):
