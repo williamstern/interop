@@ -16,7 +16,6 @@ script:
   # Test server.
   - ./server/test.sh
   - ./server/run.sh
-  - sleep 60
   # Test client.
   - ./client/test.sh
   # Verify that docs build.

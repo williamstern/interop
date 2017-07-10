@@ -62,6 +62,7 @@ COPY . .
 
 # Load initial data.
 RUN sudo service postgresql start && \
+    ./healthcheck.py --check_postgres && \
     python manage.py loaddata fixtures/test_fixture.yaml
 
 # Host-mountable sections.
@@ -73,5 +74,5 @@ CMD sudo service postgresql start && \
   sudo service apache2 start && \
   tail -f /dev/null
 
-HEALTHCHECK --interval=10s --timeout=3s \
-    CMD curl -f http://localhost/ || exit 1
+HEALTHCHECK \
+  CMD ./healthcheck.py --check_postgres --check_apache --check_homepage
