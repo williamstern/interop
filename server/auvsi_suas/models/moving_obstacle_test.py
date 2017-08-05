@@ -15,11 +15,11 @@ from django.test import TestCase
 from django.utils import timezone
 from auvsi_suas.models import distance
 
-TESTDATA_COMPETITION_DIST = [
-    (-76.428709, 38.145306, -76.426375, 38.146146, 0.22446),
-    (-76.428537, 38.145399, -76.427818, 38.144686, 0.10045),
-    (-76.434261, 38.142471, -76.418876, 38.147838, 1.46914)
-]
+TESTDATA_COMPETITION_DIST = [(-76.428709, 38.145306, -76.426375, 38.146146,
+                              0.22446), (-76.428537, 38.145399, -76.427818,
+                                         38.144686, 0.10045),
+                             (-76.434261, 38.142471, -76.418876, 38.147838,
+                              1.46914)]
 
 # (lat, lon, rad, alt)
 TESTDATA_MOVOBST_CONTAINSPOS_OBJ = (-76, 38, 100, 200)
@@ -199,21 +199,21 @@ class TestMovingObstacle(TestCase):
         self.assertIsNone(obstacle.get_waypoint_travel_time(None, 1, 1))
         self.assertIsNone(obstacle.get_waypoint_travel_time([], 1, 1))
         self.assertIsNone(obstacle.get_waypoint_travel_time([None], 1, 1))
-        self.assertIsNone(obstacle.get_waypoint_travel_time(
-            [None, None], None, 1))
-        self.assertIsNone(obstacle.get_waypoint_travel_time(
-            [None, None], 1, None))
-        self.assertIsNone(obstacle.get_waypoint_travel_time(
-            [None, None], -1, 0))
-        self.assertIsNone(obstacle.get_waypoint_travel_time(
-            [None, None], 0, -1))
-        self.assertIsNone(obstacle.get_waypoint_travel_time(
-            [None, None], 2, 0))
-        self.assertIsNone(obstacle.get_waypoint_travel_time(
-            [None, None], 0, 2))
+        self.assertIsNone(
+            obstacle.get_waypoint_travel_time([None, None], None, 1))
+        self.assertIsNone(
+            obstacle.get_waypoint_travel_time([None, None], 1, None))
+        self.assertIsNone(
+            obstacle.get_waypoint_travel_time([None, None], -1, 0))
+        self.assertIsNone(
+            obstacle.get_waypoint_travel_time([None, None], 0, -1))
+        self.assertIsNone(
+            obstacle.get_waypoint_travel_time([None, None], 2, 0))
+        self.assertIsNone(
+            obstacle.get_waypoint_travel_time([None, None], 0, 2))
         obstacle.speed_avg = 0
-        self.assertIsNone(obstacle.get_waypoint_travel_time(
-            [None, None], 0, 1))
+        self.assertIsNone(
+            obstacle.get_waypoint_travel_time([None, None], 0, 1))
 
     def eval_travel_time(self, time_actual, time_received):
         """Evaluates whether the travel times are close enough."""
@@ -251,8 +251,10 @@ class TestMovingObstacle(TestCase):
                 waypoints = [wpt1, wpt2]
                 obstacle = MovingObstacle()
                 obstacle.speed_avg = speed
-                self.assertTrue(self.eval_travel_time(
-                    obstacle.get_waypoint_travel_time(waypoints, 0, 1), time))
+                self.assertTrue(
+                    self.eval_travel_time(
+                        obstacle.get_waypoint_travel_time(waypoints, 0, 1),
+                        time))
 
     def test_get_position_no_waypoints(self):
         """Tests position calc on no-"""
@@ -322,13 +324,14 @@ class TestMovingObstacle(TestCase):
             latitudes = np.zeros(len(time_pos))
             longitudes = np.zeros(len(time_pos))
             altitudes = np.zeros(len(time_pos))
-            epoch = timezone.now().replace(year=1970,
-                                           month=1,
-                                           day=1,
-                                           hour=0,
-                                           minute=0,
-                                           second=0,
-                                           microsecond=0)
+            epoch = timezone.now().replace(
+                year=1970,
+                month=1,
+                day=1,
+                hour=0,
+                minute=0,
+                second=0,
+                microsecond=0)
             for time_id in range(len(time_pos)):
                 cur_time_offset = time_pos[time_id]
                 cur_samp_time = epoch + datetime.timedelta(
@@ -360,10 +363,8 @@ class TestMovingObstacle(TestCase):
         obst = MovingObstacle()
         obst.sphere_radius = TESTDATA_MOVOBST_CONTAINSPOS_OBJ[2]
         # Run test points against obstacle
-        test_data = [
-            (TESTDATA_MOVOBST_CONTAINSPOS_INSIDE, True),
-            (TESTDATA_MOVOBST_CONTAINSPOS_OUTSIDE, False)
-        ]
+        test_data = [(TESTDATA_MOVOBST_CONTAINSPOS_INSIDE, True),
+                     (TESTDATA_MOVOBST_CONTAINSPOS_OUTSIDE, False)]
         for (cur_data, cur_contains) in test_data:
             for (lat, lon, alt) in cur_data:
                 gpos = GpsPosition()
@@ -426,13 +427,14 @@ class TestMovingObstacle(TestCase):
                 log.uas_heading = 0
                 log.save()
                 if i == 0:
-                    log.timestamp = timezone.now().replace(year=1970,
-                                                           month=1,
-                                                           day=1,
-                                                           hour=0,
-                                                           minute=0,
-                                                           second=0,
-                                                           microsecond=0)
+                    log.timestamp = timezone.now().replace(
+                        year=1970,
+                        month=1,
+                        day=1,
+                        hour=0,
+                        minute=0,
+                        second=0,
+                        microsecond=0)
                 if i > 0:
                     log.timestamp = (
                         logs[i - 1].timestamp + datetime.timedelta(seconds=1))
@@ -471,13 +473,14 @@ class TestMovingObstacle(TestCase):
             obst.waypoints.add(wpt)
         obst.save()
         # Create sets of logs
-        epoch = timezone.now().replace(year=1970,
-                                       month=1,
-                                       day=1,
-                                       hour=0,
-                                       minute=0,
-                                       second=0,
-                                       microsecond=0)
+        epoch = timezone.now().replace(
+            year=1970,
+            month=1,
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0)
         inside_logs = []
         outside_logs = []
         for (time_sec, inside_pos, outside_pos) in log_details:
@@ -571,9 +574,10 @@ class TestMovingObstacle(TestCase):
         for cur_obst in self.obstacles:
             kml = Kml()
             kml_mission = kml.newfolder(name='SubFolder')
-            cur_obst.kml(path=UasTelemetry.by_user(user),
-                         kml=kml_mission,
-                         kml_doc=kml.document)
+            cur_obst.kml(
+                path=UasTelemetry.by_user(user),
+                kml=kml_mission,
+                kml_doc=kml.document)
             result_kml = kml.kml()
             self.assertEqual(samples_expected, result_kml.count('<gx:value>'))
             self.assertIn(array_field_tag, result_kml)
@@ -583,7 +587,10 @@ class TestMovingObstacle(TestCase):
         pos.save()
         apos = AerialPosition(gps_position=pos, altitude_msl=alt)
         apos.save()
-        log = UasTelemetry(user=user, uas_position=apos, uas_heading=100, )
+        log = UasTelemetry(
+            user=user,
+            uas_position=apos,
+            uas_heading=100, )
         log.save()
         log.timestamp = log_time
         log.save()

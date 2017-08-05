@@ -77,9 +77,8 @@ class Telemetry(View):
             apos = AerialPosition(gps_position=gpos, altitude_msl=altitude_msl)
             apos.save()
 
-            telemetry = UasTelemetry(user=request.user,
-                                     uas_position=apos,
-                                     uas_heading=uas_heading)
+            telemetry = UasTelemetry(
+                user=request.user, uas_position=apos, uas_heading=uas_heading)
             telemetry.save()
 
             return HttpResponse('UAS Telemetry Successfully Posted.')
@@ -145,5 +144,4 @@ class Telemetry(View):
         response = [l.json() for l in logs]
 
         return HttpResponse(
-            json.dumps(response),
-            content_type="application/json")
+            json.dumps(response), content_type="application/json")

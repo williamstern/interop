@@ -31,11 +31,16 @@ class TestTargetsLoggedOut(TestCase):
 
     def test_not_authenticated(self):
         """Unauthenticated requests should fail."""
-        target = {'type': 'standard', 'latitude': 38, 'longitude': -76, }
+        target = {
+            'type': 'standard',
+            'latitude': 38,
+            'longitude': -76,
+        }
 
-        response = self.client.post(targets_url,
-                                    data=json.dumps(target),
-                                    content_type='application/json')
+        response = self.client.post(
+            targets_url,
+            data=json.dumps(target),
+            content_type='application/json')
         self.assertEqual(403, response.status_code)
 
         response = self.client.get(targets_url)
@@ -50,10 +55,9 @@ class TestGetTarget(TestCase):
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
 
-        response = self.client.post(login_url, {
-            'username': 'testuser',
-            'password': 'testpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'testuser',
+                        'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
     def test_no_targets(self):
@@ -105,10 +109,9 @@ class TestPostTarget(TestCase):
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
 
-        response = self.client.post(login_url, {
-            'username': 'testuser',
-            'password': 'testpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'testuser',
+                        'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
     def test_complete(self):
@@ -126,9 +129,10 @@ class TestPostTarget(TestCase):
             'autonomous': False,
         }
 
-        response = self.client.post(targets_url,
-                                    data=json.dumps(target),
-                                    content_type='application/json')
+        response = self.client.post(
+            targets_url,
+            data=json.dumps(target),
+            content_type='application/json')
         self.assertEqual(201, response.status_code)
 
         # Check that returned target matches
@@ -155,9 +159,10 @@ class TestPostTarget(TestCase):
         """Send target minimal fields."""
         target = {'type': 'standard'}
 
-        response = self.client.post(targets_url,
-                                    data=json.dumps(target),
-                                    content_type='application/json')
+        response = self.client.post(
+            targets_url,
+            data=json.dumps(target),
+            content_type='application/json')
         self.assertEqual(201, response.status_code)
 
         # Check that returned target matches
@@ -182,9 +187,10 @@ class TestPostTarget(TestCase):
         """Send target with None fields has no effect."""
         target = {'type': 'standard', 'latitude': None, 'shape': None}
 
-        response = self.client.post(targets_url,
-                                    data=json.dumps(target),
-                                    content_type='application/json')
+        response = self.client.post(
+            targets_url,
+            data=json.dumps(target),
+            content_type='application/json')
         self.assertEqual(201, response.status_code)
 
         # Check that returned target matches
@@ -207,34 +213,38 @@ class TestPostTarget(TestCase):
             'description': 'Best target',
         }
 
-        response = self.client.post(targets_url,
-                                    data=json.dumps(target),
-                                    content_type='application/json')
+        response = self.client.post(
+            targets_url,
+            data=json.dumps(target),
+            content_type='application/json')
         self.assertEqual(400, response.status_code)
 
     def test_invalid_json(self):
         """Request body must contain valid JSON."""
-        response = self.client.post(targets_url,
-                                    data='type=standard&longitude=-76',
-                                    content_type='multipart/form-data')
+        response = self.client.post(
+            targets_url,
+            data='type=standard&longitude=-76',
+            content_type='multipart/form-data')
         self.assertEqual(400, response.status_code)
 
     def test_missing_latitude(self):
         """Target latitude required if longitude specified."""
         target = {'type': 'standard', 'longitude': -76}
 
-        response = self.client.post(targets_url,
-                                    data=json.dumps(target),
-                                    content_type='application/json')
+        response = self.client.post(
+            targets_url,
+            data=json.dumps(target),
+            content_type='application/json')
         self.assertEqual(400, response.status_code)
 
     def test_missing_longitude(self):
         """Target longitude required if latitude specified."""
         target = {'type': 'standard', 'latitude': 38}
 
-        response = self.client.post(targets_url,
-                                    data=json.dumps(target),
-                                    content_type='application/json')
+        response = self.client.post(
+            targets_url,
+            data=json.dumps(target),
+            content_type='application/json')
         self.assertEqual(400, response.status_code)
 
     def test_invalid_type(self):
@@ -244,9 +254,10 @@ class TestPostTarget(TestCase):
         for b in bad:
             target = {'type': b, 'latitude': 38, 'longitude': -76}
 
-            response = self.client.post(targets_url,
-                                        data=json.dumps(target),
-                                        content_type='application/json')
+            response = self.client.post(
+                targets_url,
+                data=json.dumps(target),
+                content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_latitude(self):
@@ -256,9 +267,10 @@ class TestPostTarget(TestCase):
         for b in bad:
             target = {'type': 'standard', 'latitude': b, 'longitude': -76}
 
-            response = self.client.post(targets_url,
-                                        data=json.dumps(target),
-                                        content_type='application/json')
+            response = self.client.post(
+                targets_url,
+                data=json.dumps(target),
+                content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_longitude(self):
@@ -268,9 +280,10 @@ class TestPostTarget(TestCase):
         for b in bad:
             target = {'type': 'standard', 'latitude': 38, 'longitude': b}
 
-            response = self.client.post(targets_url,
-                                        data=json.dumps(target),
-                                        content_type='application/json')
+            response = self.client.post(
+                targets_url,
+                data=json.dumps(target),
+                content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_shape(self):
@@ -285,9 +298,10 @@ class TestPostTarget(TestCase):
                 'shape': b,
             }
 
-            response = self.client.post(targets_url,
-                                        data=json.dumps(target),
-                                        content_type='application/json')
+            response = self.client.post(
+                targets_url,
+                data=json.dumps(target),
+                content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_background_color(self):
@@ -302,9 +316,10 @@ class TestPostTarget(TestCase):
                 'background_color': b,
             }
 
-            response = self.client.post(targets_url,
-                                        data=json.dumps(target),
-                                        content_type='application/json')
+            response = self.client.post(
+                targets_url,
+                data=json.dumps(target),
+                content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_alphanumeric_color(self):
@@ -319,9 +334,10 @@ class TestPostTarget(TestCase):
                 'alphanumeric_color': b,
             }
 
-            response = self.client.post(targets_url,
-                                        data=json.dumps(target),
-                                        content_type='application/json')
+            response = self.client.post(
+                targets_url,
+                data=json.dumps(target),
+                content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_orientation(self):
@@ -336,9 +352,10 @@ class TestPostTarget(TestCase):
                 'orientation': b,
             }
 
-            response = self.client.post(targets_url,
-                                        data=json.dumps(target),
-                                        content_type='application/json')
+            response = self.client.post(
+                targets_url,
+                data=json.dumps(target),
+                content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_autonomous(self):
@@ -353,17 +370,19 @@ class TestPostTarget(TestCase):
                 'autonomous': b,
             }
 
-            response = self.client.post(targets_url,
-                                        data=json.dumps(target),
-                                        content_type='application/json')
+            response = self.client.post(
+                targets_url,
+                data=json.dumps(target),
+                content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_create_target_team_id(self):
         """Request fails if non-admin user specifies team_id."""
         target = {'type': 'standard', 'team_id': self.user.username}
-        response = self.client.post(targets_url,
-                                    data=json.dumps(target),
-                                    content_type='application/json')
+        response = self.client.post(
+            targets_url,
+            data=json.dumps(target),
+            content_type='application/json')
         self.assertEqual(403, response.status_code)
 
     def test_superuser_create_target(self):
@@ -379,9 +398,10 @@ class TestPostTarget(TestCase):
 
         # Create target.
         target = {'type': 'standard', 'team_id': self.user.username}
-        response = self.client.post(targets_url,
-                                    data=json.dumps(target),
-                                    content_type='application/json')
+        response = self.client.post(
+            targets_url,
+            data=json.dumps(target),
+            content_type='application/json')
         self.assertEqual(201, response.status_code)
 
         # Ensure target created for proper user.
@@ -391,9 +411,10 @@ class TestPostTarget(TestCase):
     def test_actionable_override(self):
         """Request fails if non-admin user specifies actionable_override."""
         target = {'type': 'standard', 'actionable_override': True}
-        response = self.client.post(targets_url,
-                                    data=json.dumps(target),
-                                    content_type='application/json')
+        response = self.client.post(
+            targets_url,
+            data=json.dumps(target),
+            content_type='application/json')
         self.assertEqual(403, response.status_code)
 
     def test_superuser_actionable_override(self):
@@ -409,9 +430,10 @@ class TestPostTarget(TestCase):
 
         # Create target.
         target = {'type': 'standard', 'actionable_override': True}
-        response = self.client.post(targets_url,
-                                    data=json.dumps(target),
-                                    content_type='application/json')
+        response = self.client.post(
+            targets_url,
+            data=json.dumps(target),
+            content_type='application/json')
         self.assertEqual(201, response.status_code)
 
         # Ensure target has actionable_override flag set.
@@ -436,10 +458,9 @@ class TestTargetId(TestCase):
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
 
-        response = self.client.post(login_url, {
-            'username': 'testuser',
-            'password': 'testpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'testuser',
+                        'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
     def test_get_nonexistent(self):
@@ -475,8 +496,7 @@ class TestTargetId(TestCase):
         data = {'description': 'Hello'}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]),
-            data=json.dumps(data))
+            targets_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -490,22 +510,22 @@ class TestTargetId(TestCase):
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
-        t = Target(user=self.user,
-                   target_type=TargetType.standard,
-                   location=l,
-                   orientation=Orientation.s,
-                   shape=Shape.square,
-                   background_color=Color.white,
-                   alphanumeric='ABC',
-                   alphanumeric_color=Color.black,
-                   description='Test target')
+        t = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            location=l,
+            orientation=Orientation.s,
+            shape=Shape.square,
+            background_color=Color.white,
+            alphanumeric='ABC',
+            alphanumeric_color=Color.black,
+            description='Test target')
         t.save()
 
         data = {'shape': 'circle'}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]),
-            data=json.dumps(data))
+            targets_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -523,16 +543,16 @@ class TestTargetId(TestCase):
 
     def test_put_clear_shape(self):
         """PUT clear a field with None."""
-        t = Target(user=self.user,
-                   target_type=TargetType.standard,
-                   shape=Shape.square)
+        t = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            shape=Shape.square)
         t.save()
 
         data = {'shape': None}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]),
-            data=json.dumps(data))
+            targets_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -540,16 +560,16 @@ class TestTargetId(TestCase):
 
     def test_put_clear_type(self):
         """PUT type may not be cleared."""
-        t = Target(user=self.user,
-                   target_type=TargetType.standard,
-                   shape=Shape.square)
+        t = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            shape=Shape.square)
         t.save()
 
         data = {'type': None}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]),
-            data=json.dumps(data))
+            targets_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(400, response.status_code)
 
     def test_put_location(self):
@@ -560,8 +580,7 @@ class TestTargetId(TestCase):
         data = {'latitude': 38, 'longitude': -76}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]),
-            data=json.dumps(data))
+            targets_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -576,8 +595,7 @@ class TestTargetId(TestCase):
         data = {'latitude': 38}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]),
-            data=json.dumps(data))
+            targets_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(400, response.status_code)
 
     def test_put_update_location(self):
@@ -591,8 +609,7 @@ class TestTargetId(TestCase):
         data = {'latitude': 39}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]),
-            data=json.dumps(data))
+            targets_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -611,8 +628,7 @@ class TestTargetId(TestCase):
         data = {'latitude': None, 'longitude': None}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]),
-            data=json.dumps(data))
+            targets_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -629,8 +645,7 @@ class TestTargetId(TestCase):
         data = {'latitude': None}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]),
-            data=json.dumps(data))
+            targets_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(400, response.status_code)
 
     def test_put_invalid_json(self):
@@ -655,8 +670,7 @@ class TestTargetId(TestCase):
         data = {'autonomous': True}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]),
-            data=json.dumps(data))
+            targets_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -670,8 +684,7 @@ class TestTargetId(TestCase):
         data = {'actionable_override': True}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]),
-            data=json.dumps(data))
+            targets_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(403, response.status_code)
 
     def test_put_superuser_change_actionable_override(self):
@@ -691,8 +704,7 @@ class TestTargetId(TestCase):
         data = {'actionable_override': True}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]),
-            data=json.dumps(data))
+            targets_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -774,16 +786,18 @@ class TestTargetIdImage(TestCase):
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
 
-        response = self.client.post(login_url, {
-            'username': 'testuser',
-            'password': 'testpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'testuser',
+                        'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
         # Create a target
-        response = self.client.post(targets_url,
-                                    data=json.dumps({'type': 'standard'}),
-                                    content_type='application/json')
+        response = self.client.post(
+            targets_url,
+            data=json.dumps({
+                'type': 'standard'
+            }),
+            content_type='application/json')
         self.assertEqual(201, response.status_code)
         self.target_id = json.loads(response.content)['id']
 
@@ -907,8 +921,8 @@ class TestTargetIdImage(TestCase):
         jpg_path = t.thumbnail.path
         self.assertTrue(os.path.exists(jpg_path))
 
-        response = self.client.delete(targets_id_image_url(args=[self.target_id
-                                                                 ]))
+        response = self.client.delete(
+            targets_id_image_url(args=[self.target_id]))
         self.assertEqual(200, response.status_code)
 
         self.assertFalse(os.path.exists(jpg_path))
@@ -917,8 +931,8 @@ class TestTargetIdImage(TestCase):
         """GET returns 404 after DELETE"""
         self.post_image('A.jpg')
 
-        response = self.client.delete(targets_id_image_url(args=[self.target_id
-                                                                 ]))
+        response = self.client.delete(
+            targets_id_image_url(args=[self.target_id]))
         self.assertEqual(200, response.status_code)
 
         response = self.client.get(targets_id_image_url(args=[self.target_id]))
@@ -940,10 +954,9 @@ class TestTargetsAdminReviewNotAdmin(TestCase):
         """Unauthenticated requests should fail."""
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
-        response = self.client.post(login_url, {
-            'username': 'testuser',
-            'password': 'testpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'testuser',
+                        'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
         response = self.client.get(targets_review_url)
@@ -962,10 +975,9 @@ class TestTargetsAdminReview(TestCase):
             'testuser', 'testemail@x.com', 'testpass')
         self.team = User.objects.create_user('testuser2', 'testemail@x.com',
                                              'testpass')
-        response = self.client.post(login_url, {
-            'username': 'testuser',
-            'password': 'testpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'testuser',
+                        'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
     def test_get_no_targets(self):
@@ -976,9 +988,8 @@ class TestTargetsAdminReview(TestCase):
 
     def test_get_editable_targets(self):
         """Test GET when there are targets but are still in editable window."""
-        MissionClockEvent(user=self.team,
-                          team_on_clock=True,
-                          team_on_timeout=False).save()
+        MissionClockEvent(
+            user=self.team, team_on_clock=True, team_on_timeout=False).save()
         Target(user=self.team, target_type=TargetType.standard).save()
 
         response = self.client.get(targets_review_url)
@@ -987,12 +998,10 @@ class TestTargetsAdminReview(TestCase):
 
     def test_get_noneditable_without_thumbnail_targets(self):
         """Test GET when there are non-editable targets without thumbnail."""
-        MissionClockEvent(user=self.team,
-                          team_on_clock=True,
-                          team_on_timeout=False).save()
-        MissionClockEvent(user=self.team,
-                          team_on_clock=False,
-                          team_on_timeout=False).save()
+        MissionClockEvent(
+            user=self.team, team_on_clock=True, team_on_timeout=False).save()
+        MissionClockEvent(
+            user=self.team, team_on_clock=False, team_on_timeout=False).save()
         target = Target(user=self.team, target_type=TargetType.standard)
         target.save()
 
@@ -1003,12 +1012,10 @@ class TestTargetsAdminReview(TestCase):
 
     def test_get_noneditable_targets(self):
         """Test GET when there are non-editable targets."""
-        MissionClockEvent(user=self.team,
-                          team_on_clock=True,
-                          team_on_timeout=False).save()
-        MissionClockEvent(user=self.team,
-                          team_on_clock=False,
-                          team_on_timeout=False).save()
+        MissionClockEvent(
+            user=self.team, team_on_clock=True, team_on_timeout=False).save()
+        MissionClockEvent(
+            user=self.team, team_on_clock=False, team_on_timeout=False).save()
         target = Target(user=self.team, target_type=TargetType.standard)
         target.save()
 

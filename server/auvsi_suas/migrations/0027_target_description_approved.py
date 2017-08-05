@@ -6,10 +6,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [('auvsi_suas', '0026_mission_judge_feedback'), ]
+    dependencies = [
+        ('auvsi_suas', '0026_mission_judge_feedback'),
+    ]
 
     operations = [
-        migrations.AddField(model_name='target',
-                            name='description_approved',
-                            field=models.NullBooleanField(), ),
+        migrations.AddField(
+            model_name='target',
+            name='description_approved',
+            field=models.NullBooleanField(), ),
     ]

@@ -28,44 +28,48 @@ class TestTarget(TestCase):
 
     def test_valid(self):
         """Test creating a valid target."""
-        with open(os.path.join(settings.BASE_DIR,
-                               'auvsi_suas/fixtures/testdata/S.jpg')) as f:
+        with open(
+                os.path.join(settings.BASE_DIR,
+                             'auvsi_suas/fixtures/testdata/S.jpg')) as f:
             thumb = SimpleUploadedFile('thumb.jpg', f.read())
 
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
-        t = Target(user=self.user,
-                   target_type=TargetType.standard,
-                   location=l,
-                   orientation=Orientation.s,
-                   shape=Shape.square,
-                   background_color=Color.white,
-                   alphanumeric='ABC',
-                   alphanumeric_color=Color.black,
-                   description='Test target',
-                   thumbnail=thumb)
+        t = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            location=l,
+            orientation=Orientation.s,
+            shape=Shape.square,
+            background_color=Color.white,
+            alphanumeric='ABC',
+            alphanumeric_color=Color.black,
+            description='Test target',
+            thumbnail=thumb)
         t.save()
 
     def test_unicode(self):
         """Test unicode conversion."""
-        with open(os.path.join(settings.BASE_DIR,
-                               'auvsi_suas/fixtures/testdata/S.jpg')) as f:
+        with open(
+                os.path.join(settings.BASE_DIR,
+                             'auvsi_suas/fixtures/testdata/S.jpg')) as f:
             thumb = SimpleUploadedFile('thumb.jpg', f.read())
 
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
-        t = Target(user=self.user,
-                   target_type=TargetType.standard,
-                   location=l,
-                   orientation=Orientation.s,
-                   shape=Shape.square,
-                   background_color=Color.white,
-                   alphanumeric='ABC',
-                   alphanumeric_color=Color.black,
-                   description='Test target',
-                   thumbnail=thumb)
+        t = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            location=l,
+            orientation=Orientation.s,
+            shape=Shape.square,
+            background_color=Color.white,
+            alphanumeric='ABC',
+            alphanumeric_color=Color.black,
+            description='Test target',
+            thumbnail=thumb)
         t.save()
 
         self.assertTrue(t.__unicode__())
@@ -113,16 +117,17 @@ class TestTarget(TestCase):
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
-        t = Target(user=self.user,
-                   target_type=TargetType.standard,
-                   location=l,
-                   orientation=Orientation.s,
-                   shape=Shape.square,
-                   background_color=Color.white,
-                   alphanumeric='ABC',
-                   alphanumeric_color=Color.black,
-                   description='Test target',
-                   autonomous=True)
+        t = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            location=l,
+            orientation=Orientation.s,
+            shape=Shape.square,
+            background_color=Color.white,
+            alphanumeric='ABC',
+            alphanumeric_color=Color.black,
+            description='Test target',
+            autonomous=True)
         t.save()
 
         d = t.json()
@@ -180,29 +185,31 @@ class TestTarget(TestCase):
         # Test equal standard targets.
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
-        t1 = Target(user=self.user,
-                    target_type=TargetType.standard,
-                    location=l,
-                    orientation=Orientation.s,
-                    shape=Shape.square,
-                    background_color=Color.white,
-                    alphanumeric='ABC',
-                    alphanumeric_color=Color.black,
-                    description='Test target',
-                    description_approved=True,
-                    autonomous=True)
+        t1 = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            location=l,
+            orientation=Orientation.s,
+            shape=Shape.square,
+            background_color=Color.white,
+            alphanumeric='ABC',
+            alphanumeric_color=Color.black,
+            description='Test target',
+            description_approved=True,
+            autonomous=True)
         t1.save()
-        t2 = Target(user=self.user,
-                    target_type=TargetType.standard,
-                    location=l,
-                    orientation=Orientation.s,
-                    shape=Shape.square,
-                    background_color=Color.white,
-                    alphanumeric='ABC',
-                    alphanumeric_color=Color.black,
-                    description='Test other target',
-                    description_approved=False,
-                    autonomous=True)
+        t2 = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            location=l,
+            orientation=Orientation.s,
+            shape=Shape.square,
+            background_color=Color.white,
+            alphanumeric='ABC',
+            alphanumeric_color=Color.black,
+            description='Test other target',
+            description_approved=False,
+            autonomous=True)
         t2.save()
         self.assertAlmostEqual(1.0, t1.similar_classifications_ratio(t2))
 
@@ -292,9 +299,10 @@ class TestTarget(TestCase):
         event.save()
         event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
         event.save()
-        t7 = Target(user=self.user,
-                    target_type=TargetType.standard,
-                    actionable_override=True)
+        t7 = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            actionable_override=True)
         t7.save()
 
         self.assertFalse(t1.actionable_submission())
@@ -318,9 +326,8 @@ class TestTarget(TestCase):
         t2.save()
 
         # Mission time starts.
-        event = MissionClockEvent(user=self.user,
-                                  team_on_clock=True,
-                                  team_on_timeout=False)
+        event = MissionClockEvent(
+            user=self.user, team_on_clock=True, team_on_timeout=False)
         event.save()
 
         t2.alphanumeric = 'A'
@@ -337,9 +344,8 @@ class TestTarget(TestCase):
         t4.save()
 
         # Team takes timeout. Mission time stops.
-        event = MissionClockEvent(user=self.user,
-                                  team_on_clock=False,
-                                  team_on_timeout=True)
+        event = MissionClockEvent(
+            user=self.user, team_on_clock=False, team_on_timeout=True)
         event.save()
 
         t4.alphanumeric = 'A'
@@ -352,17 +358,15 @@ class TestTarget(TestCase):
         t5.save()
 
         # t6 created and updated once mission time resumes.
-        event = MissionClockEvent(user=self.user,
-                                  team_on_clock=True,
-                                  team_on_timeout=False)
+        event = MissionClockEvent(
+            user=self.user, team_on_clock=True, team_on_timeout=False)
         event.save()
         t6 = Target(user=self.user, target_type=TargetType.standard)
         t6.save()
         t6.alphanumeric = 'A'
         t6.save()
-        event = MissionClockEvent(user=self.user,
-                                  team_on_clock=False,
-                                  team_on_timeout=False)
+        event = MissionClockEvent(
+            user=self.user, team_on_clock=False, team_on_timeout=False)
         event.save()
 
         self.assertFalse(t1.interop_submission())
@@ -390,143 +394,153 @@ class TestTargetEvaluator(TestCase):
         l3 = GpsPosition(latitude=-38, longitude=76)
         l3.save()
 
-        event = MissionClockEvent(user=self.user,
-                                  team_on_clock=True,
-                                  team_on_timeout=False)
+        event = MissionClockEvent(
+            user=self.user, team_on_clock=True, team_on_timeout=False)
         event.save()
 
         event = TakeoffOrLandingEvent(user=self.user, uas_in_air=True)
         event.save()
 
         # A target worth full points.
-        self.submit1 = Target(user=self.user,
-                              target_type=TargetType.standard,
-                              location=l1,
-                              orientation=Orientation.s,
-                              shape=Shape.square,
-                              background_color=Color.white,
-                              alphanumeric='ABC',
-                              alphanumeric_color=Color.black,
-                              description='Submit test target 1',
-                              description_approved=True,
-                              autonomous=True,
-                              thumbnail_approved=True)
+        self.submit1 = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            location=l1,
+            orientation=Orientation.s,
+            shape=Shape.square,
+            background_color=Color.white,
+            alphanumeric='ABC',
+            alphanumeric_color=Color.black,
+            description='Submit test target 1',
+            description_approved=True,
+            autonomous=True,
+            thumbnail_approved=True)
         self.submit1.save()
-        self.real1 = Target(user=self.user,
-                            target_type=TargetType.standard,
-                            location=l1,
-                            orientation=Orientation.s,
-                            shape=Shape.square,
-                            background_color=Color.white,
-                            alphanumeric='ABC',
-                            alphanumeric_color=Color.black,
-                            description='Real target 1')
+        self.real1 = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            location=l1,
+            orientation=Orientation.s,
+            shape=Shape.square,
+            background_color=Color.white,
+            alphanumeric='ABC',
+            alphanumeric_color=Color.black,
+            description='Real target 1')
         self.real1.save()
 
-        event = MissionClockEvent(user=self.user,
-                                  team_on_clock=False,
-                                  team_on_timeout=False)
+        event = MissionClockEvent(
+            user=self.user, team_on_clock=False, team_on_timeout=False)
         event.save()
 
         # A target worth less than full points.
-        self.submit2 = Target(user=self.user,
-                              target_type=TargetType.standard,
-                              location=l1,
-                              orientation=Orientation.n,
-                              shape=Shape.circle,
-                              background_color=Color.white,
-                              # alphanumeric set below
-                              alphanumeric_color=Color.black,
-                              description='Submit test target 2',
-                              autonomous=False,
-                              thumbnail_approved=True)
+        self.submit2 = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            location=l1,
+            orientation=Orientation.n,
+            shape=Shape.circle,
+            background_color=Color.white,
+            # alphanumeric set below
+            alphanumeric_color=Color.black,
+            description='Submit test target 2',
+            autonomous=False,
+            thumbnail_approved=True)
         self.submit2.save()
-        self.real2 = Target(user=self.user,
-                            target_type=TargetType.standard,
-                            location=l2,
-                            orientation=Orientation.s,
-                            shape=Shape.triangle,
-                            background_color=Color.white,
-                            alphanumeric='ABC',
-                            alphanumeric_color=Color.black,
-                            description='Real test target 2')
+        self.real2 = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            location=l2,
+            orientation=Orientation.s,
+            shape=Shape.triangle,
+            background_color=Color.white,
+            alphanumeric='ABC',
+            alphanumeric_color=Color.black,
+            description='Real test target 2')
         self.real2.save()
 
         # A target worth no points, so unmatched.
-        self.submit3 = Target(user=self.user,
-                              target_type=TargetType.standard,
-                              location=l1,
-                              orientation=Orientation.nw,
-                              shape=Shape.pentagon,
-                              background_color=Color.gray,
-                              alphanumeric='XYZ',
-                              alphanumeric_color=Color.orange,
-                              description='Incorrect description',
-                              autonomous=False,
-                              thumbnail_approved=True)
+        self.submit3 = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            location=l1,
+            orientation=Orientation.nw,
+            shape=Shape.pentagon,
+            background_color=Color.gray,
+            alphanumeric='XYZ',
+            alphanumeric_color=Color.orange,
+            description='Incorrect description',
+            autonomous=False,
+            thumbnail_approved=True)
         self.submit3.save()
-        self.real3 = Target(user=self.user,
-                            target_type=TargetType.standard,
-                            orientation=Orientation.e,
-                            shape=Shape.semicircle,
-                            background_color=Color.yellow,
-                            alphanumeric='LMN',
-                            # alphanumeric_color set below
-                            location=l3,
-                            description='Test target 3')
+        self.real3 = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            orientation=Orientation.e,
+            shape=Shape.semicircle,
+            background_color=Color.yellow,
+            alphanumeric='LMN',
+            # alphanumeric_color set below
+            location=l3,
+            description='Test target 3')
         self.real3.save()
 
         # Targets without approved image has no match value.
-        self.submit4 = Target(user=self.user,
-                              target_type=TargetType.emergent,
-                              location=l1,
-                              description='Test target 4',
-                              autonomous=False,
-                              thumbnail_approved=False)
+        self.submit4 = Target(
+            user=self.user,
+            target_type=TargetType.emergent,
+            location=l1,
+            description='Test target 4',
+            autonomous=False,
+            thumbnail_approved=False)
         self.submit4.save()
-        self.real4 = Target(user=self.user,
-                            target_type=TargetType.emergent,
-                            location=l1,
-                            description='Test target 4')
+        self.real4 = Target(
+            user=self.user,
+            target_type=TargetType.emergent,
+            location=l1,
+            description='Test target 4')
         self.real4.save()
 
         # A target without location worth fewer points.
-        self.submit5 = Target(user=self.user,
-                              target_type=TargetType.standard,
-                              orientation=Orientation.n,
-                              shape=Shape.trapezoid,
-                              background_color=Color.purple,
-                              alphanumeric='PQR',
-                              alphanumeric_color=Color.blue,
-                              description='Test target 5',
-                              autonomous=False,
-                              thumbnail_approved=True)
+        self.submit5 = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            orientation=Orientation.n,
+            shape=Shape.trapezoid,
+            background_color=Color.purple,
+            alphanumeric='PQR',
+            alphanumeric_color=Color.blue,
+            description='Test target 5',
+            autonomous=False,
+            thumbnail_approved=True)
         self.submit5.save()
-        self.real5 = Target(user=self.user,
-                            target_type=TargetType.standard,
-                            location=l1,
-                            orientation=Orientation.n,
-                            shape=Shape.trapezoid,
-                            background_color=Color.purple,
-                            alphanumeric='PQR',
-                            alphanumeric_color=Color.blue,
-                            description='Test target 5')
+        self.real5 = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            location=l1,
+            orientation=Orientation.n,
+            shape=Shape.trapezoid,
+            background_color=Color.purple,
+            alphanumeric='PQR',
+            alphanumeric_color=Color.blue,
+            description='Test target 5')
         self.real5.save()
 
         # Emergent target with correct description.
-        self.submit6 = Target(user=self.user,
-                              target_type=TargetType.emergent,
-                              location=l1,
-                              description='Submit test target 6',
-                              description_approved=True,
-                              autonomous=True,
-                              thumbnail_approved=True)
+        self.submit6 = Target(
+            user=self.user,
+            target_type=TargetType.emergent,
+            location=l1,
+            description='Submit test target 6',
+            description_approved=True,
+            autonomous=True,
+            thumbnail_approved=True)
         self.submit6.save()
-        self.real6 = Target(user=self.user,
-                            target_type=TargetType.emergent,
-                            location=l1,
-                            description='Real target 1',
-                            description_approved=True)
+        self.real6 = Target(
+            user=self.user,
+            target_type=TargetType.emergent,
+            location=l1,
+            description='Real target 1',
+            description_approved=True)
         self.real6.save()
 
         event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
@@ -538,22 +552,27 @@ class TestTargetEvaluator(TestCase):
         self.submit3.alphanumeric_color = Color.yellow
         self.submit3.save()
         # Unused but not unmatched target.
-        self.submit7 = Target(user=self.user,
-                              target_type=TargetType.standard,
-                              location=l1,
-                              alphanumeric_color=Color.black,
-                              description='Submit unused test target 1',
-                              autonomous=False,
-                              thumbnail_approved=True)
+        self.submit7 = Target(
+            user=self.user,
+            target_type=TargetType.standard,
+            location=l1,
+            alphanumeric_color=Color.black,
+            description='Submit unused test target 1',
+            autonomous=False,
+            thumbnail_approved=True)
         self.submit7.save()
 
-        self.submitted_targets = [self.submit7, self.submit6, self.submit5,
-                                  self.submit4, self.submit3, self.submit2,
-                                  self.submit1]
-        self.real_targets = [self.real1, self.real2, self.real3, self.real4,
-                             self.real5, self.real6]
-        self.real_matched_targets = [self.real1, self.real2, self.real4,
-                                     self.real5]
+        self.submitted_targets = [
+            self.submit7, self.submit6, self.submit5, self.submit4,
+            self.submit3, self.submit2, self.submit1
+        ]
+        self.real_targets = [
+            self.real1, self.real2, self.real3, self.real4, self.real5,
+            self.real6
+        ]
+        self.real_matched_targets = [
+            self.real1, self.real2, self.real4, self.real5
+        ]
 
     def test_match_value(self):
         """Tests the match value for two targets."""
@@ -599,17 +618,16 @@ class TestTargetEvaluator(TestCase):
     def test_match_targets(self):
         """Tests that matching targets produce maximal matches."""
         e = TargetEvaluator(self.submitted_targets, self.real_targets)
-        self.assertDictEqual(
-            {
-                self.submit1: self.real1,
-                self.submit2: self.real2,
-                self.submit5: self.real5,
-                self.submit6: self.real6,
-                self.real1: self.submit1,
-                self.real2: self.submit2,
-                self.real5: self.submit5,
-                self.real6: self.submit6,
-            }, e.match_targets(self.submitted_targets, self.real_targets))
+        self.assertDictEqual({
+            self.submit1: self.real1,
+            self.submit2: self.real2,
+            self.submit5: self.real5,
+            self.submit6: self.real6,
+            self.real1: self.submit1,
+            self.real2: self.submit2,
+            self.real5: self.submit5,
+            self.real6: self.submit6,
+        }, e.match_targets(self.submitted_targets, self.real_targets))
 
     def test_evaluate(self):
         """Tests that the evaluation is generated correctly."""
@@ -633,15 +651,13 @@ class TestTargetEvaluator(TestCase):
         self.assertEqual(self.submit2.pk, td[self.real2.pk].submitted_target)
         self.assertEqual(True, td[self.real2.pk].image_approved)
         self.assertEqual(0.6, td[self.real2.pk].classifications_ratio)
-        self.assertAlmostEqual(109.444,
-                               td[self.real2.pk].geolocation_accuracy_ft,
-                               places=3)
+        self.assertAlmostEqual(
+            109.444, td[self.real2.pk].geolocation_accuracy_ft, places=3)
         self.assertEqual(False, td[self.real2.pk].actionable_submission)
         self.assertEqual(False, td[self.real2.pk].interop_submission)
         self.assertEqual(0.6, td[self.real2.pk].classifications_score_ratio)
-        self.assertAlmostEqual(0.270,
-                               td[self.real2.pk].geolocation_score_ratio,
-                               places=3)
+        self.assertAlmostEqual(
+            0.270, td[self.real2.pk].geolocation_score_ratio, places=3)
         self.assertEqual(0.0, td[self.real2.pk].actionable_score_ratio)
         self.assertEqual(0.0, td[self.real2.pk].interop_score_ratio)
         self.assertAlmostEqual(0.174, td[self.real2.pk].score_ratio, places=3)

@@ -65,6 +65,7 @@ class WaypointModelAdmin(admin.ModelAdmin):
     show_full_result_count = False
     raw_id_fields = ("position", )
 
+
 # These don't require any raw fields.
 admin.site.register(MissionClockEvent)
 admin.site.register(MissionJudgeFeedback)

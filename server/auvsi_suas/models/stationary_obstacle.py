@@ -97,8 +97,10 @@ class StationaryObstacle(models.Model):
             m = (y2 - y1) / (x2 - x1)
             b = y1 - m * x1
             # Substitute in line equation and solve for x.
-            p = [m**2 + 1, (2 * m * (b - cy)) - (2 * cx),
-                 cx**2 + (b - cy)**2 - rm**2]
+            p = [
+                m**2 + 1, (2 * m * (b - cy)) - (2 * cx),
+                cx**2 + (b - cy)**2 - rm**2
+            ]
             roots = np.roots(p)
             for root in roots:
                 # Solve for altitude and check if within bounds.

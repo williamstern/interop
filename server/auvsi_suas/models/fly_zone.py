@@ -25,8 +25,9 @@ class FlyZone(models.Model):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        boundary_strs = ["%s" % wpt.__unicode__()
-                         for wpt in self.boundary_pts.all()]
+        boundary_strs = [
+            "%s" % wpt.__unicode__() for wpt in self.boundary_pts.all()
+        ]
         boundary_str = ", ".join(boundary_strs)
         return unicode("FlyZone (pk:%s, alt_min:%s, alt_max:%s, "
                        "boundary_pts:[%s])" %
@@ -53,9 +54,10 @@ class FlyZone(models.Model):
         """
         # Get boundary points
         ordered_pts = self.boundary_pts.order_by('order')
-        path_pts = [[wpt.position.gps_position.latitude,
-                     wpt.position.gps_position.longitude]
-                    for wpt in ordered_pts]
+        path_pts = [[
+            wpt.position.gps_position.latitude,
+            wpt.position.gps_position.longitude
+        ] for wpt in ordered_pts]
         # First check enough points to define a polygon
         if len(path_pts) < 3:
             return [False] * len(aerial_pos_list)
@@ -74,18 +76,19 @@ class FlyZone(models.Model):
             results.append(altitude_check)
 
         # Create a list of positions to test whether inside polygon
-        polygon_test_point_ids = [cur_id
-                                  for cur_id in range(len(aerial_pos_list))
-                                  if results[cur_id]]
+        polygon_test_point_ids = [
+            cur_id for cur_id in range(len(aerial_pos_list)) if results[cur_id]
+        ]
         if len(polygon_test_point_ids) == 0:
             return results
-        polygon_test_points = [[aerial_pos_list[cur_id].gps_position.latitude,
-                                aerial_pos_list[cur_id].gps_position.longitude]
-                               for cur_id in polygon_test_point_ids]
+        polygon_test_points = [[
+            aerial_pos_list[cur_id].gps_position.latitude,
+            aerial_pos_list[cur_id].gps_position.longitude
+        ] for cur_id in polygon_test_point_ids]
 
         # Test each point for inside polygon
-        polygon_test_results = path.contains_points(np.array(
-            polygon_test_points))
+        polygon_test_results = path.contains_points(
+            np.array(polygon_test_points))
         for test_id in range(len(polygon_test_point_ids)):
             cur_id = polygon_test_point_ids[test_id]
             results[cur_id] = polygon_test_results[test_id]
@@ -106,8 +109,9 @@ class FlyZone(models.Model):
                 as indicated by the telemetry logs.
         """
         # Get the aerial positions for the logs
-        aerial_pos_list = [cur_log.uas_position
-                           for cur_log in uas_telemetry_logs]
+        aerial_pos_list = [
+            cur_log.uas_position for cur_log in uas_telemetry_logs
+        ]
         log_ids_to_process = range(len(aerial_pos_list))
 
         # Evaluate zones against the logs, eliminating satisfied ones, until
@@ -117,13 +121,16 @@ class FlyZone(models.Model):
             if len(log_ids_to_process) == 0:
                 break
             # Evaluate the positions still not satisfied
-            cur_positions = [aerial_pos_list[cur_id]
-                             for cur_id in log_ids_to_process]
+            cur_positions = [
+                aerial_pos_list[cur_id] for cur_id in log_ids_to_process
+            ]
             satisfied_positions = zone.contains_many_pos(cur_positions)
             # Retain those which were not satisfied in this pass
-            log_ids_to_process = [log_ids_to_process[cur_id]
-                                  for cur_id in range(len(log_ids_to_process))
-                                  if not satisfied_positions[cur_id]]
+            log_ids_to_process = [
+                log_ids_to_process[cur_id]
+                for cur_id in range(len(log_ids_to_process))
+                if not satisfied_positions[cur_id]
+            ]
 
         out_of_bounds_time = datetime.timedelta()
         violations = 0

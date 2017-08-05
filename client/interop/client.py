@@ -47,13 +47,12 @@ class Client(object):
 
         self.session = requests.Session()
         self.session.mount(
-            'http://',
-            requests.adapters.HTTPAdapter(max_retries=max_retries))
+            'http://', requests.adapters.HTTPAdapter(max_retries=max_retries))
 
         # All endpoints require authentication, so always login.
-        self.post('/api/login',
-                  data={'username': username,
-                        'password': password})
+        self.post(
+            '/api/login', data={'username': username,
+                                'password': password})
 
     def get(self, uri, **kwargs):
         """GET request to server.
@@ -218,8 +217,8 @@ class Client(object):
             requests.Timeout: Request timeout.
             ValueError or AttributeError: Malformed response from server.
         """
-        r = self.put('/api/targets/%d' % target_id,
-                     data=json.dumps(target.serialize()))
+        r = self.put(
+            '/api/targets/%d' % target_id, data=json.dumps(target.serialize()))
         return Target.deserialize(r.json())
 
     def delete_target(self, target_id):

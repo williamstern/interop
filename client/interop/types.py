@@ -139,9 +139,11 @@ class Mission(ClientBaseType):
         ValueError: Argument not convertable to int or float.
     """
 
-    attrs = ['id', 'active', 'air_drop_pos', 'fly_zones', 'home_pos',
-             'mission_waypoints', 'off_axis_target_pos',
-             'emergent_last_known_pos', 'search_grid_points']
+    attrs = [
+        'id', 'active', 'air_drop_pos', 'fly_zones', 'home_pos',
+        'mission_waypoints', 'off_axis_target_pos', 'emergent_last_known_pos',
+        'search_grid_points'
+    ]
 
     def __init__(self, id, active, air_drop_pos, fly_zones, home_pos,
                  mission_waypoints, off_axis_target_pos,
@@ -151,13 +153,15 @@ class Mission(ClientBaseType):
         self.air_drop_pos = GpsPosition.deserialize(air_drop_pos)
         self.fly_zones = [FlyZone.deserialize(fz) for fz in fly_zones]
         self.home_pos = GpsPosition.deserialize(home_pos)
-        self.mission_waypoints = [Waypoint.deserialize(mw)
-                                  for mw in mission_waypoints]
+        self.mission_waypoints = [
+            Waypoint.deserialize(mw) for mw in mission_waypoints
+        ]
         self.off_axis_target_pos = GpsPosition.deserialize(off_axis_target_pos)
         self.emergent_last_known_pos = GpsPosition.deserialize(
             emergent_last_known_pos)
-        self.search_grid_points = [Waypoint.deserialize(sg)
-                                   for sg in search_grid_points]
+        self.search_grid_points = [
+            Waypoint.deserialize(sg) for sg in search_grid_points
+        ]
 
 
 class Telemetry(ClientBaseType):
@@ -261,9 +265,11 @@ class Target(ClientBaseType):
         ValueError: Argument not valid.
     """
 
-    attrs = ['id', 'user', 'type', 'latitude', 'longitude', 'orientation',
-             'shape', 'background_color', 'alphanumeric', 'alphanumeric_color',
-             'description', 'autonomous', 'team_id', 'actionable_override']
+    attrs = [
+        'id', 'user', 'type', 'latitude', 'longitude', 'orientation', 'shape',
+        'background_color', 'alphanumeric', 'alphanumeric_color',
+        'description', 'autonomous', 'team_id', 'actionable_override'
+    ]
 
     def __init__(self,
                  id=None,

@@ -83,10 +83,8 @@ class TestClient(unittest.TestCase):
 
     def test_post_telemetry(self):
         """Test sending some telemetry."""
-        t = Telemetry(latitude=38,
-                      longitude=-76,
-                      altitude_msl=100,
-                      uas_heading=90)
+        t = Telemetry(
+            latitude=38, longitude=-76, altitude_msl=100, uas_heading=90)
 
         # Raises an exception on error.
         self.client.post_telemetry(t)
@@ -94,10 +92,8 @@ class TestClient(unittest.TestCase):
 
     def test_post_bad_telemetry(self):
         """Test sending some (incorrect) telemetry."""
-        t0 = Telemetry(latitude=38,
-                       longitude=-76,
-                       altitude_msl=100,
-                       uas_heading=90)
+        t0 = Telemetry(
+            latitude=38, longitude=-76, altitude_msl=100, uas_heading=90)
         # The Telemetry constructor prevents us from passing invalid
         # values, but we can still screw things up in an update
         t0.latitude = 'baz'

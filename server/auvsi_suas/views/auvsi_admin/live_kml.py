@@ -38,8 +38,7 @@ class LiveKml(View):
         FlyZone.kml_all(kml_flyzone)
 
         parameters = '?sessionid={}'.format(request.COOKIES['sessionid'])
-        uri = request.build_absolute_uri(
-            '/auvsi_admin/update.kml') + parameters
+        uri = request.build_absolute_uri('/auvsi_admin/update.kml') + parameters
 
         netlink = kml.newnetworklink(name="Live Data")
         netlink.link.href = uri

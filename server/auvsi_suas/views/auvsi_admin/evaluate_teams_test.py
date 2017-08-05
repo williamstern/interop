@@ -34,15 +34,17 @@ class TestEvaluateTeams(TestCase):
 
     def test_evaluate_teams_nonadmin(self):
         """Tests that you can only access data as admin."""
-        self.client.post(self.login_url, {'username': 'testuser',
-                                          'password': 'testpass'})
+        self.client.post(self.login_url,
+                         {'username': 'testuser',
+                          'password': 'testpass'})
         response = self.client.get(self.eval_url)
         self.assertEqual(403, response.status_code)
 
     def test_invalid_mission(self):
         """Tests that an invalid mission ID results in error."""
-        self.client.post(self.login_url, {'username': 'testuser',
-                                          'password': 'testpass'})
+        self.client.post(self.login_url,
+                         {'username': 'testuser',
+                          'password': 'testpass'})
 
         response = self.client.get(self.eval_url, {'mission': 100000})
         self.assertGreaterEqual(response.status_code, 400)
@@ -61,8 +63,9 @@ class TestEvaluateTeams(TestCase):
 
     def test_evaluate_teams(self):
         """Tests the eval Json method."""
-        self.client.post(self.login_url, {'username': 'testuser2',
-                                          'password': 'testpass'})
+        self.client.post(self.login_url,
+                         {'username': 'testuser2',
+                          'password': 'testpass'})
         response = self.client.get(self.eval_url)
         self.assertEqual(response.status_code, 200)
         data = self.load_json(response)
@@ -75,8 +78,9 @@ class TestEvaluateTeams(TestCase):
 
     def test_evaluate_teams_specific_team(self):
         """Tests the eval Json method on a specific team."""
-        self.client.post(self.login_url, {'username': 'testuser2',
-                                          'password': 'testpass'})
+        self.client.post(self.login_url,
+                         {'username': 'testuser2',
+                          'password': 'testpass'})
         response = self.client.get(self.eval_url, {'team': 53})
         self.assertEqual(response.status_code, 200)
         data = self.load_json(response)
@@ -87,8 +91,9 @@ class TestEvaluateTeams(TestCase):
 
     def test_evaluate_teams_csv(self):
         """Tests the CSV method."""
-        self.client.post(self.login_url, {'username': 'testuser2',
-                                          'password': 'testpass'})
+        self.client.post(self.login_url,
+                         {'username': 'testuser2',
+                          'password': 'testpass'})
         response = self.client.get(self.eval_url)
         self.assertEqual(response.status_code, 200)
         csv_data = self.load_csv(response)

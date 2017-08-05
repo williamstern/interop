@@ -25,10 +25,11 @@ class ExportKml(View):
             # Ignore admins
             if user.is_superuser:
                 continue
-            UasTelemetry.kml(user=user,
-                             logs=UasTelemetry.by_user(user),
-                             kml=kml_teams,
-                             kml_doc=kml.document)
+            UasTelemetry.kml(
+                user=user,
+                logs=UasTelemetry.by_user(user),
+                kml=kml_teams,
+                kml_doc=kml.document)
         MissionConfig.kml_all(kml_mission)
         kml_flyzone = kml.newfolder(name='Fly Zones')
         FlyZone.kml_all(kml_flyzone)

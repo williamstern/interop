@@ -6,7 +6,9 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [('auvsi_suas', '0022_remove_missionconfig_sric_pos'), ]
+    dependencies = [
+        ('auvsi_suas', '0022_remove_missionconfig_sric_pos'),
+    ]
 
     operations = [
         migrations.AlterIndexTogether(

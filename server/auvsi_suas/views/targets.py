@@ -86,8 +86,9 @@ def normalize_data(data):
         try:
             data['orientation'] = Orientation.lookup(data['orientation'])
         except KeyError:
-            raise ValueError('Unknown orientation "%s"; known orientations %r'
-                             % (data['orientation'], Orientation.names()))
+            raise ValueError(
+                'Unknown orientation "%s"; known orientations %r' %
+                (data['orientation'], Orientation.names()))
 
     if 'shape' in data and data['shape'] is not None:
         try:
@@ -133,8 +134,9 @@ class Targets(View):
     def get(self, request):
         # Limit serving to 100 targets to prevent slowdown and isolation problems.
         targets = Target.objects.filter(user=request.user).all()[:100]
-        targets = [t.json(is_superuser=request.user.is_superuser)
-                   for t in targets]
+        targets = [
+            t.json(is_superuser=request.user.is_superuser) for t in targets
+        ]
 
         # Older versions of JS allow hijacking the Array constructor to steal
         # JSON data. It is not a problem in recent versions.
@@ -184,27 +186,27 @@ class Targets(View):
 
         l = None
         if latitude is not None and longitude is not None:
-            l = GpsPosition(latitude=data['latitude'],
-                            longitude=data['longitude'])
+            l = GpsPosition(
+                latitude=data['latitude'], longitude=data['longitude'])
             l.save()
 
         # Use the dictionary get() method to default non-existent values to None.
-        t = Target(user=user,
-                   target_type=data['type'],
-                   location=l,
-                   orientation=data.get('orientation'),
-                   shape=data.get('shape'),
-                   background_color=data.get('background_color'),
-                   alphanumeric=data.get('alphanumeric', ''),
-                   alphanumeric_color=data.get('alphanumeric_color'),
-                   description=data.get('description', ''),
-                   autonomous=data.get('autonomous', False),
-                   actionable_override=data.get('actionable_override', False))
+        t = Target(
+            user=user,
+            target_type=data['type'],
+            location=l,
+            orientation=data.get('orientation'),
+            shape=data.get('shape'),
+            background_color=data.get('background_color'),
+            alphanumeric=data.get('alphanumeric', ''),
+            alphanumeric_color=data.get('alphanumeric_color'),
+            description=data.get('description', ''),
+            autonomous=data.get('autonomous', False),
+            actionable_override=data.get('actionable_override', False))
         t.save()
 
         return JsonResponse(
-            t.json(is_superuser=request.user.is_superuser),
-            status=201)
+            t.json(is_superuser=request.user.is_superuser), status=201)
 
 
 def find_target(request, pk):
@@ -244,8 +246,8 @@ class TargetsId(View):
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
-        return JsonResponse(target.json(is_superuser=
-                                        request.user.is_superuser))
+        return JsonResponse(
+            target.json(is_superuser=request.user.is_superuser))
 
     def put(self, request, pk):
         try:
@@ -336,17 +338,18 @@ class TargetsId(View):
                 # We need a new GpsPosition, this requires both lat and lon
                 if not update_lat or not update_lon:
                     return HttpResponseBadRequest(
-                        'Either none or both of latitude and longitude required.')
+                        'Either none or both of latitude and longitude required.'
+                    )
 
-                l = GpsPosition(latitude=data['latitude'],
-                                longitude=data['longitude'])
+                l = GpsPosition(
+                    latitude=data['latitude'], longitude=data['longitude'])
                 l.save()
                 target.location = l
 
         target.save()
 
-        return JsonResponse(target.json(is_superuser=
-                                        request.user.is_superuser))
+        return JsonResponse(
+            target.json(is_superuser=request.user.is_superuser))
 
     def delete(self, request, pk):
         try:
@@ -472,13 +475,15 @@ class TargetsAdminReview(View):
                     MissionClockEvent.user_on_timeout(user)):
                 continue
             # Get targets which have thumbnail.
-            targets.extend([t
-                            for t in Target.objects.filter(user=user).all()
-                            if t.thumbnail])
+            targets.extend([
+                t for t in Target.objects.filter(user=user).all()
+                if t.thumbnail
+            ])
         # Sort targets by last edit time, convert to json.
-        targets = [t.json(is_superuser=request.user.is_superuser)
-                   for t in sorted(targets,
-                                   key=lambda t: t.last_modified_time)]
+        targets = [
+            t.json(is_superuser=request.user.is_superuser)
+            for t in sorted(targets, key=lambda t: t.last_modified_time)
+        ]
         return JsonResponse(targets, safe=False)
 
     def put(self, request, pk):
@@ -503,5 +508,5 @@ class TargetsAdminReview(View):
         target.thumbnail_approved = thumbnail_approved
         target.description_approved = description_approved
         target.save()
-        return JsonResponse(target.json(is_superuser=
-                                        request.user.is_superuser))
+        return JsonResponse(
+            target.json(is_superuser=request.user.is_superuser))

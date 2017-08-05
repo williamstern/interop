@@ -107,10 +107,11 @@ class EvaluateTeams(View):
                 self.pretty_json(json_format.MessageToJson(mission_eval)))
             team_jsons = []
             for team_eval in mission_eval.teams:
-                team_json = self.pretty_json(json_format.MessageToJson(
-                    team_eval))
-                zip_file.writestr('/evaluate_teams/teams/%s.json' %
-                                  team_eval.team, team_json)
+                team_json = self.pretty_json(
+                    json_format.MessageToJson(team_eval))
+                zip_file.writestr(
+                    '/evaluate_teams/teams/%s.json' % team_eval.team,
+                    team_json)
                 team_jsons.append(team_json)
 
             zip_file.writestr('/evaluate_teams/all.csv',

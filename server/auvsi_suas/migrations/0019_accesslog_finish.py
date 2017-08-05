@@ -20,36 +20,37 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameModel(old_name='NewMissionClockEvent',
-                               new_name='MissionClockEvent'),
-        migrations.RenameModel(old_name='NewObstacleAccessLog',
-                               new_name='ObstacleAccessLog'),
-        migrations.RenameModel(old_name='NewServerInfoAccessLog',
-                               new_name='ServerInfoAccessLog'),
-        migrations.RenameModel(old_name='NewTakeoffOrLandingEvent',
-                               new_name='TakeoffOrLandingEvent'),
-        migrations.RenameModel(old_name='NewUasTelemetry',
-                               new_name='UasTelemetry'),
+        migrations.RenameModel(
+            old_name='NewMissionClockEvent', new_name='MissionClockEvent'),
+        migrations.RenameModel(
+            old_name='NewObstacleAccessLog', new_name='ObstacleAccessLog'),
+        migrations.RenameModel(
+            old_name='NewServerInfoAccessLog', new_name='ServerInfoAccessLog'),
+        migrations.RenameModel(
+            old_name='NewTakeoffOrLandingEvent',
+            new_name='TakeoffOrLandingEvent'),
+        migrations.RenameModel(
+            old_name='NewUasTelemetry', new_name='UasTelemetry'),
 
         # Back to auto_now_add.
-        migrations.AlterField(model_name='missionclockevent',
-                              name='timestamp',
-                              field=models.DateTimeField(auto_now_add=True,
-                                                         db_index=True)),
-        migrations.AlterField(model_name='obstacleaccesslog',
-                              name='timestamp',
-                              field=models.DateTimeField(auto_now_add=True,
-                                                         db_index=True)),
-        migrations.AlterField(model_name='serverinfoaccesslog',
-                              name='timestamp',
-                              field=models.DateTimeField(auto_now_add=True,
-                                                         db_index=True)),
-        migrations.AlterField(model_name='takeofforlandingevent',
-                              name='timestamp',
-                              field=models.DateTimeField(auto_now_add=True,
-                                                         db_index=True)),
-        migrations.AlterField(model_name='uastelemetry',
-                              name='timestamp',
-                              field=models.DateTimeField(auto_now_add=True,
-                                                         db_index=True)),
+        migrations.AlterField(
+            model_name='missionclockevent',
+            name='timestamp',
+            field=models.DateTimeField(auto_now_add=True, db_index=True)),
+        migrations.AlterField(
+            model_name='obstacleaccesslog',
+            name='timestamp',
+            field=models.DateTimeField(auto_now_add=True, db_index=True)),
+        migrations.AlterField(
+            model_name='serverinfoaccesslog',
+            name='timestamp',
+            field=models.DateTimeField(auto_now_add=True, db_index=True)),
+        migrations.AlterField(
+            model_name='takeofforlandingevent',
+            name='timestamp',
+            field=models.DateTimeField(auto_now_add=True, db_index=True)),
+        migrations.AlterField(
+            model_name='uastelemetry',
+            name='timestamp',
+            field=models.DateTimeField(auto_now_add=True, db_index=True)),
     ]

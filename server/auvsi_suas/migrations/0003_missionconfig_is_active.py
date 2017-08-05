@@ -9,7 +9,8 @@ class Migration(migrations.Migration):
     dependencies = [('auvsi_suas', '0002_ir_primary_secondary_targets')]
 
     operations = [
-        migrations.AddField(model_name='missionconfig',
-                            name='is_active',
-                            field=models.BooleanField(default=False)),
+        migrations.AddField(
+            model_name='missionconfig',
+            name='is_active',
+            field=models.BooleanField(default=False)),
     ]

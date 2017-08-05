@@ -34,10 +34,9 @@ class TestTeamsView(TestCase):
         self.superuser.save()
 
         # Login
-        response = self.client.post(login_url, {
-            'username': 'superuser',
-            'password': 'superpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'superuser',
+                        'password': 'superpass'})
         self.assertEqual(200, response.status_code)
 
     def create_data(self):
@@ -51,9 +50,8 @@ class TestTeamsView(TestCase):
         self.user2.save()
 
         # user1 is on mission
-        event = MissionClockEvent(user=self.user1,
-                                  team_on_clock=True,
-                                  team_on_timeout=False)
+        event = MissionClockEvent(
+            user=self.user1, team_on_clock=True, team_on_timeout=False)
         event.save()
         # user1 is flying
         event = TakeoffOrLandingEvent(user=self.user1, uas_in_air=True)
@@ -74,9 +72,8 @@ class TestTeamsView(TestCase):
         pos = AerialPosition(gps_position=gps, altitude_msl=0)
         pos.save()
 
-        self.telem = UasTelemetry(user=self.user2,
-                                  uas_position=pos,
-                                  uas_heading=90)
+        self.telem = UasTelemetry(
+            user=self.user2, uas_position=pos, uas_heading=90)
         self.telem.save()
         self.telem.timestamp = dateutil.parser.parse(
             u'2016-10-01T00:00:00.0+00:00')
@@ -90,10 +87,9 @@ class TestTeamsView(TestCase):
         user.save()
 
         # Login
-        response = self.client.post(login_url, {
-            'username': 'testuser',
-            'password': 'testpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'testuser',
+                        'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
         response = self.client.get(teams_url)
@@ -153,16 +149,15 @@ class TestTeamsView(TestCase):
         self.assertEqual(False, user2['on_clock'])
         self.assertEqual(False, user2['on_timeout'])
         self.assertEqual(False, user2['in_air'])
-        self.assertEqual(
-            {
-                u'id': self.telem.pk,
-                u'user': user2['id'],
-                u'timestamp': u'2016-10-01T00:00:00+00:00',
-                u'latitude': 38.6462,
-                u'longitude': -76.2452,
-                u'altitude_msl': 0.0,
-                u'heading': 90.0,
-            }, user2['telemetry'])
+        self.assertEqual({
+            u'id': self.telem.pk,
+            u'user': user2['id'],
+            u'timestamp': u'2016-10-01T00:00:00+00:00',
+            u'latitude': 38.6462,
+            u'longitude': -76.2452,
+            u'altitude_msl': 0.0,
+            u'heading': 90.0,
+        }, user2['telemetry'])
 
 
 class TestTeamsIdViewLoggedOut(TestCase):
@@ -185,10 +180,9 @@ class TestTeamsIdView(TestCase):
         self.superuser.save()
 
         # Login
-        response = self.client.post(login_url, {
-            'username': 'superuser',
-            'password': 'superpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'superuser',
+                        'password': 'superpass'})
         self.assertEqual(200, response.status_code)
 
     def test_bad_id(self):
@@ -213,8 +207,7 @@ class TestTeamsIdView(TestCase):
     def test_bad_json(self):
         """Invalid json rejected"""
         response = self.client.put(
-            teams_id_url(args=[self.user1.pk]),
-            'Hi there!')
+            teams_id_url(args=[self.user1.pk]), 'Hi there!')
         self.assertGreaterEqual(400, response.status_code)
 
     def test_invalid_in_air(self):
@@ -231,7 +224,11 @@ class TestTeamsIdView(TestCase):
 
     def test_invalid_clock(self):
         """invalid on_clock and on_timeout rejected"""
-        invalid_values = [('Hi', False), (False, 'Hi'), (True, True), ]
+        invalid_values = [
+            ('Hi', False),
+            (False, 'Hi'),
+            (True, True),
+        ]
         for on_clock, on_timeout in invalid_values:
             data = json.dumps({
                 'name': self.user1.username,
@@ -242,8 +239,7 @@ class TestTeamsIdView(TestCase):
             })
 
             response = self.client.put(
-                teams_id_url(args=[self.user1.pk]),
-                data)
+                teams_id_url(args=[self.user1.pk]), data)
             self.assertGreaterEqual(400, response.status_code)
 
     def test_no_extra_events(self):
@@ -371,7 +367,9 @@ class TestTeamsIdView(TestCase):
         data = json.dumps({
             'name': self.user1.username,
             'id': self.user1.pk,
-            'telemetry': {'id': 1},
+            'telemetry': {
+                'id': 1
+            },
             'in_air': False,
         })
 

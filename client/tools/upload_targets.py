@@ -12,7 +12,11 @@ from interop import Target
 
 logger = logging.getLogger(__name__)
 
-TARGET_TYPE_MAP = {'STD': 'standard', 'OAX': 'off_axis', 'EMG': 'emergent', }
+TARGET_TYPE_MAP = {
+    'STD': 'standard',
+    'OAX': 'off_axis',
+    'EMG': 'emergent',
+}
 
 LATITUDE_REGEX = re.compile(
     '(?P<dir>[NS])(?P<deg>\d\d) (?P<min>\d\d) (?P<sec>\d\d\.\d{0,3})')
@@ -59,24 +63,24 @@ def load_target_file(target_filepath):
                 match = LATITUDE_REGEX.match(latitude_str)
                 if match:
                     latitude = LATITUDE_DIR[match.group('dir')] * (
-                        float(match.group('deg')) + float(match.group('min')) /
-                        60 + float(match.group('sec')) / 3600)
+                        float(match.group('deg')) + float(match.group(
+                            'min')) / 60 + float(match.group('sec')) / 3600)
                     target.latitude = latitude
                 else:
-                    raise ValueError('Latitude is not valid: %s' %
-                                     latitude_str)
+                    raise ValueError(
+                        'Latitude is not valid: %s' % latitude_str)
 
             # Parse longitude. Not required for off axis.
             if target.type != 'off_axis':
                 match = LONGITUDE_REGEX.match(longitude_str)
                 if match:
                     longitude = LONGITUDE_DIR[match.group('dir')] * (
-                        float(match.group('deg')) + float(match.group('min')) /
-                        60 + float(match.group('sec')) / 3600)
+                        float(match.group('deg')) + float(match.group(
+                            'min')) / 60 + float(match.group('sec')) / 3600)
                     target.longitude = longitude
                 else:
-                    raise ValueError('Longitude is not valid: %s' %
-                                     longitude_str)
+                    raise ValueError(
+                        'Longitude is not valid: %s' % longitude_str)
 
             if orientation:
                 target.orientation = orientation
@@ -112,8 +116,8 @@ def upload_legacy_targets(client, target_filepath, imagery_dir):
     # Validate filepath for each image.
     for _, image_filepath in targets:
         if not os.path.exists(image_filepath):
-            raise ValueError('Could not find imagery file: %s' %
-                             image_filepath)
+            raise ValueError(
+                'Could not find imagery file: %s' % image_filepath)
     # Validate type of each image.
     for _, image_filepath in targets:
         image_type = imghdr.what(image_filepath)

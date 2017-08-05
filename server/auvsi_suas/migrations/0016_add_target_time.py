@@ -14,17 +14,15 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='target',
             name='creation_time',
-            field=models.DateTimeField(auto_now_add=True,
-                                       default=datetime.datetime(year=2016,
-                                                                 month=1,
-                                                                 day=1)),
+            field=models.DateTimeField(
+                auto_now_add=True,
+                default=datetime.datetime(year=2016, month=1, day=1)),
             preserve_default=False),
         migrations.AddField(
             model_name='target',
             name='last_modified_time',
-            field=models.DateTimeField(auto_now=True,
-                                       default=datetime.datetime(year=2016,
-                                                                 month=1,
-                                                                 day=1)),
+            field=models.DateTimeField(
+                auto_now=True,
+                default=datetime.datetime(year=2016, month=1, day=1)),
             preserve_default=False),
     ]

@@ -127,10 +127,9 @@ class TestMissionsViewCommon(TestCase):
     def Login(self, is_superuser):
         response = None
         if is_superuser:
-            response = self.client.post(login_url, {
-                'username': 'superuser',
-                'password': 'superpass'
-            })
+            response = self.client.post(
+                login_url, {'username': 'superuser',
+                            'password': 'superpass'})
         else:
             response = self.client.post(login_url, {
                 'username': 'normaluser',

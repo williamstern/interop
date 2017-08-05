@@ -49,12 +49,11 @@ class TestAccessLogCommon(TestCase):
         for i in xrange(num):
             gps_position = GpsPosition(latitude=0, longitude=0)
             gps_position.save()
-            uas_position = AerialPosition(gps_position=gps_position,
-                                          altitude_msl=0)
+            uas_position = AerialPosition(
+                gps_position=gps_position, altitude_msl=0)
             uas_position.save()
-            log = UasTelemetry(user=user,
-                               uas_position=uas_position,
-                               uas_heading=0.0)
+            log = UasTelemetry(
+                user=user, uas_position=uas_position, uas_heading=0.0)
             log.save()
             log.timestamp = start + i * delta
             log.save()
@@ -111,14 +110,11 @@ class TestAccessLogBasic(TestAccessLogCommon):
     def test_by_user_time_restrict(self):
         start = timezone.now()
         delta = datetime.timedelta(seconds=1)
-        expect_logs = self.create_logs(self.user1,
-                                       num=10,
-                                       start=start,
-                                       delta=delta)
+        expect_logs = self.create_logs(
+            self.user1, num=10, start=start, delta=delta)
 
-        logs = UasTelemetry.by_user(self.user1,
-                                    start_time=start,
-                                    end_time=start + delta * 10)
+        logs = UasTelemetry.by_user(
+            self.user1, start_time=start, end_time=start + delta * 10)
         self.assertSequenceEqual(expect_logs, logs)
 
         logs = UasTelemetry.by_user(self.user1, start_time=start + delta * 11)
@@ -131,13 +127,12 @@ class TestAccessLogBasic(TestAccessLogCommon):
         delta = datetime.timedelta(seconds=1)
         logs = self.create_logs(self.user1, num=10, start=start, delta=delta)
 
-        log = UasTelemetry.last_for_user(self.user1,
-                                         start_time=start,
-                                         end_time=start + delta * 3)
+        log = UasTelemetry.last_for_user(
+            self.user1, start_time=start, end_time=start + delta * 3)
         self.assertEqual(logs[2], log)
 
-        log = UasTelemetry.last_for_user(self.user1,
-                                         start_time=start + delta * 11)
+        log = UasTelemetry.last_for_user(
+            self.user1, start_time=start + delta * 11)
         self.assertIsNone(log)
         log = UasTelemetry.last_for_user(self.user1, end_time=start - delta)
         self.assertIsNone(log)
@@ -159,17 +154,15 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
 
     def test_single_period(self):
         """Single set of logs accessible."""
-        results = UasTelemetry.by_time_period(self.user1, [
-            TimePeriod(self.year2000, self.year2001)
-        ])
+        results = UasTelemetry.by_time_period(
+            self.user1, [TimePeriod(self.year2000, self.year2001)])
 
         self.assertSequenceEqual([self.year2000_logs], self.to_lists(results))
 
     def test_full_range(self):
         """All logs from (-inf, inf)."""
-        results = UasTelemetry.by_time_period(self.user1, [
-            TimePeriod(None, None)
-        ])
+        results = UasTelemetry.by_time_period(self.user1,
+                                              [TimePeriod(None, None)])
 
         self.assertSequenceEqual([self.logs], self.to_lists(results))
 
@@ -180,8 +173,8 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
             TimePeriod(self.year2003, self.year2004),
         ])
 
-        self.assertSequenceEqual(
-            [self.year2000_logs, self.year2003_logs], self.to_lists(results))
+        self.assertSequenceEqual([self.year2000_logs, self.year2003_logs],
+                                 self.to_lists(results))
 
     def test_non_intersecting_period(self):
         """No logs matched."""
@@ -198,8 +191,8 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
             TimePeriod(self.year2003, self.year2004),
         ])
 
-        self.assertSequenceEqual(
-            [[], self.year2003_logs], self.to_lists(results))
+        self.assertSequenceEqual([[], self.year2003_logs],
+                                 self.to_lists(results))
 
     def test_open_start(self):
         """Logs (-inf, 2001)"""
@@ -247,9 +240,8 @@ class TestAccessLogRates(TestAccessLogCommon):
         unused_logs = self.create_logs(self.user1, delta=delta)
         period = self.consistent_period(used_logs, delta)
 
-        rates = UasTelemetry.rates(self.user1,
-                                   [period],
-                                   time_period_logs=[used_logs])
+        rates = UasTelemetry.rates(
+            self.user1, [period], time_period_logs=[used_logs])
 
         self.assertSequenceEqual((1, 1), rates)
 
@@ -269,12 +261,8 @@ class TestAccessLogRates(TestAccessLogCommon):
         delta = datetime.timedelta(seconds=1)
 
         logs = [
-            self.create_logs(self.user1,
-                             start=self.year2000,
-                             delta=delta),
-            self.create_logs(self.user1,
-                             start=self.year2001,
-                             delta=delta),
+            self.create_logs(self.user1, start=self.year2000, delta=delta),
+            self.create_logs(self.user1, start=self.year2001, delta=delta),
         ]
 
         periods = [self.consistent_period(l, delta) for l in logs]
@@ -288,14 +276,10 @@ class TestAccessLogRates(TestAccessLogCommon):
         delta = datetime.timedelta(seconds=1)
 
         logs = [
-            self.create_logs(self.user1,
-                             num=1000,
-                             start=self.year2000,
-                             delta=delta),
-            self.create_logs(self.user1,
-                             num=1000,
-                             start=self.year2001,
-                             delta=delta / 2),
+            self.create_logs(
+                self.user1, num=1000, start=self.year2000, delta=delta),
+            self.create_logs(
+                self.user1, num=1000, start=self.year2001, delta=delta / 2),
         ]
 
         periods = [self.consistent_period(l, delta) for l in logs]

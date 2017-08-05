@@ -48,10 +48,9 @@ class TestClearCache(TestCase):
         user = User.objects.create_user('testuser', 'email@example.com',
                                         'testpass')
         user.save()
-        response = self.client.post(self.login_url, {
-            'username': 'testuser',
-            'password': 'testpass'
-        })
+        response = self.client.post(
+            self.login_url, {'username': 'testuser',
+                             'password': 'testpass'})
         self.assertEqual(200, response.status_code)
         # Check an error is returned.
         response = self.client.get(self.clear_cache_url)
@@ -63,10 +62,9 @@ class TestClearCache(TestCase):
         superuser = User.objects.create_superuser(
             'superuser', 'email@example.com', 'superpass')
         superuser.save()
-        response = self.client.post(self.login_url, {
-            'username': 'superuser',
-            'password': 'superpass'
-        })
+        response = self.client.post(
+            self.login_url, {'username': 'superuser',
+                             'password': 'superpass'})
         self.assertEqual(200, response.status_code)
         # Execute a cached view.
         response = self.client.get(self.obst_url)
