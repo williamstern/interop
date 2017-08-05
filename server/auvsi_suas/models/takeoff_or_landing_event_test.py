@@ -169,5 +169,5 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
 
         time = self.year2000 + self.ten_minutes
 
-        self.assertTrue(TakeoffOrLandingEvent.user_in_air(self.user1,
-                                                          time=time))
+        self.assertTrue(
+            TakeoffOrLandingEvent.user_in_air(self.user1, time=time))

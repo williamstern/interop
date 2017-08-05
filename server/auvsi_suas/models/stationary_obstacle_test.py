@@ -67,9 +67,8 @@ class TestStationaryObstacleModel(TestCase):
         """Tests the unicode method executes."""
         pos = GpsPosition(latitude=100, longitude=200)
         pos.save()
-        obst = StationaryObstacle(gps_position=pos,
-                                  cylinder_radius=10,
-                                  cylinder_height=100)
+        obst = StationaryObstacle(
+            gps_position=pos, cylinder_radius=10, cylinder_height=100)
         obst.save()
         self.assertTrue(obst.__unicode__())
 
@@ -109,18 +108,17 @@ class TestStationaryObstacleModel(TestCase):
     def test_contains_pos(self):
         """Tests the inside obstacle method."""
         # Form the test obstacle
-        pos = GpsPosition(latitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[0],
-                          longitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[1])
+        pos = GpsPosition(
+            latitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[0],
+            longitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[1])
         pos.save()
         obst = StationaryObstacle(
             gps_position=pos,
             cylinder_radius=TESTDATA_STATOBST_CONTAINSPOS_OBJ[2],
             cylinder_height=TESTDATA_STATOBST_CONTAINSPOS_OBJ[3])
         # Run test points against obstacle
-        test_data = [
-            (TESTDATA_STATOBST_CONTAINSPOS_INSIDE, True),
-            (TESTDATA_STATOBST_CONTAINSPOS_OUTSIDE, False)
-        ]
+        test_data = [(TESTDATA_STATOBST_CONTAINSPOS_INSIDE, True),
+                     (TESTDATA_STATOBST_CONTAINSPOS_OUTSIDE, False)]
         for (cur_data, cur_contains) in test_data:
             for (lat, lon, alt) in cur_data:
                 pos = GpsPosition(latitude=lat, longitude=lon)
@@ -134,9 +132,8 @@ class TestStationaryObstacleModel(TestCase):
         (olat, olon, orad, oheight) = TESTDATA_STATOBST_INTERP_OBS
         pos = GpsPosition(latitude=olat, longitude=olon)
         pos.save()
-        obst = StationaryObstacle(gps_position=pos,
-                                  cylinder_radius=orad,
-                                  cylinder_height=oheight)
+        obst = StationaryObstacle(
+            gps_position=pos, cylinder_radius=orad, cylinder_height=oheight)
 
         for (inside, uas_details) in TESTDATA_STATOBST_INTERP_TELEM:
             logs = self.create_uas_logs(self.user, uas_details)
@@ -155,16 +152,16 @@ class TestStationaryObstacleModel(TestCase):
         gpos = GpsPosition(latitude=cyl_lat, longitude=cyl_lon)
         gpos.save()
 
-        obst = StationaryObstacle(gps_position=gpos,
-                                  cylinder_radius=cyl_rad,
-                                  cylinder_height=cyl_height)
+        obst = StationaryObstacle(
+            gps_position=gpos,
+            cylinder_radius=cyl_rad,
+            cylinder_height=cyl_height)
         obst.save()
 
         inside_logs = []
         outside_logs = []
-        logs_to_create = [
-            (inside_pos, inside_logs), (outside_pos, outside_logs)
-        ]
+        logs_to_create = [(inside_pos, inside_logs), (outside_pos,
+                                                      outside_logs)]
 
         for (positions, log_list) in logs_to_create:
             log_list += self.create_uas_logs(self.user, positions)
@@ -187,9 +184,10 @@ class TestStationaryObstacleModel(TestCase):
 
         gpos = GpsPosition(latitude=TEST_LAT, longitude=TEST_LONG)
         gpos.save()
-        obstacle = StationaryObstacle(gps_position=gpos,
-                                      cylinder_radius=TEST_RADIUS,
-                                      cylinder_height=TEST_HEIGHT)
+        obstacle = StationaryObstacle(
+            gps_position=gpos,
+            cylinder_radius=TEST_RADIUS,
+            cylinder_height=TEST_HEIGHT)
         json_data = obstacle.json()
 
         self.assertTrue('latitude' in json_data)

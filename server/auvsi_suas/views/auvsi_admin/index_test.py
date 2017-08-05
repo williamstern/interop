@@ -28,10 +28,9 @@ class TestIndex(TestCase):
 
     def test_index_normal_user(self):
         """Index requires superuser."""
-        response = self.client.post(login_url, {
-            'username': 'testuser',
-            'password': 'testpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'testuser',
+                        'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
         response = self.client.get(index_url)
@@ -40,10 +39,9 @@ class TestIndex(TestCase):
 
     def test_index_superuser(self):
         """Index works for superuser."""
-        response = self.client.post(login_url, {
-            'username': 'superuser',
-            'password': 'superpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'superuser',
+                        'password': 'superpass'})
         self.assertEqual(200, response.status_code)
 
         response = self.client.get(index_url)

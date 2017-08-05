@@ -72,12 +72,10 @@ def main():
 
     # Parse command line args.
     parser = argparse.ArgumentParser(description='AUVSI SUAS Interop CLI.')
-    parser.add_argument('--url',
-                        required=True,
-                        help='URL for interoperability.')
-    parser.add_argument('--username',
-                        required=True,
-                        help='Username for interoperability.')
+    parser.add_argument(
+        '--url', required=True, help='URL for interoperability.')
+    parser.add_argument(
+        '--username', required=True, help='Username for interoperability.')
     parser.add_argument('--password', help='Password for interoperability.')
 
     subparsers = parser.add_subparsers(help='Sub-command help.')
@@ -125,10 +123,11 @@ actionable. Must be admin user to specify.''')
 
     subparser = subparsers.add_parser('probe', help='Send dummy requests.')
     subparser.set_defaults(func=probe)
-    subparser.add_argument('--interop_time',
-                           type=float,
-                           default=1.0,
-                           help='Time between sent requests (sec).')
+    subparser.add_argument(
+        '--interop_time',
+        type=float,
+        default=1.0,
+        help='Time between sent requests (sec).')
 
     subparser = subparsers.add_parser(
         'mavlink',

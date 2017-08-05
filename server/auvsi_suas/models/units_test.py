@@ -17,9 +17,8 @@ class TestMetersToFeet(TestCase):
             (100,   328.084),
         ]  # yapf: disable
         for (km, ft_actual) in cases:
-            self.assertAlmostEqual(ft_actual,
-                                   units.meters_to_feet(km),
-                                   delta=5)
+            self.assertAlmostEqual(
+                ft_actual, units.meters_to_feet(km), delta=5)
 
 
 class TestKilometersToFeet(TestCase):
@@ -35,9 +34,8 @@ class TestKilometersToFeet(TestCase):
             (100,   328084),
         ]  # yapf: disable
         for (km, ft_actual) in cases:
-            self.assertAlmostEqual(ft_actual,
-                                   units.kilometers_to_feet(km),
-                                   delta=5)
+            self.assertAlmostEqual(
+                ft_actual, units.kilometers_to_feet(km), delta=5)
 
 
 class TestFeetToMeters(TestCase):
@@ -53,9 +51,8 @@ class TestFeetToMeters(TestCase):
             (1000, 304.8),
         ]  # yapf: disable
         for (feet, meters_actual) in cases:
-            self.assertAlmostEqual(meters_actual,
-                                   units.feet_to_meters(feet),
-                                   delta=0.1)
+            self.assertAlmostEqual(
+                meters_actual, units.feet_to_meters(feet), delta=0.1)
 
 
 class TestKnotsToFeetPerSecond(TestCase):
@@ -70,6 +67,5 @@ class TestKnotsToFeetPerSecond(TestCase):
             (100,     168.781),
         ]  # yapf: disable
         for (knots, fps_actual) in cases:
-            self.assertAlmostEqual(fps_actual,
-                                   units.knots_to_feet_per_second(knots),
-                                   delta=5)
+            self.assertAlmostEqual(
+                fps_actual, units.knots_to_feet_per_second(knots), delta=5)

@@ -22,4 +22,4 @@ simplekml==1.2.7
 # Since it can be finicky from version to version, we fix
 # it at one version. Updating this is fine, but it may require
 # reformatting some files.
-yapf==0.6.2
+yapf==0.16.2

@@ -33,10 +33,9 @@ class TestTelemetryPost(TestCase):
                                              'testpass')
         self.user.save()
 
-        response = self.client.post(login_url, {
-            'username': 'testuser',
-            'password': 'testpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'testuser',
+                        'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
     def test_invalid_request(self):
@@ -163,10 +162,9 @@ class TestTelemetryGet(TestCase):
         self.year2002 = datetime.datetime(2002, 1, 1, tzinfo=timezone.utc)
 
         # Login
-        response = self.client.post(login_url, {
-            'username': 'superuser',
-            'password': 'superpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'superuser',
+                        'password': 'superpass'})
         self.assertEqual(200, response.status_code)
 
     def create_logs(self,
@@ -184,16 +182,15 @@ class TestTelemetryGet(TestCase):
         logs = []
 
         for i in xrange(num):
-            gps = GpsPosition(latitude=38 + 0.001 * i,
-                              longitude=-78 + 0.001 * i)
+            gps = GpsPosition(
+                latitude=38 + 0.001 * i, longitude=-78 + 0.001 * i)
             gps.save()
 
             pos = AerialPosition(gps_position=gps, altitude_msl=altitude)
             pos.save()
 
-            log = UasTelemetry(user=user,
-                               uas_position=pos,
-                               uas_heading=heading)
+            log = UasTelemetry(
+                user=user, uas_position=pos, uas_heading=heading)
             log.save()
             log.timestamp = start + i * delta
             log.save()
@@ -208,10 +205,9 @@ class TestTelemetryGet(TestCase):
         user.save()
 
         # Login
-        response = self.client.post(login_url, {
-            'username': 'testuser',
-            'password': 'testpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'testuser',
+                        'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
         response = self.client.get(telemetry_url)
@@ -226,11 +222,8 @@ class TestTelemetryGet(TestCase):
 
     def test_basic(self):
         """Correct telemetry returned, with correct data."""
-        telem = self.create_logs(self.user1,
-                                 num=10,
-                                 start=self.year2000,
-                                 altitude=100,
-                                 heading=90)
+        telem = self.create_logs(
+            self.user1, num=10, start=self.year2000, altitude=100, heading=90)
 
         response = self.client.get(telemetry_url)
         self.assertEqual(200, response.status_code)

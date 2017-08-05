@@ -11,10 +11,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name='missionjudgefeedback',
-                               name='manual_flight_time', ),
-        migrations.AddField(model_name='missionjudgefeedback',
-                            name='min_auto_flight_time',
-                            field=models.BooleanField(default=True),
-                            preserve_default=False, ),
+        migrations.RemoveField(
+            model_name='missionjudgefeedback',
+            name='manual_flight_time', ),
+        migrations.AddField(
+            model_name='missionjudgefeedback',
+            name='min_auto_flight_time',
+            field=models.BooleanField(default=True),
+            preserve_default=False, ),
     ]

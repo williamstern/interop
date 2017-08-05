@@ -148,17 +148,14 @@ class Target(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, db_index=True)
     target_type = models.IntegerField(choices=TargetType.choices())
     location = models.ForeignKey(GpsPosition, null=True, blank=True)
-    orientation = models.IntegerField(choices=Orientation.choices(),
-                                      null=True,
-                                      blank=True)
+    orientation = models.IntegerField(
+        choices=Orientation.choices(), null=True, blank=True)
     shape = models.IntegerField(choices=Shape.choices(), null=True, blank=True)
-    background_color = models.IntegerField(choices=Color.choices(),
-                                           null=True,
-                                           blank=True)
+    background_color = models.IntegerField(
+        choices=Color.choices(), null=True, blank=True)
     alphanumeric = models.TextField(default='', blank=True)
-    alphanumeric_color = models.IntegerField(choices=Color.choices(),
-                                             null=True,
-                                             blank=True)
+    alphanumeric_color = models.IntegerField(
+        choices=Color.choices(), null=True, blank=True)
     description = models.TextField(default='', blank=True)
     description_approved = models.NullBooleanField()
     autonomous = models.BooleanField(default=False)
@@ -248,8 +245,10 @@ class Target(models.Model):
         if self.target_type != other.target_type:
             return 0
 
-        standard_fields = ['orientation', 'shape', 'background_color',
-                           'alphanumeric', 'alphanumeric_color']
+        standard_fields = [
+            'orientation', 'shape', 'background_color', 'alphanumeric',
+            'alphanumeric_color'
+        ]
         classify_fields = {
             TargetType.standard: standard_fields,
             TargetType.off_axis: standard_fields,
@@ -424,8 +423,8 @@ class TargetEvaluator(object):
         target_eval.score_ratio = (
             (settings.CHARACTERISTICS_WEIGHT *
              target_eval.classifications_score_ratio) +
-            (settings.GEOLOCATION_WEIGHT *
-             target_eval.geolocation_score_ratio) +
+            (settings.GEOLOCATION_WEIGHT * target_eval.geolocation_score_ratio)
+            +
             (settings.ACTIONABLE_WEIGHT * target_eval.actionable_score_ratio) +
             (settings.AUTONOMY_WEIGHT * target_eval.autonomous_score_ratio) +
             (settings.INTEROPERABILITY_WEIGHT *
@@ -506,8 +505,8 @@ class TargetEvaluator(object):
                 target_eval.CopyFrom(self.evaluate_match(submitted, real))
         if self.real_targets:
             multi_eval.matched_score_ratio = sum(
-                [e.score_ratio for e in multi_eval.targets]) / len(
-                    self.real_targets)
+                [e.score_ratio
+                 for e in multi_eval.targets]) / len(self.real_targets)
         else:
             multi_eval.matched_score_ratio = 0
         # Compute extra object penalty.

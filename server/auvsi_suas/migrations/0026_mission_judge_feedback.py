@@ -16,10 +16,11 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MissionJudgeFeedback',
             fields=[
-                ('id', models.AutoField(verbose_name='ID',
-                                        serialize=False,
-                                        auto_created=True,
-                                        primary_key=True)),
+                ('id', models.AutoField(
+                    verbose_name='ID',
+                    serialize=False,
+                    auto_created=True,
+                    primary_key=True)),
                 ('flight_time', models.DurationField()),
                 ('post_process_time', models.DurationField()),
                 ('used_timeout', models.BooleanField()),

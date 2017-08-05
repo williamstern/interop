@@ -39,8 +39,8 @@ class Obstacles(View):
                                                 request.GET['time'])
 
         # Log user access to obstacle info
-        logger.info('User downloaded obstacle info: %s.' %
-                    request.user.username)
+        logger.info(
+            'User downloaded obstacle info: %s.' % request.user.username)
 
         # Get active mission for forming responses.
         (mission, err) = active_mission()

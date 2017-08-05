@@ -15,9 +15,7 @@ TESTDATA_FLYZONE_CONTAINSPOS = [
     {
         'min_alt': 0,
         'max_alt': 100,
-        'waypoints': [
-            (0, 0)
-        ],
+        'waypoints': [(0, 0)],
         'inside_pos': [],
         'outside_pos': [
             (0, 0, 0),
@@ -43,8 +41,10 @@ TESTDATA_FLYZONE_CONTAINSPOS = [
     },
     # Check polygon of 4 points
     {
-        'min_alt': 0,
-        'max_alt': 100,
+        'min_alt':
+        0,
+        'max_alt':
+        100,
         'waypoints': [
             (0, 0),
             (100, 0),
@@ -81,8 +81,10 @@ TESTDATA_FLYZONE_CONTAINSPOS = [
     },
     # Check polygon of 3 points
     {
-        'min_alt': 100,
-        'max_alt': 750,
+        'min_alt':
+        100,
+        'max_alt':
+        750,
         'waypoints': [
             (0, 0),
             (100, 0),
@@ -286,13 +288,14 @@ class TestFlyZone(TestCase):
 
         # For each user, validate time out of bounds
         user_id = 0
-        epoch = timezone.now().replace(year=1970,
-                                       month=1,
-                                       day=1,
-                                       hour=0,
-                                       minute=0,
-                                       second=0,
-                                       microsecond=0)
+        epoch = timezone.now().replace(
+            year=1970,
+            month=1,
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0)
         for exp_violations, exp_out_of_bounds_time, log_details in uas_details:
             # Create the logs
             user = User.objects.create_user('testuser%d' % user_id,

@@ -58,8 +58,7 @@ class TeamsId(View):
             return HttpResponseBadRequest('Unknown team %s' % pk)
 
         return HttpResponse(
-            json.dumps(user_json(user)),
-            content_type="application/json")
+            json.dumps(user_json(user)), content_type="application/json")
 
     def put(self, request, pk):
         """PUT allows updating status."""
@@ -84,8 +83,8 @@ class TeamsId(View):
             currently_in_air = TakeoffOrLandingEvent.user_in_air(user)
             # New event only necessary if changing status
             if currently_in_air != in_air:
-                takeoff_event = TakeoffOrLandingEvent(user=user,
-                                                      uas_in_air=in_air)
+                takeoff_event = TakeoffOrLandingEvent(
+                    user=user, uas_in_air=in_air)
         # Update whether UAS in on clock or timeout.
         if 'on_clock' in data or 'on_timeout' in data:
             currently_on_clock = MissionClockEvent.user_on_clock(user)
@@ -103,9 +102,10 @@ class TeamsId(View):
             # New event only necessary if changing status
             if (on_clock != currently_on_clock or
                     on_timeout != currently_on_timeout):
-                clock_event = MissionClockEvent(user=user,
-                                                team_on_clock=on_clock,
-                                                team_on_timeout=on_timeout)
+                clock_event = MissionClockEvent(
+                    user=user,
+                    team_on_clock=on_clock,
+                    team_on_timeout=on_timeout)
         # Request was valid. Save updates.
         if takeoff_event:
             takeoff_event.save()
@@ -113,5 +113,4 @@ class TeamsId(View):
             clock_event.save()
 
         return HttpResponse(
-            json.dumps(user_json(user)),
-            content_type="application/json")
+            json.dumps(user_json(user)), content_type="application/json")

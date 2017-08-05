@@ -46,9 +46,8 @@ class TestObstaclesViewCommon(TestCase):
         gps = GpsPosition(latitude=lat, longitude=lon)
         gps.save()
 
-        obstacle = StationaryObstacle(gps_position=gps,
-                                      cylinder_radius=radius,
-                                      cylinder_height=height)
+        obstacle = StationaryObstacle(
+            gps_position=gps, cylinder_radius=radius, cylinder_height=height)
         obstacle.save()
         return obstacle
 
@@ -100,16 +99,12 @@ class TestObstaclesViewCommon(TestCase):
         config.save()
 
         # Add a couple of stationary obstacles
-        obst = self.create_stationary_obstacle(lat=38.142233,
-                                               lon=-76.434082,
-                                               radius=300,
-                                               height=500)
+        obst = self.create_stationary_obstacle(
+            lat=38.142233, lon=-76.434082, radius=300, height=500)
         config.stationary_obstacles.add(obst)
 
-        obst = self.create_stationary_obstacle(lat=38.442233,
-                                               lon=-76.834082,
-                                               radius=100,
-                                               height=750)
+        obst = self.create_stationary_obstacle(
+            lat=38.442233, lon=-76.834082, radius=100, height=750)
         config.stationary_obstacles.add(obst)
 
         # And a couple of moving obstacles
@@ -134,10 +129,9 @@ class TestObstaclesViewCommon(TestCase):
         config.save()
 
         # Login
-        response = self.client.post(login_url, {
-            'username': 'testuser',
-            'password': 'testpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'testuser',
+                        'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
 
@@ -223,10 +217,9 @@ class TestObstaclesViewSuperuser(TestObstaclesViewCommon):
         self.user.save()
 
         # Login
-        response = self.client.post(login_url, {
-            'username': 'superuser',
-            'password': 'superpass'
-        })
+        response = self.client.post(
+            login_url, {'username': 'superuser',
+                        'password': 'superpass'})
         self.assertEqual(200, response.status_code)
 
     def test_bad_time(self):

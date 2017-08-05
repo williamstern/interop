@@ -45,18 +45,18 @@ def proxy_mavlink(device, client):
     # Continuously forward packets.
     while True:
         # Get packet.
-        msg = mav.recv_match(type='GLOBAL_POSITION_INT',
-                             blocking=True,
-                             timeout=10.0)
+        msg = mav.recv_match(
+            type='GLOBAL_POSITION_INT', blocking=True, timeout=10.0)
         if msg is None:
             logger.critical(
                 'Did not receive MAVLink packet for over 10 seconds.')
             sys.exit(-1)
         # Convert to telemetry.
-        telemetry = Telemetry(latitude=mavlink_latlon(msg.lat),
-                              longitude=mavlink_latlon(msg.lon),
-                              altitude_msl=mavlink_alt(msg.alt),
-                              uas_heading=mavlink_heading(msg.hdg))
+        telemetry = Telemetry(
+            latitude=mavlink_latlon(msg.lat),
+            longitude=mavlink_latlon(msg.lon),
+            altitude_msl=mavlink_alt(msg.alt),
+            uas_heading=mavlink_heading(msg.hdg))
         # Forward telemetry.
         try:
             client.post_telemetry(telemetry)

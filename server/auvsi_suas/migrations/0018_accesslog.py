@@ -61,10 +61,11 @@ def copy_mission_clock_event(apps, scheme_editor):
     NewMissionClockEvent = apps.get_model('auvsi_suas', 'newmissionclockevent')
 
     for entry in MissionClockEvent.objects.all():
-        new = NewMissionClockEvent(timestamp=entry.timestamp,
-                                   user=entry.user,
-                                   team_on_clock=entry.team_on_clock,
-                                   team_on_timeout=entry.team_on_timeout)
+        new = NewMissionClockEvent(
+            timestamp=entry.timestamp,
+            user=entry.user,
+            team_on_clock=entry.team_on_clock,
+            team_on_timeout=entry.team_on_timeout)
         new.save()
 
 
@@ -89,8 +90,8 @@ def copy_server_info_access_log(apps, scheme_editor):
                                             'newserverinfoaccesslog')
 
     for entry in ServerInfoAccessLog.objects.all():
-        new = NewServerInfoAccessLog(timestamp=entry.timestamp,
-                                     user=entry.user)
+        new = NewServerInfoAccessLog(
+            timestamp=entry.timestamp, user=entry.user)
         new.save()
 
 
@@ -104,9 +105,10 @@ def copy_takeoff_or_landing_event(apps, scheme_editor):
                                               'newtakeofforlandingevent')
 
     for entry in TakeoffOrLandingEvent.objects.all():
-        new = NewTakeoffOrLandingEvent(timestamp=entry.timestamp,
-                                       user=entry.user,
-                                       uas_in_air=entry.uas_in_air)
+        new = NewTakeoffOrLandingEvent(
+            timestamp=entry.timestamp,
+            user=entry.user,
+            uas_in_air=entry.uas_in_air)
         new.save()
 
 
@@ -118,10 +120,11 @@ def copy_uas_telemetry(apps, scheme_editor):
     NewUasTelemetry = apps.get_model('auvsi_suas', 'newuastelemetry')
 
     for entry in UasTelemetry.objects.all():
-        new = NewUasTelemetry(timestamp=entry.timestamp,
-                              user=entry.user,
-                              uas_position=entry.uas_position,
-                              uas_heading=entry.uas_heading)
+        new = NewUasTelemetry(
+            timestamp=entry.timestamp,
+            user=entry.user,
+            uas_position=entry.uas_position,
+            uas_heading=entry.uas_heading)
         new.save()
 
 
@@ -137,14 +140,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='NewMissionClockEvent',
             fields=[
-                ('id', models.AutoField(verbose_name='ID',
-                                        serialize=False,
-                                        auto_created=True,
-                                        primary_key=True)),
+                ('id', models.AutoField(
+                    verbose_name='ID',
+                    serialize=False,
+                    auto_created=True,
+                    primary_key=True)),
                 # Use default instead of auto_now_add so that this can be
                 # overridden.
-                ('timestamp', models.DateTimeField(default=timezone.now,
-                                                   db_index=True)),
+                ('timestamp', models.DateTimeField(
+                    default=timezone.now, db_index=True)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
                 ('team_on_clock', models.BooleanField()),
                 ('team_on_timeout', models.BooleanField()),
@@ -153,36 +157,39 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='NewObstacleAccessLog',
             fields=[
-                ('id', models.AutoField(verbose_name='ID',
-                                        serialize=False,
-                                        auto_created=True,
-                                        primary_key=True)),
-                ('timestamp', models.DateTimeField(default=timezone.now,
-                                                   db_index=True)),
+                ('id', models.AutoField(
+                    verbose_name='ID',
+                    serialize=False,
+                    auto_created=True,
+                    primary_key=True)),
+                ('timestamp', models.DateTimeField(
+                    default=timezone.now, db_index=True)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ]),
         migrations.RunPython(copy_obstacle_access_log),
         migrations.CreateModel(
             name='NewServerInfoAccessLog',
             fields=[
-                ('id', models.AutoField(verbose_name='ID',
-                                        serialize=False,
-                                        auto_created=True,
-                                        primary_key=True)),
-                ('timestamp', models.DateTimeField(default=timezone.now,
-                                                   db_index=True)),
+                ('id', models.AutoField(
+                    verbose_name='ID',
+                    serialize=False,
+                    auto_created=True,
+                    primary_key=True)),
+                ('timestamp', models.DateTimeField(
+                    default=timezone.now, db_index=True)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ]),
         migrations.RunPython(copy_server_info_access_log),
         migrations.CreateModel(
             name='NewTakeoffOrLandingEvent',
             fields=[
-                ('id', models.AutoField(verbose_name='ID',
-                                        serialize=False,
-                                        auto_created=True,
-                                        primary_key=True)),
-                ('timestamp', models.DateTimeField(default=timezone.now,
-                                                   db_index=True)),
+                ('id', models.AutoField(
+                    verbose_name='ID',
+                    serialize=False,
+                    auto_created=True,
+                    primary_key=True)),
+                ('timestamp', models.DateTimeField(
+                    default=timezone.now, db_index=True)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
                 ('uas_in_air', models.BooleanField()),
             ]),
@@ -190,15 +197,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='NewUasTelemetry',
             fields=[
-                ('id', models.AutoField(verbose_name='ID',
-                                        serialize=False,
-                                        auto_created=True,
-                                        primary_key=True)),
-                ('timestamp', models.DateTimeField(default=timezone.now,
-                                                   db_index=True)),
+                ('id', models.AutoField(
+                    verbose_name='ID',
+                    serialize=False,
+                    auto_created=True,
+                    primary_key=True)),
+                ('timestamp', models.DateTimeField(
+                    default=timezone.now, db_index=True)),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
-                ('uas_position', models.ForeignKey(
-                    to='auvsi_suas.AerialPosition')),
+                ('uas_position',
+                 models.ForeignKey(to='auvsi_suas.AerialPosition')),
                 ('uas_heading', models.FloatField()),
             ]),
         migrations.RunPython(copy_uas_telemetry),

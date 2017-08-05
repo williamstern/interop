@@ -30,8 +30,12 @@ class TestTimePeriod(TestCase):
                          TimePeriod.from_events(events, self.is_start_func,
                                                 self.is_end_func))
         # Multiple periods.
-        events = [Event(0, True), Event(1, False), Event(2, True),
-                  Event(3, False)]
+        events = [
+            Event(0, True),
+            Event(1, False),
+            Event(2, True),
+            Event(3, False)
+        ]
         expected = [TimePeriod(0, 1), TimePeriod(2, 3)]
         self.assertEqual(expected,
                          TimePeriod.from_events(events, self.is_start_func,
@@ -97,8 +101,9 @@ class TestTimePeriod(TestCase):
 
     def test_within_standard(self):
         """Tests the within method with defined start and end."""
-        t = TimePeriod(start=datetime.datetime(2000, 1, 1),
-                       end=datetime.datetime(2001, 1, 1))
+        t = TimePeriod(
+            start=datetime.datetime(2000, 1, 1),
+            end=datetime.datetime(2001, 1, 1))
 
         # Clearly within
         self.assertTrue(t.within(datetime.datetime(2000, 6, 1)))
@@ -156,6 +161,7 @@ class TestTimePeriod(TestCase):
 
     def test_duration_finite(self):
         """Tests the duration with endpoints and finite time."""
-        t = TimePeriod(start=datetime.datetime(2000, 1, 1),
-                       end=datetime.datetime(2000, 1, 2))
+        t = TimePeriod(
+            start=datetime.datetime(2000, 1, 1),
+            end=datetime.datetime(2000, 1, 2))
         self.assertEqual(datetime.timedelta(days=1), t.duration())

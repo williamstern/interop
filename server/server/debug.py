@@ -31,6 +31,7 @@ class NonHtmlDebugToolbarMiddleware(object):
 
         return response
 
+
 # Middleware classes for debug toolbar.
 middleware = ('debug_toolbar.middleware.DebugToolbarMiddleware',
               'server.debug.NonHtmlDebugToolbarMiddleware')

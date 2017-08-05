@@ -12,7 +12,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='missionconfig',
             name='server_info',
-            field=models.ForeignKey(default=1,
-                                    to='auvsi_suas.ServerInfo'),
+            field=models.ForeignKey(default=1, to='auvsi_suas.ServerInfo'),
             preserve_default=False),
     ]

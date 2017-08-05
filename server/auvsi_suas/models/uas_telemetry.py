@@ -206,8 +206,8 @@ class UasTelemetry(AccessLog):
             linestring.altitudemode = AltitudeMode.absolute
             linestring.extrude = 1
             linestring.style.linestyle.color = Color.blue
-            linestring.style.polystyle.color = Color.changealphaint(100,
-                                                                    Color.blue)
+            linestring.style.polystyle.color = Color.changealphaint(
+                100, Color.blue)
 
     @staticmethod
     def closest_interpolated_distance(start_log, end_log, waypoint, utm):
@@ -248,8 +248,9 @@ class UasTelemetry(AccessLog):
     @staticmethod
     def score_waypoint(distance):
         """Scores a single waypoint distance."""
-        return max(0, float(settings.SATISFIED_WAYPOINT_DIST_MAX_FT - distance)
-                   / settings.SATISFIED_WAYPOINT_DIST_MAX_FT)
+        return max(0,
+                   float(settings.SATISFIED_WAYPOINT_DIST_MAX_FT - distance) /
+                   settings.SATISFIED_WAYPOINT_DIST_MAX_FT)
 
     @classmethod
     def satisfied_waypoints(cls, home_pos, waypoints, uas_telemetry_logs):
@@ -283,17 +284,18 @@ class UasTelemetry(AccessLog):
             if iu + 1 < len(uas_telemetry_logs):
                 end_log = uas_telemetry_logs[iu + 1]
             for iw, waypoint in enumerate(waypoints):
-                dist = cls.closest_interpolated_distance(start_log, end_log,
-                                                         waypoint, utm)
+                dist = cls.closest_interpolated_distance(
+                    start_log, end_log, waypoint, utm)
                 best[iw] = min(best.get(iw, dist), dist)
                 score = cls.score_waypoint(dist)
                 if score > 0:
                     hits.append((iw, dist, score))
         # Remove redundant hits which wouldn't be part of best sequence.
         # This will make future processing more efficient via data reduction.
-        hits = [max(g,
-                    key=lambda x: x[2])
-                for _, g in itertools.groupby(hits, lambda x: x[0])]
+        hits = [
+            max(g, key=lambda x: x[2])
+            for _, g in itertools.groupby(hits, lambda x: x[0])
+        ]
 
         # Find highest scoring sequence via dynamic programming.
         # Implement recurrence relation:

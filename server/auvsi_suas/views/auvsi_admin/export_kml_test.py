@@ -63,15 +63,17 @@ class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
 
     def test_generateKML_nonadmin(self):
         """Tests the generate KML method."""
-        self.client.post(self.login_url, {'username': 'testuser',
-                                          'password': 'testpass'})
+        self.client.post(self.login_url,
+                         {'username': 'testuser',
+                          'password': 'testpass'})
         response = self.client.get(self.eval_url)
         self.assertEqual(403, response.status_code)
 
     def test_generateKML(self):
         """Tests the generate KML method."""
-        self.client.post(self.login_url, {'username': 'testuser2',
-                                          'password': 'testpass'})
+        self.client.post(self.login_url,
+                         {'username': 'testuser2',
+                          'password': 'testpass'})
         response = self.client.get(self.eval_url)
         self.assertEqual(200, response.status_code)
 
@@ -87,18 +89,16 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
         super(TestGenerateKMLWithFixture, self).__init__(*args, **kwargs)
         self.folders = ['Teams', 'Missions']
         self.users = ['testuser', 'user0', 'user1']
-        self.coordinates = [
-            (lat, lon, units.feet_to_meters(alt))
-            for lat, lon, alt in [
-                (-76.0, 38.0, 0.0),
-                (-76.0, 38.0, 10.0),
-                (-76.0, 38.0, 20.0),
-                (-76.0, 38.0, 30.0),
-                (-76.0, 38.0, 100.0),
-                (-76.0, 38.0, 30.0),
-                (-77.0, 38.0, 60.0),
-            ]
-        ]
+        self.coordinates = [(lat, lon, units.feet_to_meters(alt))
+                            for lat, lon, alt in [
+                                (-76.0, 38.0, 0.0),
+                                (-76.0, 38.0, 10.0),
+                                (-76.0, 38.0, 20.0),
+                                (-76.0, 38.0, 30.0),
+                                (-76.0, 38.0, 100.0),
+                                (-76.0, 38.0, 30.0),
+                                (-77.0, 38.0, 60.0),
+                            ]]
 
     def test_generateKML_not_logged_in(self):
         """Tests the generate KML method."""
@@ -107,15 +107,17 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
 
     def test_generateKML_nonadmin(self):
         """Tests the generate KML method."""
-        self.client.post(self.login_url, {'username': 'testuser',
-                                          'password': 'testpass'})
+        self.client.post(self.login_url,
+                         {'username': 'testuser',
+                          'password': 'testpass'})
         response = self.client.get(self.eval_url)
         self.assertEqual(403, response.status_code)
 
     def test_generateKML(self):
         """Tests the generate KML method."""
-        self.client.post(self.login_url, {'username': 'testuser2',
-                                          'password': 'testpass'})
+        self.client.post(self.login_url,
+                         {'username': 'testuser2',
+                          'password': 'testpass'})
         response = self.client.get(self.eval_url)
         self.assertEqual(200, response.status_code)
 

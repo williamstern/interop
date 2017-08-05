@@ -45,8 +45,8 @@ def generate_feedback(mission_config, user, team_eval):
     # Calculate total time in air.
     flight_periods = TakeoffOrLandingEvent.flights(user)
     if flight_periods:
-        flight_time = reduce(lambda x, y: x + y, [p.duration()
-                                                  for p in flight_periods])
+        flight_time = reduce(lambda x, y: x + y,
+                             [p.duration() for p in flight_periods])
         feedback.flight_time_sec = flight_time.total_seconds()
     else:
         feedback.flight_time_sec = 0
@@ -63,9 +63,8 @@ def generate_feedback(mission_config, user, team_eval):
         team_eval.warnings.append('No UAS telemetry logs.')
 
     # Determine interop telemetry rates.
-    telem_max, telem_avg = UasTelemetry.rates(user,
-                                              flight_periods,
-                                              time_period_logs=uas_period_logs)
+    telem_max, telem_avg = UasTelemetry.rates(
+        user, flight_periods, time_period_logs=uas_period_logs)
     if telem_max:
         feedback.uas_telemetry_time_max_sec = telem_max
     if telem_avg:
@@ -84,9 +83,10 @@ def generate_feedback(mission_config, user, team_eval):
     feedback.out_of_bounds_time_sec = out_of_bounds.total_seconds()
 
     # Determine if the uas hit the waypoints.
-    feedback.waypoints.extend(UasTelemetry.satisfied_waypoints(
-        mission_config.home_pos, mission_config.mission_waypoints.order_by(
-            'order'), uas_logs))
+    feedback.waypoints.extend(
+        UasTelemetry.satisfied_waypoints(
+            mission_config.home_pos,
+            mission_config.mission_waypoints.order_by('order'), uas_logs))
 
     # Evaluate the targets.
     user_targets = Target.objects.filter(user=user).all()
@@ -106,8 +106,7 @@ def generate_feedback(mission_config, user, team_eval):
     # Add judge feedback.
     try:
         judge_feedback = MissionJudgeFeedback.objects.get(
-            mission=mission_config.pk,
-            user=user.pk)
+            mission=mission_config.pk, user=user.pk)
         feedback.judge.CopyFrom(judge_feedback.proto())
     except MissionJudgeFeedback.DoesNotExist:
         team_eval.warnings.append('No MissionJudgeFeedback for team.')
@@ -152,8 +151,8 @@ def score_team(team_eval):
     timeline.timeout = 0 if feedback.judge.used_timeout else 1
     timeline.score_ratio = (
         (settings.MISSION_TIME_WEIGHT * timeline.mission_time) +
-        (settings.TIMEOUT_WEIGHT *
-         timeline.timeout) - timeline.mission_penalty)
+        (settings.TIMEOUT_WEIGHT * timeline.timeout) -
+        timeline.mission_penalty)
 
     # Score autonomous flight.
     flight = score.autonomous_flight
@@ -164,12 +163,12 @@ def score_team(team_eval):
     else:
         flight.flight = 0
     flight.telemetry_prerequisite = telem_prereq
-    flight.waypoint_capture = (float(feedback.judge.waypoints_captured) /
-                               len(feedback.waypoints))
+    flight.waypoint_capture = (
+        float(feedback.judge.waypoints_captured) / len(feedback.waypoints))
     wpt_scores = [w.score_ratio for w in feedback.waypoints]
     if telem_prereq:
-        flight.waypoint_accuracy = (reduce(lambda x, y: x + y, wpt_scores) /
-                                    len(feedback.waypoints))
+        flight.waypoint_accuracy = (
+            reduce(lambda x, y: x + y, wpt_scores) / len(feedback.waypoints))
     else:
         flight.waypoint_accuracy = 0
     flight.out_of_bounds_penalty = (
@@ -194,14 +193,12 @@ def score_team(team_eval):
     avoid = score.obstacle_avoidance
     avoid.telemetry_prerequisite = telem_prereq
     if telem_prereq:
-        avoid.stationary_obstacle = (reduce(
-            lambda x, y: x + y, [0.0 if o.hit else 1.0
-                                 for o in feedback.stationary_obstacles]) /
-                                     len(feedback.stationary_obstacles))
-        avoid.moving_obstacle = (reduce(lambda x, y: x + y,
-                                        [0.0 if o.hit else 1.0
-                                         for o in feedback.moving_obstacles]) /
-                                 len(feedback.moving_obstacles))
+        avoid.stationary_obstacle = (reduce(lambda x, y: x + y, [
+            0.0 if o.hit else 1.0 for o in feedback.stationary_obstacles
+        ]) / len(feedback.stationary_obstacles))
+        avoid.moving_obstacle = (reduce(lambda x, y: x + y, [
+            0.0 if o.hit else 1.0 for o in feedback.moving_obstacles
+        ]) / len(feedback.moving_obstacles))
     else:
         avoid.stationary_obstacle = 0
         avoid.moving_obstacle = 0
@@ -220,8 +217,8 @@ def score_team(team_eval):
         ('interop_score_ratio', 'interoperability'),
     ]
     for eval_field, score_field in object_field_mapping:
-        total = reduce(lambda x, y: x + y, [getattr(o, eval_field)
-                                            for o in object_eval.targets])
+        total = reduce(lambda x, y: x + y,
+                       [getattr(o, eval_field) for o in object_eval.targets])
         setattr(objects, score_field, float(total) / len(object_eval.targets))
     objects.extra_object_penalty = object_eval.extra_object_penalty_ratio
     objects.score_ratio = object_eval.score_ratio

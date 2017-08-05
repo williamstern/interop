@@ -42,9 +42,8 @@ class TestTargets(InteropCliTestBase):
 
     def test_upload_targets(self):
         """Test uploading targets with Object File Format."""
-        self.assertCliOk(self.cli_base_args + [
-            'targets', '--target_dir', self.target_dir
-        ])
+        self.assertCliOk(self.cli_base_args +
+                         ['targets', '--target_dir', self.target_dir])
 
     def test_legacy_upload_targets(self):
         """Test uploading targets with legacy format."""

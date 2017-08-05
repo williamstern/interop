@@ -24,10 +24,10 @@ import socket
 import struct
 from django.contrib.auth import get_user_model
 
-CompetitionData = collections.namedtuple(
-    'CompetitionData', ['interop_ip', 'interop_hostname', 'interop_port',
-                        'team_dhcp_range_min', 'team_dhcp_range_max',
-                        'team_static_range_min', 'team_static_range_max'])
+CompetitionData = collections.namedtuple('CompetitionData', [
+    'interop_ip', 'interop_hostname', 'interop_port', 'team_dhcp_range_min',
+    'team_dhcp_range_max', 'team_static_range_min', 'team_static_range_max'
+])
 
 TeamData = collections.namedtuple(
     'TeamData', ['name', 'username', 'password', 'static_ip'])
@@ -71,8 +71,8 @@ def get_team_info(teams_filepath, static_min, static_max):
 def create_team_accounts(teams):
     """Creates team accounts."""
     for team in teams:
-        get_user_model().objects.create_user(username=team.username,
-                                             password=team.password)
+        get_user_model().objects.create_user(
+            username=team.username, password=team.password)
 
 
 def print_latex_header():
@@ -110,33 +110,34 @@ def main():
         metavar='T',
         type=str,
         help='Filepath to csv file with col 0 of name, col 1 of username.')
-    parser.add_argument('interop_ip',
-                        metavar='I',
-                        type=str,
-                        help='Interop server IP address.')
-    parser.add_argument('interop_hostname',
-                        metavar='H',
-                        type=str,
-                        help='Interop server hostname.')
-    parser.add_argument('interop_port',
-                        metavar='P',
-                        type=int,
-                        help='Interop server port.')
-    parser.add_argument('team_dhcp_range_min',
-                        metavar='DL',
-                        type=str,
-                        help='Team DHCP range lower bound.')
-    parser.add_argument('team_dhcp_range_max',
-                        metavar='DU',
-                        type=str,
-                        help='Team DHCP range upper bound.')
-    parser.add_argument('team_static_range_min',
-                        metavar='SL',
-                        type=str,
-                        help='Team static IP range lower bound.')
-    parser.add_argument('team_static_range_max',
-                        metavar='SU',
-                        help='Team static IP range upper bound.')
+    parser.add_argument(
+        'interop_ip', metavar='I', type=str, help='Interop server IP address.')
+    parser.add_argument(
+        'interop_hostname',
+        metavar='H',
+        type=str,
+        help='Interop server hostname.')
+    parser.add_argument(
+        'interop_port', metavar='P', type=int, help='Interop server port.')
+    parser.add_argument(
+        'team_dhcp_range_min',
+        metavar='DL',
+        type=str,
+        help='Team DHCP range lower bound.')
+    parser.add_argument(
+        'team_dhcp_range_max',
+        metavar='DU',
+        type=str,
+        help='Team DHCP range upper bound.')
+    parser.add_argument(
+        'team_static_range_min',
+        metavar='SL',
+        type=str,
+        help='Team static IP range lower bound.')
+    parser.add_argument(
+        'team_static_range_max',
+        metavar='SU',
+        help='Team static IP range upper bound.')
     args = parser.parse_args()
 
     teams_filepath = args.teams_filepath
