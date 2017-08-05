@@ -53,4 +53,4 @@ class Login(View):
             # Invalid user credentials, invalid request
             logger.warning('Invalid credentials in login request.')
             logger.debug(request)
-            return HttpResponseBadRequest('Invalid Credentials.')
+            return HttpResponse('Invalid Credentials.', status=401)
