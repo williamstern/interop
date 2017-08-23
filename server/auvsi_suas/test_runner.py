@@ -18,7 +18,7 @@ class AuvsiSuasTestRunner(runner.DiscoverRunner):
         """Create a custom MEDIA_ROOT and configure sendfile."""
         super(AuvsiSuasTestRunner, self).setup_test_environment()
 
-        # Scratch MEDIA_ROOT for target uploads
+        # Scratch MEDIA_ROOT for odlc uploads
         self.media_root = settings.MEDIA_ROOT
         settings.MEDIA_ROOT = tempfile.mkdtemp()
 

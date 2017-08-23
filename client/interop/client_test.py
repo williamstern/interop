@@ -6,7 +6,7 @@ from . import AsyncClient
 from . import Client
 from . import InteropError
 from . import Mission
-from . import Target
+from . import Odlc
 from . import Telemetry
 
 # These tests run against a real interop server.
@@ -146,71 +146,71 @@ class TestClient(unittest.TestCase):
         self.assertIn(300, async_heights)
         self.assertIn(200, async_heights)
 
-    def test_targets(self):
-        """Test target workflow."""
-        # Post a target gets an updated target.
-        target = Target(type='standard')
-        post_target = self.client.post_target(target)
-        async_post_target = self.client.post_target(target)
+    def test_odlcs(self):
+        """Test odlc workflow."""
+        # Post a odlc gets an updated odlc.
+        odlc = Odlc(type='standard')
+        post_odlc = self.client.post_odlc(odlc)
+        async_post_odlc = self.client.post_odlc(odlc)
 
-        self.assertIsNotNone(post_target.id)
-        self.assertIsNotNone(async_post_target.id)
-        self.assertIsNotNone(post_target.user)
-        self.assertIsNotNone(async_post_target.user)
-        self.assertEqual('standard', post_target.type)
-        self.assertEqual('standard', async_post_target.type)
-        self.assertNotEqual(post_target.id, async_post_target.id)
+        self.assertIsNotNone(post_odlc.id)
+        self.assertIsNotNone(async_post_odlc.id)
+        self.assertIsNotNone(post_odlc.user)
+        self.assertIsNotNone(async_post_odlc.user)
+        self.assertEqual('standard', post_odlc.type)
+        self.assertEqual('standard', async_post_odlc.type)
+        self.assertNotEqual(post_odlc.id, async_post_odlc.id)
 
-        # Get targets.
-        get_target = self.client.get_target(post_target.id)
-        async_get_target = self.async_client.get_target(
-            async_post_target.id).result()
-        get_targets = self.client.get_targets()
-        async_get_targets = self.async_client.get_targets().result()
+        # Get odlcs.
+        get_odlc = self.client.get_odlc(post_odlc.id)
+        async_get_odlc = self.async_client.get_odlc(
+            async_post_odlc.id).result()
+        get_odlcs = self.client.get_odlcs()
+        async_get_odlcs = self.async_client.get_odlcs().result()
 
-        self.assertEquals(post_target, get_target)
-        self.assertEquals(async_post_target, async_get_target)
-        self.assertIn(post_target, get_targets)
-        self.assertIn(async_post_target, async_get_targets)
+        self.assertEquals(post_odlc, get_odlc)
+        self.assertEquals(async_post_odlc, async_get_odlc)
+        self.assertIn(post_odlc, get_odlcs)
+        self.assertIn(async_post_odlc, async_get_odlcs)
 
-        # Update target.
-        post_target.shape = 'circle'
-        async_post_target.shape = 'circle'
-        put_target = self.client.put_target(post_target.id, post_target)
-        async_put_target = self.async_client.put_target(
-            async_post_target.id, async_post_target).result()
+        # Update odlc.
+        post_odlc.shape = 'circle'
+        async_post_odlc.shape = 'circle'
+        put_odlc = self.client.put_odlc(post_odlc.id, post_odlc)
+        async_put_odlc = self.async_client.put_odlc(async_post_odlc.id,
+                                                    async_post_odlc).result()
 
-        self.assertEquals(post_target, put_target)
-        self.assertEquals(async_post_target, async_put_target)
+        self.assertEquals(post_odlc, put_odlc)
+        self.assertEquals(async_post_odlc, async_put_odlc)
 
-        # Upload target image.
+        # Upload odlc image.
         test_image_filepath = os.path.join(
             os.path.dirname(__file__), "testdata/A.jpg")
         with open(test_image_filepath, 'rb') as f:
             image_data = f.read()
-        self.client.put_target_image(post_target.id, image_data)
-        self.async_client.put_target_image(async_post_target.id,
-                                           image_data).result()
+        self.client.put_odlc_image(post_odlc.id, image_data)
+        self.async_client.put_odlc_image(async_post_odlc.id,
+                                         image_data).result()
 
-        # Get the target image.
-        get_image = self.client.get_target_image(post_target.id)
-        async_get_image = self.async_client.get_target_image(
-            async_post_target.id).result()
+        # Get the odlc image.
+        get_image = self.client.get_odlc_image(post_odlc.id)
+        async_get_image = self.async_client.get_odlc_image(
+            async_post_odlc.id).result()
         self.assertEquals(image_data, get_image)
         self.assertEquals(image_data, async_get_image)
 
-        # Delete the target image.
-        self.client.delete_target_image(post_target.id)
-        self.async_client.delete_target_image(async_post_target.id).result()
+        # Delete the odlc image.
+        self.client.delete_odlc_image(post_odlc.id)
+        self.async_client.delete_odlc_image(async_post_odlc.id).result()
         with self.assertRaises(InteropError):
-            self.client.get_target_image(post_target.id)
+            self.client.get_odlc_image(post_odlc.id)
         with self.assertRaises(InteropError):
-            self.async_client.get_target_image(async_post_target.id).result()
+            self.async_client.get_odlc_image(async_post_odlc.id).result()
 
-        # Delete target.
-        self.client.delete_target(post_target.id)
-        self.async_client.delete_target(async_post_target.id).result()
+        # Delete odlc.
+        self.client.delete_odlc(post_odlc.id)
+        self.async_client.delete_odlc(async_post_odlc.id).result()
 
-        self.assertNotIn(post_target, self.client.get_targets())
-        self.assertNotIn(async_post_target,
-                         self.async_client.get_targets().result())
+        self.assertNotIn(post_odlc, self.client.get_odlcs())
+        self.assertNotIn(async_post_odlc,
+                         self.async_client.get_odlcs().result())

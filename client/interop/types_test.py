@@ -5,7 +5,7 @@ from . import GpsPosition
 from . import Mission
 from . import MovingObstacle
 from . import StationaryObstacle
-from . import Target
+from . import Odlc
 from . import Telemetry
 from . import Waypoint
 
@@ -36,7 +36,7 @@ class TestMission(unittest.TestCase):
             mission_waypoints=[
                 Waypoint(order=1, latitude=37, longitude=-70, altitude_msl=10)
             ],
-            off_axis_target_pos=GpsPosition(latitude=37, longitude=-75),
+            off_axis_odlc_pos=GpsPosition(latitude=37, longitude=-75),
             emergent_last_known_pos=GpsPosition(latitude=34, longitude=-75),
             search_grid_points=[
                 Waypoint(order=1, latitude=37, longitude=-70, altitude_msl=10)
@@ -46,7 +46,7 @@ class TestMission(unittest.TestCase):
         self.assertEqual(38, d['air_drop_pos']['latitude'])
         self.assertEqual(-77, d['home_pos']['longitude'])
         self.assertEqual(1, d['mission_waypoints'][0]['order'])
-        self.assertEqual(37, d['off_axis_target_pos']['latitude'])
+        self.assertEqual(37, d['off_axis_odlc_pos']['latitude'])
         self.assertEqual(34, d['emergent_last_known_pos']['latitude'])
         self.assertEqual(10, d['search_grid_points'][0]['altitude_msl'])
 
@@ -87,7 +87,7 @@ class TestMission(unittest.TestCase):
                 'longitude': -70,
                 'altitude_msl': 5,
             }],
-            'off_axis_target_pos': {
+            'off_axis_odlc_pos': {
                 'latitude': 31,
                 'longitude': -71,
             },
@@ -119,8 +119,8 @@ class TestMission(unittest.TestCase):
         self.assertEqual(30, m.mission_waypoints[0].latitude)
         self.assertEqual(-70, m.mission_waypoints[0].longitude)
         self.assertEqual(5, m.mission_waypoints[0].altitude_msl)
-        self.assertEqual(31, m.off_axis_target_pos.latitude)
-        self.assertEqual(-71, m.off_axis_target_pos.latitude)
+        self.assertEqual(31, m.off_axis_odlc_pos.latitude)
+        self.assertEqual(-71, m.off_axis_odlc_pos.latitude)
         self.assertEqual(32, m.emergent_last_known_pos.latitude)
         self.assertEqual(-71, m.emergent_last_known_pos.latitude)
         self.assertEqual(3, m.search_grid_points[0].order)
@@ -322,12 +322,12 @@ class TestMovingObstacle(unittest.TestCase):
         self.assertEqual(200, o.sphere_radius)
 
 
-class TestTarget(unittest.TestCase):
-    """Tests the Target model for validation and serialization."""
+class TestOdlc(unittest.TestCase):
+    """Tests the Odlc model for validation and serialization."""
 
     def test_valid(self):
         """Test valid inputs."""
-        Target(
+        Odlc(
             id=1,
             user=2,
             type='standard',
@@ -339,7 +339,7 @@ class TestTarget(unittest.TestCase):
             alphanumeric='a',
             alphanumeric_color='black')
 
-        Target(
+        Odlc(
             type='off_axis',
             latitude=10,
             longitude=-10,
@@ -349,26 +349,26 @@ class TestTarget(unittest.TestCase):
             alphanumeric='a',
             alphanumeric_color='black')
 
-        Target(
+        Odlc(
             type='emergent',
             latitude=10,
             longitude=-10,
             description='Fireman putting out a fire.')
 
-        Target(type='standard', latitude=10, longitude=-10, autonomous=True)
+        Odlc(type='standard', latitude=10, longitude=-10, autonomous=True)
 
     def test_invalid(self):
         """Test invalid inputs."""
         # Bad latitude.
         with self.assertRaises(ValueError):
-            Target(
+            Odlc(
                 type='emergent',
                 latitude='a',
                 longitude=-10,
                 description='Firefighter')
 
         with self.assertRaises(ValueError):
-            Target(
+            Odlc(
                 type='emergent',
                 latitude=10,
                 longitude='a',
@@ -376,7 +376,7 @@ class TestTarget(unittest.TestCase):
 
     def test_serialize(self):
         """Test serialization."""
-        o = Target(
+        o = Odlc(
             id=1,
             user=2,
             type='standard',
@@ -409,7 +409,7 @@ class TestTarget(unittest.TestCase):
 
     def test_deserialize(self):
         """Test deserialization."""
-        o = Target.deserialize({
+        o = Odlc.deserialize({
             'type': 'standard',
             'latitude': '10',
             'longitude': -10,
@@ -435,6 +435,6 @@ class TestTarget(unittest.TestCase):
         self.assertEqual(True, o.actionable_override)
         self.assertEqual('testuser', o.team_id)
 
-        o = Target.deserialize({'type': 'emergent'})
+        o = Odlc.deserialize({'type': 'emergent'})
 
         self.assertEqual('emergent', o.type)

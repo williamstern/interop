@@ -130,9 +130,9 @@ class Mission(ClientBaseType):
         fly_zones: A list of FlyZone boundaries the UAS must be within.
         home_pos: The GpsPosition of the UAS launch point (tents).
         mission_waypoints: A list of Waypoint the UAS must traverse.
-        off_axis_target_pos: The GpsPosition of the off-axis target.
+        off_axis_odlc_pos: The GpsPosition of the off-axis Object.
         emergent_last_known_pos: The last known GpsPosition of the emergent
-            target.
+            Object.
         search_grid_points: List of Waypoint defining the search grid polygon.
 
     Raises:
@@ -141,13 +141,13 @@ class Mission(ClientBaseType):
 
     attrs = [
         'id', 'active', 'air_drop_pos', 'fly_zones', 'home_pos',
-        'mission_waypoints', 'off_axis_target_pos', 'emergent_last_known_pos',
+        'mission_waypoints', 'off_axis_odlc_pos', 'emergent_last_known_pos',
         'search_grid_points'
     ]
 
     def __init__(self, id, active, air_drop_pos, fly_zones, home_pos,
-                 mission_waypoints, off_axis_target_pos,
-                 emergent_last_known_pos, search_grid_points):
+                 mission_waypoints, off_axis_odlc_pos, emergent_last_known_pos,
+                 search_grid_points):
         self.id = int(id)
         self.active = bool(active)
         self.air_drop_pos = GpsPosition.deserialize(air_drop_pos)
@@ -156,7 +156,7 @@ class Mission(ClientBaseType):
         self.mission_waypoints = [
             Waypoint.deserialize(mw) for mw in mission_waypoints
         ]
-        self.off_axis_target_pos = GpsPosition.deserialize(off_axis_target_pos)
+        self.off_axis_odlc_pos = GpsPosition.deserialize(off_axis_odlc_pos)
         self.emergent_last_known_pos = GpsPosition.deserialize(
             emergent_last_known_pos)
         self.search_grid_points = [
@@ -234,31 +234,31 @@ class MovingObstacle(ClientBaseType):
         self.sphere_radius = float(sphere_radius)
 
 
-class Target(ClientBaseType):
-    """A target.
+class Odlc(ClientBaseType):
+    """An odlc.
 
     Attributes:
-        id: Optional. The ID of the target. Assigned by the interoperability
+        id: Optional. The ID of the odlc. Assigned by the interoperability
             server.
-        user: Optional. The ID of the user who created the target. Assigned by
+        user: Optional. The ID of the user who created the odlc. Assigned by
             the interoperability server.
-        type: Target type, must be one of TargetType.
-        latitude: Optional. Target latitude in decimal degrees. If provided,
+        type: Odlc type, must be one of OdlcType.
+        latitude: Optional. Odlc latitude in decimal degrees. If provided,
             longitude must also be provided.
-        longitude: Optional. Target longitude in decimal degrees. If provided,
+        longitude: Optional. Odlc longitude in decimal degrees. If provided,
             latitude must also be provided.
-        orientation: Optional. Target orientation.
-        shape: Optional. Target shape.
-        background_color: Optional. Target color.
-        alphanumeric: Optional. Target alphanumeric. [0-9, a-z, A-Z].
-        alphanumeric_color: Optional. Target alphanumeric color.
-        description: Optional. Free-form description of the target, used for
-            certain target types.
+        orientation: Optional. Odlc orientation.
+        shape: Optional. Odlc shape.
+        background_color: Optional. Odlc color.
+        alphanumeric: Optional. Odlc alphanumeric. [0-9, a-z, A-Z].
+        alphanumeric_color: Optional. Odlc alphanumeric color.
+        description: Optional. Free-form description of the odlc, used for
+            certain odlc types.
         autonomous: Optional; defaults to False. Indicates that this is an
-            ADLC target.
+            ADLC odlc.
         team_id: Optional. The username of the team on whose behalf to submit
-            targets. Must be admin user to specify.
-        actionable_override: Optional. Manually sets the target to be
+            odlcs. Must be admin user to specify.
+        actionable_override: Optional. Manually sets the odlc to be
             actionable. Must be admin user to specify.
 
     Raises:

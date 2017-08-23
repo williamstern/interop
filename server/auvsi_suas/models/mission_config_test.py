@@ -34,7 +34,7 @@ class TestMissionConfigModel(TestCase):
         config = MissionConfig()
         config.home_pos = pos
         config.emergent_last_known_pos = pos
-        config.off_axis_target_pos = pos
+        config.off_axis_odlc_pos = pos
         config.air_drop_pos = pos
         config.save()
         config.mission_waypoints.add(wpt)
@@ -107,11 +107,11 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assertEqual(-79.0, data['search_grid_points'][0]['longitude'])
         self.assertEqual(1000.0, data['search_grid_points'][0]['altitude_msl'])
 
-        self.assertIn('off_axis_target_pos', data)
-        self.assertIn('latitude', data['off_axis_target_pos'])
-        self.assertIn('longitude', data['off_axis_target_pos'])
-        self.assertEqual(38.0, data['off_axis_target_pos']['latitude'])
-        self.assertEqual(-79.0, data['off_axis_target_pos']['longitude'])
+        self.assertIn('off_axis_odlc_pos', data)
+        self.assertIn('latitude', data['off_axis_odlc_pos'])
+        self.assertIn('longitude', data['off_axis_odlc_pos'])
+        self.assertEqual(38.0, data['off_axis_odlc_pos']['latitude'])
+        self.assertEqual(-79.0, data['off_axis_odlc_pos']['longitude'])
 
         self.assertIn('emergent_last_known_pos', data)
         self.assertIn('latitude', data['emergent_last_known_pos'])

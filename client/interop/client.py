@@ -17,7 +17,7 @@ from .exceptions import InteropError
 from .types import Mission
 from .types import MovingObstacle
 from .types import StationaryObstacle
-from .types import Target
+from .types import Odlc
 
 
 class Client(object):
@@ -161,124 +161,124 @@ class Client(object):
 
         return stationary, moving
 
-    def get_targets(self):
-        """GET targets.
+    def get_odlcs(self):
+        """GET odlcs.
 
         Returns:
-            List of Target objects which are viewable by user.
+            List of Odlc objects which are viewable by user.
         Raises:
             InteropError: Error from server.
             requests.Timeout: Request timeout.
             ValueError or AttributeError: Malformed response from server.
         """
-        r = self.get('/api/targets')
-        return [Target.deserialize(t) for t in r.json()]
+        r = self.get('/api/odlcs')
+        return [Odlc.deserialize(t) for t in r.json()]
 
-    def get_target(self, target_id):
-        """GET target.
+    def get_odlc(self, odlc_id):
+        """GET odlc.
 
         Args:
-            target_id: The ID of the target to get.
+            odlc_id: The ID of the odlc to get.
         Returns:
-            Target object with corresponding ID.
+            Odlc object with corresponding ID.
         Raises:
             InteropError: Error from server.
             requests.Timeout: Request timeout.
             ValueError or AttributeError: Malformed response from server.
         """
-        r = self.get('/api/targets/%d' % target_id)
-        return Target.deserialize(r.json())
+        r = self.get('/api/odlcs/%d' % odlc_id)
+        return Odlc.deserialize(r.json())
 
-    def post_target(self, target):
-        """POST target.
+    def post_odlc(self, odlc):
+        """POST odlc.
 
         Args:
-            target: The target to upload.
+            odlc: The odlc to upload.
         Returns:
-            The target after upload, which will include the target ID and user.
+            The odlc after upload, which will include the odlc ID and user.
         Raises:
             InteropError: Error from server.
             requests.Timeout: Request timeout.
             ValueError or AttributeError: Malformed response from server.
         """
-        r = self.post('/api/targets', data=json.dumps(target.serialize()))
-        return Target.deserialize(r.json())
+        r = self.post('/api/odlcs', data=json.dumps(odlc.serialize()))
+        return Odlc.deserialize(r.json())
 
-    def put_target(self, target_id, target):
-        """PUT target.
+    def put_odlc(self, odlc_id, odlc):
+        """PUT odlc.
 
         Args:
-            target_id: The ID of the target to update.
-            target: The target details to update.
+            odlc_id: The ID of the odlc to update.
+            odlc: The odlc details to update.
         Returns:
-            The target after being updated.
+            The odlc after being updated.
         Raises:
             InteropError: Error from server.
             requests.Timeout: Request timeout.
             ValueError or AttributeError: Malformed response from server.
         """
         r = self.put(
-            '/api/targets/%d' % target_id, data=json.dumps(target.serialize()))
-        return Target.deserialize(r.json())
+            '/api/odlcs/%d' % odlc_id, data=json.dumps(odlc.serialize()))
+        return Odlc.deserialize(r.json())
 
-    def delete_target(self, target_id):
-        """DELETE target.
+    def delete_odlc(self, odlc_id):
+        """DELETE odlc.
 
         Args:
-            target_id: The ID of the target to delete.
+            odlc_id: The ID of the odlc to delete.
         Raises:
             InteropError: Error from server.
             requests.Timeout: Request timeout.
         """
-        self.delete('/api/targets/%d' % target_id)
+        self.delete('/api/odlcs/%d' % odlc_id)
 
-    def get_target_image(self, target_id):
-        """GET target image.
+    def get_odlc_image(self, odlc_id):
+        """GET odlc image.
 
         Args:
-            target_id: The ID of the target for which to get the image.
+            odlc_id: The ID of the odlc for which to get the image.
         Returns:
             The image data that was previously uploaded.
         Raises:
             InteropError: Error from server.
             requests.Timeout: Request timeout.
         """
-        return self.get('/api/targets/%d/image' % target_id).content
+        return self.get('/api/odlcs/%d/image' % odlc_id).content
 
-    def post_target_image(self, target_id, image_data):
-        """POST target image. Image must be PNG or JPEG data.
+    def post_odlc_image(self, odlc_id, image_data):
+        """POST odlc image. Image must be PNG or JPEG data.
 
         Args:
-            target_id: The ID of the target for which to upload an image.
+            odlc_id: The ID of the odlc for which to upload an image.
             image_data: The image data (bytes loaded from file) to upload.
         Raises:
             InteropError: Error from server.
             requests.Timeout: Request timeout.
         """
-        self.put_target_image(target_id, image_data)
+        self.put_odlc_image(odlc_id, image_data)
 
-    def put_target_image(self, target_id, image_data):
-        """PUT target image. Image must be PNG or JPEG data.
+    def put_odlc_image(self, odlc_id, image_data):
+        """PUT odlc image. Image must be PNG or JPEG data.
 
         Args:
-            target_id: The ID of the target for which to upload an image.
+            odlc_id: The ID of the odlc for which to upload an image.
             image_data: The image data (bytes loaded from file) to upload.
         Raises:
             InteropError: Error from server.
             requests.Timeout: Request timeout.
         """
-        self.put('/api/targets/%d/image' % target_id, data=image_data)
+        self.put('/api/odlcs/%d/image' % odlc_id, data=image_data)
 
-    def delete_target_image(self, target_id):
-        """DELETE target image.
+    def delete_odlc_image(self, odlc_id):
+        """DELETE odlc image.
 
         Args:
-            target_id: The ID of the target image to delete.
+            odlc_id: The ID of the odlc image to delete.
         Raises:
             InteropError: Error from server.
             requests.Timeout: Request timeout.
         """
-        self.delete('/api/targets/%d/image' % target_id)
+        self.delete('/api/odlcs/%d/image' % odlc_id)
 
 
 class AsyncClient(object):
@@ -338,106 +338,106 @@ class AsyncClient(object):
         """
         return self.executor.submit(self.client.get_obstacles)
 
-    def get_targets(self):
-        """GET targets.
+    def get_odlcs(self):
+        """GET odlcs.
 
         Returns:
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.executor.submit(self.client.get_targets)
+        return self.executor.submit(self.client.get_odlcs)
 
-    def get_target(self, target_id):
-        """GET target.
+    def get_odlc(self, odlc_id):
+        """GET odlc.
 
         Args:
-            target_id: The ID of the target to get.
+            odlc_id: The ID of the odlc to get.
         Returns:
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.executor.submit(self.client.get_target, target_id)
+        return self.executor.submit(self.client.get_odlc, odlc_id)
 
-    def post_target(self, target):
-        """POST target.
+    def post_odlc(self, odlc):
+        """POST odlc.
 
         Args:
-            target: The target to upload.
+            odlc: The odlc to upload.
         Returns:
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.executor.submit(self.client.post_target, target)
+        return self.executor.submit(self.client.post_odlc, odlc)
 
-    def put_target(self, target_id, target):
-        """PUT target.
+    def put_odlc(self, odlc_id, odlc):
+        """PUT odlc.
 
         Args:
-            target_id: The ID of the target to update.
-            target: The target details to update.
+            odlc_id: The ID of the odlc to update.
+            odlc: The odlc details to update.
         Returns:
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.executor.submit(self.client.put_target, target_id, target)
+        return self.executor.submit(self.client.put_odlc, odlc_id, odlc)
 
-    def delete_target(self, target_id):
-        """DELETE target.
+    def delete_odlc(self, odlc_id):
+        """DELETE odlc.
 
         Args:
-            target_id: The ID of the target to delete.
+            odlc_id: The ID of the odlc to delete.
         Returns:
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.executor.submit(self.client.delete_target, target_id)
+        return self.executor.submit(self.client.delete_odlc, odlc_id)
 
-    def get_target_image(self, target_id):
-        """GET target image.
+    def get_odlc_image(self, odlc_id):
+        """GET odlc image.
 
         Args:
-            target_id: The ID of the target for which to get the image.
+            odlc_id: The ID of the odlc for which to get the image.
         Returns:
             The image data that was previously uploaded.
         Returns:
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.executor.submit(self.client.get_target_image, target_id)
+        return self.executor.submit(self.client.get_odlc_image, odlc_id)
 
-    def post_target_image(self, target_id, image_data):
-        """POST target image. Image must be PNG or JPEG data.
+    def post_odlc_image(self, odlc_id, image_data):
+        """POST odlc image. Image must be PNG or JPEG data.
 
         Args:
-            target_id: The ID of the target for which to upload an image.
+            odlc_id: The ID of the odlc for which to upload an image.
             image_data: The image data (bytes loaded from file) to upload.
         Returns:
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.executor.submit(self.client.post_target_image, target_id,
+        return self.executor.submit(self.client.post_odlc_image, odlc_id,
                                     image_data)
 
-    def put_target_image(self, target_id, image_data):
-        """PUT target image. Image must be PNG or JPEG data.
+    def put_odlc_image(self, odlc_id, image_data):
+        """PUT odlc image. Image must be PNG or JPEG data.
 
         Args:
-            target_id: The ID of the target for which to upload an image.
+            odlc_id: The ID of the odlc for which to upload an image.
             image_data: The image data (bytes loaded from file) to upload.
         Returns:
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.executor.submit(self.client.put_target_image, target_id,
+        return self.executor.submit(self.client.put_odlc_image, odlc_id,
                                     image_data)
 
-    def delete_target_image(self, target_id):
-        """DELETE target image.
+    def delete_odlc_image(self, odlc_id):
+        """DELETE odlc image.
 
         Args:
-            target_id: The ID of the target image to delete.
+            odlc_id: The ID of the odlc image to delete.
         Returns:
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.executor.submit(self.client.delete_target_image, target_id)
+        return self.executor.submit(self.client.delete_odlc_image, odlc_id)

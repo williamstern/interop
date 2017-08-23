@@ -8,8 +8,8 @@ interoperability server. It can be found in ``/client/interop/`` in the
 client Docker image.
 
 Note this library does not provide client-side request validation. It relies on
-the server to reject invalid requests, like rejecting Target objects with an
-invalid shape.
+the server to reject invalid requests, like rejecting objects with an invalid
+shape.
 
 .. automodule:: interop
    :members: Client,
@@ -22,5 +22,5 @@ invalid shape.
              Telemetry,
              StationaryObstacle,
              MovingObstacle,
-             Target
+             Odlc
    :special-members: __init__

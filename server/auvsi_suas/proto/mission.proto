@@ -1,6 +1,6 @@
 // Descriptors for Mission evaluation.
 
-import "target.proto";
+import "odlc.proto";
 
 package auvsi_suas.proto;
 
@@ -48,8 +48,8 @@ message MissionFeedback {
     repeated ObstacleEvaluation stationary_obstacles = 8;
     repeated ObstacleEvaluation moving_obstacles = 9;
 
-    // Target evaluation data.
-    optional MultiTargetEvaluation target = 10;
+    // Object detection evaluation data.
+    optional MultiOdlcEvaluation odlc = 10;
 
     // Feedback from judges.
     optional MissionJudgeFeedback judge = 11;

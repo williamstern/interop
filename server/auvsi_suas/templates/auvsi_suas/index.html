@@ -51,7 +51,7 @@
   <link rel="stylesheet" href="{% static 'auvsi_suas/components/team-status/team-status.css'%}" />
   <link rel="stylesheet" href="{% static 'auvsi_suas/pages/mission-dashboard/mission-dashboard.css'%}" />
   <link rel="stylesheet" href="{% static 'auvsi_suas/pages/mission-list/mission-list.css'%}" />
-  <link rel="stylesheet" href="{% static 'auvsi_suas/pages/target-review/target-review.css'%}" />
+  <link rel="stylesheet" href="{% static 'auvsi_suas/pages/odlc-review/odlc-review.css'%}" />
   <link rel="stylesheet" href="{% static 'auvsi_suas/pages/evaluate-teams/evaluate-teams.css'%}" />
 
   <script src="{% static 'auvsi_suas/app.js'%}"></script>
@@ -65,7 +65,7 @@
   <script src="{% static 'auvsi_suas/components/team-status/team-status-controller.js'%}"></script>
   <script src="{% static 'auvsi_suas/pages/mission-dashboard/mission-dashboard-controller.js'%}"></script>
   <script src="{% static 'auvsi_suas/pages/mission-list/mission-list-controller.js'%}"></script>
-  <script src="{% static 'auvsi_suas/pages/target-review/target-review-controller.js'%}"></script>
+  <script src="{% static 'auvsi_suas/pages/odlc-review/odlc-review-controller.js'%}"></script>
   <script src="{% static 'auvsi_suas/pages/evaluate-teams/evaluate-teams-controller.js'%}"></script>
 
   <title>AUVSI SUAS Server</title>
@@ -88,7 +88,7 @@
             <a>Mission</a>
             <ul class="dropdown">
                 <li ng-repeat="link in navigationCtrl.getMissionLinks()">
-                    <a href="{{link.url}}" target="{{link.target}}">{{link.text}}</a>
+                    <a href="{{link.url}}" odlc="{{link.odlc}}">{{link.text}}</a>
                 </li>
             </ul>
         </li>
@@ -98,7 +98,7 @@
             <a>System</a>
             <ul class="dropdown">
                 <li ng-repeat="link in navigationCtrl.getLinks()">
-                    <a href="{{link.url}}" target="{{link.target}}">{{link.text}}</a>
+                    <a href="{{link.url}}" odlc="{{link.odlc}}">{{link.text}}</a>
                 </li>
             </ul>
         </li>

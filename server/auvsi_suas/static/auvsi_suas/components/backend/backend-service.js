@@ -36,10 +36,10 @@ Backend = function($resource) {
     this.telemetryResource = $resource('/api/telemetry');
 
     /**
-     * @export @const {!Object} Target review interface.
+     * @export @const {!Object} Odlc review interface.
      */
-    this.targetReviewResource = $resource(
-            '/api/targets/review/:id',
+    this.odlcReviewResource = $resource(
+            '/api/odlcs/review/:id',
             {id: '@id'},
             {'put': {method: 'PUT'}});
 };

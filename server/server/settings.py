@@ -209,17 +209,17 @@ INTEROP_TELEM_THRESHOLD_TIME_SEC = 1.0
 
 # Ratio of object points to lose for every extra unmatched object submitted.
 EXTRA_OBJECT_PENALTY_RATIO = 0.05
-# The weight of classification accuracy when calculating a target match score.
+# The weight of classification accuracy when calculating a odlc match score.
 CHARACTERISTICS_WEIGHT = 0.2
 # The lowest allowed location accuracy (in feet)
 TARGET_LOCATION_THRESHOLD = 150
-# The weight of geolocation accuracy when calculating a target match score.
+# The weight of geolocation accuracy when calculating a odlc match score.
 GEOLOCATION_WEIGHT = 0.2
-# The weight of actionable intelligence when calculating a target match score.
+# The weight of actionable intelligence when calculating a odlc match score.
 ACTIONABLE_WEIGHT = 0.1
-# The weight of autonomy when calculating a target match score.
+# The weight of autonomy when calculating a odlc match score.
 AUTONOMY_WEIGHT = 0.2
-# The weight of submission over interop when calculating a target match score.
+# The weight of submission over interop when calculating a odlc match score.
 INTEROPERABILITY_WEIGHT = 0.3
 
 # Weight of timeline points for mission time.

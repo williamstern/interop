@@ -32,26 +32,18 @@ class TestMissions(InteropCliTestBase):
         self.assertCliOk(self.cli_base_args + ['missions'])
 
 
-class TestTargets(InteropCliTestBase):
-    """Test able to upload targets."""
+class TestOdlcs(InteropCliTestBase):
+    """Test able to upload odlcs."""
 
     def setUp(self):
         """Compute the testdata folder."""
-        super(TestTargets, self).setUp()
-        self.target_dir = os.path.join(os.path.dirname(__file__), "testdata")
+        super(TestOdlcs, self).setUp()
+        self.odlc_dir = os.path.join(os.path.dirname(__file__), "testdata")
 
-    def test_upload_targets(self):
-        """Test uploading targets with Object File Format."""
+    def test_upload_odlcs(self):
+        """Test uploading odlcs with Object File Format."""
         self.assertCliOk(self.cli_base_args +
-                         ['targets', '--target_dir', self.target_dir])
-
-    def test_legacy_upload_targets(self):
-        """Test uploading targets with legacy format."""
-        target_filepath = os.path.join(self.target_dir, "targets.txt")
-        self.assertCliOk(self.cli_base_args + [
-            'targets', '--target_dir', self.target_dir, '--legacy_filepath',
-            target_filepath
-        ])
+                         ['odlcs', '--odlc_dir', self.odlc_dir])
 
 
 class TestProbe(InteropCliTestBase):

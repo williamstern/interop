@@ -26,10 +26,10 @@ auvsiSuasApp.config(['$routeProvider', function($routeProvider) {
             controller: 'MissionDashboardCtrl',
             controllerAs: 'missionDashboardCtrl'
         }).
-        when('/mission/:missionId/targets', {
-            templateUrl: '/static/auvsi_suas/pages/target-review/target-review.html',
-            controller: 'TargetReviewCtrl',
-            controllerAs: 'targetReviewCtrl'
+        when('/mission/:missionId/odlcs', {
+            templateUrl: '/static/auvsi_suas/pages/odlc-review/odlc-review.html',
+            controller: 'OdlcReviewCtrl',
+            controllerAs: 'odlcReviewCtrl'
         }).
         when('/mission/:missionId/evaluate', {
             templateUrl: '/static/auvsi_suas/pages/evaluate-teams/evaluate-teams.html',
