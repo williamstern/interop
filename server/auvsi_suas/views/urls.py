@@ -2,7 +2,7 @@ from auvsi_suas.views.clear_cache import ClearCache
 from auvsi_suas.views.login import Login
 from auvsi_suas.views.missions import Missions, MissionsId
 from auvsi_suas.views.obstacles import Obstacles
-from auvsi_suas.views.targets import Targets, TargetsId, TargetsIdImage, TargetsAdminReview
+from auvsi_suas.views.odlcs import Odlcs, OdlcsId, OdlcsIdImage, OdlcsAdminReview
 from auvsi_suas.views.teams import Teams, TeamsId
 from auvsi_suas.views.telemetry import Telemetry
 from auvsi_suas.views.auvsi_admin.evaluate_teams import EvaluateTeams
@@ -20,17 +20,17 @@ urlpatterns = patterns(
     url(r'^api/login$', Login.as_view(), name='login'),
     url(r'^api/obstacles$', Obstacles.as_view(), name='obstacles'),
     url(r'^api/telemetry$', Telemetry.as_view(), name='telemetry'),
-    url(r'^api/targets$', Targets.as_view(), name='targets'),
-    url(r'^api/targets/(?P<pk>\d+)$', TargetsId.as_view(), name='targets_id'),
-    url(r'^api/targets/(?P<pk>\d+)/image$', TargetsIdImage.as_view(),
-        name='targets_id_image'),
+    url(r'^api/odlcs$', Odlcs.as_view(), name='odlcs'),
+    url(r'^api/odlcs/(?P<pk>\d+)$', OdlcsId.as_view(), name='odlcs_id'),
+    url(r'^api/odlcs/(?P<pk>\d+)/image$', OdlcsIdImage.as_view(),
+        name='odlcs_id_image'),
     # Admin API
     url(r'^api/missions$', Missions.as_view(), name='missions'),
     url(r'^api/missions/(?P<pk>\d+)$', MissionsId.as_view(), name='missions_id'),
-    url(r'^api/targets/review$', TargetsAdminReview.as_view(),
-        name='targets_review'),
-    url(r'^api/targets/review/(?P<pk>\d+)$', TargetsAdminReview.as_view(),
-        name='targets_review_id'),
+    url(r'^api/odlcs/review$', OdlcsAdminReview.as_view(),
+        name='odlcs_review'),
+    url(r'^api/odlcs/review/(?P<pk>\d+)$', OdlcsAdminReview.as_view(),
+        name='odlcs_review_id'),
     url(r'^api/teams$', Teams.as_view(), name='teams'),
     url(r'^api/teams/(?P<pk>\d+)$', TeamsId.as_view(), name='teams_id'),
     url(r'^api/clear_cache$', ClearCache.as_view(), name='clear_cache'),

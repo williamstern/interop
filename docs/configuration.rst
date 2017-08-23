@@ -29,7 +29,7 @@ detail than what is presented in :doc:`getting_started`.
 .. autoclass:: auvsi_suas.models.gps_position.GpsPosition
 .. autoclass:: auvsi_suas.models.aerial_position.AerialPosition
 .. autoclass:: auvsi_suas.models.uas_telemetry.UasTelemetry
-.. autoclass:: auvsi_suas.models.target.Target
+.. autoclass:: auvsi_suas.models.odlc.Odlc
 .. autoclass:: auvsi_suas.models.waypoint.Waypoint
 .. autoclass:: auvsi_suas.models.stationary_obstacle.StationaryObstacle
 .. autoclass:: auvsi_suas.models.moving_obstacle.MovingObstacle

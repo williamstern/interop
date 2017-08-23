@@ -94,7 +94,7 @@ class TestObstaclesViewCommon(TestCase):
         config.is_active = True
         config.home_pos = pos
         config.emergent_last_known_pos = pos
-        config.off_axis_target_pos = pos
+        config.off_axis_odlc_pos = pos
         config.air_drop_pos = pos
         config.save()
 

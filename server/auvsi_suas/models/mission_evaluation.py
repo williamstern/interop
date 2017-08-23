@@ -12,8 +12,8 @@ from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.mission_clock_event import MissionClockEvent
 from auvsi_suas.models.mission_judge_feedback import MissionJudgeFeedback
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
-from auvsi_suas.models.target import Target
-from auvsi_suas.models.target import TargetEvaluator
+from auvsi_suas.models.odlc import Odlc
+from auvsi_suas.models.odlc import OdlcEvaluator
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.proto import mission_pb2
 
@@ -88,10 +88,10 @@ def generate_feedback(mission_config, user, team_eval):
             mission_config.home_pos,
             mission_config.mission_waypoints.order_by('order'), uas_logs))
 
-    # Evaluate the targets.
-    user_targets = Target.objects.filter(user=user).all()
-    evaluator = TargetEvaluator(user_targets, mission_config.targets.all())
-    feedback.target.CopyFrom(evaluator.evaluate())
+    # Evaluate the object detections.
+    user_odlcs = Odlc.objects.filter(user=user).all()
+    evaluator = OdlcEvaluator(user_odlcs, mission_config.odlcs.all())
+    feedback.odlc.CopyFrom(evaluator.evaluate())
 
     # Determine collisions with stationary and moving obstacles.
     for obst in mission_config.stationary_obstacles.all():
@@ -208,7 +208,7 @@ def score_team(team_eval):
 
     # Score objects.
     objects = score.object
-    object_eval = feedback.target
+    object_eval = feedback.odlc
     object_field_mapping = [
         ('classifications_score_ratio', 'characteristics'),
         ('geolocation_score_ratio', 'geolocation'),
@@ -218,8 +218,8 @@ def score_team(team_eval):
     ]
     for eval_field, score_field in object_field_mapping:
         total = reduce(lambda x, y: x + y,
-                       [getattr(o, eval_field) for o in object_eval.targets])
-        setattr(objects, score_field, float(total) / len(object_eval.targets))
+                       [getattr(o, eval_field) for o in object_eval.odlcs])
+        setattr(objects, score_field, float(total) / len(object_eval.odlcs))
     objects.extra_object_penalty = object_eval.extra_object_penalty_ratio
     objects.score_ratio = object_eval.score_ratio
 

@@ -5,11 +5,11 @@ import json
 import os.path
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_clock_event import MissionClockEvent
-from auvsi_suas.models.target import Color
-from auvsi_suas.models.target import Orientation
-from auvsi_suas.models.target import Shape
-from auvsi_suas.models.target import Target
-from auvsi_suas.models.target import TargetType
+from auvsi_suas.models.odlc import Color
+from auvsi_suas.models.odlc import Orientation
+from auvsi_suas.models.odlc import Shape
+from auvsi_suas.models.odlc import Odlc
+from auvsi_suas.models.odlc import OdlcType
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.images import ImageFile
@@ -17,38 +17,34 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 login_url = reverse('auvsi_suas:login')
-targets_url = reverse('auvsi_suas:targets')
-targets_id_url = functools.partial(reverse, 'auvsi_suas:targets_id')
-targets_id_image_url = functools.partial(reverse,
-                                         'auvsi_suas:targets_id_image')
-targets_review_url = reverse('auvsi_suas:targets_review')
-targets_review_id_url = functools.partial(reverse,
-                                          'auvsi_suas:targets_review_id')
+odlcs_url = reverse('auvsi_suas:odlcs')
+odlcs_id_url = functools.partial(reverse, 'auvsi_suas:odlcs_id')
+odlcs_id_image_url = functools.partial(reverse, 'auvsi_suas:odlcs_id_image')
+odlcs_review_url = reverse('auvsi_suas:odlcs_review')
+odlcs_review_id_url = functools.partial(reverse, 'auvsi_suas:odlcs_review_id')
 
 
-class TestTargetsLoggedOut(TestCase):
-    """Tests logged out targets."""
+class TestOdlcsLoggedOut(TestCase):
+    """Tests logged out odlcs."""
 
     def test_not_authenticated(self):
         """Unauthenticated requests should fail."""
-        target = {
+        odlc = {
             'type': 'standard',
             'latitude': 38,
             'longitude': -76,
         }
 
         response = self.client.post(
-            targets_url,
-            data=json.dumps(target),
-            content_type='application/json')
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
         self.assertEqual(403, response.status_code)
 
-        response = self.client.get(targets_url)
+        response = self.client.get(odlcs_url)
         self.assertEqual(403, response.status_code)
 
 
-class TestGetTarget(TestCase):
-    """Tests GETing the targets view."""
+class TestGetOdlc(TestCase):
+    """Tests GETing the odlcs view."""
 
     def setUp(self):
         """Creates user and logs in."""
@@ -60,22 +56,22 @@ class TestGetTarget(TestCase):
                         'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
-    def test_no_targets(self):
-        """We get back an empty list if we have no targets."""
-        response = self.client.get(targets_url)
+    def test_no_odlcs(self):
+        """We get back an empty list if we have no odlcs."""
+        response = self.client.get(odlcs_url)
         self.assertEqual(200, response.status_code)
 
         self.assertEqual([], json.loads(response.content))
 
-    def test_get_targets(self):
-        """We get back the targets we own."""
-        t1 = Target(user=self.user, target_type=TargetType.standard)
+    def test_get_odlcs(self):
+        """We get back the odlcs we own."""
+        t1 = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t1.save()
 
-        t2 = Target(user=self.user, target_type=TargetType.standard)
+        t2 = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t2.save()
 
-        response = self.client.get(targets_url)
+        response = self.client.get(odlcs_url)
         self.assertEqual(200, response.status_code)
 
         d = json.loads(response.content)
@@ -83,17 +79,17 @@ class TestGetTarget(TestCase):
         self.assertItemsEqual([t1.json(), t2.json()], d)
 
     def test_not_others(self):
-        """We don't get targets owned by other users."""
+        """We don't get odlcs owned by other users."""
         user2 = User.objects.create_user('testuser2', 'testemail@x.com',
                                          'testpass')
 
-        mine = Target(user=self.user, target_type=TargetType.standard)
+        mine = Odlc(user=self.user, odlc_type=OdlcType.standard)
         mine.save()
 
-        theirs = Target(user=user2, target_type=TargetType.standard)
+        theirs = Odlc(user=user2, odlc_type=OdlcType.standard)
         theirs.save()
 
-        response = self.client.get(targets_url)
+        response = self.client.get(odlcs_url)
         self.assertEqual(200, response.status_code)
 
         d = json.loads(response.content)
@@ -101,8 +97,8 @@ class TestGetTarget(TestCase):
         self.assertItemsEqual([mine.json()], d)
 
 
-class TestPostTarget(TestCase):
-    """Tests POSTing the targets view."""
+class TestPostOdlc(TestCase):
+    """Tests POSTing the odlcs view."""
 
     def setUp(self):
         """Creates user and logs in."""
@@ -115,8 +111,8 @@ class TestPostTarget(TestCase):
         self.assertEqual(200, response.status_code)
 
     def test_complete(self):
-        """Send complete target with all fields."""
-        target = {
+        """Send complete odlc with all fields."""
+        odlc = {
             'type': 'standard',
             'latitude': 38,
             'longitude': -76,
@@ -125,50 +121,45 @@ class TestPostTarget(TestCase):
             'background_color': 'white',
             'alphanumeric': 'ABC',
             'alphanumeric_color': 'black',
-            'description': 'Best target',
+            'description': 'Best odlc',
             'autonomous': False,
         }
 
         response = self.client.post(
-            targets_url,
-            data=json.dumps(target),
-            content_type='application/json')
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
         self.assertEqual(201, response.status_code)
 
-        # Check that returned target matches
+        # Check that returned odlc matches
         created = json.loads(response.content)
 
-        self.assertEqual(target['type'], created['type'])
-        self.assertEqual(target['latitude'], created['latitude'])
-        self.assertEqual(target['longitude'], created['longitude'])
-        self.assertEqual(target['orientation'], created['orientation'])
-        self.assertEqual(target['shape'], created['shape'])
-        self.assertEqual(target['background_color'],
-                         created['background_color'])
-        self.assertEqual(target['alphanumeric'], created['alphanumeric'])
-        self.assertEqual(target['alphanumeric_color'],
+        self.assertEqual(odlc['type'], created['type'])
+        self.assertEqual(odlc['latitude'], created['latitude'])
+        self.assertEqual(odlc['longitude'], created['longitude'])
+        self.assertEqual(odlc['orientation'], created['orientation'])
+        self.assertEqual(odlc['shape'], created['shape'])
+        self.assertEqual(odlc['background_color'], created['background_color'])
+        self.assertEqual(odlc['alphanumeric'], created['alphanumeric'])
+        self.assertEqual(odlc['alphanumeric_color'],
                          created['alphanumeric_color'])
-        self.assertEqual(target['description'], created['description'])
-        self.assertEqual(target['autonomous'], created['autonomous'])
+        self.assertEqual(odlc['description'], created['description'])
+        self.assertEqual(odlc['autonomous'], created['autonomous'])
 
         # It also contains 'user' and 'id' fields.
         self.assertIn('id', created)
         self.assertIn('user', created)
 
     def test_minimal(self):
-        """Send target minimal fields."""
-        target = {'type': 'standard'}
+        """Send odlc minimal fields."""
+        odlc = {'type': 'standard'}
 
         response = self.client.post(
-            targets_url,
-            data=json.dumps(target),
-            content_type='application/json')
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
         self.assertEqual(201, response.status_code)
 
-        # Check that returned target matches
+        # Check that returned odlc matches
         created = json.loads(response.content)
 
-        self.assertEqual(target['type'], created['type'])
+        self.assertEqual(odlc['type'], created['type'])
         self.assertEqual(None, created['latitude'])
         self.assertEqual(None, created['longitude'])
         self.assertEqual(None, created['orientation'])
@@ -184,25 +175,23 @@ class TestPostTarget(TestCase):
         self.assertIn('user', created)
 
     def test_none(self):
-        """Send target with None fields has no effect."""
-        target = {'type': 'standard', 'latitude': None, 'shape': None}
+        """Send odlc with None fields has no effect."""
+        odlc = {'type': 'standard', 'latitude': None, 'shape': None}
 
         response = self.client.post(
-            targets_url,
-            data=json.dumps(target),
-            content_type='application/json')
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
         self.assertEqual(201, response.status_code)
 
-        # Check that returned target matches
+        # Check that returned odlc matches
         created = json.loads(response.content)
 
-        self.assertEqual(target['type'], created['type'])
+        self.assertEqual(odlc['type'], created['type'])
         self.assertEqual(None, created['latitude'])
         self.assertEqual(None, created['shape'])
 
     def test_missing_type(self):
-        """Target type required."""
-        target = {
+        """Odlc type required."""
+        odlc = {
             'latitude': 38,
             'longitude': -76,
             'orientation': 'N',
@@ -210,88 +199,82 @@ class TestPostTarget(TestCase):
             'background_color': 'white',
             'alphanumeric': 'ABC',
             'alphanumeric_color': 'black',
-            'description': 'Best target',
+            'description': 'Best odlc',
         }
 
         response = self.client.post(
-            targets_url,
-            data=json.dumps(target),
-            content_type='application/json')
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
         self.assertEqual(400, response.status_code)
 
     def test_invalid_json(self):
         """Request body must contain valid JSON."""
         response = self.client.post(
-            targets_url,
+            odlcs_url,
             data='type=standard&longitude=-76',
             content_type='multipart/form-data')
         self.assertEqual(400, response.status_code)
 
     def test_missing_latitude(self):
-        """Target latitude required if longitude specified."""
-        target = {'type': 'standard', 'longitude': -76}
+        """Odlc latitude required if longitude specified."""
+        odlc = {'type': 'standard', 'longitude': -76}
 
         response = self.client.post(
-            targets_url,
-            data=json.dumps(target),
-            content_type='application/json')
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
         self.assertEqual(400, response.status_code)
 
     def test_missing_longitude(self):
-        """Target longitude required if latitude specified."""
-        target = {'type': 'standard', 'latitude': 38}
+        """Odlc longitude required if latitude specified."""
+        odlc = {'type': 'standard', 'latitude': 38}
 
         response = self.client.post(
-            targets_url,
-            data=json.dumps(target),
-            content_type='application/json')
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
         self.assertEqual(400, response.status_code)
 
     def test_invalid_type(self):
-        """Send bad target type."""
+        """Send bad odlc type."""
         bad = ['foo', 'standard nonsense', 42]
 
         for b in bad:
-            target = {'type': b, 'latitude': 38, 'longitude': -76}
+            odlc = {'type': b, 'latitude': 38, 'longitude': -76}
 
             response = self.client.post(
-                targets_url,
-                data=json.dumps(target),
+                odlcs_url,
+                data=json.dumps(odlc),
                 content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_latitude(self):
-        """Send bad target latitude."""
+        """Send bad odlc latitude."""
         bad = ['string', 120, -120]
 
         for b in bad:
-            target = {'type': 'standard', 'latitude': b, 'longitude': -76}
+            odlc = {'type': 'standard', 'latitude': b, 'longitude': -76}
 
             response = self.client.post(
-                targets_url,
-                data=json.dumps(target),
+                odlcs_url,
+                data=json.dumps(odlc),
                 content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_longitude(self):
-        """Send bad target longitude."""
+        """Send bad odlc longitude."""
         bad = ['string', 200, -200]
 
         for b in bad:
-            target = {'type': 'standard', 'latitude': 38, 'longitude': b}
+            odlc = {'type': 'standard', 'latitude': 38, 'longitude': b}
 
             response = self.client.post(
-                targets_url,
-                data=json.dumps(target),
+                odlcs_url,
+                data=json.dumps(odlc),
                 content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_shape(self):
-        """Send bad target shape."""
+        """Send bad odlc shape."""
         bad = ['square circle', 'dodecahedron', 42]
 
         for b in bad:
-            target = {
+            odlc = {
                 'type': 'standard',
                 'latitude': 38,
                 'longitude': -76,
@@ -299,17 +282,17 @@ class TestPostTarget(TestCase):
             }
 
             response = self.client.post(
-                targets_url,
-                data=json.dumps(target),
+                odlcs_url,
+                data=json.dumps(odlc),
                 content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_background_color(self):
-        """Send bad target background color."""
+        """Send bad odlc background color."""
         bad = ['white black', 'mahogany', 42]
 
         for b in bad:
-            target = {
+            odlc = {
                 'type': 'standard',
                 'latitude': 38,
                 'longitude': -76,
@@ -317,17 +300,17 @@ class TestPostTarget(TestCase):
             }
 
             response = self.client.post(
-                targets_url,
-                data=json.dumps(target),
+                odlcs_url,
+                data=json.dumps(odlc),
                 content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_alphanumeric_color(self):
-        """Send bad target alphanumeric color."""
+        """Send bad odlc alphanumeric color."""
         bad = ['white black', 'mahogany', 42]
 
         for b in bad:
-            target = {
+            odlc = {
                 'type': 'standard',
                 'latitude': 38,
                 'longitude': -76,
@@ -335,17 +318,17 @@ class TestPostTarget(TestCase):
             }
 
             response = self.client.post(
-                targets_url,
-                data=json.dumps(target),
+                odlcs_url,
+                data=json.dumps(odlc),
                 content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_orientation(self):
-        """Send bad target orientation."""
+        """Send bad odlc orientation."""
         bad = ['NNE', 'north', 42]
 
         for b in bad:
-            target = {
+            odlc = {
                 'type': 'standard',
                 'latitude': 38,
                 'longitude': -76,
@@ -353,17 +336,17 @@ class TestPostTarget(TestCase):
             }
 
             response = self.client.post(
-                targets_url,
-                data=json.dumps(target),
+                odlcs_url,
+                data=json.dumps(odlc),
                 content_type='application/json')
             self.assertEqual(400, response.status_code)
 
     def test_invalid_autonomous(self):
-        """Send bad target autonomous."""
+        """Send bad odlc autonomous."""
         bad = ['true', 1, 'Yes']
 
         for b in bad:
-            target = {
+            odlc = {
                 'type': 'standard',
                 'latitude': 38,
                 'longitude': -76,
@@ -371,22 +354,20 @@ class TestPostTarget(TestCase):
             }
 
             response = self.client.post(
-                targets_url,
-                data=json.dumps(target),
+                odlcs_url,
+                data=json.dumps(odlc),
                 content_type='application/json')
             self.assertEqual(400, response.status_code)
 
-    def test_create_target_team_id(self):
+    def test_create_odlc_team_id(self):
         """Request fails if non-admin user specifies team_id."""
-        target = {'type': 'standard', 'team_id': self.user.username}
+        odlc = {'type': 'standard', 'team_id': self.user.username}
         response = self.client.post(
-            targets_url,
-            data=json.dumps(target),
-            content_type='application/json')
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
         self.assertEqual(403, response.status_code)
 
-    def test_superuser_create_target(self):
-        """Admin user can create target on behalf of another team."""
+    def test_superuser_create_odlc(self):
+        """Admin user can create odlc on behalf of another team."""
         # Login as superuser.
         superuser = User.objects.create_superuser(
             'testsuperuser', 'testsuperemail@x.com', 'testsuperpass')
@@ -396,25 +377,21 @@ class TestPostTarget(TestCase):
         })
         self.assertEqual(200, response.status_code)
 
-        # Create target.
-        target = {'type': 'standard', 'team_id': self.user.username}
+        # Create odlc.
+        odlc = {'type': 'standard', 'team_id': self.user.username}
         response = self.client.post(
-            targets_url,
-            data=json.dumps(target),
-            content_type='application/json')
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
         self.assertEqual(201, response.status_code)
 
-        # Ensure target created for proper user.
+        # Ensure odlc created for proper user.
         created = json.loads(response.content)
         self.assertEqual(self.user.id, created['user'])
 
     def test_actionable_override(self):
         """Request fails if non-admin user specifies actionable_override."""
-        target = {'type': 'standard', 'actionable_override': True}
+        odlc = {'type': 'standard', 'actionable_override': True}
         response = self.client.post(
-            targets_url,
-            data=json.dumps(target),
-            content_type='application/json')
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
         self.assertEqual(403, response.status_code)
 
     def test_superuser_actionable_override(self):
@@ -428,30 +405,28 @@ class TestPostTarget(TestCase):
         })
         self.assertEqual(200, response.status_code)
 
-        # Create target.
-        target = {'type': 'standard', 'actionable_override': True}
+        # Create odlc.
+        odlc = {'type': 'standard', 'actionable_override': True}
         response = self.client.post(
-            targets_url,
-            data=json.dumps(target),
-            content_type='application/json')
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
         self.assertEqual(201, response.status_code)
 
-        # Ensure target has actionable_override flag set.
+        # Ensure odlc has actionable_override flag set.
         created = json.loads(response.content)
         self.assertEqual(True, created['actionable_override'])
 
 
-class TestTargetsIdLoggedOut(TestCase):
-    """Tests logged out targets_id."""
+class TestOdlcsIdLoggedOut(TestCase):
+    """Tests logged out odlcs_id."""
 
     def test_not_authenticated(self):
         """Unauthenticated requests should fail."""
-        response = self.client.get(targets_id_url(args=[1]))
+        response = self.client.get(odlcs_id_url(args=[1]))
         self.assertEqual(403, response.status_code)
 
 
-class TestTargetId(TestCase):
-    """Tests GET/PUT/DELETE specific targets."""
+class TestOdlcId(TestCase):
+    """Tests GET/PUT/DELETE specific odlcs."""
 
     def setUp(self):
         """Creates user and logs in."""
@@ -464,39 +439,39 @@ class TestTargetId(TestCase):
         self.assertEqual(200, response.status_code)
 
     def test_get_nonexistent(self):
-        """Test GETting a target that doesn't exist."""
-        response = self.client.get(targets_id_url(args=[999]))
+        """Test GETting a odlc that doesn't exist."""
+        response = self.client.get(odlcs_id_url(args=[999]))
         self.assertEqual(404, response.status_code)
 
     def test_get_other_user(self):
-        """Test GETting a target owned by a different user."""
+        """Test GETting a odlc owned by a different user."""
         user2 = User.objects.create_user('testuser2', 'testemail@x.com',
                                          'testpass')
-        t = Target(user=user2, target_type=TargetType.standard)
+        t = Odlc(user=user2, odlc_type=OdlcType.standard)
         t.save()
 
-        response = self.client.get(targets_id_url(args=[t.pk]))
+        response = self.client.get(odlcs_id_url(args=[t.pk]))
         self.assertEqual(403, response.status_code)
 
     def test_get_own(self):
-        """Test GETting a target owned by the correct user."""
-        t = Target(user=self.user, target_type=TargetType.standard)
+        """Test GETting a odlc owned by the correct user."""
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
-        response = self.client.get(targets_id_url(args=[t.pk]))
+        response = self.client.get(odlcs_id_url(args=[t.pk]))
         self.assertEqual(200, response.status_code)
 
         self.assertEqual(t.json(), json.loads(response.content))
 
     def test_put_append(self):
         """PUT sets a new field that wasn't set before."""
-        t = Target(user=self.user, target_type=TargetType.standard)
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         data = {'description': 'Hello'}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -510,28 +485,28 @@ class TestTargetId(TestCase):
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
-        t = Target(
+        t = Odlc(
             user=self.user,
-            target_type=TargetType.standard,
+            odlc_type=OdlcType.standard,
             location=l,
             orientation=Orientation.s,
             shape=Shape.square,
             background_color=Color.white,
             alphanumeric='ABC',
             alphanumeric_color=Color.black,
-            description='Test target')
+            description='Test odlc')
         t.save()
 
         data = {'shape': 'circle'}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
         t.location.refresh_from_db()
         self.assertEqual(self.user, t.user)
-        self.assertEqual(TargetType.standard, t.target_type)
+        self.assertEqual(OdlcType.standard, t.odlc_type)
         self.assertEqual(38, t.location.latitude)
         self.assertEqual(-76, t.location.longitude)
         self.assertEqual(Orientation.s, t.orientation)
@@ -539,20 +514,18 @@ class TestTargetId(TestCase):
         self.assertEqual(Color.white, t.background_color)
         self.assertEqual('ABC', t.alphanumeric)
         self.assertEqual(Color.black, t.alphanumeric_color)
-        self.assertEqual('Test target', t.description)
+        self.assertEqual('Test odlc', t.description)
 
     def test_put_clear_shape(self):
         """PUT clear a field with None."""
-        t = Target(
-            user=self.user,
-            target_type=TargetType.standard,
-            shape=Shape.square)
+        t = Odlc(
+            user=self.user, odlc_type=OdlcType.standard, shape=Shape.square)
         t.save()
 
         data = {'shape': None}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -560,27 +533,25 @@ class TestTargetId(TestCase):
 
     def test_put_clear_type(self):
         """PUT type may not be cleared."""
-        t = Target(
-            user=self.user,
-            target_type=TargetType.standard,
-            shape=Shape.square)
+        t = Odlc(
+            user=self.user, odlc_type=OdlcType.standard, shape=Shape.square)
         t.save()
 
         data = {'type': None}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(400, response.status_code)
 
     def test_put_location(self):
         """PUT new location"""
-        t = Target(user=self.user, target_type=TargetType.standard)
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         data = {'latitude': 38, 'longitude': -76}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -589,13 +560,13 @@ class TestTargetId(TestCase):
 
     def test_put_location_missing_one(self):
         """PUTting new location requires both latitude and longitude."""
-        t = Target(user=self.user, target_type=TargetType.standard)
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         data = {'latitude': 38}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(400, response.status_code)
 
     def test_put_update_location(self):
@@ -603,13 +574,13 @@ class TestTargetId(TestCase):
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
-        t = Target(user=self.user, target_type=TargetType.standard, location=l)
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard, location=l)
         t.save()
 
         data = {'latitude': 39}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -622,13 +593,13 @@ class TestTargetId(TestCase):
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
-        t = Target(user=self.user, target_type=TargetType.standard, location=l)
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard, location=l)
         t.save()
 
         data = {'latitude': None, 'longitude': None}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -639,13 +610,13 @@ class TestTargetId(TestCase):
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
-        t = Target(user=self.user, target_type=TargetType.standard, location=l)
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard, location=l)
         t.save()
 
         data = {'latitude': None}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(400, response.status_code)
 
     def test_put_invalid_json(self):
@@ -653,24 +624,24 @@ class TestTargetId(TestCase):
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
-        t = Target(user=self.user, target_type=TargetType.standard, location=l)
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard, location=l)
         t.save()
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]),
+            odlcs_id_url(args=[t.pk]),
             data="latitude=76",
             content_type='multipart/form-data')
         self.assertEqual(400, response.status_code)
 
     def test_put_change_autonomous(self):
         """Change autonomous with PUT"""
-        t = Target(user=self.user, target_type=TargetType.standard)
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         data = {'autonomous': True}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
@@ -678,13 +649,13 @@ class TestTargetId(TestCase):
 
     def test_put_change_actionable_override(self):
         """PUT fails if non-admin user tries to change actionable_override."""
-        t = Target(user=self.user, target_type=TargetType.standard)
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         data = {'actionable_override': True}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(403, response.status_code)
 
     def test_put_superuser_change_actionable_override(self):
@@ -698,66 +669,66 @@ class TestTargetId(TestCase):
         })
         self.assertEqual(200, response.status_code)
 
-        t = Target(user=self.user, target_type=TargetType.standard)
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         data = {'actionable_override': True}
 
         response = self.client.put(
-            targets_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
         self.assertEqual(True, t.actionable_override)
 
     def test_delete_own(self):
-        """Test DELETEing a target owned by the correct user."""
-        t = Target(user=self.user, target_type=TargetType.standard)
+        """Test DELETEing a odlc owned by the correct user."""
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         pk = t.pk
 
-        self.assertTrue(Target.objects.get(pk=pk))
+        self.assertTrue(Odlc.objects.get(pk=pk))
 
-        response = self.client.delete(targets_id_url(args=[pk]))
+        response = self.client.delete(odlcs_id_url(args=[pk]))
         self.assertEqual(200, response.status_code)
 
-        with self.assertRaises(Target.DoesNotExist):
-            Target.objects.get(pk=pk)
+        with self.assertRaises(Odlc.DoesNotExist):
+            Odlc.objects.get(pk=pk)
 
     def test_delete_other(self):
-        """Test DELETEing a target owned by another user."""
+        """Test DELETEing a odlc owned by another user."""
         user2 = User.objects.create_user('testuser2', 'testemail@x.com',
                                          'testpass')
-        t = Target(user=user2, target_type=TargetType.standard)
+        t = Odlc(user=user2, odlc_type=OdlcType.standard)
         t.save()
 
-        response = self.client.delete(targets_id_url(args=[t.pk]))
+        response = self.client.delete(odlcs_id_url(args=[t.pk]))
         self.assertEqual(403, response.status_code)
 
     def test_get_after_delete_own(self):
-        """Test GETting a target after DELETE."""
-        t = Target(user=self.user, target_type=TargetType.standard)
+        """Test GETting a odlc after DELETE."""
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         pk = t.pk
 
-        response = self.client.delete(targets_id_url(args=[pk]))
+        response = self.client.delete(odlcs_id_url(args=[pk]))
         self.assertEqual(200, response.status_code)
 
-        response = self.client.get(targets_id_url(args=[pk]))
+        response = self.client.get(odlcs_id_url(args=[pk]))
         self.assertEqual(404, response.status_code)
 
     def test_delete_thumb(self):
-        """Test DELETEing a target with thumbnail."""
-        t = Target(user=self.user, target_type=TargetType.standard)
+        """Test DELETEing a odlc with thumbnail."""
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         pk = t.pk
 
         with open(test_image("A.jpg")) as f:
             response = self.client.post(
-                targets_id_image_url(args=[pk]),
+                odlcs_id_image_url(args=[pk]),
                 data=f.read(),
                 content_type="image/jpeg")
             self.assertEqual(200, response.status_code)
@@ -766,7 +737,7 @@ class TestTargetId(TestCase):
         thumb = t.thumbnail.path
         self.assertTrue(os.path.exists(thumb))
 
-        response = self.client.delete(targets_id_url(args=[pk]))
+        response = self.client.delete(odlcs_id_url(args=[pk]))
         self.assertEqual(200, response.status_code)
 
         self.assertFalse(os.path.exists(thumb))
@@ -778,8 +749,8 @@ def test_image(name):
                         name)
 
 
-class TestTargetIdImage(TestCase):
-    """Tests GET/PUT/DELETE target image."""
+class TestOdlcIdImage(TestCase):
+    """Tests GET/PUT/DELETE odlc image."""
 
     def setUp(self):
         """Creates user and logs in."""
@@ -791,41 +762,41 @@ class TestTargetIdImage(TestCase):
                         'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
-        # Create a target
+        # Create a odlc
         response = self.client.post(
-            targets_url,
+            odlcs_url,
             data=json.dumps({
                 'type': 'standard'
             }),
             content_type='application/json')
         self.assertEqual(201, response.status_code)
-        self.target_id = json.loads(response.content)['id']
+        self.odlc_id = json.loads(response.content)['id']
 
     def test_get_no_image(self):
         """404 when GET image before upload."""
-        response = self.client.get(targets_id_image_url(args=[self.target_id]))
+        response = self.client.get(odlcs_id_image_url(args=[self.odlc_id]))
         self.assertEqual(404, response.status_code)
 
     def test_delete_no_image(self):
         """404 when DELETE image before upload."""
         response = self.client.delete(
-                targets_id_image_url(args=[self.target_id]))  # yapf: disable
+                odlcs_id_image_url(args=[self.odlc_id]))  # yapf: disable
         self.assertEqual(404, response.status_code)
 
     def test_get_other_user(self):
         """Test GETting a thumbnail owned by a different user."""
         user2 = User.objects.create_user('testuser2', 'testemail@x.com',
                                          'testpass')
-        t = Target(user=user2, target_type=TargetType.standard)
+        t = Odlc(user=user2, odlc_type=OdlcType.standard)
         t.save()
 
-        response = self.client.get(targets_id_image_url(args=[t.pk]))
+        response = self.client.get(odlcs_id_image_url(args=[t.pk]))
         self.assertEqual(403, response.status_code)
 
     def test_post_bad_image(self):
         """Try to upload bad image"""
         response = self.client.post(
-            targets_id_image_url(args=[self.target_id]),
+            odlcs_id_image_url(args=[self.odlc_id]),
             data='Hahaha',
             content_type='image/jpeg')
         self.assertEqual(400, response.status_code)
@@ -834,7 +805,7 @@ class TestTargetIdImage(TestCase):
         """POST image, assert that it worked"""
         with open(test_image(name)) as f:
             response = self.client.post(
-                targets_id_image_url(args=[self.target_id]),
+                odlcs_id_image_url(args=[self.odlc_id]),
                 data=f.read(),
                 content_type=content_type)
             self.assertEqual(200, response.status_code)
@@ -851,7 +822,7 @@ class TestTargetIdImage(TestCase):
         """GIF upload not allowed"""
         with open(test_image('A.gif')) as f:
             response = self.client.post(
-                targets_id_image_url(args=[self.target_id]),
+                odlcs_id_image_url(args=[self.odlc_id]),
                 data=f.read(),
                 content_type='image/gif')
             self.assertEqual(400, response.status_code)
@@ -860,7 +831,7 @@ class TestTargetIdImage(TestCase):
         """Successfully GET uploaded image"""
         self.post_image('S.jpg')
 
-        response = self.client.get(targets_id_image_url(args=[self.target_id]))
+        response = self.client.get(odlcs_id_image_url(args=[self.odlc_id]))
         self.assertEqual(200, response.status_code)
         self.assertEqual('image/jpeg', response['Content-Type'])
 
@@ -875,7 +846,7 @@ class TestTargetIdImage(TestCase):
         self.post_image('S.jpg')
         self.post_image('A.jpg')
 
-        response = self.client.get(targets_id_image_url(args=[self.target_id]))
+        response = self.client.get(odlcs_id_image_url(args=[self.odlc_id]))
         self.assertEqual(200, response.status_code)
 
         data = ''.join(response.streaming_content)
@@ -888,12 +859,12 @@ class TestTargetIdImage(TestCase):
         """PUT works just like POST"""
         with open(test_image('S.jpg')) as f:
             response = self.client.put(
-                targets_id_image_url(args=[self.target_id]),
+                odlcs_id_image_url(args=[self.odlc_id]),
                 data=f.read(),
                 content_type='image/jpeg')
             self.assertEqual(200, response.status_code)
 
-        response = self.client.get(targets_id_image_url(args=[self.target_id]))
+        response = self.client.get(odlcs_id_image_url(args=[self.odlc_id]))
         self.assertEqual(200, response.status_code)
 
         data = ''.join(response.streaming_content)
@@ -906,7 +877,7 @@ class TestTargetIdImage(TestCase):
         """Old image deleted when new doesn't overwrite."""
         self.post_image('A.jpg')
 
-        t = Target.objects.get(pk=self.target_id)
+        t = Odlc.objects.get(pk=self.odlc_id)
         jpg_path = t.thumbnail.path
         self.assertTrue(os.path.exists(jpg_path))
 
@@ -917,12 +888,11 @@ class TestTargetIdImage(TestCase):
         """Image deleted on DELETE"""
         self.post_image('A.jpg')
 
-        t = Target.objects.get(pk=self.target_id)
+        t = Odlc.objects.get(pk=self.odlc_id)
         jpg_path = t.thumbnail.path
         self.assertTrue(os.path.exists(jpg_path))
 
-        response = self.client.delete(
-            targets_id_image_url(args=[self.target_id]))
+        response = self.client.delete(odlcs_id_image_url(args=[self.odlc_id]))
         self.assertEqual(200, response.status_code)
 
         self.assertFalse(os.path.exists(jpg_path))
@@ -931,23 +901,22 @@ class TestTargetIdImage(TestCase):
         """GET returns 404 after DELETE"""
         self.post_image('A.jpg')
 
-        response = self.client.delete(
-            targets_id_image_url(args=[self.target_id]))
+        response = self.client.delete(odlcs_id_image_url(args=[self.odlc_id]))
         self.assertEqual(200, response.status_code)
 
-        response = self.client.get(targets_id_image_url(args=[self.target_id]))
+        response = self.client.get(odlcs_id_image_url(args=[self.odlc_id]))
         self.assertEqual(404, response.status_code)
 
 
-class TestTargetsAdminReviewNotAdmin(TestCase):
+class TestOdlcsAdminReviewNotAdmin(TestCase):
     """Tests admin review when not logged in as admin."""
 
     def test_not_authenticated(self):
         """Unauthenticated requests should fail."""
-        response = self.client.get(targets_review_url)
+        response = self.client.get(odlcs_review_url)
         self.assertEqual(403, response.status_code)
 
-        response = self.client.put(targets_review_id_url(args=[1]))
+        response = self.client.put(odlcs_review_id_url(args=[1]))
         self.assertEqual(403, response.status_code)
 
     def test_not_admin(self):
@@ -959,15 +928,15 @@ class TestTargetsAdminReviewNotAdmin(TestCase):
                         'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
-        response = self.client.get(targets_review_url)
+        response = self.client.get(odlcs_review_url)
         self.assertEqual(403, response.status_code)
 
-        response = self.client.put(targets_review_id_url(args=[1]))
+        response = self.client.put(odlcs_review_id_url(args=[1]))
         self.assertEqual(403, response.status_code)
 
 
-class TestTargetsAdminReview(TestCase):
-    """Tests GET/PUT admin review of targets."""
+class TestOdlcsAdminReview(TestCase):
+    """Tests GET/PUT admin review of odlcs."""
 
     def setUp(self):
         """Creates user and logs in."""
@@ -980,50 +949,50 @@ class TestTargetsAdminReview(TestCase):
                         'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
-    def test_get_no_targets(self):
-        """Test GET when there are no targets."""
-        response = self.client.get(targets_review_url)
+    def test_get_no_odlcs(self):
+        """Test GET when there are no odlcs."""
+        response = self.client.get(odlcs_review_url)
         self.assertEqual(200, response.status_code)
         self.assertEqual([], json.loads(response.content))
 
-    def test_get_editable_targets(self):
-        """Test GET when there are targets but are still in editable window."""
+    def test_get_editable_odlcs(self):
+        """Test GET when there are odlcs but are still in editable window."""
         MissionClockEvent(
             user=self.team, team_on_clock=True, team_on_timeout=False).save()
-        Target(user=self.team, target_type=TargetType.standard).save()
+        Odlc(user=self.team, odlc_type=OdlcType.standard).save()
 
-        response = self.client.get(targets_review_url)
+        response = self.client.get(odlcs_review_url)
         self.assertEqual(200, response.status_code)
         self.assertEqual([], json.loads(response.content))
 
-    def test_get_noneditable_without_thumbnail_targets(self):
-        """Test GET when there are non-editable targets without thumbnail."""
+    def test_get_noneditable_without_thumbnail_odlcs(self):
+        """Test GET when there are non-editable odlcs without thumbnail."""
         MissionClockEvent(
             user=self.team, team_on_clock=True, team_on_timeout=False).save()
         MissionClockEvent(
             user=self.team, team_on_clock=False, team_on_timeout=False).save()
-        target = Target(user=self.team, target_type=TargetType.standard)
-        target.save()
+        odlc = Odlc(user=self.team, odlc_type=OdlcType.standard)
+        odlc.save()
 
-        response = self.client.get(targets_review_url)
+        response = self.client.get(odlcs_review_url)
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(0, len(data))
 
-    def test_get_noneditable_targets(self):
-        """Test GET when there are non-editable targets."""
+    def test_get_noneditable_odlcs(self):
+        """Test GET when there are non-editable odlcs."""
         MissionClockEvent(
             user=self.team, team_on_clock=True, team_on_timeout=False).save()
         MissionClockEvent(
             user=self.team, team_on_clock=False, team_on_timeout=False).save()
-        target = Target(user=self.team, target_type=TargetType.standard)
-        target.save()
+        odlc = Odlc(user=self.team, odlc_type=OdlcType.standard)
+        odlc.save()
 
         with open(test_image('A.jpg')) as f:
-            target.thumbnail.save('%d.%s' % (target.pk, 'jpg'), ImageFile(f))
-        target.save()
+            odlc.thumbnail.save('%d.%s' % (odlc.pk, 'jpg'), ImageFile(f))
+        odlc.save()
 
-        response = self.client.get(targets_review_url)
+        response = self.client.get(odlcs_review_url)
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(1, len(data))
@@ -1032,16 +1001,16 @@ class TestTargetsAdminReview(TestCase):
 
     def test_put_review_no_approved(self):
         """Test PUT review with no approved field."""
-        target = Target(user=self.team, target_type=TargetType.standard)
-        target.save()
+        odlc = Odlc(user=self.team, odlc_type=OdlcType.standard)
+        odlc.save()
 
-        response = self.client.put(targets_review_id_url(args=[target.pk]))
+        response = self.client.put(odlcs_review_id_url(args=[odlc.pk]))
         self.assertEqual(400, response.status_code)
 
     def test_put_invalid_pk(self):
         """Test PUT reivew with invalid pk."""
         response = self.client.put(
-            targets_review_id_url(args=[1]),
+            odlcs_review_id_url(args=[1]),
             data=json.dumps({
                 'thumbnail_approved': True,
                 'description_approved': True,
@@ -1050,11 +1019,11 @@ class TestTargetsAdminReview(TestCase):
 
     def test_put_review(self):
         """Test PUT review is saved."""
-        target = Target(user=self.team, target_type=TargetType.standard)
-        target.save()
+        odlc = Odlc(user=self.team, odlc_type=OdlcType.standard)
+        odlc.save()
 
         response = self.client.put(
-            targets_review_id_url(args=[target.pk]),
+            odlcs_review_id_url(args=[odlc.pk]),
             data=json.dumps({
                 'thumbnail_approved': True,
                 'description_approved': True,
@@ -1062,11 +1031,11 @@ class TestTargetsAdminReview(TestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertIn('id', data)
-        self.assertEqual(target.pk, data['id'])
+        self.assertEqual(odlc.pk, data['id'])
         self.assertIn('thumbnail_approved', data)
         self.assertTrue(data['thumbnail_approved'])
         self.assertTrue(data['description_approved'])
 
-        target.refresh_from_db()
-        self.assertTrue(target.thumbnail_approved)
-        self.assertTrue(target.description_approved)
+        odlc.refresh_from_db()
+        self.assertTrue(odlc.thumbnail_approved)
+        self.assertTrue(odlc.description_approved)

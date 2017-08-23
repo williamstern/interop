@@ -40,14 +40,14 @@
     speed_avg: 30.0
     sphere_radius: 50.0
     waypoints: [1, 2, 3]
-- model: auvsi_suas.target
+- model: auvsi_suas.odlc
   pk: 1
   fields:
       creation_time: 2015-07-31 05:13:44.875561+00:00
       description: 'SUAS Judge'
       last_modified_time: 2015-07-31 05:13:44.875561+00:00
       location: 1
-      target_type: 4
+      odlc_type: 4
       thumbnail_approved: True
       user: 2
 - model: auvsi_suas.flyzone
@@ -99,7 +99,7 @@
     is_active: true
     mission_waypoints: [1]
     moving_obstacles: [1]
-    off_axis_target_pos: 3
+    off_axis_odlc_pos: 3
     search_grid_points: [1]
     stationary_obstacles: [1, 2]
-    targets: [1]
+    odlcs: [1]

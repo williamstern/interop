@@ -245,15 +245,15 @@ shell. The following shows how to execute it for the default testing user
 
     ./tools/interop_cli.py --url http://10.10.130.2:8000 --username testuser missions
 
-**Upload Targets**. The client image provides a script to upload targets to the
-interop server from a directory of targets and target thumbnails in the "Object
-File Format", described in the appendix of the 2017 rules. The following shows
-how to upload targets from the client container shell.
+**Upload Objects**. The client image provides a script to upload detected
+objects to the interop server from a directory of objects and thumbnails
+in the "Object File Format", described in the appendix of the 2017 rules. The
+following shows how to upload objects from the client container shell.
 
 .. code-block:: bash
 
-    ./tools/interop_cli.py --url http://10.10.130.2:8000 --username testuser targets \
-        --target_dir /path/to/target/directory/
+    ./tools/interop_cli.py --url http://10.10.130.2:8000 --username testuser odlcs \
+        --odlc_dir /path/to/object/directory/
 
 **Probe Server**. The client image provides a script to continuously execute
 dummy interop requests to test server availability. The following shows how to
@@ -311,7 +311,7 @@ button on the mission dashboard to learn how to use this interface.
 
    * *Dashboard*. Navigates to the dashboard showing all mission elements,
      active team details, etc.
-   * *Review Targets*. Navigates to the page to review targets submitted.
+   * *Review Objects*. Navigates to the page to review objects submitted.
    * *Evaluate Teams*. Navigates to the page to download team evaluations.
 
 
@@ -322,7 +322,7 @@ more details.
 
 **Mission Configuration**. To configure a mission, create or edit the
 ``MissionConfig`` object to specify the desired flight boundaries, waypoints,
-true targets (for grading base targets), etc. Once the updated mission and
+true objects (for grading base objects), etc. Once the updated mission and
 subobjects have been saved, the cache should be cleared via the SUAS
 Dashboard's menu ``System > Clear Cache``.
 
@@ -330,8 +330,8 @@ Dashboard's menu ``System > Clear Cache``.
 judge creates a ``MissionClockEvent`` for the team indicating the team has gone
 on the clock. The judge creates another object to indicate the team has gone
 off the clock. The time is automatically set at time of save. This is used to
-evaluate mission clock time and to ensure target review doesn't start before
-targets are frozen.
+evaluate mission clock time and to ensure object review doesn't start before
+objects are frozen.
 
 **Takeoff or Landing Events**. When a team takes off and when a team lands, the
 interop judge creates a ``TakeoffOrLandingEvent`` to mark the evenet. The time
@@ -425,23 +425,23 @@ The following shows how to upload UAS telemetry.
                                   uas_heading=90)
     client.post_telemetry(telemetry)
 
-The following shows how to upload a target and it's image.
+The following shows how to upload a object and it's image.
 
 .. code:: python
 
-    target = interop.Target(type='standard',
-                            latitude=38.145215,
-                            longitude=-76.427942,
-                            orientation='n',
-                            shape='square',
-                            background_color='green',
-                            alphanumeric='A',
-                            alphanumeric_color='white')
-    target = client.post_target(target)
+    odlc = interop.Odlc(type='standard',
+                        latitude=38.145215,
+                        longitude=-76.427942,
+                        orientation='n',
+                        shape='square',
+                        background_color='green',
+                        alphanumeric='A',
+                        alphanumeric_color='white')
+    odlc = client.post_odlc(odlc)
 
     with open('path/to/image/A.jpg', 'rb') as f:
         image_data = f.read()
-        client.put_target_image(target.id, image_data)
+        client.put_odlc_image(odlc.id, image_data)
 
 
 MAVLink (ArduPilot) Integration
@@ -489,19 +489,19 @@ of the interop server.
 
 Note that proper evaluation requires a representative ``MissionConfig``, which
 will include things like the flight boundaries and the details for the true
-targets.
+object detections.
 
 **Provide Human Judge Data**. The first step is to provide the manual judge
 data. Go to ``System > Edit Data``. Select ``Mission judge feedbacks >> add``.
 Fill out the object with the mission, user, and details about the team's
 performance, and then save.
 
-**Review Target Imagery**. The second step is to review any target imagery
+**Review Object Imagery**. The second step is to review any object imagery
 provided. This is used to review whether the provided image is acceptable, and
-whether human graded features are correct (e.g. emergent target description).
-It is not used to grade whether the target details are correct (done
+whether human graded features are correct (e.g. emergent object description).
+It is not used to grade whether the object details are correct (done
 automatically). Go to the Mission Dashboard, and then use the menu ``Mission >
-Review Targets``. Click on a target ID to see the image and details, and then
+Review Objects``. Click on a object ID to see the image and details, and then
 approve or reject the image, and if applicable the emergent description.
 
 **Automatic Evaluation**. The third step is to run the automatic evaluator.
@@ -511,6 +511,6 @@ formatted feedback, and a CSV file containing all team's data. Note that this
 operation filters superuser accounts- testing must be done with a nonsuperuser
 (team) account. This output contains the `MissionEvaluation
 <https://github.com/auvsi-suas/interop/blob/master/server/auvsi_suas/proto/mission.proto>`__
-and `MultiTargetEvaluation
-<https://github.com/auvsi-suas/interop/blob/master/server/auvsi_suas/proto/target.proto>`__
+and `MultiOdlcEvaluation
+<https://github.com/auvsi-suas/interop/blob/master/server/auvsi_suas/proto/odlc.proto>`__
 data.

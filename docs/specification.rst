@@ -59,25 +59,25 @@ A quick summary of the endpoints:
   to the competition server. Uploading telemetry to this endpoint is
   required by the competition rules.
 
-* :http:post:`/api/targets`: Used to upload targets for submission.
+* :http:post:`/api/odlcs`: Used to upload odlcs for submission.
 
-* :http:get:`/api/targets`: Used to retrieve targets uploaded for submission.
+* :http:get:`/api/odlcs`: Used to retrieve odlcs uploaded for submission.
 
-* :http:get:`/api/targets/(int:id)`: Used to get details about submitted
-  targets.
+* :http:get:`/api/odlcs/(int:id)`: Used to get details about submitted
+  odlcs.
 
-* :http:put:`/api/targets/(int:id)`: Used to update characteristics of
-  submitted targets.
+* :http:put:`/api/odlcs/(int:id)`: Used to update characteristics of
+  submitted odlcs.
 
-* :http:delete:`/api/targets/(int:id)`: Used to delete a submitted target.
+* :http:delete:`/api/odlcs/(int:id)`: Used to delete a submitted odlc.
 
-* :http:get:`/api/targets/(int:id)/image`: Used to get target image previously
+* :http:get:`/api/odlcs/(int:id)/image`: Used to get odlc image previously
   submitted.
 
-* :http:post:`/api/targets/(int:id)/image`: Used to submit or update target
+* :http:post:`/api/odlcs/(int:id)/image`: Used to submit or update odlc
   image thumbnail.
 
-* :http:delete:`/api/targets/(int:id)/image`: Used to delete target image
+* :http:delete:`/api/odlcs/(int:id)/image`: Used to delete odlc image
   thumbnail.
 
 Errors
@@ -221,7 +221,7 @@ Missions
                       "order": 1
                   }
               ],
-              "off_axis_target_pos": {
+              "off_axis_odlc_pos": {
                   "latitude": 38.142544,
                   "longitude": -76.434088
               },
@@ -321,7 +321,7 @@ Missions
                   "order": 1
               }
           ],
-          "off_axis_target_pos": {
+          "off_axis_odlc_pos": {
               "latitude": 38.142544,
               "longitude": -76.434088
           },
@@ -372,16 +372,16 @@ Missions
 
    :>json array mission_waypoints: A list of waypoints the UAS must traverse.
 
-   :>json object off_axis_target_pos: The GPS position of the off-axis target.
+   :>json object off_axis_odlc_pos: The GPS position of the off-axis odlc.
 
    :>json object emergent_last_known_pos: The last known GPS position of the
-                                          emergent target.
+                                          emergent odlc.
 
    :>json array search_grid_points: A list of waypoints defining the search
                                     grid polygon.
 
    :>json object gps_position: (Type for ``air_drop_ops``, ``home_pos``,
-                               ``off_axis_target_pos``)
+                               ``off_axis_odlc_pos``)
                                Consists of a latitude and longitude.
 
    :>json object waypoint: (Type for ``boundary_pts``, ``mission_waypoints``,
@@ -571,28 +571,28 @@ UAS Telemetry
                 endpoint. Ensure :http:post:`/api/login` was successful, and
                 the login cookie was sent to this endpoint.
 
-Targets
-^^^^^^^
+Object Detection, Localization, Classification (ODLC)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. http:post:: /api/targets
+.. http:post:: /api/odlcs
 
-   This endpoint is used to upload a new target for submission. All targets
+   This endpoint is used to upload a new odlc for submission. All odlcs
    uploaded at the end of the mission time will be evaluated by the judges.
 
-   Most of the target characteristics are optional; if not provided in this
+   Most of the odlc characteristics are optional; if not provided in this
    initial POST request, they may be added in a future PUT request.
    Characteristics not provided will be considered left blank. Note that some
    characteristics must be submitted by the end of the mission to earn credit
-   for the target.
+   for the odlc.
 
-   The fields that should be used depends on the type of target being submitted.
-   Refer to :py:data:`TargetTypes` for more detail.
+   The fields that should be used depends on the type of odlc being submitted.
+   Refer to :py:data:`OdlcTypes` for more detail.
 
    **Example Request**:
 
    .. sourcecode:: http
 
-      POST /api/targets HTTP/1.1
+      POST /api/odlcs HTTP/1.1
       Host: 192.168.1.2:8000
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
       Content-Type: application/json
@@ -633,7 +633,7 @@ Targets
           "autonomous": false
       }
 
-   The response format is the same as :http:get:`/api/targets/(int:id)` and
+   The response format is the same as :http:get:`/api/odlcs/(int:id)` and
    is described in detail there.
 
    :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
@@ -641,50 +641,50 @@ Targets
 
    :reqheader Content-Type: The request should be sent as ``application/json``.
 
-   :<json string type: (required) Target type; must be one of
-                       :py:data:`TargetTypes`.
+   :<json string type: (required) Object type; must be one of
+                       :py:data:`OdlcTypes`.
 
-   :<json float latitude: (optional) Target latitude (decimal degrees). If
+   :<json float latitude: (optional) Object latitude (decimal degrees). If
                           ``latitude`` is provided, ``longitude`` must also be
                           provided.
 
-   :<json float longitude: (optional) Target longitude (decimal degrees). If
+   :<json float longitude: (optional) Object longitude (decimal degrees). If
                           ``longitude`` is provided, ``latitude`` must also be
                           provided.
 
-   :<json string orientation: (optional) Target orientation; must be one of
+   :<json string orientation: (optional) Object orientation; must be one of
                               :py:data:`Orientations`.
 
-   :<json string shape: (optional) Target shape; must be one of
+   :<json string shape: (optional) Object shape; must be one of
                         :py:data:`Shapes`.
 
-   :<json string background_color: (optional) Target background color (portion
-                                   of the target outside the alphanumeric); must
+   :<json string background_color: (optional) Object background color (portion
+                                   of the odlc outside the alphanumeric); must
                                    be one of :py:data:`Colors`.
 
-   :<json string alphanumeric: (optional) Target alphanumeric; may consist of
+   :<json string alphanumeric: (optional) Object alphanumeric; may consist of
                                one or more of the characters ``0-9``, ``A-Z``,
                                ``a-z``. It is case sensitive.
 
-   :<json string alphanumeric_color: (optional) Target alphanumeric color; must be
+   :<json string alphanumeric_color: (optional) Object alphanumeric color; must be
                                      one of :py:data:`Colors`.
 
-   :<json string description: (optional) Free-form description of target. This
-                              should be used for describing certain target
-                              types (see :py:data:`TargetTypes`).
+   :<json string description: (optional) Free-form description of odlc. This
+                              should be used for describing certain odlc
+                              types (see :py:data:`OdlcTypes`).
 
-   :<json boolean autonomous: (optional, default ``false``) This target was
+   :<json boolean autonomous: (optional, default ``false``) This odlc was
                               detected, localized, and characterized by the
                               team's ADLC system, per section 7.3 of the
                               rules. Note that if this field is set, then
                               detection, localization, and characterization
                               must be autonomous, with no human input. Per
                               section 7.3 of the rules, no more than six
-                              targets should be marked autonomous.
+                              odlcs should be marked autonomous.
 
    :resheader Content-Type: The response is ``application/json`` on success.
 
-   :status 201: The target has been accepted and a record has been created for
+   :status 201: The odlc has been accepted and a record has been created for
                 it. The record has been included in the response.
 
    :status 400: Request was invalid. The request content may have been
@@ -696,26 +696,26 @@ Targets
                 endpoint. Ensure :http:post:`/api/login` was successful, and
                 the login cookie was sent to this endpoint.
 
-.. http:get:: /api/targets
+.. http:get:: /api/odlcs
 
-   This endpoint is used to retrieve a list of targets uploaded for submission.
+   This endpoint is used to retrieve a list of odlcs uploaded for submission.
 
-   The targets returned by this endpoint are those that have been uploaded with
-   :http:post:`/api/targets` and possibly updated with
-   :http:put:`/api/targets/(int:id)`.
+   The odlcs returned by this endpoint are those that have been uploaded with
+   :http:post:`/api/odlcs` and possibly updated with
+   :http:put:`/api/odlcs/(int:id)`.
 
    .. note::
 
-        This endpoint will only return up to 100 targets. It is recommended to
-        remain below 100 targets total (there certainly won't be that many at
-        competition!). If you do have more than 100 targets, individual targets
-        may be queried with :http:get:`/api/targets/(int:id)`.
+        This endpoint will only return up to 100 odlcs. It is recommended to
+        remain below 100 odlcs total (there certainly won't be that many at
+        competition!). If you do have more than 100 odlcs, individual odlcs
+        may be queried with :http:get:`/api/odlcs/(int:id)`.
 
    **Example request**:
 
    .. sourcecode:: http
 
-      GET /api/targets HTTP/1.1
+      GET /api/odlcs HTTP/1.1
       Host: 192.168.1.2:8000
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
 
@@ -760,39 +760,39 @@ Targets
           }
       ]
 
-   The response format is a list of target objects. Each is in the same as
-   :http:get:`/api/targets/(int:id)` and is described in detail there.
+   The response format is a list of odlc objects. Each is in the same as
+   :http:get:`/api/odlcs/(int:id)` and is described in detail there.
 
-   If no targets have been uploaded, the response will contain an empty list.
+   If no odlcs have been uploaded, the response will contain an empty list.
 
    :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
                       must be sent to authenticate the request.
 
    :resheader Content-Type: The response is ``application/json`` on success.
 
-   :status 200: Success. Response contains targets.
+   :status 200: Success. Response contains odlcs.
 
    :status 403: User not authenticated. Login is required before using this
                 endpoint.  Ensure :http:post:`/api/login` was successful, and
                 the login cookie was sent to this endpoint.
 
-.. http:get:: /api/targets/(int:id)
+.. http:get:: /api/odlcs/(int:id)
 
-   Details about a target id ``id``. This simple endpoint allows you to verify
-   the uploaded characteristics of a target.
+   Details about a odlc id ``id``. This simple endpoint allows you to verify
+   the uploaded characteristics of a odlc.
 
-   ``id`` is the unique identifier of a target, as returned by
-   :http:post:`/api/targets`. When you first upload your target to
-   :http:post:`/api/targets`, the response includes an ``id`` field, whose value
+   ``id`` is the unique identifier of a odlc, as returned by
+   :http:post:`/api/odlcs`. When you first upload your odlc to
+   :http:post:`/api/odlcs`, the response includes an ``id`` field, whose value
    you use to access this endpoint. Note that this id is unique to all teams
    and will not necessarily start at 1 or increase linearly with additional
-   targets.
+   odlcs.
 
    **Example request**:
 
    .. sourcecode:: http
 
-      GET /api/targets/1 HTTP/1.1
+      GET /api/odlcs/1 HTTP/1.1
       Host: 192.168.1.2:8000
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
 
@@ -826,73 +826,73 @@ Targets
 
    :resheader Content-Type: The response is ``application/json`` on success.
 
-   :>json int id: Unique identifier for this target. This is unique across
+   :>json int id: Unique identifier for this odlc. This is unique across
                   all teams, it may not naturally increment 1-10. Used to
-                  reference specific targets in various endpoints. The target
-                  ID does not change when a target is updated.
+                  reference specific odlcs in various endpoints. The odlc
+                  ID does not change when a odlc is updated.
 
    :>json int user: Unique identifier for the team. Teams should not need to
                     use this field.
 
-   :>json string type: Target type; one of :py:data:`TargetTypes`.
+   :>json string type: Object type; one of :py:data:`OdlcTypes`.
 
-   :>json float latitude: Target latitude in decimal degrees,  or ``null`` if
+   :>json float latitude: Object latitude in decimal degrees,  or ``null`` if
                           no latitude specified yet.
 
-   :>json float longitude: Target longitude in decimal degrees,  or ``null`` if
+   :>json float longitude: Object longitude in decimal degrees,  or ``null`` if
                           no longitude specified yet.
 
-   :>json string orientation: Target orientation; one of :py:data:`Orientations`,
+   :>json string orientation: Object orientation; one of :py:data:`Orientations`,
                               or ``null`` if no orientation specified yet.
 
-   :>json string shape: Target shape; one of :py:data:`Shapes`, or ``null`` if no
+   :>json string shape: Object shape; one of :py:data:`Shapes`, or ``null`` if no
                         shape specified yet.
 
-   :>json string background_color: Target background color; one of
+   :>json string background_color: Object background color; one of
                                    :py:data:`Colors`, or ``null`` if no
                                    background color specified yet.
 
-   :>json string alphanumeric: Target alphanumeric; ``null`` if no alphanumeric
+   :>json string alphanumeric: Object alphanumeric; ``null`` if no alphanumeric
                                specified yet.
 
-   :>json string alphanumeric_color: Target alphanumeric color; one of
+   :>json string alphanumeric_color: Object alphanumeric color; one of
                                      :py:data:`Colors`, or ``null`` if no
                                      alphanumeric color specified yet.
 
-   :>json string description: Target description; ``null`` if no description
+   :>json string description: Object description; ``null`` if no description
                               specified yet.
 
-   :>json boolean autonomous: Target is an ADLC target.
+   :>json boolean autonomous: Object is an ADLC odlc.
 
-   :status 200: Success. Response contains target details.
+   :status 200: Success. Response contains odlc details.
 
    :status 403: * User not authenticated. Login is required before using this
                   endpoint.  Ensure :http:post:`/api/login` was successful, and
                   the login cookie was sent to this endpoint.
 
-                * The specified target was found but is not accessible by your
-                  user (i.e., another team created this target). Check target
+                * The specified odlc was found but is not accessible by your
+                  user (i.e., another team created this odlc). Check odlc
                   ID.
 
                 * Check response for detailed error message.
 
-   :status 404: Target not found. Check target ID.
+   :status 404: Object not found. Check odlc ID.
 
-.. http:put:: /api/targets/(int:id)
+.. http:put:: /api/odlcs/(int:id)
 
-   Update target id ``id``. This endpoint allows you to specify characteristics
-   that were omitted in :http:post:`/api/targets`, or update those that were
+   Update odlc id ``id``. This endpoint allows you to specify characteristics
+   that were omitted in :http:post:`/api/odlcs`, or update those that were
    specified.
 
-   ``id`` is the unique identifier of a target, as returned by
-   :http:post:`/api/targets`. See :http:get:`/api/targets/(int:id)` for more
-   information about the target ID.
+   ``id`` is the unique identifier of a odlc, as returned by
+   :http:post:`/api/odlcs`. See :http:get:`/api/odlcs/(int:id)` for more
+   information about the odlc ID.
 
    **Example request**:
 
    .. sourcecode:: http
 
-      PUT /api/targets/1 HTTP/1.1
+      PUT /api/odlcs/1 HTTP/1.1
       Host: 192.168.1.2:8000
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
       Content-Type: application/json
@@ -926,7 +926,7 @@ Targets
           "autonomous": false
       }
 
-   This endpoint accepts all fields described in :http:post:`/api/targets` in
+   This endpoint accepts all fields described in :http:post:`/api/odlcs` in
    its request. Any fields that are specified will be updated, overwriting the
    old value. Any fields omitted will not be changed. Specifying a field with
    a ``null`` value will clear that field (except ``type``, which may never be
@@ -936,7 +936,7 @@ Targets
    request. As can be seen in the response, the ``alphanumeric`` field has
    the new value, but all other fields have been left unchanged.
 
-   The response format is the same as :http:get:`/api/targets/(int:id)` and
+   The response format is the same as :http:get:`/api/odlcs/(int:id)` and
    is described in detail there.
 
    :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
@@ -946,8 +946,8 @@ Targets
 
    :resheader Content-Type: The response is ``application/json`` on success.
 
-   :status 200: The target has been successfully updated, and the updated
-                target is included in the response.
+   :status 200: The odlc has been successfully updated, and the updated
+                odlc is included in the response.
 
    :status 400: Request was invalid. The request content may have been
                 malformed or it may have contained invalid field values. The
@@ -957,30 +957,30 @@ Targets
                   endpoint.  Ensure :http:post:`/api/login` was successful, and
                   the login cookie was sent to this endpoint.
 
-                * The specified target was found but is not accessible by your
-                  user (i.e., another team created this target). Check target
+                * The specified odlc was found but is not accessible by your
+                  user (i.e., another team created this odlc). Check odlc
                   ID.
 
                 * Check response for detailed error message.
 
-   :status 404: Target not found. Check target ID.
+   :status 404: Object not found. Check odlc ID.
 
-.. http:delete:: /api/targets/(int:id)
+.. http:delete:: /api/odlcs/(int:id)
 
-   Delete target id ``id``. This endpoint allows you to remove a target from
-   the server entirely (including its image). Targets deleted with this
-   endpoint will not be scored, and cannot be recovered. If a target is deleted
-   accidentally, reupload it as a new target.
+   Delete odlc id ``id``. This endpoint allows you to remove a odlc from
+   the server entirely (including its image). Objects deleted with this
+   endpoint will not be scored, and cannot be recovered. If a odlc is deleted
+   accidentally, reupload it as a new odlc.
 
-   ``id`` is the unique identifier of a target, as returned by
-   :http:post:`/api/targets`. See :http:get:`/api/targets/(int:id)` for more
-   information about the target ID.
+   ``id`` is the unique identifier of a odlc, as returned by
+   :http:post:`/api/odlcs`. See :http:get:`/api/odlcs/(int:id)` for more
+   information about the odlc ID.
 
    **Example request**:
 
    .. sourcecode:: http
 
-      DELETE /api/targets/1 HTTP/1.1
+      DELETE /api/odlcs/1 HTTP/1.1
       Host: 192.168.1.2:8000
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
 
@@ -994,36 +994,36 @@ Targets
       HTTP/1.1 200 OK
       Content-Type: text/html
 
-      Target deleted.
+      Object deleted.
 
    :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
                       must be sent to authenticate the request.
 
-   :status 200: The target has been successfully deleted. It will not be
+   :status 200: The odlc has been successfully deleted. It will not be
                 scored.
 
    :status 403: * User not authenticated. Login is required before using this
                   endpoint.  Ensure :http:post:`/api/login` was successful, and
                   the login cookie was sent to this endpoint.
 
-                * The specified target was found but is not accessible by your
-                  user (i.e., another team created this target). Check target
+                * The specified odlc was found but is not accessible by your
+                  user (i.e., another team created this odlc). Check odlc
                   ID.
 
                 * Check response for detailed error message.
 
-   :status 404: Target not found. Check target ID.
+   :status 404: Object not found. Check odlc ID.
 
 
-.. http:get:: /api/targets/(int:id)/image
+.. http:get:: /api/odlcs/(int:id)/image
 
-   Download previously uploaded target thumbnail. This simple endpoint returns
-   the target thumbnail uploaded with a
-   :http:post:`/api/targets/(int:id)/image` request.
+   Download previously uploaded odlc thumbnail. This simple endpoint returns
+   the odlc thumbnail uploaded with a
+   :http:post:`/api/odlcs/(int:id)/image` request.
 
-   ``id`` is the unique identifier of a target, as returned by
-   :http:post:`/api/targets`. See :http:get:`/api/targets/(int:id)` for more
-   information about the target ID.
+   ``id`` is the unique identifier of a odlc, as returned by
+   :http:post:`/api/odlcs`. See :http:get:`/api/odlcs/(int:id)` for more
+   information about the odlc ID.
 
    The response content is the image content itself on success.
 
@@ -1031,7 +1031,7 @@ Targets
 
    .. sourcecode:: http
 
-      GET /api/targets/2/image HTTP/1.1
+      GET /api/odlcs/2/image HTTP/1.1
       Host: 192.168.1.2:8000
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
 
@@ -1050,35 +1050,35 @@ Targets
    :resheader Content-Type: Matches content type of uploaded image. For
                             example, JPEG is ``image/jpeg``.
 
-   :status 200: Target image found and included in response.
+   :status 200: Object image found and included in response.
 
    :status 403: * User not authenticated. Login is required before using this
                   endpoint.  Ensure :http:post:`/api/login` was successful, and
                   the login cookie was sent to this endpoint.
 
-                * The specified target was found but is not accessible by your
-                  user (i.e., another team created this target). Check target
+                * The specified odlc was found but is not accessible by your
+                  user (i.e., another team created this odlc). Check odlc
                   ID.
 
                 * Check response for detailed error message.
 
-   :status 404: * Target not found. Check target ID.
+   :status 404: * Object not found. Check odlc ID.
 
-                * Target does not have associated image. One must first be
-                  uploaded with :http:post:`/api/targets/(int:id)/image`.
+                * Object does not have associated image. One must first be
+                  uploaded with :http:post:`/api/odlcs/(int:id)/image`.
 
 
-.. http:post:: /api/targets/(int:id)/image
+.. http:post:: /api/odlcs/(int:id)/image
 
-   Add or update target image thumbnail.
+   Add or update odlc image thumbnail.
 
-   ``id`` is the unique identifier of a target, as returned by
-   :http:post:`/api/targets`. See :http:get:`/api/targets/(int:id)` for more
-   information about the target ID.
+   ``id`` is the unique identifier of a odlc, as returned by
+   :http:post:`/api/odlcs`. See :http:get:`/api/odlcs/(int:id)` for more
+   information about the odlc ID.
 
-   This endpoint is used to submit an image of the associated target. This
-   image should be a clear, close crop of the target. Subsequent calls to this
-   endpoint replace the target image.
+   This endpoint is used to submit an image of the associated odlc. This
+   image should be a clear, close crop of the odlc. Subsequent calls to this
+   endpoint replace the odlc image.
 
    The request body contains the raw binary content of the image. The image
    should be in either JPEG or PNG format. The request must not exceed 1 MB in
@@ -1088,7 +1088,7 @@ Targets
 
    .. sourcecode:: http
 
-      POST /api/targets/2/image HTTP/1.1
+      POST /api/odlcs/2/image HTTP/1.1
       Host: 192.168.1.2:8000
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
       Content-Type: image/jpeg
@@ -1109,7 +1109,7 @@ Targets
    :reqheader Content-Type: JPEG images should be ``image/jpeg`. PNG images
                             should be ``image/png``.
 
-   :status 200: The target image has been successfully uploaded.
+   :status 200: The odlc image has been successfully uploaded.
 
    :status 400: Request was not a valid JPEG or PNG image. The response
                 includes a more detailed error message.
@@ -1118,44 +1118,44 @@ Targets
                   endpoint.  Ensure :http:post:`/api/login` was successful, and
                   the login cookie was sent to this endpoint.
 
-                * The specified target was found but is not accessible by your
-                  user (i.e., another team created this target). Check target
+                * The specified odlc was found but is not accessible by your
+                  user (i.e., another team created this odlc). Check odlc
                   ID.
 
                 * Check response for detailed error message.
 
-   :status 404: Target not found. Check target ID.
+   :status 404: Object not found. Check odlc ID.
 
    :status 413: Image exceeded 1MB in size.
 
 
-.. http:put:: /api/targets/(int:id)/image
+.. http:put:: /api/odlcs/(int:id)/image
 
-   Equivalent to :http:post:`/api/targets/(int:id)/image`.
+   Equivalent to :http:post:`/api/odlcs/(int:id)/image`.
 
-.. http:delete:: /api/targets/(int:id)/image
+.. http:delete:: /api/odlcs/(int:id)/image
 
-   Delete target image thumbnail.
+   Delete odlc image thumbnail.
 
-   ``id`` is the unique identifier of a target, as returned by
-   :http:post:`/api/targets`. See :http:get:`/api/targets/(int:id)` for more
-   information about the target ID.
+   ``id`` is the unique identifier of a odlc, as returned by
+   :http:post:`/api/odlcs`. See :http:get:`/api/odlcs/(int:id)` for more
+   information about the odlc ID.
 
-   This endpoint is used to delete the image associated with a target. A deleted
+   This endpoint is used to delete the image associated with a odlc. A deleted
    image will not be used in scoring.
 
    .. note::
 
-      You do not need to delete the target image before uploading a new image.
-      A call to :http:post:`/api/targets/(int:id)/image` or
-      :http:put:`/api/targets/(int:id)/image` will overwrite the existing
+      You do not need to delete the odlc image before uploading a new image.
+      A call to :http:post:`/api/odlcs/(int:id)/image` or
+      :http:put:`/api/odlcs/(int:id)/image` will overwrite the existing
       image.
 
    **Example request**:
 
    .. sourcecode:: http
 
-      DELETE /api/targets/2/image HTTP/1.1
+      DELETE /api/odlcs/2/image HTTP/1.1
       Host: 192.168.1.2:8000
       Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
 
@@ -1170,45 +1170,31 @@ Targets
    :reqheader Cookie: The session cookie obtained from :http:post:`/api/login`
                       must be sent to authenticate the request.
 
-   :status 200: The target image has been successfully deleted.
+   :status 200: The odlc image has been successfully deleted.
 
    :status 403: * User not authenticated. Login is required before using this
                   endpoint.  Ensure :http:post:`/api/login` was successful, and
                   the login cookie was sent to this endpoint.
 
-                * The specified target was found but is not accessible by your
-                  user (i.e., another team created this target). Check target
+                * The specified odlc was found but is not accessible by your
+                  user (i.e., another team created this odlc). Check odlc
                   ID.
 
                 * Check response for detailed error message.
 
-   :status 404: * Target not found. Check target ID.
+   :status 404: * Object not found. Check odlc ID.
 
-                * The specified target had no existing image to delete.
+                * The specified odlc had no existing image to delete.
 
 
-.. py:data:: TargetTypes
+.. py:data:: OdlcTypes
 
-   These are the valid types of targets which may be specified.
+   These are the valid types of odlcs which may be specified.
 
-   * ``standard`` - Standard targets are described in section 7.2.7 of the rules.
+   * ``standard`` - Standard odlcs are described in section 7.2.7 of the rules.
 
-   Describe the target characteristics with these fields (see
-   :http:post:`/api/targets`):
-
-      * ``latitude``
-      * ``longitude``
-      * ``orientation``
-      * ``shape``
-      * ``background_color``
-      * ``alphanumeric``
-      * ``alphanumeric_color``
-      * ``autonomous``
-
-   * ``off_axis`` - Off-axis targets are described in section 7.5 of the rules.
-
-   Describe the target characteristics with these fields (see
-   :http:post:`/api/targets`):
+   Describe the odlc characteristics with these fields (see
+   :http:post:`/api/odlcs`):
 
       * ``latitude``
       * ``longitude``
@@ -1219,10 +1205,24 @@ Targets
       * ``alphanumeric_color``
       * ``autonomous``
 
-   * ``emergent`` - Emergent targets are described in section 7.6 of the rules.
+   * ``off_axis`` - Off-axis odlcs are described in section 7.5 of the rules.
 
-   Describe the target characteristics with these fields (see
-   :http:post:`/api/targets`):
+   Describe the odlc characteristics with these fields (see
+   :http:post:`/api/odlcs`):
+
+      * ``latitude``
+      * ``longitude``
+      * ``orientation``
+      * ``shape``
+      * ``background_color``
+      * ``alphanumeric``
+      * ``alphanumeric_color``
+      * ``autonomous``
+
+   * ``emergent`` - Emergent odlcs are described in section 7.6 of the rules.
+
+   Describe the odlc characteristics with these fields (see
+   :http:post:`/api/odlcs`):
 
       * ``latitude``
       * ``longitude``
@@ -1230,11 +1230,11 @@ Targets
       * ``autonomous``
 
          * This field should contain a general description of the emergent
-           target.
+           odlc.
 
 .. py:data:: Orientations
 
-   These are the valid orientations that may be specified for a target.
+   These are the valid orientations that may be specified for a odlc.
    They reference true north, not magnetic north.
 
    * ``N`` - North
@@ -1248,7 +1248,7 @@ Targets
 
 .. py:data:: Shapes
 
-   These are the valid shapes that may be specified for a target.
+   These are the valid shapes that may be specified for a odlc.
 
    * ``circle``
    * ``semicircle``
@@ -1266,7 +1266,7 @@ Targets
 
 .. py:data:: Colors
 
-   These are the valid colors that may be specified for a target.
+   These are the valid colors that may be specified for a odlc.
 
    * ``white``
    * ``black``

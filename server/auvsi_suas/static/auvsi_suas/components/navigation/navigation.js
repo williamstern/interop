@@ -86,8 +86,8 @@ NavigationCtrl.prototype.updateMissionLinks_ = function() {
             target: "_self",
         },
         {
-            text: "Review Targets",
-            url: "/#/mission/" + this.mission_ + "/targets",
+            text: "Review Odlcs",
+            url: "/#/mission/" + this.mission_ + "/odlcs",
             target: "_self"
         },
         {

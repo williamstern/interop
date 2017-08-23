@@ -11,10 +11,10 @@ import sys
 import time
 
 from interop import Client
-from interop import Target
+from interop import Odlc
 from interop import Telemetry
 from proxy_mavlink import proxy_mavlink
-from upload_targets import upload_targets, upload_legacy_targets
+from upload_odlcs import upload_odlcs
 
 logger = logging.getLogger(__name__)
 
@@ -25,18 +25,14 @@ def missions(args, client):
         pprint.pprint(m.serialize())
 
 
-def targets(args, client):
-    if args.legacy_filepath:
-        if not args.target_dir:
-            raise ValueError('--target_dir is required.')
-        upload_legacy_targets(client, args.legacy_filepath, args.target_dir)
-    elif args.target_dir:
-        upload_targets(client, args.target_dir, args.team_id,
-                       args.actionable_override)
+def odlcs(args, client):
+    if args.odlc_dir:
+        upload_odlcs(client, args.odlc_dir, args.team_id,
+                     args.actionable_override)
     else:
-        targets = client.get_targets()
-        for target in targets:
-            pprint.pprint(target.serialize())
+        odlcs = client.get_odlcs()
+        for odlc in odlcs:
+            pprint.pprint(odlc.serialize())
 
 
 def probe(args, client):
@@ -84,41 +80,34 @@ def main():
     subparser.set_defaults(func=missions)
 
     subparser = subparsers.add_parser(
-        'targets',
-        help='Upload targets.',
-        description='''Download or upload targets to/from the interoperability
+        'odlcs',
+        help='Upload odlcs.',
+        description='''Download or upload odlcs to/from the interoperability
 server.
 
-Without extra arguments, this prints all targets that have been uploaded to the
+Without extra arguments, this prints all odlcs that have been uploaded to the
 server.
 
-With --target_dir, this uploads new targets to the server.
+With --odlc_dir, this uploads new odlcs to the server.
 
-This tool searches for target JSON and images files within --target_dir
-conforming to the 2017 Object File Format and uploads the target
+This tool searches for odlc JSON and images files within --odlc_dir
+conforming to the 2017 Object File Format and uploads the odlc
 characteristics and thumbnails to the interoperability server.
 
-Alternatively, if --legacy_filepath is specified, that file is parsed as the
-legacy 2016 tab-delimited target file format. Image paths referenced in the
-file are relative to --target_dir.
-
-There is no deduplication logic. Targets will be uploaded multiple times, as
-unique targets, if the tool is run multiple times.''',
+There is no deduplication logic. Odlcs will be uploaded multiple times, as
+unique odlcs, if the tool is run multiple times.''',
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    subparser.set_defaults(func=targets)
+    subparser.set_defaults(func=odlcs)
     subparser.add_argument(
-        '--legacy_filepath',
-        help='Target file in the legacy 2016 tab-delimited format.')
-    subparser.add_argument(
-        '--target_dir',
-        help='Enables target upload. Directory containing target data.')
+        '--odlc_dir',
+        help='Enables odlc upload. Directory containing odlc data.')
     subparser.add_argument(
         '--team_id',
-        help='''The username of the team on whose behalf to submit targets.
+        help='''The username of the team on whose behalf to submit odlcs.
 Must be admin user to specify.''')
     subparser.add_argument(
         '--actionable_override',
-        help='''Manually sets all the targets in the target dir to be
+        help='''Manually sets all the odlcs in the odlc dir to be
 actionable. Must be admin user to specify.''')
 
     subparser = subparsers.add_parser('probe', help='Send dummy requests.')

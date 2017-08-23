@@ -34,17 +34,17 @@ class TestMissionScoring(TestCase):
         obs.hit = True
         obs = feedback.moving_obstacles.add()
         obs.hit = True
-        targets = feedback.target
-        targets.score_ratio = 0.46
-        targets.extra_object_penalty_ratio = 0.1
-        t = targets.targets.add()
+        odlcs = feedback.odlc
+        odlcs.score_ratio = 0.46
+        odlcs.extra_object_penalty_ratio = 0.1
+        t = odlcs.odlcs.add()
         t.score_ratio = 0.96
         t.classifications_score_ratio = 0.6
         t.geolocation_score_ratio = 0.2
         t.actionable_score_ratio = 1.0
         t.autonomous_score_ratio = 1.0
         t.interop_score_ratio = 1.0
-        t = targets.targets.add()
+        t = odlcs.odlcs.add()
         t.score_ratio = 0.16
         t.classifications_score_ratio = 0.2
         t.geolocation_score_ratio = 0.6
@@ -234,7 +234,7 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0.5, feedback.uas_telemetry_time_max_sec)
         self.assertAlmostEqual(1. / 6, feedback.uas_telemetry_time_avg_sec)
 
-        self.assertAlmostEqual(0.445, feedback.target.score_ratio, places=3)
+        self.assertAlmostEqual(0.445, feedback.odlc.score_ratio, places=3)
 
         self.assertEqual(25, feedback.stationary_obstacles[0].id)
         self.assertEqual(True, feedback.stationary_obstacles[0].hit)
@@ -294,7 +294,7 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(2.0, feedback.uas_telemetry_time_max_sec)
         self.assertAlmostEqual(1.0, feedback.uas_telemetry_time_avg_sec)
 
-        self.assertAlmostEqual(0, feedback.target.score_ratio, places=3)
+        self.assertAlmostEqual(0, feedback.odlc.score_ratio, places=3)
 
         self.assertEqual(25, feedback.stationary_obstacles[0].id)
         self.assertEqual(False, feedback.stationary_obstacles[0].hit)

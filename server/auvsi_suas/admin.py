@@ -8,7 +8,7 @@ from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.moving_obstacle import MovingObstacle
 from auvsi_suas.models.stationary_obstacle import StationaryObstacle
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
-from auvsi_suas.models.target import Target
+from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.waypoint import Waypoint
 
@@ -27,10 +27,10 @@ class AerialPositionModelAdmin(admin.ModelAdmin):
 @admin.register(MissionConfig)
 class MissionConfigModelAdmin(admin.ModelAdmin):
     raw_id_fields = ("home_pos", "emergent_last_known_pos",
-                     "off_axis_target_pos", "air_drop_pos")
+                     "off_axis_odlc_pos", "air_drop_pos")
     filter_horizontal = ("fly_zones", "mission_waypoints",
-                         "search_grid_points", "targets",
-                         "stationary_obstacles", "moving_obstacles")
+                         "search_grid_points", "odlcs", "stationary_obstacles",
+                         "moving_obstacles")
 
 
 @admin.register(FlyZone)
@@ -48,8 +48,8 @@ class StationaryObstacleModelAdmin(admin.ModelAdmin):
     raw_id_fields = ("gps_position", )
 
 
-@admin.register(Target)
-class TargetModelAdmin(admin.ModelAdmin):
+@admin.register(Odlc)
+class OdlcModelAdmin(admin.ModelAdmin):
     show_full_result_count = False
     raw_id_fields = ("location", )
 

@@ -16,8 +16,8 @@ from mission_clock_event import MissionClockEvent
 from moving_obstacle import MovingObstacle
 from stationary_obstacle import StationaryObstacle
 from takeoff_or_landing_event import TakeoffOrLandingEvent
-from target import Target
-from target import TargetEvaluator
+from odlc import Odlc
+from odlc import OdlcEvaluator
 from time_period import TimePeriod
 from uas_telemetry import UasTelemetry
 from waypoint import Waypoint
@@ -37,9 +37,9 @@ class MissionConfig(models.Model):
         fly_zones: Valid areas for the UAS to fly.
         mission_waypoints: The waypoints that define the mission waypoint path
         search_grid_points: The polygon that defines the search grid.
-        targets: The judge created targets.
-        emergent_last_known_pos: The last known position of the emergent target.
-        off_axis_target_pos: Off-axis target position.
+        odlcs: The judge created objects for detection.
+        emergent_last_known_pos: The last known position of the emergent object.
+        off_axis_odlc_pos: Off-axis object position.
         air_drop_pos: The air drop position.
         stationary_obstacles: The stationary obstacles.
         moving_obstacles: The moving obstacles.
@@ -52,12 +52,11 @@ class MissionConfig(models.Model):
         Waypoint, related_name='missionconfig_mission_waypoints')
     search_grid_points = models.ManyToManyField(
         Waypoint, related_name='missionconfig_search_grid_points')
-    targets = models.ManyToManyField(
-        Target, related_name='missionconfig_targets')
+    odlcs = models.ManyToManyField(Odlc, related_name='missionconfig_odlc')
     emergent_last_known_pos = models.ForeignKey(
         GpsPosition, related_name='missionconfig_emergent_last_known_pos')
-    off_axis_target_pos = models.ForeignKey(
-        GpsPosition, related_name='missionconfig_off_axis_target_pos')
+    off_axis_odlc_pos = models.ForeignKey(
+        GpsPosition, related_name='missionconfig_off_axis_odlc_pos')
     air_drop_pos = models.ForeignKey(
         GpsPosition, related_name='missionconfig_air_drop_pos')
     stationary_obstacles = models.ManyToManyField(StationaryObstacle)
@@ -90,7 +89,7 @@ class MissionConfig(models.Model):
             (str(self.pk), str(self.is_active), self.home_pos.__unicode__(),
              mission_waypoints, search_grid,
              self.emergent_last_known_pos.__unicode__(),
-             self.off_axis_target_pos.__unicode__(),
+             self.off_axis_odlc_pos.__unicode__(),
              self.air_drop_pos.__unicode__(), stationary_obstacles,
              moving_obstacles))
 
@@ -106,9 +105,9 @@ class MissionConfig(models.Model):
             "fly_zones": [],  # Filled in below
             "mission_waypoints": [],  # Filled in below
             "search_grid_points": [],  # Filled in below
-            'off_axis_target_pos': {
-                'latitude': self.off_axis_target_pos.latitude,
-                'longitude': self.off_axis_target_pos.longitude,
+            'off_axis_odlc_pos': {
+                'latitude': self.off_axis_odlc_pos.latitude,
+                'longitude': self.off_axis_odlc_pos.longitude,
             },
             "emergent_last_known_pos": {
                 "latitude": self.emergent_last_known_pos.latitude,
@@ -207,7 +206,7 @@ class MissionConfig(models.Model):
         locations = {
             'Home Position': self.home_pos,
             'Emergent LKP': self.emergent_last_known_pos,
-            'Off Axis': self.off_axis_target_pos,
+            'Off Axis': self.off_axis_odlc_pos,
             'Air Drop': self.air_drop_pos,
         }
         for key, point in locations.iteritems():

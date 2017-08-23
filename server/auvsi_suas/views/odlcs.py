@@ -1,4 +1,4 @@
-"""Targets view."""
+"""Odlcs view."""
 import io
 import json
 from PIL import Image
@@ -7,11 +7,11 @@ import os.path
 
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_clock_event import MissionClockEvent
-from auvsi_suas.models.target import Color
-from auvsi_suas.models.target import Orientation
-from auvsi_suas.models.target import Shape
-from auvsi_suas.models.target import Target
-from auvsi_suas.models.target import TargetType
+from auvsi_suas.models.odlc import Color
+from auvsi_suas.models.odlc import Orientation
+from auvsi_suas.models.odlc import Shape
+from auvsi_suas.models.odlc import Odlc
+from auvsi_suas.models.odlc import OdlcType
 from auvsi_suas.views import logger
 from auvsi_suas.views.decorators import require_login
 from auvsi_suas.views.decorators import require_superuser
@@ -30,16 +30,16 @@ from sendfile import sendfile
 
 
 def normalize_data(data):
-    """Convert received target parameters to native Python types.
+    """Convert received odlc parameters to native Python types.
 
     Checks whether values are valid and in-range. Skips any non-existent
     fields.
 
     Args:
-        data: JSON-converted dictionary of target parameters
+        data: JSON-converted dictionary of odlc parameters
 
     Returns:
-        data dictionary with all present target fields in native types.
+        data dictionary with all present odlc fields in native types.
 
     Raises:
         ValueError: Parameter not convertable or out-of-range
@@ -56,10 +56,10 @@ def normalize_data(data):
     # Type is the one exception; it is required and may not be None.
     if 'type' in data:
         try:
-            data['type'] = TargetType.lookup(data['type'])
+            data['type'] = OdlcType.lookup(data['type'])
         except KeyError:
-            raise ValueError('Unknown target type "%s"; known types %r' %
-                             (data['type'], TargetType.names()))
+            raise ValueError('Unknown odlc type "%s"; known types %r' %
+                             (data['type'], OdlcType.names()))
 
     if 'latitude' in data and data['latitude'] is not None:
         try:
@@ -124,23 +124,21 @@ def normalize_data(data):
     return data
 
 
-class Targets(View):
-    """POST new target."""
+class Odlcs(View):
+    """POST new odlc."""
 
     @method_decorator(require_login)
     def dispatch(self, *args, **kwargs):
-        return super(Targets, self).dispatch(*args, **kwargs)
+        return super(Odlcs, self).dispatch(*args, **kwargs)
 
     def get(self, request):
-        # Limit serving to 100 targets to prevent slowdown and isolation problems.
-        targets = Target.objects.filter(user=request.user).all()[:100]
-        targets = [
-            t.json(is_superuser=request.user.is_superuser) for t in targets
-        ]
+        # Limit serving to 100 odlcs to prevent slowdown and isolation problems.
+        odlcs = Odlc.objects.filter(user=request.user).all()[:100]
+        odlcs = [t.json(is_superuser=request.user.is_superuser) for t in odlcs]
 
         # Older versions of JS allow hijacking the Array constructor to steal
         # JSON data. It is not a problem in recent versions.
-        return JsonResponse(targets, safe=False)
+        return JsonResponse(odlcs, safe=False)
 
     def post(self, request):
         try:
@@ -152,9 +150,9 @@ class Targets(View):
         if not isinstance(data, dict):
             return HttpResponseBadRequest('Request body not a JSON dict.')
 
-        # Target type is required.
+        # Odlc type is required.
         if 'type' not in data:
-            return HttpResponseBadRequest('Target type required.')
+            return HttpResponseBadRequest('Odlc type required.')
 
         # Team id can only be specified if superuser.
         user = request.user
@@ -191,9 +189,9 @@ class Targets(View):
             l.save()
 
         # Use the dictionary get() method to default non-existent values to None.
-        t = Target(
+        t = Odlc(
             user=user,
-            target_type=data['type'],
+            odlc_type=data['type'],
             location=l,
             orientation=data.get('orientation'),
             shape=data.get('shape'),
@@ -209,51 +207,50 @@ class Targets(View):
             t.json(is_superuser=request.user.is_superuser), status=201)
 
 
-def find_target(request, pk):
-    """Lookup requested Target model.
+def find_odlc(request, pk):
+    """Lookup requested Odlc model.
 
-    Only the request's user's targets will be returned.
+    Only the request's user's odlcs will be returned.
 
     Args:
         request: Request object
-        pk: Target primary key
+        pk: Odlc primary key
 
     Raises:
-        Target.DoesNotExist: pk not found
-        ValueError: Target not owned by this user.
+        Odlc.DoesNotExist: pk not found
+        ValueError: Odlc not owned by this user.
     """
-    target = Target.objects.get(pk=pk)
+    odlc = Odlc.objects.get(pk=pk)
 
-    # We only let users get their own targets, unless a superuser.
-    if target.user == request.user or request.user.is_superuser:
-        return target
+    # We only let users get their own odlcs, unless a superuser.
+    if odlc.user == request.user or request.user.is_superuser:
+        return odlc
     else:
-        raise ValueError("Accessing target %d not allowed" % pk)
+        raise ValueError("Accessing odlc %d not allowed" % pk)
 
 
-class TargetsId(View):
-    """Get or update a specific target."""
+class OdlcsId(View):
+    """Get or update a specific odlc."""
 
     @method_decorator(require_login)
     def dispatch(self, *args, **kwargs):
-        return super(TargetsId, self).dispatch(*args, **kwargs)
+        return super(OdlcsId, self).dispatch(*args, **kwargs)
 
     def get(self, request, pk):
         try:
-            target = find_target(request, int(pk))
-        except Target.DoesNotExist:
-            return HttpResponseNotFound('Target %s not found' % pk)
+            odlc = find_odlc(request, int(pk))
+        except Odlc.DoesNotExist:
+            return HttpResponseNotFound('Odlc %s not found' % pk)
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
-        return JsonResponse(
-            target.json(is_superuser=request.user.is_superuser))
+        return JsonResponse(odlc.json(is_superuser=request.user.is_superuser))
 
     def put(self, request, pk):
         try:
-            target = find_target(request, int(pk))
-        except Target.DoesNotExist:
-            return HttpResponseNotFound('Target %s not found' % pk)
+            odlc = find_odlc(request, int(pk))
+        except Odlc.DoesNotExist:
+            return HttpResponseNotFound('Odlc %s not found' % pk)
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
@@ -278,23 +275,23 @@ class TargetsId(View):
 
         # We update any of the included values, except id and user
         if 'type' in data:
-            target.target_type = data['type']
+            odlc.odlc_type = data['type']
         if 'orientation' in data:
-            target.orientation = data['orientation']
+            odlc.orientation = data['orientation']
         if 'shape' in data:
-            target.shape = data['shape']
+            odlc.shape = data['shape']
         if 'background_color' in data:
-            target.background_color = data['background_color']
+            odlc.background_color = data['background_color']
         if 'alphanumeric' in data:
-            target.alphanumeric = data['alphanumeric']
+            odlc.alphanumeric = data['alphanumeric']
         if 'alphanumeric_color' in data:
-            target.alphanumeric_color = data['alphanumeric_color']
+            odlc.alphanumeric_color = data['alphanumeric_color']
         if 'description' in data:
-            target.description = data['description']
+            odlc.description = data['description']
         if 'autonomous' in data:
-            target.autonomous = data['autonomous']
+            odlc.autonomous = data['autonomous']
         if 'actionable_override' in data:
-            target.actionable_override = data['actionable_override']
+            odlc.actionable_override = data['actionable_override']
 
         # Location is special because it is in a GpsPosition model
 
@@ -325,15 +322,15 @@ class TargetsId(View):
                 'Only none or both of latitude and longitude can be cleared.')
 
         if clear_lat and clear_lon:
-            target.location = None
+            odlc.location = None
         elif update_lat or update_lon:
-            if target.location is not None:
+            if odlc.location is not None:
                 # We can directly update individual components
                 if update_lat:
-                    target.location.latitude = data['latitude']
+                    odlc.location.latitude = data['latitude']
                 if update_lon:
-                    target.location.longitude = data['longitude']
-                target.location.save()
+                    odlc.location.longitude = data['longitude']
+                odlc.location.save()
             else:
                 # We need a new GpsPosition, this requires both lat and lon
                 if not update_lat or not update_lon:
@@ -344,25 +341,24 @@ class TargetsId(View):
                 l = GpsPosition(
                     latitude=data['latitude'], longitude=data['longitude'])
                 l.save()
-                target.location = l
+                odlc.location = l
 
-        target.save()
+        odlc.save()
 
-        return JsonResponse(
-            target.json(is_superuser=request.user.is_superuser))
+        return JsonResponse(odlc.json(is_superuser=request.user.is_superuser))
 
     def delete(self, request, pk):
         try:
-            target = find_target(request, int(pk))
-        except Target.DoesNotExist:
-            return HttpResponseNotFound('Target %s not found' % pk)
+            odlc = find_odlc(request, int(pk))
+        except Odlc.DoesNotExist:
+            return HttpResponseNotFound('Odlc %s not found' % pk)
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
         # Remember the thumbnail path so we can delete it from disk.
-        thumbnail = target.thumbnail.path if target.thumbnail else None
+        thumbnail = odlc.thumbnail.path if odlc.thumbnail else None
 
-        target.delete()
+        odlc.delete()
 
         if thumbnail:
             try:
@@ -370,35 +366,35 @@ class TargetsId(View):
             except OSError as e:
                 logger.warning("Unable to delete thumbnail: %s", e)
 
-        return HttpResponse("Target deleted.")
+        return HttpResponse("Odlc deleted.")
 
 
-class TargetsIdImage(View):
-    """Get or add/update target image."""
+class OdlcsIdImage(View):
+    """Get or add/update odlc image."""
 
     @method_decorator(require_login)
     def dispatch(self, *args, **kwargs):
-        return super(TargetsIdImage, self).dispatch(*args, **kwargs)
+        return super(OdlcsIdImage, self).dispatch(*args, **kwargs)
 
     def get(self, request, pk):
         try:
-            target = find_target(request, int(pk))
-        except Target.DoesNotExist:
-            return HttpResponseNotFound('Target %s not found' % pk)
+            odlc = find_odlc(request, int(pk))
+        except Odlc.DoesNotExist:
+            return HttpResponseNotFound('Odlc %s not found' % pk)
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
-        if not target.thumbnail.name:
-            return HttpResponseNotFound('Target %s has no image' % pk)
+        if not odlc.thumbnail.name:
+            return HttpResponseNotFound('Odlc %s has no image' % pk)
 
         # Tell Apache to serve the thumbnail.
-        return sendfile(request, target.thumbnail.path)
+        return sendfile(request, odlc.thumbnail.path)
 
     def post(self, request, pk):
         try:
-            target = find_target(request, int(pk))
-        except Target.DoesNotExist:
-            return HttpResponseNotFound('Target %s not found' % pk)
+            odlc = find_odlc(request, int(pk))
+        except Odlc.DoesNotExist:
+            return HttpResponseNotFound('Odlc %s not found' % pk)
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
@@ -417,11 +413,11 @@ class TargetsIdImage(View):
                 'Invalid image format %s, only JPEG and PNG allowed' %
                 i.format)
 
-        old_path = target.thumbnail.path if target.thumbnail else None
+        old_path = odlc.thumbnail.path if odlc.thumbnail else None
 
-        target.thumbnail.save('%d.%s' % (target.pk, i.format), ImageFile(f))
+        odlc.thumbnail.save('%d.%s' % (odlc.pk, i.format), ImageFile(f))
 
-        if old_path and target.thumbnail.path != old_path:
+        if old_path and odlc.thumbnail.path != old_path:
             # We didn't overwrite the old thumbnail, we should delete it,
             # but ignore deletion errors.
             try:
@@ -437,19 +433,19 @@ class TargetsIdImage(View):
 
     def delete(self, request, pk):
         try:
-            target = find_target(request, int(pk))
-        except Target.DoesNotExist:
-            return HttpResponseNotFound('Target %s not found' % pk)
+            odlc = find_odlc(request, int(pk))
+        except Odlc.DoesNotExist:
+            return HttpResponseNotFound('Odlc %s not found' % pk)
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
-        if not target.thumbnail or not target.thumbnail.path:
-            return HttpResponseNotFound('Target %s has no image' % pk)
+        if not odlc.thumbnail or not odlc.thumbnail.path:
+            return HttpResponseNotFound('Odlc %s has no image' % pk)
 
-        path = target.thumbnail.path
-        # Remove the thumbnail from the target.
+        path = odlc.thumbnail.path
+        # Remove the thumbnail from the odlc.
         # Note that this does not delete it from disk!
-        target.thumbnail.delete()
+        odlc.thumbnail.delete()
 
         try:
             os.remove(path)
@@ -459,35 +455,34 @@ class TargetsIdImage(View):
         return HttpResponse("Image deleted.")
 
 
-class TargetsAdminReview(View):
-    """Get or update review status for targets."""
+class OdlcsAdminReview(View):
+    """Get or update review status for odlcs."""
 
     @method_decorator(require_superuser)
     def dispatch(self, *args, **kwargs):
-        return super(TargetsAdminReview, self).dispatch(*args, **kwargs)
+        return super(OdlcsAdminReview, self).dispatch(*args, **kwargs)
 
     def get(self, request):
-        """Gets all of the targets ready for review."""
-        targets = []
+        """Gets all of the odlcs ready for review."""
+        odlcs = []
         for user in User.objects.all():
-            # Targets still editable aren't ready for review.
+            # Odlcs still editable aren't ready for review.
             if (MissionClockEvent.user_on_clock(user) or
                     MissionClockEvent.user_on_timeout(user)):
                 continue
-            # Get targets which have thumbnail.
-            targets.extend([
-                t for t in Target.objects.filter(user=user).all()
-                if t.thumbnail
+            # Get odlcs which have thumbnail.
+            odlcs.extend([
+                t for t in Odlc.objects.filter(user=user).all() if t.thumbnail
             ])
-        # Sort targets by last edit time, convert to json.
-        targets = [
+        # Sort odlcs by last edit time, convert to json.
+        odlcs = [
             t.json(is_superuser=request.user.is_superuser)
-            for t in sorted(targets, key=lambda t: t.last_modified_time)
+            for t in sorted(odlcs, key=lambda t: t.last_modified_time)
         ]
-        return JsonResponse(targets, safe=False)
+        return JsonResponse(odlcs, safe=False)
 
     def put(self, request, pk):
-        """Updates the review status of a target."""
+        """Updates the review status of a odlc."""
         try:
             data = json.loads(request.body)
             thumbnail_approved = bool(data['thumbnail_approved'])
@@ -500,13 +495,12 @@ class TargetsAdminReview(View):
             return HttpResponseBadRequest('Field had incorrect type.')
 
         try:
-            target = find_target(request, int(pk))
-        except Target.DoesNotExist:
-            return HttpResponseNotFound('Target %s not found' % pk)
+            odlc = find_odlc(request, int(pk))
+        except Odlc.DoesNotExist:
+            return HttpResponseNotFound('Odlc %s not found' % pk)
         except ValueError as e:
             return HttpResponseForbidden(str(e))
-        target.thumbnail_approved = thumbnail_approved
-        target.description_approved = description_approved
-        target.save()
-        return JsonResponse(
-            target.json(is_superuser=request.user.is_superuser))
+        odlc.thumbnail_approved = thumbnail_approved
+        odlc.description_approved = description_approved
+        odlc.save()
+        return JsonResponse(odlc.json(is_superuser=request.user.is_superuser))
