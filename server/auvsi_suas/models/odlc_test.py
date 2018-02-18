@@ -313,69 +313,6 @@ class TestOdlc(TestCase):
         self.assertFalse(t6.actionable_submission())
         self.assertTrue(t7.actionable_submission())
 
-    def test_interop_submission(self):
-        """Tests interop_submission correctly filters submissions."""
-        # t1 created and updated before mission time starts.
-        t1 = Odlc(user=self.user, odlc_type=OdlcType.standard)
-        t1.save()
-        t1.alphanumeric = 'A'
-        t1.save()
-
-        # t2 created before mission time starts and updated once it does.
-        t2 = Odlc(user=self.user, odlc_type=OdlcType.standard)
-        t2.save()
-
-        # Mission time starts.
-        event = MissionClockEvent(
-            user=self.user, team_on_clock=True, team_on_timeout=False)
-        event.save()
-
-        t2.alphanumeric = 'A'
-        t2.save()
-
-        # t3 created and updated during mission time.
-        t3 = Odlc(user=self.user, odlc_type=OdlcType.standard)
-        t3.save()
-        t3.alphanumeric = 'A'
-        t3.save()
-
-        # t4 created in in mission time and updated during timeout.
-        t4 = Odlc(user=self.user, odlc_type=OdlcType.standard)
-        t4.save()
-
-        # Team takes timeout. Mission time stops.
-        event = MissionClockEvent(
-            user=self.user, team_on_clock=False, team_on_timeout=True)
-        event.save()
-
-        t4.alphanumeric = 'A'
-        t4.save()
-
-        # t5 created and updated during timeout.
-        t5 = Odlc(user=self.user, odlc_type=OdlcType.standard)
-        t5.save()
-        t5.alphanumeric = 'A'
-        t5.save()
-
-        # t6 created and updated once mission time resumes.
-        event = MissionClockEvent(
-            user=self.user, team_on_clock=True, team_on_timeout=False)
-        event.save()
-        t6 = Odlc(user=self.user, odlc_type=OdlcType.standard)
-        t6.save()
-        t6.alphanumeric = 'A'
-        t6.save()
-        event = MissionClockEvent(
-            user=self.user, team_on_clock=False, team_on_timeout=False)
-        event.save()
-
-        self.assertFalse(t1.interop_submission())
-        self.assertFalse(t2.interop_submission())
-        self.assertTrue(t3.interop_submission())
-        self.assertFalse(t4.interop_submission())
-        self.assertFalse(t5.interop_submission())
-        self.assertTrue(t6.interop_submission())
-
 
 class TestOdlcEvaluator(TestCase):
     """Tests for the OdlcEvaluator."""
@@ -393,6 +330,8 @@ class TestOdlcEvaluator(TestCase):
         l2.save()
         l3 = GpsPosition(latitude=-38, longitude=76)
         l3.save()
+        l4 = GpsPosition(latitude=0, longitude=0)
+        l4.save()
 
         event = MissionClockEvent(
             user=self.user, team_on_clock=True, team_on_timeout=False)
@@ -462,7 +401,7 @@ class TestOdlcEvaluator(TestCase):
         self.submit3 = Odlc(
             user=self.user,
             odlc_type=OdlcType.standard,
-            location=l1,
+            location=l4,
             orientation=Orientation.nw,
             shape=Shape.pentagon,
             background_color=Color.gray,
@@ -555,7 +494,7 @@ class TestOdlcEvaluator(TestCase):
         self.submit7 = Odlc(
             user=self.user,
             odlc_type=OdlcType.standard,
-            location=l1,
+            location=l4,
             alphanumeric_color=Color.black,
             description='Submit unused test odlc 1',
             autonomous=False,
@@ -570,9 +509,6 @@ class TestOdlcEvaluator(TestCase):
             self.real1, self.real2, self.real3, self.real4, self.real5,
             self.real6
         ]
-        self.real_matched_odlcs = [
-            self.real1, self.real2, self.real4, self.real5
-        ]
 
     def test_match_value(self):
         """Tests the match value for two odlcs."""
@@ -582,7 +518,7 @@ class TestOdlcEvaluator(TestCase):
             e.evaluate_match(self.submit1, self.real1).score_ratio,
             places=3)
         self.assertAlmostEqual(
-            0.174,
+            0.201,
             e.evaluate_match(self.submit2, self.real2).score_ratio,
             places=3)
         self.assertAlmostEqual(
@@ -594,24 +530,24 @@ class TestOdlcEvaluator(TestCase):
             e.evaluate_match(self.submit4, self.real4).score_ratio,
             places=3)
         self.assertAlmostEqual(
-            0.3,
+            0.5,
             e.evaluate_match(self.submit5, self.real5).score_ratio,
             places=3)
         self.assertAlmostEqual(
-            0.7,
+            1.0,
             e.evaluate_match(self.submit6, self.real6).score_ratio,
             places=3)
         self.assertAlmostEqual(
-            0.240,
+            0.04,
             e.evaluate_match(self.submit7, self.real1).score_ratio,
             places=3)
 
         self.assertAlmostEqual(
-            0.814,
+            0.741,
             e.evaluate_match(self.submit1, self.real2).score_ratio,
             places=3)
         self.assertAlmostEqual(
-            0.32,
+            0.42,
             e.evaluate_match(self.submit2, self.real1).score_ratio,
             places=3)
 
@@ -640,12 +576,10 @@ class TestOdlcEvaluator(TestCase):
         self.assertEqual(1.0, td[self.real1.pk].classifications_ratio)
         self.assertEqual(0.0, td[self.real1.pk].geolocation_accuracy_ft)
         self.assertEqual(True, td[self.real1.pk].actionable_submission)
-        self.assertEqual(True, td[self.real1.pk].interop_submission)
         self.assertEqual(1.0, td[self.real1.pk].classifications_score_ratio)
         self.assertEqual(1.0, td[self.real1.pk].geolocation_score_ratio)
         self.assertEqual(1.0, td[self.real1.pk].actionable_score_ratio)
         self.assertEqual(1.0, td[self.real1.pk].autonomous_score_ratio)
-        self.assertEqual(1.0, td[self.real1.pk].interop_score_ratio)
         self.assertAlmostEqual(1.0, td[self.real1.pk].score_ratio)
 
         self.assertEqual(self.submit2.pk, td[self.real2.pk].submitted_odlc)
@@ -654,16 +588,14 @@ class TestOdlcEvaluator(TestCase):
         self.assertAlmostEqual(
             109.444, td[self.real2.pk].geolocation_accuracy_ft, places=3)
         self.assertEqual(False, td[self.real2.pk].actionable_submission)
-        self.assertEqual(False, td[self.real2.pk].interop_submission)
         self.assertEqual(0.6, td[self.real2.pk].classifications_score_ratio)
         self.assertAlmostEqual(
             0.270, td[self.real2.pk].geolocation_score_ratio, places=3)
         self.assertEqual(0.0, td[self.real2.pk].actionable_score_ratio)
-        self.assertEqual(0.0, td[self.real2.pk].interop_score_ratio)
-        self.assertAlmostEqual(0.174, td[self.real2.pk].score_ratio, places=3)
+        self.assertAlmostEqual(0.201, td[self.real2.pk].score_ratio, places=3)
 
         self.assertEqual(True, td[self.real6.pk].description_approved)
-        self.assertAlmostEqual(0.262, d.score_ratio, places=3)
+        self.assertAlmostEqual(0.350, d.score_ratio, places=3)
         self.assertEqual(2, d.unmatched_odlc_count)
 
     def test_evaluate_no_submitted_odlcs(self):

@@ -150,12 +150,12 @@ message ObstacleAvoidanceScore {
 
 // Scoring data for objects.
 message ObjectScore {
+    // reserved 6;
     optional double score_ratio = 1;
     optional double characteristics = 2;
     optional double geolocation = 3;
     optional double actionable = 4;
     optional double autonomy = 5;
-    optional double interoperability = 6;
     optional double extra_object_penalty = 7;
 }
 

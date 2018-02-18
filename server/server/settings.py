@@ -214,13 +214,11 @@ CHARACTERISTICS_WEIGHT = 0.2
 # The lowest allowed location accuracy (in feet)
 TARGET_LOCATION_THRESHOLD = 150
 # The weight of geolocation accuracy when calculating a odlc match score.
-GEOLOCATION_WEIGHT = 0.2
+GEOLOCATION_WEIGHT = 0.3
 # The weight of actionable intelligence when calculating a odlc match score.
-ACTIONABLE_WEIGHT = 0.1
+ACTIONABLE_WEIGHT = 0.3
 # The weight of autonomy when calculating a odlc match score.
 AUTONOMY_WEIGHT = 0.2
-# The weight of submission over interop when calculating a odlc match score.
-INTEROPERABILITY_WEIGHT = 0.3
 
 # Weight of timeline points for mission time.
 MISSION_TIME_WEIGHT = 0.8
