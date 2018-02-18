@@ -432,6 +432,14 @@ class OdlcEvaluator(object):
 
         return object_eval
 
+    def matching_map_from_set(self, matched_set):
+        """Converts mapping set-of-pairs format to a map format."""
+        matches = {}
+        for (f, s) in matched_set:
+            matches[f] = s
+            matches[s] = f
+        return matches
+
     def match_odlcs(self, submitted_objects, real_objects):
         """Matches the objects to maximize match value.
 
@@ -453,7 +461,8 @@ class OdlcEvaluator(object):
                 if match_value:
                     g.add_edge(submitted, real, weight=match_value)
         # Compute the full matching.
-        return nx.algorithms.matching.max_weight_matching(g)
+        return self.matching_map_from_set(
+            nx.algorithms.matching.max_weight_matching(g))
 
     def find_unmatched(self, submitted_objects, real_objects, matches):
         """Finds unmatched objects, filtering double-counts by autonomy.
@@ -480,11 +489,12 @@ class OdlcEvaluator(object):
                     real in matches and
                     submitted.autonomous != matches[real].autonomous)
                 if match_value and inverted_autonomy:
-                    # We care about minimiznig unmatched, not match weight, so
+                    # We care about minimizing unmatched, not match weight, so
                     # use weight of 1.
                     g.add_edge(submitted, real, weight=1)
         # Compute the matching to find unused objects.
-        unused_match = nx.algorithms.matching.max_weight_matching(g)
+        unused_match = self.matching_map_from_set(
+            nx.algorithms.matching.max_weight_matching(g))
         # Difference between remaining and unused is unmatched.
         return [t for t in remaining_objects if t not in unused_match]
 

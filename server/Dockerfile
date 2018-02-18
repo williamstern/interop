@@ -1,8 +1,8 @@
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 WORKDIR /interop/server
 
 # Install server base dependencies.
-RUN sudo apt-get -qq update && sudo apt-get -qq install -y \
+RUN apt-get -qq update && apt-get -qq install -y \
         apache2 \
         apache2-utils \
         curl \
@@ -24,11 +24,13 @@ RUN sudo apt-get -qq update && sudo apt-get -qq install -y \
         python-pip \
         python-psycopg2 \
         python-pyproj \
-        python-scipy
+        python-scipy \
+        sudo
 
 # Install server Javascript requirements.
-RUN sudo ln -snf /usr/bin/nodejs /usr/local/bin/node && \
-    sudo npm install -g \
+RUN ln -snf /usr/bin/nodejs /usr/local/bin/node && \
+    npm install -g \
+        jasmine-core \
         karma \
         karma-chrome-launcher \
         karma-jasmine \
@@ -61,17 +63,17 @@ RUN ./config/configure_proto.sh
 COPY . .
 
 # Load initial data.
-RUN sudo service postgresql start && \
+RUN service postgresql start && \
     ./healthcheck.py --check_postgres && \
     python manage.py loaddata fixtures/test_fixture.yaml
 
 # Host-mountable sections.
-VOLUME /var/log/apache2 /var/lib/postgresql/9.3/data
+VOLUME /var/log/apache2 /var/lib/postgresql
 
 # On run: start database, cache, server, and don't exit.
-CMD sudo service postgresql start && \
-  sudo service memcached start && \
-  sudo service apache2 start && \
+CMD service postgresql start && \
+  service memcached start && \
+  service apache2 start && \
   tail -f /dev/null
 
 HEALTHCHECK \
