@@ -43,14 +43,12 @@ class TestMissionScoring(TestCase):
         t.geolocation_score_ratio = 0.2
         t.actionable_score_ratio = 1.0
         t.autonomous_score_ratio = 1.0
-        t.interop_score_ratio = 1.0
         t = odlcs.odlcs.add()
         t.score_ratio = 0.16
         t.classifications_score_ratio = 0.2
         t.geolocation_score_ratio = 0.6
         t.actionable_score_ratio = 0.0
         t.autonomous_score_ratio = 0.0
-        t.interop_score_ratio = 0.0
         judge = feedback.judge
         judge.flight_time_sec = 60 * 6
         judge.post_process_time_sec = 60 * 4
@@ -167,7 +165,6 @@ class TestMissionScoring(TestCase):
         self.assertAlmostEqual(0.4, objects.geolocation)
         self.assertAlmostEqual(0.5, objects.actionable)
         self.assertAlmostEqual(0.5, objects.autonomy)
-        self.assertAlmostEqual(0.5, objects.interoperability)
         self.assertAlmostEqual(0.1, objects.extra_object_penalty)
         self.assertAlmostEqual(0.46, objects.score_ratio)
 
@@ -234,7 +231,7 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0.5, feedback.uas_telemetry_time_max_sec)
         self.assertAlmostEqual(1. / 6, feedback.uas_telemetry_time_avg_sec)
 
-        self.assertAlmostEqual(0.445, feedback.odlc.score_ratio, places=3)
+        self.assertAlmostEqual(0.454, feedback.odlc.score_ratio, places=3)
 
         self.assertEqual(25, feedback.stationary_obstacles[0].id)
         self.assertEqual(True, feedback.stationary_obstacles[0].hit)
@@ -266,16 +263,15 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0.423458165692, score.object.geolocation)
         self.assertAlmostEqual(0.333333333333, score.object.actionable)
         self.assertAlmostEqual(0.333333333333, score.object.autonomy)
-        self.assertAlmostEqual(0.333333333333, score.object.interoperability)
         self.assertAlmostEqual(0, score.object.extra_object_penalty)
-        self.assertAlmostEqual(0.444691633138, score.object.score_ratio)
+        self.assertAlmostEqual(0.4537041163742234, score.object.score_ratio)
 
         self.assertAlmostEqual(0, score.air_delivery.delivery_accuracy)
         self.assertAlmostEqual(1, score.air_delivery.score_ratio)
 
         self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
 
-        self.assertAlmostEqual(0.6038968451461928, score.score_ratio)
+        self.assertAlmostEqual(0.6056993417933632, score.score_ratio)
 
         # user1 data
         user_eval = mission_eval.teams[1]
@@ -326,7 +322,6 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0, score.object.geolocation)
         self.assertAlmostEqual(0, score.object.actionable)
         self.assertAlmostEqual(0, score.object.autonomy)
-        self.assertAlmostEqual(0, score.object.interoperability)
         self.assertAlmostEqual(0, score.object.extra_object_penalty)
         self.assertAlmostEqual(0, score.object.score_ratio)
 

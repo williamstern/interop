@@ -289,29 +289,6 @@ class Odlc(models.Model):
 
         return self.actionable_override or actionable
 
-    def interop_submission(self, missions=None):
-        """Checks if Odlc meets Interoperability submission criteria.
-
-        A object counts as being submitted over interoperability system if it
-        was submitted and last updated while the team was on the mission clock.
-
-        Args:
-            missions: Optional memoized missions for this object's user. If
-                     omitted, the missions will be looked up.
-
-        Returns:
-            True if object may be considered an "interoperability" submission.
-        """
-        if missions is None:
-            missions = MissionClockEvent.missions(self.user)
-
-        for mission in missions:
-            if mission.within(self.creation_time) and \
-                mission.within(self.last_modified_time):
-                return True
-
-        return False
-
 
 class OdlcEvaluator(object):
     """Evaluates submitted objects against real judge-made objects."""
@@ -401,8 +378,6 @@ class OdlcEvaluator(object):
         object_eval.actionable_submission = submitted.actionable_submission(
             flights=self.flights)
         object_eval.autonomous_submission = submitted.autonomous
-        object_eval.interop_submission = submitted.interop_submission(
-            missions=self.missions)
 
         # Compute score.
         object_eval.classifications_score_ratio = \
@@ -418,17 +393,13 @@ class OdlcEvaluator(object):
                 1 if object_eval.actionable_submission else 0
         object_eval.autonomous_score_ratio = \
                 1 if object_eval.autonomous_submission else 0
-        object_eval.interop_score_ratio = \
-                1 if object_eval.interop_submission else 0
         object_eval.score_ratio = (
             (settings.CHARACTERISTICS_WEIGHT *
              object_eval.classifications_score_ratio) +
             (settings.GEOLOCATION_WEIGHT * object_eval.geolocation_score_ratio)
             +
             (settings.ACTIONABLE_WEIGHT * object_eval.actionable_score_ratio) +
-            (settings.AUTONOMY_WEIGHT * object_eval.autonomous_score_ratio) +
-            (settings.INTEROPERABILITY_WEIGHT *
-             object_eval.interop_score_ratio))
+            (settings.AUTONOMY_WEIGHT * object_eval.autonomous_score_ratio))
 
         return object_eval
 

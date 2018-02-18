@@ -214,7 +214,6 @@ def score_team(team_eval):
         ('geolocation_score_ratio', 'geolocation'),
         ('actionable_score_ratio', 'actionable'),
         ('autonomous_score_ratio', 'autonomy'),
-        ('interop_score_ratio', 'interoperability'),
     ]
     for eval_field, score_field in object_field_mapping:
         total = reduce(lambda x, y: x + y,
