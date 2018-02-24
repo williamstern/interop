@@ -9,6 +9,7 @@ log "Installing APT packages."
 apt-get -qq update
 apt-get -qq install -y \
     graphviz \
+    parallel \
     postgresql-client \
     protobuf-compiler \
     python-matplotlib \

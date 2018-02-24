@@ -8,9 +8,8 @@ services:
 install:
   # Setup tools.
   - sudo ./tools/setup_tools.sh
-  # Build images.
-  - ./server/build.sh
-  - ./client/build.sh
+  # Build images in parallel.
+  - echo -e "./server/build.sh\n./client/build.sh" | parallel --no-notice
 
 script:
   # Test server.
@@ -27,5 +26,6 @@ deploy:
   # Push master branch docker images to dockerhub.
   provider: script
   script: bash docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD" && docker push auvsisuas/interop-server && docker push auvsisuas/interop-client
+  skip_cleanup: true
   on:
     branch: master
