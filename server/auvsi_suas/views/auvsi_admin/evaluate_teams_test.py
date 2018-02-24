@@ -72,8 +72,8 @@ class TestEvaluateTeams(TestCase):
         self.assertIn('teams', data)
         teams = data['teams']
         self.assertEqual(len(teams), 3)
-        self.assertEqual('user0', teams[0]['team'])
-        self.assertEqual('user1', teams[1]['team'])
+        self.assertEqual('user0', teams[1]['team'])
+        self.assertEqual('user1', teams[2]['team'])
         self.assertIn('missionClockTimeSec', teams[0]['feedback'])
 
     def test_evaluate_teams_specific_team(self):

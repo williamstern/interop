@@ -268,7 +268,7 @@ def evaluate_teams(mission_config, users=None):
         users = User.objects.all()
 
     logger.info('Starting team evaluations.')
-    for user in users:
+    for user in sorted(users, key=lambda u: u.username):
         # Ignore admins.
         if user.is_superuser:
             continue
