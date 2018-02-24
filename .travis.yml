@@ -25,7 +25,7 @@ script:
 deploy:
   # Push master branch docker images to dockerhub.
   provider: script
-  script: bash docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD" && docker push auvsisuas/interop-server && docker push auvsisuas/interop-client
+  script: docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD" && docker push auvsisuas/interop-server && docker push auvsisuas/interop-client
   skip_cleanup: true
   on:
     branch: master
