@@ -9,7 +9,7 @@ install:
   # Setup tools.
   - sudo ./tools/setup_tools.sh
   # Build images in parallel.
-  - echo -e "./server/build.sh\n./client/build.sh" | parallel --no-notice
+  - echo -e "./server/build.sh\n./client/build.sh" | parallel
 
 script:
   # Test server.
