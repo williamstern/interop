@@ -23,10 +23,9 @@ script:
   # Check formatting.
   - ./tools/format.sh --all
 
-after_success:
-  # Push to Dockerhub.
-  - if [ "$TRAVIS_BRANCH" == "master" ]; then
-    docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
-    docker push auvsisuas/interop-server;
-    docker push auvsisuas/interop-client;
-    fi
+deploy:
+  # Push master branch docker images to dockerhub.
+  provider: script
+  script: bash docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD" && docker push auvsisuas/interop-server && docker push auvsisuas/interop-client
+  on:
+    branch: master
