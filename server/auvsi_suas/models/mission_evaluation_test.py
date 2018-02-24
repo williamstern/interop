@@ -78,9 +78,9 @@ class TestMissionScoring(TestCase):
         judge.used_timeout = False
         mission_evaluation.score_team(self.eval)
         self.assertAlmostEqual(0.0, timeline.mission_time)
-        self.assertAlmostEqual(4.32, timeline.mission_penalty)
+        self.assertAlmostEqual(16.2, timeline.mission_penalty)
         self.assertAlmostEqual(1, timeline.timeout)
-        self.assertAlmostEqual(-4.12, timeline.score_ratio)
+        self.assertAlmostEqual(-16, timeline.score_ratio)
 
     def test_autonomous_flight(self):
         """Test the autonomous flight scoring."""
