@@ -137,17 +137,17 @@ class TestMissionScoring(TestCase):
 
         mission_evaluation.score_team(self.eval)
         self.assertTrue(avoid.telemetry_prerequisite)
-        self.assertAlmostEqual(0.5, avoid.stationary_obstacle)
+        self.assertAlmostEqual(0.125, avoid.stationary_obstacle)
         self.assertAlmostEqual(0, avoid.moving_obstacle)
-        self.assertAlmostEqual(0.25, avoid.score_ratio)
+        self.assertAlmostEqual(0.0625, avoid.score_ratio)
 
         feedback.stationary_obstacles[0].hit = False
         feedback.moving_obstacles[0].hit = False
         mission_evaluation.score_team(self.eval)
         self.assertTrue(avoid.telemetry_prerequisite)
         self.assertAlmostEqual(1, avoid.stationary_obstacle)
-        self.assertAlmostEqual(0.5, avoid.moving_obstacle)
-        self.assertAlmostEqual(0.75, avoid.score_ratio)
+        self.assertAlmostEqual(0.125, avoid.moving_obstacle)
+        self.assertAlmostEqual(0.5625, avoid.score_ratio)
 
         feedback.uas_telemetry_time_avg_sec = 1.01
         mission_evaluation.score_team(self.eval)
@@ -196,7 +196,7 @@ class TestMissionScoring(TestCase):
     def test_total(self):
         """Test the total scoring."""
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(0.455077778, self.eval.score.score_ratio)
+        self.assertAlmostEqual(0.4175777777777778, self.eval.score.score_ratio)
 
 
 class TestMissionEvaluation(TestCase):
@@ -271,7 +271,7 @@ class TestMissionEvaluation(TestCase):
 
         self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
 
-        self.assertAlmostEqual(0.6056993417933632, score.score_ratio)
+        self.assertAlmostEqual(0.5306993417933632, score.score_ratio)
 
         # user1 data
         user_eval = mission_eval.teams[1]

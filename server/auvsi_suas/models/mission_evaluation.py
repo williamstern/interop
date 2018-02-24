@@ -193,12 +193,14 @@ def score_team(team_eval):
     avoid = score.obstacle_avoidance
     avoid.telemetry_prerequisite = telem_prereq
     if telem_prereq:
-        avoid.stationary_obstacle = (reduce(lambda x, y: x + y, [
-            0.0 if o.hit else 1.0 for o in feedback.stationary_obstacles
-        ]) / len(feedback.stationary_obstacles))
-        avoid.moving_obstacle = (reduce(lambda x, y: x + y, [
-            0.0 if o.hit else 1.0 for o in feedback.moving_obstacles
-        ]) / len(feedback.moving_obstacles))
+        avoid.stationary_obstacle = pow(
+            reduce(lambda x, y: x + y, [
+                0.0 if o.hit else 1.0 for o in feedback.stationary_obstacles
+            ]) / len(feedback.stationary_obstacles), 3)
+        avoid.moving_obstacle = pow(
+            reduce(lambda x, y: x + y, [
+                0.0 if o.hit else 1.0 for o in feedback.moving_obstacles
+            ]) / len(feedback.moving_obstacles), 3)
     else:
         avoid.stationary_obstacle = 0
         avoid.moving_obstacle = 0
