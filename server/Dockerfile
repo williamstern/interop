@@ -68,7 +68,7 @@ RUN service postgresql start && \
     python manage.py loaddata fixtures/test_fixture.yaml
 
 # Host-mountable sections.
-VOLUME /var/log/apache2 /var/lib/postgresql
+VOLUME /var/log/apache2 /var/lib/postgresql /var/www/media/objects
 
 # On run: start database, cache, server, and don't exit.
 CMD service postgresql start && \
