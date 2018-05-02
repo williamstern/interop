@@ -10,7 +10,7 @@
         <label>Team
             <select ng-model="evaluateTeamsCtrl.selectedTeamId">
                 <option value=-1>All</option>
-                <option ng-repeat="t in evaluateTeamsCtrl.teams" ng-value="t.id">{{t.name}}</option>
+                <option ng-repeat="t in evaluateTeamsCtrl.teams | orderBy: 'name'" ng-value="t.id">{{t.name}}</option>
             </select>
         </label>
     </div>
