@@ -5,6 +5,7 @@ CONFIG=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
 
 set -e
 
+mkdir -p /var/www/media/objects
 chown -R www-data /var/www
 cp ${CONFIG}/xsendfile.conf /etc/apache2/conf-enabled/
 cp ${CONFIG}/limit_upload.conf /etc/apache2/conf-enabled/
