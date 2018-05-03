@@ -29,14 +29,9 @@ class MovingObstacle(models.Model):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        waypoints_strs = [
-            "%s" % wpt.__unicode__() for wpt in self.waypoints.all()
-        ]
-        waypoints_str = ", ".join(waypoints_strs)
-        return unicode("MovingObstacle (pk:%s, speed:%s, radius:%s, "
-                       "waypoints:[%s])" %
+        return unicode("MovingObstacle (pk:%s, speed:%s, radius:%s)" %
                        (str(self.pk), str(self.speed_avg),
-                        str(self.sphere_radius), waypoints_str))
+                        str(self.sphere_radius)))
 
     def get_waypoint_travel_time(self, waypoints, id_tm1, id_t):
         """Gets the travel time to the current waypoint from a previous.

@@ -64,34 +64,9 @@ class MissionConfig(models.Model):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        mission_waypoints = [
-            '%s' % wpt.__unicode__() for wpt in self.mission_waypoints.all()
-        ]
-
-        search_grid = [
-            '%s' % wpt.__unicode__() for wpt in self.search_grid_points.all()
-        ]
-
-        stationary_obstacles = [
-            '%s' % obst.__unicode__()
-            for obst in self.stationary_obstacles.all()
-        ]
-
-        moving_obstacles = [
-            '%s' % obst.__unicode__() for obst in self.moving_obstacles.all()
-        ]
-
-        return unicode(
-            'MissionConfig (pk:%s, is_active: %s, home_pos:%s, '
-            'mission_waypoints:%s, search_grid:%s, '
-            'emergent_lkp:%s, off_axis:%s, '
-            'air_drop_pos:%s, stationary_obstacles:%s, moving_obstacles:%s)' %
-            (str(self.pk), str(self.is_active), self.home_pos.__unicode__(),
-             mission_waypoints, search_grid,
-             self.emergent_last_known_pos.__unicode__(),
-             self.off_axis_odlc_pos.__unicode__(),
-             self.air_drop_pos.__unicode__(), stationary_obstacles,
-             moving_obstacles))
+        return unicode('MissionConfig (pk:%s, is_active: %s, home_pos:%s)' %
+                       (str(self.pk), str(self.is_active),
+                        self.home_pos.__unicode__()))
 
     def json(self, is_superuser):
         """Return a dict, for conversion to JSON."""

@@ -18,11 +18,11 @@ class MissionClockEvent(AccessLog):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        return unicode('MissionClockEvent (pk:%s, user:%s, timestamp:%s, '
-                       'team_on_clock:%s, team_on_timeout:%s)' %
+        return unicode('MissionClockEvent (pk:%s, user:%s, team_on_clock:%s, '
+                       'team_on_timeout:%s, timestamp:%s)' %
                        (str(self.pk), self.user.__unicode__(),
-                        str(self.timestamp), str(self.team_on_clock),
-                        str(self.team_on_timeout)))
+                        str(self.team_on_clock), str(self.team_on_timeout),
+                        str(self.timestamp)))
 
     @classmethod
     def user_on_clock(cls, user, time=None):

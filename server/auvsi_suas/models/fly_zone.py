@@ -25,14 +25,9 @@ class FlyZone(models.Model):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        boundary_strs = [
-            "%s" % wpt.__unicode__() for wpt in self.boundary_pts.all()
-        ]
-        boundary_str = ", ".join(boundary_strs)
-        return unicode("FlyZone (pk:%s, alt_min:%s, alt_max:%s, "
-                       "boundary_pts:[%s])" %
+        return unicode("FlyZone (pk:%s, alt_min:%s, alt_max:%s)" %
                        (str(self.pk), str(self.altitude_msl_min),
-                        str(self.altitude_msl_max), boundary_str))
+                        str(self.altitude_msl_max)))
 
     def contains_pos(self, aerial_pos):
         """Whether the given pos is inside the zone.
