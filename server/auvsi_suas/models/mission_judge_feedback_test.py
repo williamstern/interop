@@ -1,14 +1,44 @@
 """Tests for the mission_judge_feedback module."""
 
 import datetime
-from mission_judge_feedback import MissionJudgeFeedback
+from auvsi_suas.models.aerial_position import AerialPosition
+from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.mission_config import MissionConfig
+from auvsi_suas.models.mission_judge_feedback import MissionJudgeFeedback
+from auvsi_suas.models.waypoint import Waypoint
+from django.contrib.auth.models import User
 from django.test import TestCase
 
 
 class TestMissionJudgeFeedback(TestCase):
-    def test_proto(self):
-        """Tests proto()."""
-        feedback = MissionJudgeFeedback(
+    def setUp(self):
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 100
+        pos.save()
+        apos = AerialPosition()
+        apos.altitude_msl = 1000
+        apos.gps_position = pos
+        apos.save()
+        wpt = Waypoint()
+        wpt.position = apos
+        wpt.order = 10
+        wpt.save()
+        config = MissionConfig()
+        config.home_pos = pos
+        config.emergent_last_known_pos = pos
+        config.off_axis_odlc_pos = pos
+        config.air_drop_pos = pos
+        config.save()
+        config.mission_waypoints.add(wpt)
+        config.search_grid_points.add(wpt)
+        config.save()
+
+        user = User.objects.create_user('user', 'email@example.com', 'pass')
+
+        self.feedback = MissionJudgeFeedback(
+            mission=config,
+            user=user,
             flight_time=datetime.timedelta(seconds=1),
             post_process_time=datetime.timedelta(seconds=2),
             used_timeout=True,
@@ -21,7 +51,15 @@ class TestMissionJudgeFeedback(TestCase):
             crashed=False,
             air_delivery_accuracy_ft=8,
             operational_excellence_percent=9)
-        pb = feedback.proto()
+        self.feedback.save()
+
+    def test_unicode(self):
+        """Tests __unicode__()."""
+        self.assertIsNotNone(self.feedback.__unicode__())
+
+    def test_proto(self):
+        """Tests proto()."""
+        pb = self.feedback.proto()
 
         self.assertAlmostEqual(1, pb.flight_time_sec)
         self.assertAlmostEqual(2, pb.post_process_time_sec)
@@ -36,7 +74,7 @@ class TestMissionJudgeFeedback(TestCase):
         self.assertAlmostEqual(8, pb.air_delivery_accuracy_ft)
         self.assertAlmostEqual(9, pb.operational_excellence_percent)
 
-        feedback.air_delivery_accuracy_ft = None
-        pb = feedback.proto()
+        self.feedback.air_delivery_accuracy_ft = None
+        pb = self.feedback.proto()
 
         self.assertFalse(pb.HasField('air_delivery_accuracy_ft'))

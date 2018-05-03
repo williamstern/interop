@@ -139,7 +139,7 @@ class Odlc(models.Model):
         alphanumeric_color: Object alphanumeric color.
         description: Free-form object description.
         description_approved: Whether judge considers description valid.
-        autonomous: Objcet is an ADLC submission.
+        autonomous: Object is an ADLC submission.
         thumbnail: Uploaded object image thumbnail.
         thumbnail_approved: Whether judge considers thumbnail valid for object.
         creation_time: Time that this object was first created.
@@ -167,10 +167,9 @@ class Odlc(models.Model):
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
-        d = self.json(is_superuser=True)
-        return unicode('{name}({fields})'.format(
-            name=self.__class__.__name__,
-            fields=', '.join('%s=%s' % (k, v) for k, v in d.iteritems())))
+        return unicode('Odlc(pk:%s, user:%s, odlc_type:%s)' %
+                       (str(self.pk), self.user.__unicode__(),
+                        str(OdlcType(self.odlc_type).name)))
 
     def json(self, is_superuser=False):
         """Odlc as dict, for JSON."""

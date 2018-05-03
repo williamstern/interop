@@ -49,6 +49,12 @@ class MissionJudgeFeedback(models.Model):
     class Meta:
         unique_together = (('mission', 'user'), )
 
+    def __unicode__(self):
+        """Descriptive text for use in displays."""
+        return unicode('MissionJudgeFeedback (pk:%s, user:%s, mission:%s)' %
+                       (self.pk, self.user.__unicode__(),
+                        self.mission.__unicode__()))
+
     def proto(self):
         """Get the proto formatted feedback."""
         feedback = mission_pb2.MissionJudgeFeedback()
