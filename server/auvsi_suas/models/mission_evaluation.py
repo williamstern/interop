@@ -237,8 +237,8 @@ def score_team(team_eval):
 
     # Compute total score.
     if feedback.judge.min_auto_flight_time:
-        score.score_ratio = (
-            settings.TIMELINE_WEIGHT * score.timeline.score_ratio +
+        score.score_ratio = max(
+            0, settings.TIMELINE_WEIGHT * score.timeline.score_ratio +
             settings.AUTONOMOUS_WEIGHT * score.autonomous_flight.score_ratio +
             settings.OBSTACLE_WEIGHT * score.obstacle_avoidance.score_ratio +
             settings.OBJECT_WEIGHT * score.object.score_ratio +
