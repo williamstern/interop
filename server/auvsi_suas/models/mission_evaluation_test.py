@@ -198,6 +198,55 @@ class TestMissionScoring(TestCase):
         mission_evaluation.score_team(self.eval)
         self.assertAlmostEqual(0.4175777777777778, self.eval.score.score_ratio)
 
+    def test_non_negative(self):
+        """Test that total score doesn't go negative."""
+        self.eval = mission_pb2.MissionEvaluation()
+        self.eval.team = 'team'
+        feedback = self.eval.feedback
+        feedback.mission_clock_time_sec = 60 * 100
+        feedback.flight_time_sec = 60 * 100
+        feedback.uas_telemetry_time_max_sec = 100.0
+        feedback.uas_telemetry_time_avg_sec = 100.0
+        feedback.out_of_bounds_time_sec = 60 * 100
+        feedback.boundary_violations = 10
+        wpt = feedback.waypoints.add()
+        wpt.score_ratio = 0
+        wpt = feedback.waypoints.add()
+        wpt.score_ratio = 0
+        obs = feedback.stationary_obstacles.add()
+        obs.hit = True
+        obs = feedback.stationary_obstacles.add()
+        obs.hit = True
+        obs = feedback.moving_obstacles.add()
+        obs.hit = True
+        obs = feedback.moving_obstacles.add()
+        obs.hit = True
+        odlcs = feedback.odlc
+        odlcs.score_ratio = 0
+        odlcs.extra_object_penalty_ratio = 1.0
+        t = odlcs.odlcs.add()
+        t.score_ratio = 0
+        t.classifications_score_ratio = 0
+        t.geolocation_score_ratio = 0
+        t.actionable_score_ratio = 0
+        t.autonomous_score_ratio = 0
+        judge = feedback.judge
+        judge.flight_time_sec = 60 * 100
+        judge.post_process_time_sec = 60 * 100
+        judge.used_timeout = True
+        judge.min_auto_flight_time = True
+        judge.safety_pilot_takeovers = 10
+        judge.waypoints_captured = 0
+        judge.out_of_bounds = 10
+        judge.unsafe_out_of_bounds = 5
+        judge.things_fell_off_uas = True
+        judge.crashed = False
+        judge.air_delivery_accuracy_ft = 100
+        judge.operational_excellence_percent = 0
+
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(0, self.eval.score.score_ratio)
+
 
 class TestMissionEvaluation(TestCase):
     """Tests the mission_evaluation module."""
