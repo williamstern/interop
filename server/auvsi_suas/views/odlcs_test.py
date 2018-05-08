@@ -480,6 +480,24 @@ class TestOdlcId(TestCase):
         # Response also matches
         self.assertEqual(t.json(), json.loads(response.content))
 
+    def test_put_changes_last_modified(self):
+        """PUT sets a new field that wasn't set before."""
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t.save()
+        orig_last_modified = t.last_modified_time
+
+        data = {'description': 'Hello'}
+
+        response = self.client.put(
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
+        self.assertEqual(200, response.status_code)
+
+        t.refresh_from_db()
+        self.assertNotEqual(orig_last_modified, t.last_modified_time)
+
+        # Response also matches
+        self.assertEqual(t.json(), json.loads(response.content))
+
     def test_put_one(self):
         """PUT update one field without affecting others."""
         l = GpsPosition(latitude=38, longitude=-76)
@@ -680,6 +698,30 @@ class TestOdlcId(TestCase):
 
         t.refresh_from_db()
         self.assertEqual(True, t.actionable_override)
+
+    def test_put_superuser_doesnt_change_modified(self):
+        """Admin user can update without modifying last updated time."""
+        # Login as superuser.
+        superuser = User.objects.create_superuser(
+            'testsuperuser', 'testsuperemail@x.com', 'testsuperpass')
+        response = self.client.post(login_url, {
+            'username': 'testsuperuser',
+            'password': 'testsuperpass'
+        })
+        self.assertEqual(200, response.status_code)
+
+        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t.save()
+        orig_last_modified = t.last_modified_time
+
+        data = {'thumbnail_approved': True}
+
+        response = self.client.put(
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
+        self.assertEqual(200, response.status_code)
+
+        t.refresh_from_db()
+        self.assertEqual(orig_last_modified, t.last_modified_time)
 
     def test_delete_own(self):
         """Test DELETEing a odlc owned by the correct user."""

@@ -7,6 +7,7 @@ import operator
 from auvsi_suas.proto import odlc_pb2
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 from gps_position import GpsPosition
 from takeoff_or_landing_event import TakeoffOrLandingEvent
 from mission_clock_event import MissionClockEvent
@@ -161,15 +162,26 @@ class Odlc(models.Model):
     autonomous = models.BooleanField(default=False)
     thumbnail = models.ImageField(upload_to='objects', blank=True)
     thumbnail_approved = models.NullBooleanField()
-    creation_time = models.DateTimeField(auto_now_add=True)
-    last_modified_time = models.DateTimeField(auto_now=True)
+    creation_time = models.DateTimeField()
+    last_modified_time = models.DateTimeField()
     actionable_override = models.BooleanField(default=False)
+
+    def __init__(self, *args, **kwargs):
+        super(Odlc, self).__init__(*args, **kwargs)
+        if not self.creation_time or not self.last_modified_time:
+            self.update_last_modified()
 
     def __unicode__(self):
         """Descriptive text for use in displays."""
         return unicode('Odlc(pk:%s, user:%s, odlc_type:%s)' %
                        (str(self.pk), self.user.__unicode__(),
                         str(OdlcType(self.odlc_type).name)))
+
+    def update_last_modified(self):
+        """Updates timestamps for modification."""
+        self.last_modified_time = timezone.now()
+        if not self.creation_time:
+            self.creation_time = self.last_modified_time
 
     def json(self, is_superuser=False):
         """Odlc as dict, for JSON."""

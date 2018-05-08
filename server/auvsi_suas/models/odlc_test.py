@@ -108,6 +108,7 @@ class TestOdlc(TestCase):
         self.assertIsNotNone(orig)
 
         t.alphanumeric = 'A'
+        t.update_last_modified()
         t.save()
 
         self.assertGreater(t.last_modified_time, orig)
@@ -250,6 +251,7 @@ class TestOdlc(TestCase):
         t1 = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t1.save()
         t1.alphanumeric = 'A'
+        t1.update_last_modified()
         t1.save()
 
         # t2 created before take off and updated in flight.
@@ -260,12 +262,14 @@ class TestOdlc(TestCase):
         event.save()
 
         t2.alphanumeric = 'A'
+        t2.update_last_modified()
         t2.save()
 
         # t3 created and updated in flight.
         t3 = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t3.save()
         t3.alphanumeric = 'A'
+        t3.update_last_modified()
         t3.save()
 
         # t4 created in flight and updated after landing.
@@ -276,12 +280,14 @@ class TestOdlc(TestCase):
         event.save()
 
         t4.alphanumeric = 'A'
+        t4.update_last_modified()
         t4.save()
 
         # t5 created and updated after landing.
         t5 = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t5.save()
         t5.alphanumeric = 'A'
+        t5.update_last_modified()
         t5.save()
 
         # t6 created and updated in second flight.
@@ -290,6 +296,7 @@ class TestOdlc(TestCase):
         t6 = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t6.save()
         t6.alphanumeric = 'A'
+        t6.update_last_modified()
         t6.save()
         event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
         event.save()
@@ -487,8 +494,11 @@ class TestOdlcEvaluator(TestCase):
 
         # submit2 updated after landing.
         self.submit2.alphanumeric = 'ABC'
+        self.submit2.update_last_modified()
         self.submit2.save()
+        self.submit2.update_last_modified()
         self.submit3.alphanumeric_color = Color.yellow
+        self.submit3.update_last_modified()
         self.submit3.save()
         # Unused but not unmatched odlc.
         self.submit7 = Odlc(
