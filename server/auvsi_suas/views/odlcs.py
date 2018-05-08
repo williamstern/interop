@@ -343,6 +343,8 @@ class OdlcsId(View):
                 l.save()
                 odlc.location = l
 
+        if not request.user.is_superuser:
+            odlc.update_last_modified()
         odlc.save()
 
         return JsonResponse(odlc.json(is_superuser=request.user.is_superuser))
