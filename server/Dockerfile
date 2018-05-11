@@ -12,8 +12,6 @@ RUN apt-get -qq update && apt-get -qq install -y \
         libapache2-mod-wsgi \
         libapache2-mod-xsendfile \
         memcached \
-        nodejs \
-        npm \
         postgresql \
         postgresql-client \
         protobuf-compiler \
@@ -26,16 +24,6 @@ RUN apt-get -qq update && apt-get -qq install -y \
         python-pyproj \
         python-scipy \
         sudo
-
-# Install server Javascript requirements.
-RUN ln -snf /usr/bin/nodejs /usr/local/bin/node && \
-    npm install -g \
-        jasmine-core \
-        karma \
-        karma-chrome-launcher \
-        karma-jasmine \
-        karma-phantomjs-launcher \
-        phantomjs
 
 # Install server Python requirements.
 COPY requirements.txt requirements.txt
