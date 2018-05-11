@@ -158,6 +158,7 @@ class TestMissionScoring(TestCase):
 
     def test_objects(self):
         """Test the object scoring."""
+        feedback = self.eval.feedback
         objects = self.eval.score.object
 
         mission_evaluation.score_team(self.eval)
@@ -167,6 +168,17 @@ class TestMissionScoring(TestCase):
         self.assertAlmostEqual(0.5, objects.autonomy)
         self.assertAlmostEqual(0.1, objects.extra_object_penalty)
         self.assertAlmostEqual(0.46, objects.score_ratio)
+
+        del feedback.odlc.odlcs[:]
+        feedback.odlc.extra_object_penalty_ratio = 0
+        feedback.odlc.score_ratio = 0
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(0, objects.characteristics)
+        self.assertAlmostEqual(0, objects.geolocation)
+        self.assertAlmostEqual(0, objects.actionable)
+        self.assertAlmostEqual(0, objects.autonomy)
+        self.assertAlmostEqual(0, objects.extra_object_penalty)
+        self.assertAlmostEqual(0, objects.score_ratio)
 
     def test_air_delivery(self):
         """Test the air delivery scoring."""

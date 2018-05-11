@@ -218,9 +218,13 @@ def score_team(team_eval):
         ('autonomous_score_ratio', 'autonomy'),
     ]
     for eval_field, score_field in object_field_mapping:
-        total = reduce(lambda x, y: x + y,
-                       [getattr(o, eval_field) for o in object_eval.odlcs])
-        setattr(objects, score_field, float(total) / len(object_eval.odlcs))
+        if object_eval.odlcs:
+            total = reduce(lambda x, y: x + y,
+                           [getattr(o, eval_field) for o in object_eval.odlcs])
+            setattr(objects, score_field,
+                    float(total) / len(object_eval.odlcs))
+        else:
+            setattr(objects, score_field, 0)
     objects.extra_object_penalty = object_eval.extra_object_penalty_ratio
     objects.score_ratio = object_eval.score_ratio
 
