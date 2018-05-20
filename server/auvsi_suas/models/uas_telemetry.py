@@ -210,39 +210,44 @@ class UasTelemetry(AccessLog):
                 100, Color.blue)
 
     @staticmethod
-    def closest_interpolated_distance(start_log, end_log, waypoint, utm):
+    def closest_interpolated_distance(start_log, end_log, position, utm):
         """Finds the closest distance to the waypoint by interpolating between
         start_log and end_log.
 
         Args:
             start_log: A UAS telemetry log.
             end_log: A UAS telemetry log.
-            waypoint: The waypoint for which to find the closest distance.
+            position: The AerialPosition for which to find the closest distance.
             utm: The UTM Proj projection to project into.
         Returns:
             The closest distance to the waypoint in feet.
         """
         # If no provided end, use start distance.
         if end_log is None:
-            return start_log.uas_position.distance_to(waypoint.position)
+            return start_log.uas_position.distance_to(position)
+        # If no time difference, use min distance.
+        t = (end_log.timestamp - start_log.timestamp).total_seconds()
+        if t == 0:
+            return min(
+                start_log.uas_position.distance_to(position),
+                end_log.uas_position.distance_to(position))
 
         # Verify that aircraft velocity is within bounds. Don't interpolate if
         # it isn't because the data is probably erroneous.
         d = start_log.uas_position.distance_to(end_log.uas_position)
-        t = (end_log.timestamp - start_log.timestamp).total_seconds()
         if (t > settings.MAX_TELMETRY_INTERPOLATE_INTERVAL_SEC or
             (d / t) > settings.MAX_AIRSPEED_FT_PER_SEC):
-            return start_log.uas_position.distance_to(waypoint.position)
+            return start_log.uas_position.distance_to(position)
 
         def uas_position_to_tuple(pos):
             return (pos.gps_position.latitude, pos.gps_position.longitude,
                     pos.altitude_msl)
 
         # Linearly interpolate between start and end telemetry and find the
-        # closest distance to the waypoint.
+        # closest distance to the position.
         start = uas_position_to_tuple(start_log.uas_position)
         end = uas_position_to_tuple(end_log.uas_position)
-        point = uas_position_to_tuple(waypoint.position)
+        point = uas_position_to_tuple(position)
         return distance.distance_to_line(start, end, point, utm)
 
     @staticmethod
@@ -285,7 +290,7 @@ class UasTelemetry(AccessLog):
                 end_log = uas_telemetry_logs[iu + 1]
             for iw, waypoint in enumerate(waypoints):
                 dist = cls.closest_interpolated_distance(
-                    start_log, end_log, waypoint, utm)
+                    start_log, end_log, waypoint.position, utm)
                 best[iw] = min(best.get(iw, dist), dist)
                 score = cls.score_waypoint(dist)
                 if score > 0:
@@ -334,7 +339,7 @@ class UasTelemetry(AccessLog):
                 scores[cur_iw] = (hscore, hdist)
             _, cur_pos = dp[cur_iw][cur_ih]
 
-            # Convert to evaluation.
+        # Convert to evaluation.
         waypoint_evals = []
         for iw, waypoint in enumerate(waypoints):
             score, dist = scores[iw]

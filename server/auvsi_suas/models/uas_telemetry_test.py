@@ -254,7 +254,7 @@ class TestUasTelemetryDedupe(TestUasTelemetryBase):
         entries = [(38, -76, 140), (40, -78, 600)]
         logs = self.create_uas_logs(self.user, entries)
         d = UasTelemetry.closest_interpolated_distance(logs[0], logs[1],
-                                                       waypoint, utm)
+                                                       waypoint.position, utm)
         self.assertAlmostEqual(40.0, d, delta=3)
 
         # Test telemetry rate filter.
@@ -263,7 +263,7 @@ class TestUasTelemetryDedupe(TestUasTelemetryBase):
         logs = self.create_uas_logs(self.user, entries)
         logs[1].timestamp = logs[0].timestamp + datetime.timedelta(seconds=2)
         d = UasTelemetry.closest_interpolated_distance(logs[0], logs[1],
-                                                       waypoint, utm)
+                                                       waypoint.position, utm)
         self.assertAlmostEqual(17.792, d, delta=3)
 
         # Test interpolation (waypoint is halfway between telemetry logs).
@@ -272,7 +272,16 @@ class TestUasTelemetryDedupe(TestUasTelemetryBase):
         logs = self.create_uas_logs(self.user, entries)
         logs[1].timestamp = logs[0].timestamp + datetime.timedelta(seconds=1)
         d = UasTelemetry.closest_interpolated_distance(logs[0], logs[1],
-                                                       waypoint, utm)
+                                                       waypoint.position, utm)
+        self.assertAlmostEqual(20.0, d, delta=3)
+
+        # Test dt = 0 uses min distance.
+        waypoint = self.waypoints_from_data([(38.145146, -76.427522, 80)])[0]
+        entries = [(38.145146, -76.427522, 100), (38.145146, -76.427522, 120)]
+        logs = self.create_uas_logs(self.user, entries)
+        logs[1].timestamp = logs[0].timestamp
+        d = UasTelemetry.closest_interpolated_distance(logs[0], logs[1],
+                                                       waypoint.position, utm)
         self.assertAlmostEqual(20.0, d, delta=3)
 
     def test_satisfied_waypoints(self):

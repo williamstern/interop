@@ -413,19 +413,7 @@ class TestMovingObstacle(TestCase):
             logs = []
             for i in range(len(log_list)):
                 lat, lon, alt = log_list[i]
-                pos = GpsPosition()
-                pos.latitude = lat
-                pos.longitude = lon
-                pos.save()
-                apos = AerialPosition()
-                apos.altitude_msl = alt
-                apos.gps_position = pos
-                apos.save()
-                log = UasTelemetry()
-                log.user = user
-                log.uas_position = apos
-                log.uas_heading = 0
-                log.save()
+                log = self.create_log(lat, lon, alt, user)
                 if i == 0:
                     log.timestamp = timezone.now().replace(
                         year=1970,
@@ -488,21 +476,7 @@ class TestMovingObstacle(TestCase):
             logs_pos = [(inside_pos, inside_logs), (outside_pos, outside_logs)]
             for (positions, log_list) in logs_pos:
                 for (lat, lon, alt) in positions:
-                    gpos = GpsPosition()
-                    gpos.latitude = lat
-                    gpos.longitude = lon
-                    gpos.save()
-                    apos = AerialPosition()
-                    apos.gps_position = gpos
-                    apos.altitude_msl = alt
-                    apos.save()
-                    log = UasTelemetry()
-                    log.user = user
-                    log.uas_position = apos
-                    log.uas_heading = 0
-                    log.save()
-                    log.timestamp = log_time
-                    log.save()
+                    log = self.create_log(lat, lon, alt, user, log_time)
                     log_list.append(log)
 
         # Assert the obstacle correctly computes collisions
@@ -561,7 +535,7 @@ class TestMovingObstacle(TestCase):
         next_time = start_time
         end_time = start_time
         for coord in coordinates:
-            self.create_log_element(*coord, user=user, log_time=next_time)
+            self.create_log(*coord, user=user, log_time=next_time)
             end_time = next_time
             next_time += datetime.timedelta(seconds=1)
 
@@ -582,7 +556,7 @@ class TestMovingObstacle(TestCase):
             self.assertEqual(samples_expected, result_kml.count('<gx:value>'))
             self.assertIn(array_field_tag, result_kml)
 
-    def create_log_element(self, lat, lon, alt, user, log_time):
+    def create_log(self, lat, lon, alt, user, log_time=None):
         pos = GpsPosition(latitude=lat, longitude=lon)
         pos.save()
         apos = AerialPosition(gps_position=pos, altitude_msl=alt)
@@ -592,7 +566,8 @@ class TestMovingObstacle(TestCase):
             uas_position=apos,
             uas_heading=100, )
         log.save()
-        log.timestamp = log_time
+        if log_time:
+            log.timestamp = log_time
         log.save()
         return log
 
