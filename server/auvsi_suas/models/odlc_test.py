@@ -181,6 +181,70 @@ class TestOdlc(TestCase):
         self.assertEqual(None, d['description'])
         self.assertEqual(False, d['autonomous'])
 
+    def test_similar_orientation(self):
+        """Test similar orientations are computed correctly."""
+        l = GpsPosition(latitude=38, longitude=-76)
+        l.save()
+        t1 = Odlc(
+            user=self.user,
+            odlc_type=OdlcType.standard,
+            location=l,
+            orientation=Orientation.s,
+            shape=Shape.square,
+            background_color=Color.white,
+            alphanumeric='ABC',
+            alphanumeric_color=Color.black,
+            description='Test odlc',
+            description_approved=True,
+            autonomous=True)
+        t1.save()
+        t2 = Odlc(
+            user=self.user,
+            odlc_type=OdlcType.standard,
+            location=l,
+            orientation=Orientation.s,
+            shape=Shape.square,
+            background_color=Color.white,
+            alphanumeric='ABC',
+            alphanumeric_color=Color.black,
+            description='Test other odlc',
+            description_approved=False,
+            autonomous=True)
+        t2.save()
+
+        # Requires exact same orientation.
+        for alpha in ['A', 'a']:
+            t1.alphanumeric = alpha
+            t1.orientation = Orientation.s
+            t2.orientation = Orientation.s
+            self.assertTrue(t1.similar_orientation(t2))
+            t2.orientation = Orientation.n
+            self.assertFalse(t1.similar_orientation(t2))
+            t2.orientation = Orientation.e
+            self.assertFalse(t1.similar_orientation(t2))
+
+        # Accepts rotation.
+        for alpha in ['I', 'H', '8']:
+            t1.alphanumeric = alpha
+            t1.orientation = Orientation.s
+            t2.orientation = Orientation.s
+            self.assertTrue(t1.similar_orientation(t2))
+            t2.orientation = Orientation.n
+            self.assertTrue(t1.similar_orientation(t2))
+            t2.orientation = Orientation.e
+            self.assertFalse(t1.similar_orientation(t2))
+
+        # Accepts any.
+        for alpha in ['O', 'o', '0']:
+            t1.alphanumeric = alpha
+            t1.orientation = Orientation.s
+            t2.orientation = Orientation.s
+            self.assertTrue(t1.similar_orientation(t2))
+            t2.orientation = Orientation.n
+            self.assertTrue(t1.similar_orientation(t2))
+            t2.orientation = Orientation.e
+            self.assertTrue(t1.similar_orientation(t2))
+
     def test_similar_classifications_ratio(self):
         """Tests similar classification ratios are computed correctly."""
         # Test equal standard odlcs.

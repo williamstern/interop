@@ -244,6 +244,42 @@ class Odlc(models.Model):
 
         return d
 
+    def similar_orientation(self, other):
+        """Compares the orientations for equality.
+
+        Some alphanumerics can have multiple allowed orientations.
+
+        Args:
+            other: Another object for which to compare.
+        Returns:
+            True if the orientations can be considered equal.
+        """
+        if self.orientation == other.orientation:
+            return True
+
+        accepts_any = ['o', 'O', '0']
+        if self.alphanumeric in accepts_any:
+            return True
+
+        accepts_rotation = [
+            'H', 'I', 'N', 'o', 'O', 's', 'S', 'x', 'X', 'z', 'Z', '0', '8'
+        ]
+        rotated = {
+            Orientation.n: Orientation.s,
+            Orientation.ne: Orientation.sw,
+            Orientation.e: Orientation.w,
+            Orientation.se: Orientation.nw,
+            Orientation.s: Orientation.n,
+            Orientation.sw: Orientation.ne,
+            Orientation.w: Orientation.e,
+            Orientation.nw: Orientation.se,
+        }
+        if (self.alphanumeric in accepts_rotation and
+                rotated[self.orientation] == other.orientation):
+            return True
+
+        return False
+
     def similar_classifications_ratio(self, other):
         """Counts the number of similar classification attributes.
 
@@ -256,21 +292,28 @@ class Odlc(models.Model):
         if self.odlc_type != other.odlc_type:
             return 0
 
-        standard_fields = [
-            'orientation', 'shape', 'background_color', 'alphanumeric',
-            'alphanumeric_color'
+        # Emergent only compares descriptions.
+        if self.odlc_type == OdlcType.emergent:
+            if self.description_approved == other.description_approved:
+                return 1
+            return 0
+
+        # Compare the fields which require equality.
+        direct_compare_fields = [
+            'shape', 'background_color', 'alphanumeric', 'alphanumeric_color'
         ]
-        classify_fields = {
-            OdlcType.standard: standard_fields,
-            OdlcType.off_axis: standard_fields,
-            OdlcType.emergent: ['description_approved'],
-        }
-        fields = classify_fields[self.odlc_type]
-        count = 0
-        for field in fields:
+        similar_fields = 0
+        total_fields = len(direct_compare_fields)
+        for field in direct_compare_fields:
             if getattr(self, field) == getattr(other, field):
-                count += 1
-        return float(count) / len(fields)
+                similar_fields += 1
+
+        # Compare orientation, accounting for multiple acceptable orientations.
+        total_fields += 1
+        if self.similar_orientation(other):
+            similar_fields += 1
+
+        return float(similar_fields) / total_fields
 
     def actionable_submission(self, flights=None):
         """Checks if Odlc meets Actionable Intelligence submission criteria.
