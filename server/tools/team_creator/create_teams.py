@@ -10,7 +10,7 @@ import os
 import sys
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "server.settings")
 this_dir = os.path.dirname(os.path.abspath(__file__))
-server_dir = os.path.join(this_dir, '..', '..', 'server')
+server_dir = os.path.join(this_dir, '..', '..', '..', 'server')
 sys.path = [server_dir] + sys.path
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
