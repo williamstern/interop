@@ -178,7 +178,7 @@ class FlyZone(models.Model):
         pol = kml.newpolygon(name=zone_name)
         fly_zone = []
         flyzone_num = 1
-        for point in self.boundary_pts.all():
+        for point in self.boundary_pts.order_by('order'):
             gps = point.position.gps_position
             coord = (gps.longitude, gps.latitude,
                      units.feet_to_meters(point.position.altitude_msl))

@@ -104,7 +104,7 @@ class MissionConfig(models.Model):
                 "altitude_msl_min": zone.altitude_msl_min,
                 "altitude_msl_max": zone.altitude_msl_max
             })
-        for waypoint in self.mission_waypoints.all():
+        for waypoint in self.mission_waypoints.order_by('order'):
             ret['mission_waypoints'].append({
                 'order':
                 waypoint.order,
@@ -115,7 +115,7 @@ class MissionConfig(models.Model):
                 'altitude_msl':
                 waypoint.position.altitude_msl,
             })
-        for point in self.search_grid_points.all():
+        for point in self.search_grid_points.order_by('order'):
             ret['search_grid_points'].append({
                 'order':
                 point.order,
@@ -194,7 +194,7 @@ class MissionConfig(models.Model):
         linestring = waypoints_folder.newlinestring(name='Waypoints')
         waypoints = []
         waypoint_num = 1
-        for waypoint in self.mission_waypoints.all():
+        for waypoint in self.mission_waypoints.order_by('order'):
             gps = waypoint.position.gps_position
             coord = (gps.longitude, gps.latitude,
                      units.feet_to_meters(waypoint.position.altitude_msl))
@@ -221,7 +221,7 @@ class MissionConfig(models.Model):
         search_area_folder = kml_folder.newfolder(name='Search Area')
         search_area = []
         search_area_num = 1
-        for point in self.search_grid_points.all():
+        for point in self.search_grid_points.order_by('order'):
             gps = point.position.gps_position
             coord = (gps.longitude, gps.latitude,
                      units.feet_to_meters(point.position.altitude_msl))
