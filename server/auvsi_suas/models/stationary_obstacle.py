@@ -54,6 +54,11 @@ class StationaryObstacle(models.Model):
         if start_alt > self.cylinder_height and end_alt > self.cylinder_height:
             return False
 
+        # If at same lat/lon, no need to interpolate.
+        if start_lat == end_lat and start_lon == end_lon:
+            return (self.contains_pos(start_log.uas_position) or
+                    self.contains_pos(end_log.uas_position))
+
         # We want to check if the line drawn between start_log and end_log
         # ever crosses the obstacle.
         # We do this by looking at only the x, y dimensions and checking if the
@@ -120,7 +125,7 @@ class StationaryObstacle(models.Model):
         """
         # Check altitude of position
         aerial_alt = aerial_pos.altitude_msl
-        if (aerial_alt < 0 or aerial_alt > self.cylinder_height):
+        if aerial_alt > self.cylinder_height:
             return False
         # Check lat/lon of position
         dist_to_center = self.gps_position.distance_to(aerial_pos.gps_position)
