@@ -30,7 +30,7 @@ class ExportKml(View):
                 logs=UasTelemetry.by_user(user),
                 kml=kml_teams,
                 kml_doc=kml.document)
-        MissionConfig.kml_all(kml_mission)
+        MissionConfig.kml_all(kml_mission, kml.document)
         kml_flyzone = kml.newfolder(name='Fly Zones')
         FlyZone.kml_all(kml_flyzone)
 

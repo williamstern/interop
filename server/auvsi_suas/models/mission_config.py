@@ -152,12 +152,13 @@ class MissionConfig(models.Model):
         return ret
 
     @classmethod
-    def kml_all(cls, kml, missions=None):
+    def kml_all(cls, kml, kml_doc, missions=None):
         """
         Appends kml nodes describing all mission configurations.
 
         Args:
             kml: A simpleKML Container to which the mission data will be added
+            kml_doc: The simpleKML Document to which schemas will be added
             missions: Optional list of mission for which to generate KML. If
                 None, it will use all missions.
         """
@@ -165,14 +166,15 @@ class MissionConfig(models.Model):
             missions = MissionConfig.objects.all()
 
         for mission in missions:
-            mission.kml(kml)
+            mission.kml(kml, kml_doc)
 
-    def kml(self, kml):
+    def kml(self, kml, kml_doc):
         """
         Appends kml nodes describing this mission configurations.
 
         Args:
             kml: A simpleKML Container to which the mission data will be added
+            kml_doc: The simpleKML Document to which schemas will be added
         """
         mission_name = 'Mission {}'.format(self.pk)
         kml_folder = kml.newfolder(name=mission_name)
@@ -243,6 +245,17 @@ class MissionConfig(models.Model):
             pol.style.linestyle.width = 2
             pol.style.polystyle.color = Color.changealphaint(50, Color.blue)
 
-        # Stationary Obstacles
+        # Stationary Obstacles.
         stationary_obstacles_folder = kml_folder.newfolder(
             name='Stationary Obstacles')
+        # TODO: Implement
+
+        # Moving Obstacles.
+        users = User.objects.all()
+        moving_obstacle_periods = []
+        for user in users:
+            moving_obstacle_periods.extend(TakeoffOrLandingEvent.flights(user))
+        moving_obstacles_folder = kml_folder.newfolder(name='Moving Obstacles')
+        for obstacle in self.moving_obstacles.all():
+            obstacle.kml(moving_obstacle_periods, moving_obstacles_folder,
+                         kml_doc)

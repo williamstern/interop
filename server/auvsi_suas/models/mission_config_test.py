@@ -165,7 +165,7 @@ class TestMissionConfigModelSampleMission(TestCase):
     def test_toKML(self):
         """Test Generation of kml for all mission data"""
         kml = Kml()
-        MissionConfig.kml_all(kml=kml)
+        MissionConfig.kml_all(kml, kml.document)
         data = kml.kml()
         names = [
             'Off Axis',

@@ -1,5 +1,6 @@
 """UAS Telemetry model."""
 
+import datetime
 import itertools
 from collections import defaultdict
 
@@ -13,11 +14,17 @@ from auvsi_suas.models import units
 from auvsi_suas.models.access_log import AccessLog
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.moving_obstacle import MovingObstacle
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
 from auvsi_suas.proto import mission_pb2
+
+# Threshold at which telemetry is too close to (0, 0) and likely noise.
+BAD_TELEMETRY_THRESHOLD_DEGREES = 0.1
+# The incremental step in seconds for an interpolation of telemetry.
+TELEMETRY_INTERPOLATION_STEP = datetime.timedelta(seconds=0.1)
+# The max time gap between two telemetry to interpolate between.
+TELEMETRY_INTERPOLATION_MAX_GAP = datetime.timedelta(seconds=5.0)
 
 
 class UasTelemetry(AccessLog):
@@ -115,6 +122,24 @@ class UasTelemetry(AccessLog):
         return filtered
 
     @classmethod
+    def filter_bad(cls, logs):
+        """Filters bad telemetry from the list.
+
+        Args:
+            logs: A sorted list of UasTelemetry logs.
+        Returns:
+            A list containing the non-bad logs.
+        """
+
+        def _is_good(log):
+            # Positions near (0,0) are likely GPS/autopilot noise.
+            pos = log.uas_position.gps_position
+            return max(abs(pos.latitude),
+                       abs(pos.longitude)) > BAD_TELEMETRY_THRESHOLD_DEGREES
+
+        return filter(lambda log: _is_good(log), logs)
+
+    @classmethod
     def kml(cls, user, logs, kml, kml_doc):
         """
         Appends kml nodes describing the given user's flight as described
@@ -131,7 +156,6 @@ class UasTelemetry(AccessLog):
         # KML Compliant Datetime Formatter
         kml_datetime_format = "%Y-%m-%dT%H:%M:%S.%fZ"
         icon = 'http://maps.google.com/mapfiles/kml/shapes/airports.png'
-        threshold = 1  # Degrees
 
         kml_folder = kml.newfolder(name=user.username)
 
@@ -139,7 +163,7 @@ class UasTelemetry(AccessLog):
         if len(flights) == 0:
             return
 
-        logs = filter(lambda log: cls._is_bad_position(log, threshold), logs)
+        logs = UasTelemetry.dedupe(UasTelemetry.filter_bad(logs))
         for i, flight in enumerate(flights):
             label = 'Flight {}'.format(i + 1)  # Flights are one-indexed
             kml_flight = kml_folder.newfolder(name=label)
@@ -181,9 +205,6 @@ class UasTelemetry(AccessLog):
             trk.style.linestyle.color = Color.blue
             trk.iconstyle.icon.href = icon
 
-            for obstacle in MovingObstacle.objects.all():
-                obstacle.kml(path=flight_logs, kml=kml_flight, kml_doc=kml_doc)
-
     @classmethod
     def live_kml(cls, kml, timespan):
         users = User.objects.all()
@@ -209,53 +230,57 @@ class UasTelemetry(AccessLog):
             linestring.style.polystyle.color = Color.changealphaint(
                 100, Color.blue)
 
-    @staticmethod
-    def closest_interpolated_distance(start_log, end_log, position, utm):
-        """Finds the closest distance to the waypoint by interpolating between
-        start_log and end_log.
+    @classmethod
+    def interpolate(cls,
+                    uas_telemetry_logs,
+                    step=TELEMETRY_INTERPOLATION_STEP,
+                    max_gap=TELEMETRY_INTERPOLATION_MAX_GAP):
+        """Interpolates the ordered set of telemetry.
 
         Args:
-            start_log: A UAS telemetry log.
-            end_log: A UAS telemetry log.
-            position: The AerialPosition for which to find the closest distance.
-            utm: The UTM Proj projection to project into.
+            uas_telemetry_logs: The telemetry to interpolate.
+            step: The discrete interpolation step in seconds.
+            max_gap: The max time between telemetry to interpolate.
         Returns:
-            The closest distance to the waypoint in feet.
+            An iterable set of telemetry.
         """
-        # If no provided end, use start distance.
-        if end_log is None:
-            return start_log.uas_position.distance_to(position)
-        # If no time difference, use min distance.
-        t = (end_log.timestamp - start_log.timestamp).total_seconds()
-        if t == 0:
-            return min(
-                start_log.uas_position.distance_to(position),
-                end_log.uas_position.distance_to(position))
+        for ix, log in enumerate(uas_telemetry_logs):
+            yield log
 
-        # Verify that aircraft velocity is within bounds. Don't interpolate if
-        # it isn't because the data is probably erroneous.
-        d = start_log.uas_position.distance_to(end_log.uas_position)
-        if (t > settings.MAX_TELMETRY_INTERPOLATE_INTERVAL_SEC or
-            (d / t) > settings.MAX_AIRSPEED_FT_PER_SEC):
-            return start_log.uas_position.distance_to(position)
+            if ix + 1 >= len(uas_telemetry_logs):
+                continue
+            next_log = uas_telemetry_logs[ix + 1]
 
-        def uas_position_to_tuple(pos):
-            return (pos.gps_position.latitude, pos.gps_position.longitude,
-                    pos.altitude_msl)
+            dt = next_log.timestamp - log.timestamp
+            if dt > max_gap or dt <= datetime.timedelta(seconds=0):
+                continue
 
-        # Linearly interpolate between start and end telemetry and find the
-        # closest distance to the position.
-        start = uas_position_to_tuple(start_log.uas_position)
-        end = uas_position_to_tuple(end_log.uas_position)
-        point = uas_position_to_tuple(position)
-        return distance.distance_to_line(start, end, point, utm)
+            t = log.timestamp + step
+            while t < next_log.timestamp:
+                n_w = (t - log.timestamp).total_seconds() / dt.total_seconds()
+                w = (next_log.timestamp - t
+                     ).total_seconds() / dt.total_seconds()
+                weighted_avg = lambda v, n_v: w * v + n_w * n_v
 
-    @staticmethod
-    def score_waypoint(distance):
-        """Scores a single waypoint distance."""
-        return max(0,
-                   float(settings.SATISFIED_WAYPOINT_DIST_MAX_FT - distance) /
-                   settings.SATISFIED_WAYPOINT_DIST_MAX_FT)
+                telem = UasTelemetry()
+                telem.user = log.user
+                telem.timestamp = t
+                telem.uas_position = AerialPosition()
+                telem.uas_position.gps_position = GpsPosition()
+                telem.uas_position.gps_position.latitude = weighted_avg(
+                    log.uas_position.gps_position.latitude,
+                    next_log.uas_position.gps_position.latitude)
+                telem.uas_position.gps_position.longitude = weighted_avg(
+                    log.uas_position.gps_position.longitude,
+                    next_log.uas_position.gps_position.longitude)
+                telem.uas_position.altitude_msl = weighted_avg(
+                    log.uas_position.altitude_msl,
+                    next_log.uas_position.altitude_msl)
+                telem.uas_heading = weighted_avg(log.uas_heading,
+                                                 next_log.uas_heading)
+                yield telem
+
+                t += step
 
     @classmethod
     def satisfied_waypoints(cls, home_pos, waypoints, uas_telemetry_logs):
@@ -275,24 +300,19 @@ class UasTelemetry(AccessLog):
         Returns:
             A list of auvsi_suas.proto.WaypointEvaluation.
         """
-        # Form utm for use as projection in distance calcluations.
-        zone, north = distance.utm_zone(home_pos.latitude, home_pos.longitude)
-        utm = distance.proj_utm(zone, north)
-
         # Reduce telemetry from telemetry to waypoint hits.
         # This will make future processing more efficient via data reduction.
         # While iterating, compute the best distance seen for feedback.
         best = {}
         hits = []
-        for iu, start_log in enumerate(uas_telemetry_logs):
-            end_log = None
-            if iu + 1 < len(uas_telemetry_logs):
-                end_log = uas_telemetry_logs[iu + 1]
+        for log in cls.interpolate(uas_telemetry_logs):
             for iw, waypoint in enumerate(waypoints):
-                dist = cls.closest_interpolated_distance(
-                    start_log, end_log, waypoint.position, utm)
+                dist = log.uas_position.distance_to(waypoint.position)
                 best[iw] = min(best.get(iw, dist), dist)
-                score = cls.score_waypoint(dist)
+                score = max(
+                    0,
+                    float(settings.SATISFIED_WAYPOINT_DIST_MAX_FT - dist) /
+                    settings.SATISFIED_WAYPOINT_DIST_MAX_FT)
                 if score > 0:
                     hits.append((iw, dist, score))
         # Remove redundant hits which wouldn't be part of best sequence.
@@ -352,18 +372,3 @@ class UasTelemetry(AccessLog):
                 waypoint_eval.closest_for_mission_ft = best[iw]
             waypoint_evals.append(waypoint_eval)
         return waypoint_evals
-
-    @staticmethod
-    def _is_bad_position(log, threshold):
-        """
-        Determine whether entry is not near latitude and longitude of 0,0.
-
-        Args:
-            x: UasTelemetry element
-        Returns:
-            Boolean: True if position is not near 0,0, else False
-        """
-        pos = log.uas_position.gps_position
-        if max(abs(pos.latitude), abs(pos.longitude)) < threshold:
-            return False
-        return True
