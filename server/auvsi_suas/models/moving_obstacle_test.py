@@ -6,6 +6,7 @@ from auvsi_suas.models import units
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.moving_obstacle import MovingObstacle
+from auvsi_suas.models.time_period import TimePeriod
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.waypoint import Waypoint
 from auvsi_suas.patches.simplekml_patch import Kml
@@ -380,57 +381,6 @@ class TestMovingObstacle(TestCase):
                                       TESTDATA_MOVOBST_CONTAINSPOS_OBJ[3],
                                       apos), cur_contains)
 
-    def test_interpolated_collision(self):
-        # Get test data
-        user = User.objects.create_user('testuser', 'testemail@x.com',
-                                        'testpass')
-        user.save()
-        utm = distance.proj_utm(zone=18, north=True)
-        (obst_rad, obst_speed, obst_pos, log_details) = TESTDATA_MOVOBST_INTERP
-        # Create the obstacle
-        obst = MovingObstacle()
-        obst.speed_avg = obst_speed
-        obst.sphere_radius = obst_rad
-        obst.save()
-        for pos_id in xrange(len(obst_pos)):
-            (lat, lon, alt) = obst_pos[pos_id]
-            gpos = GpsPosition()
-            gpos.latitude = lat
-            gpos.longitude = lon
-            gpos.save()
-            apos = AerialPosition()
-            apos.gps_position = gpos
-            apos.altitude_msl = alt
-            apos.save()
-            wpt = Waypoint()
-            wpt.order = pos_id
-            wpt.position = apos
-            wpt.save()
-            obst.waypoints.add(wpt)
-        obst.save()
-
-        for (inside, log_list) in log_details:
-            logs = []
-            for i in range(len(log_list)):
-                lat, lon, alt = log_list[i]
-                log = self.create_log(lat, lon, alt, user)
-                if i == 0:
-                    log.timestamp = timezone.now().replace(
-                        year=1970,
-                        month=1,
-                        day=1,
-                        hour=0,
-                        minute=0,
-                        second=0,
-                        microsecond=0)
-                if i > 0:
-                    log.timestamp = (
-                        logs[i - 1].timestamp + datetime.timedelta(seconds=1))
-                logs.append(log)
-            self.assertEqual(
-                obst.determine_interpolated_collision(logs[0], logs[1], utm),
-                inside)
-
     def test_evaluate_collision_with_uas(self):
         """Tests the collision with UAS method."""
         # Get test data
@@ -515,46 +465,16 @@ class TestMovingObstacle(TestCase):
             The correct number of elements are generated
             The meta-data tag is present
         """
-        array_field_tag = '<gx:SimpleArrayField name="proximity" type="float">'
-        coordinates = [
-            (-76.0, 38.0, 0.0),
-            (-76.0, 38.0, 10.0),
-            (-76.0, 38.0, 20.0),
-            (-76.0, 38.0, 30.0),
-            (-76.0, 38.0, 100.0),
-            (-76.0, 38.0, 30.0),
-            (-76.0, 38.0, 60.0),
-        ]
-
-        user = User.objects.create_user('testuser', 'testemail@x.com',
-                                        'testpass')
-        user.save()
-
-        # Create Coordinates
-        start_time = timezone.now()
-        next_time = start_time
-        end_time = start_time
-        for coord in coordinates:
-            self.create_log(*coord, user=user, log_time=next_time)
-            end_time = next_time
-            next_time += datetime.timedelta(seconds=1)
-
-        # Calculate expected number of data tags
-        time_delta = end_time - start_time
-        ms_elapsed = time_delta.total_seconds() * 1000
-        kml_output_resolution = 100  # milliseconds
-        samples_expected = int(ms_elapsed / kml_output_resolution)
-
         for cur_obst in self.obstacles:
             kml = Kml()
             kml_mission = kml.newfolder(name='SubFolder')
-            cur_obst.kml(
-                path=UasTelemetry.by_user(user),
-                kml=kml_mission,
-                kml_doc=kml.document)
+            cur_obst.kml([
+                TimePeriod(
+                    timezone.now(),
+                    timezone.now() + datetime.timedelta(seconds=10))
+            ], kml_mission, kml.document)
             result_kml = kml.kml()
-            self.assertEqual(samples_expected, result_kml.count('<gx:value>'))
-            self.assertIn(array_field_tag, result_kml)
+            self.assertEqual(101, result_kml.count('<gx:coord>'))
 
     def create_log(self, lat, lon, alt, user, log_time=None):
         pos = GpsPosition(latitude=lat, longitude=lon)

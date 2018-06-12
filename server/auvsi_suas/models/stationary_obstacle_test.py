@@ -9,55 +9,6 @@ from django.test import TestCase
 from auvsi_suas.models import distance
 from datetime import timedelta
 
-# (lat, lon, rad, height)
-TESTDATA_STATOBST_CONTAINSPOS_OBJ = (-76, 38, 100, 200)
-# (lat, lon, alt)
-TESTDATA_STATOBST_CONTAINSPOS_INSIDE = [
-    (-76, 38, 0),
-    (-76, 38, -1),
-    (-76, 38, 200),
-    (-76.0002, 38, 100),
-    (-76, 38.0003, 100)
-]  # yapf: disable
-TESTDATA_STATOBST_CONTAINSPOS_OUTSIDE = [
-    (-76, 38, 201),
-    (-76.0003, 38, 100),
-    (-76, 38.004, 100)
-]  # yapf: disable
-
-TESTDATA_STATOBST_EVALCOLLISION = (
-    # Cylinder position
-    (-76, 38, 100, 100),
-    # Inside positions
-    [(-76, 38, 50),
-     (-76, 38, 0),
-     (-76, 38, 100),
-     (-76.0001, 38.0001, 0),
-     (-76.0001, 38.0001, 100)],
-    # Outside positions
-    [(-76.001, 38, 50),
-     (-76, 38.002, 150),
-     (-76, 38, 150),
-     (-76, 38, 101)]
-)  # yapf: disable
-
-# (lat, lon, rad, height)
-TESTDATA_STATOBST_INTERP_OBS = (38.145146, -76.427522, 30, 100)
-# (lat, lon, alt)
-TESTDATA_STATOBST_INTERP_TELEM = [
-    (True, [(38.145146000, -76.427522000, -1),
-            (38.145146000, -76.427522000, 101)]),
-    (True, [(38.145148000, -76.427645000, 100),
-            (38.145144000, -76.427400000, 100)]),
-    (False, [(38.145148000, -76.427645000, 110),
-            (38.145144000, -76.427400000, 110)]),
-    (False, [(38.145148000, -76.427645000, 110),
-            (38.145144000, -76.427400000, 110),
-            (38.145144000, -76.427400000, 110),
-            (38.145144000, -76.427400000, 110)]),
-    (False, [(38.145148000, -76.427645000, 50),
-            (38.145399000, -76.427522000, 50)]),
-]  # yapf: disable
 
 class TestStationaryObstacleModel(TestCase):
     """Tests the StationaryObstacle model."""
@@ -111,6 +62,22 @@ class TestStationaryObstacleModel(TestCase):
 
     def test_contains_pos(self):
         """Tests the inside obstacle method."""
+        # (lat, lon, rad, height)
+        TESTDATA_STATOBST_CONTAINSPOS_OBJ = (-76, 38, 100, 200)
+        # (lat, lon, alt)
+        TESTDATA_STATOBST_CONTAINSPOS_INSIDE = [
+            (-76, 38, 0),
+            (-76, 38, -1),
+            (-76, 38, 200),
+            (-76.0002, 38, 100),
+            (-76, 38.0003, 100)
+        ]  # yapf: disable
+        TESTDATA_STATOBST_CONTAINSPOS_OUTSIDE = [
+            (-76, 38, 201),
+            (-76.0003, 38, 100),
+            (-76, 38.004, 100)
+        ]  # yapf: disable
+
         # Form the test obstacle
         pos = GpsPosition(
             latitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[0],
@@ -130,24 +97,23 @@ class TestStationaryObstacleModel(TestCase):
                 apos = AerialPosition(gps_position=pos, altitude_msl=alt)
                 self.assertEqual(obst.contains_pos(apos), cur_contains)
 
-    def test_determine_interpolated_collision(self):
-        utm = distance.proj_utm(zone=18, north=True)
-
-        (olat, olon, orad, oheight) = TESTDATA_STATOBST_INTERP_OBS
-        pos = GpsPosition(latitude=olat, longitude=olon)
-        pos.save()
-        obst = StationaryObstacle(
-            gps_position=pos, cylinder_radius=orad, cylinder_height=oheight)
-
-        for (inside, uas_details) in TESTDATA_STATOBST_INTERP_TELEM:
-            logs = self.create_uas_logs(self.user, uas_details)
-            self.assertEqual(
-                obst.determine_interpolated_collision(logs[0], logs[1], utm),
-                inside)
-
     def test_evaluate_collision_with_uas(self):
         """Tests the collision with UAS method."""
-        # Create testing data
+        TESTDATA_STATOBST_EVALCOLLISION = (
+            # Cylinder position
+            (-76, 38, 100, 100),
+            # Inside positions
+            [(-76, 38, 50),
+             (-76, 38, 0),
+             (-76, 38, 100),
+             (-76.0001, 38.0001, 0),
+             (-76.0001, 38.0001, 100)],
+            # Outside positions
+            [(-76.001, 38, 50),
+             (-76, 38.002, 150),
+             (-76, 38, 150),
+             (-76, 38, 101)]
+        )  # yapf: disable
 
         (cyl_details, inside_pos,
          outside_pos) = TESTDATA_STATOBST_EVALCOLLISION
@@ -178,6 +144,17 @@ class TestStationaryObstacleModel(TestCase):
             for log in log_list:
                 self.assertEqual(
                     obst.evaluate_collision_with_uas([log]), inside)
+
+        # Regression test past failed case.
+        pos = GpsPosition(latitude=45.4342114, longitude=-71.8538153)
+        pos.save()
+        obst = StationaryObstacle(
+            gps_position=pos, cylinder_radius=10.0, cylinder_height=1300.0)
+        logs = self.create_uas_logs(self.user, [
+            (45.433839, -71.8523434, 770.013137988),
+            (45.4338393, -71.8523446, 769.881926415),
+        ])
+        self.assertFalse(obst.evaluate_collision_with_uas(logs))
 
     def test_json(self):
         """Tests the JSON serialization method."""

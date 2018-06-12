@@ -10,6 +10,7 @@ from scipy.interpolate import splrep, splev
 
 from auvsi_suas.models import distance
 from auvsi_suas.models import units
+from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
 from auvsi_suas.patches.simplekml_patch import Types
@@ -216,43 +217,6 @@ class MovingObstacle(models.Model):
             aerial_pos.gps_position.longitude, aerial_pos.altitude_msl)
         return dist_to_center <= self.sphere_radius
 
-    def determine_interpolated_collision(self, start_log, end_log, utm):
-        """Determines whether the UAS collided with the obstacle by
-        interpolating between start and end telemetry.
-
-        Args:
-            start_log: A UAS telemetry log.
-            end_log: A UAS telemetry log.
-            utm: The UTM Proj projection to project into.
-        Returns:
-            True if the UAS collided with the obstacle, False otherwise.
-        """
-        start = (start_log.uas_position.gps_position.latitude,
-                 start_log.uas_position.gps_position.longitude,
-                 start_log.uas_position.altitude_msl)
-        end = (end_log.uas_position.gps_position.latitude,
-               end_log.uas_position.gps_position.longitude,
-               end_log.uas_position.altitude_msl)
-        epoch_time = timezone.now().replace(
-            year=1970,
-            month=1,
-            day=1,
-            hour=0,
-            minute=0,
-            second=0,
-            microsecond=0)
-        start_seconds = (start_log.timestamp - epoch_time).total_seconds()
-        end_seconds = (end_log.timestamp - epoch_time).total_seconds()
-        for s in np.arange(start_seconds, end_seconds,
-                           settings.MOVING_OBSTACLE_INTERPOLATION_INTERVAL):
-            t = epoch_time + timedelta(seconds=s)
-            d = distance.distance_to_line(start, end, self.get_position(t),
-                                          utm)
-            if d <= self.sphere_radius:
-                return True
-
-        return False
-
     def evaluate_collision_with_uas(self, uas_telemetry_logs):
         """Evaluates whether the Uas logs indicate a collision.
 
@@ -263,17 +227,10 @@ class MovingObstacle(models.Model):
             Whether a UAS telemetry log reported indicates a collision with the
             obstacle.
         """
-        obst_pos = self.get_position()
-        zone, north = distance.utm_zone(obst_pos[0], obst_pos[1])
-        utm = distance.proj_utm(zone, north)
-        for i, cur_log in enumerate(uas_telemetry_logs):
-            (lat, lon, alt) = self.get_position(cur_log.timestamp)
-            if self.contains_pos(lat, lon, alt, cur_log.uas_position):
+        for log in UasTelemetry.interpolate(uas_telemetry_logs):
+            (lat, lon, alt) = self.get_position(log.timestamp)
+            if self.contains_pos(lat, lon, alt, log.uas_position):
                 return True
-            if i > 0:
-                if self.determine_interpolated_collision(
-                        uas_telemetry_logs[i - 1], cur_log, utm):
-                    return True
 
         return False
 
@@ -288,14 +245,14 @@ class MovingObstacle(models.Model):
         }
         return data
 
-    def kml(self, path, kml, kml_doc):
+    def kml(self, time_periods, kml, kml_doc):
         """
         Appends kml nodes describing the given user's flight as described
         by the log array given. No nodes are added if less than two log
         entries are given.
 
         Args:
-            path: A list of UasTelemetry elements.
+            time_periods: The time period over which to generate positions.
             kml: A simpleKML Container to which the flight data will be added
             kml_doc: The simpleKML Document to which schemas will be added
         Returns:
@@ -304,76 +261,34 @@ class MovingObstacle(models.Model):
         # KML Compliant Datetime Formatter
         kml_datetime_format = "%Y-%m-%dT%H:%M:%S.%fZ"
         icon = 'http://maps.google.com/mapfiles/kml/shapes/airports.png'
-        kml_output_resolution = 100  # milliseconds
 
+        # Generate track data for all time periods.
         coords = []
         when = []
         ranges = []
-
-        if len(path) < 2:
-            return
-
-        dt = timedelta(milliseconds=kml_output_resolution)
-        for pos, uav, time in self.times(path, dt):
-            # Spatial Coordinates (longitude, latitude, altitude)
-            coord = (pos[1], pos[0], units.feet_to_meters(pos[2]))
-            coords.append(coord)
-
-            # Time Elements
-            when.append(time.strftime(kml_datetime_format))
-
-            # Distance Elements
-            uas_range = distance.distance_to(*uav + pos)
-            ranges.append(uas_range)
+        for period in time_periods:
+            t = period.start
+            while t < period.end:
+                (lat, lon, alt) = self.get_position(t)
+                coords.append((lon, lat, units.feet_to_meters(alt)))
+                when.append(t.strftime(kml_datetime_format))
+                t += timedelta(milliseconds=100)
 
         # Create a new track in the folder
         trk = kml.newgxtrack(name='Obstacle Path {}'.format(self.id))
         trk.altitudemode = AltitudeMode.absolute
 
-        # Create a schema for extended data: proximity
-        schema = kml_doc.newschema()
-        schema.newgxsimplearrayfield(
-            name='proximity',
-            type=Types.float,
-            displayname='UAS Proximity [ft]')
-        trk.extendeddata.schemadata.schemaurl = schema.id
+        # TODO: Add back proximity information lost when fixing #316.
 
         # Append flight data
         trk.newwhen(when)
         trk.newgxcoord(coords)
-        trk.extendeddata.schemadata.newgxsimplearraydata('proximity', ranges)
 
         # Set styling
         trk.extrude = 1  # Extend path to ground
         trk.style.linestyle.width = 2
         trk.style.linestyle.color = Color.red
         trk.iconstyle.icon.href = icon
-
-    def times(self, uav_path, delta):
-        """
-        Generator for getting the position of the obstacle and uav
-        for each time slice
-
-        Args:
-            uav_path: A list of UasTelemetry elements.
-            delta: timedelta for the step size
-        Returns:
-            Obstacle position, UAV position, time
-            position is a tuple(latitude, longitude, altitude)
-        """
-        curr = uav_path[0].timestamp
-        end = uav_path[len(uav_path) - 1].timestamp
-        path_index = 0  # Index of last known position
-        while curr < end:
-            # Advance the path_index forward in time
-            while uav_path[path_index + 1].timestamp <= curr:
-                path_index += 1
-
-            uav = (uav_path[path_index].uas_position.gps_position.latitude,
-                   uav_path[path_index].uas_position.gps_position.longitude,
-                   uav_path[path_index].uas_position.altitude_msl)
-            yield self.get_position(curr), uav, curr
-            curr += delta
 
     @classmethod
     def live_kml(cls, kml, timespan, resolution=100):

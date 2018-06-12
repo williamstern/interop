@@ -32,7 +32,7 @@ class LiveKml(View):
         (mission, err) = active_mission()
         if err:
             return err
-        MissionConfig.kml_all(kml_mission, [mission])
+        MissionConfig.kml_all(kml_mission, kml.document, [mission])
 
         kml_flyzone = kml.newfolder(name='Fly Zones')
         FlyZone.kml_all(kml_flyzone)
