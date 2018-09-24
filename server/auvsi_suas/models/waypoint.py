@@ -1,6 +1,7 @@
 """Waypoint model."""
 
 from auvsi_suas.models.aerial_position import AerialPosition
+from django.contrib import admin
 from django.db import models
 
 
@@ -15,12 +16,6 @@ class Waypoint(models.Model):
     position = models.ForeignKey(AerialPosition)
     order = models.IntegerField(db_index=True)
 
-    def __str__(self):
-        """Descriptive text for use in displays."""
-        return "Waypoint (pk:%s, order:%s, pos:%s)" % (str(self.pk),
-                                                       str(self.order),
-                                                       str(self.position))
-
     def distance_to(self, other):
         """Computes distance to another waypoint.
         Args:
@@ -29,3 +24,10 @@ class Waypoint(models.Model):
           Distance in feet.
         """
         return self.position.distance_to(other.position)
+
+
+@admin.register(Waypoint)
+class WaypointModelAdmin(admin.ModelAdmin):
+    show_full_result_count = False
+    raw_id_fields = ("position", )
+    list_display = ('position', 'order')

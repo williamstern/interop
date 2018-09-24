@@ -4,6 +4,7 @@ import datetime
 import itertools
 import logging
 from django.conf import settings
+from django.contrib import admin
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -61,11 +62,6 @@ class MissionConfig(models.Model):
         GpsPosition, related_name='missionconfig_air_drop_pos')
     stationary_obstacles = models.ManyToManyField(StationaryObstacle)
     moving_obstacles = models.ManyToManyField(MovingObstacle)
-
-    def __str__(self):
-        """Descriptive text for use in displays."""
-        return 'MissionConfig (pk:%s, is_active: %s, home_pos:%s)' % (
-            str(self.pk), str(self.is_active), str(self.home_pos))
 
     def json(self, is_superuser):
         """Return a dict, for conversion to JSON."""
@@ -258,3 +254,13 @@ class MissionConfig(models.Model):
         for obstacle in self.moving_obstacles.all():
             obstacle.kml(moving_obstacle_periods, moving_obstacles_folder,
                          kml_doc)
+
+
+@admin.register(MissionConfig)
+class MissionConfigModelAdmin(admin.ModelAdmin):
+    raw_id_fields = ("home_pos", "emergent_last_known_pos",
+                     "off_axis_odlc_pos", "air_drop_pos")
+    filter_horizontal = ("fly_zones", "mission_waypoints",
+                         "search_grid_points", "odlcs", "stationary_obstacles",
+                         "moving_obstacles")
+    list_display = ('is_active', 'home_pos')

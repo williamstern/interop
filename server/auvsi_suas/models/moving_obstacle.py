@@ -3,6 +3,7 @@
 import numpy as np
 from datetime import timedelta
 from django.conf import settings
+from django.contrib import admin
 from django.db import models
 from django.utils import timezone
 from scipy.interpolate import splrep, splev
@@ -27,11 +28,6 @@ class MovingObstacle(models.Model):
     waypoints = models.ManyToManyField(Waypoint)
     speed_avg = models.FloatField()
     sphere_radius = models.FloatField()
-
-    def __str__(self):
-        """Descriptive text for use in displays."""
-        return "MovingObstacle (pk:%s, speed:%s, radius:%s)" % (
-            str(self.pk), str(self.speed_avg), str(self.sphere_radius))
 
     def get_waypoint_travel_time(self, waypoints, id_tm1, id_t):
         """Gets the travel time to the current waypoint from a previous.
@@ -324,3 +320,8 @@ class MovingObstacle(models.Model):
             linestring.style.linestyle.color = Color.red
             linestring.style.polystyle.color = Color.changealphaint(
                 100, Color.red)
+
+
+@admin.register(MovingObstacle)
+class MovingObstacleModelAdmin(admin.ModelAdmin):
+    filter_horizontal = ("waypoints", )

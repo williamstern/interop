@@ -8,16 +8,6 @@ from django.test import TestCase
 class TestAerialPositionModel(TestCase):
     """Tests the AerialPosition model."""
 
-    def test_str(self):
-        """Tests the str method executes."""
-        gps = GpsPosition(latitude=10, longitude=100)
-        gps.save()
-
-        pos = AerialPosition(gps_position=gps, altitude_msl=100)
-        pos.save()
-
-        self.assertTrue(str(pos))
-
     def assertDistanceEqual(self, pos1, pos2, dist, threshold=10):
         """AerialPosition distances are within threshold (ft)."""
         self.assertAlmostEqual(pos1.distance_to(pos2), dist, delta=threshold)

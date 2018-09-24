@@ -1,6 +1,7 @@
 """Feedback from judges on mission performance."""
 
 from django.conf import settings
+from django.contrib import admin
 from django.db import models
 
 from auvsi_suas.proto import mission_pb2
@@ -49,11 +50,6 @@ class MissionJudgeFeedback(models.Model):
     class Meta:
         unique_together = (('mission', 'user'), )
 
-    def __str__(self):
-        """Descriptive text for use in displays."""
-        return 'MissionJudgeFeedback (pk:%s, user:%s, mission:%s)' % (
-            self.pk, str(self.user), str(self.mission))
-
     def proto(self):
         """Get the proto formatted feedback."""
         feedback = mission_pb2.MissionJudgeFeedback()
@@ -76,3 +72,9 @@ class MissionJudgeFeedback(models.Model):
         feedback.operational_excellence_percent = self.operational_excellence_percent
 
         return feedback
+
+
+@admin.register(MissionJudgeFeedback)
+class MissionJudgeFeedbackModelAdmin(admin.ModelAdmin):
+    show_full_result_count = False
+    list_display = ('mission', 'user', 'flight_time', 'post_process_time', 'used_timeout', 'min_auto_flight_time', 'safety_pilot_takeovers', 'waypoints_captured', 'out_of_bounds', 'unsafe_out_of_bounds', 'things_fell_off_uas', 'crashed', 'air_delivery_accuracy_ft', 'operational_excellence_percent')

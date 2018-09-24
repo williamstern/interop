@@ -5,6 +5,7 @@ import itertools
 from collections import defaultdict
 
 from django.conf import settings
+from django.contrib import admin
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
@@ -36,14 +37,6 @@ class UasTelemetry(AccessLog):
     """
     uas_position = models.ForeignKey(AerialPosition)
     uas_heading = models.FloatField()
-
-    def __str__(self):
-        """Descriptive text for use in displays."""
-        return ("UasTelemetry (pk:%s, user:%s, timestamp:%s, "
-                "heading:%s, pos:%s)") % (str(self.pk), str(self.user),
-                                          str(self.timestamp),
-                                          str(self.uas_heading),
-                                          str(self.uas_position))
 
     def duplicate(self, other):
         """Determines whether this UasTelemetry is equivalent to another.
@@ -370,3 +363,10 @@ class UasTelemetry(AccessLog):
                 waypoint_eval.closest_for_mission_ft = best[iw]
             waypoint_evals.append(waypoint_eval)
         return waypoint_evals
+
+
+@admin.register(UasTelemetry)
+class UasTelemetryModelAdmin(admin.ModelAdmin):
+    show_full_result_count = False
+    raw_id_fields = ("uas_position", )
+    list_display = ('user', 'timestamp', 'uas_position', 'uas_heading')

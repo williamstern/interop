@@ -22,13 +22,6 @@ class AccessLog(models.Model):
         abstract = True
         index_together = (('user', 'timestamp'), )
 
-    def __str__(self):
-        """Descriptive text for use in displays."""
-        return "%s (pk:%s, user:%s, timestamp:%s)" % (self.__class__.__name__,
-                                                      str(self.pk),
-                                                      str(self.user),
-                                                      str(self.timestamp))
-
     @classmethod
     def by_user(cls, user, start_time=None, end_time=None):
         """Gets the time-sorted list of access log for the given user.

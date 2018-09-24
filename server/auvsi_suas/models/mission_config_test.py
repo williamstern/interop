@@ -14,35 +14,6 @@ from auvsi_suas.patches.simplekml_patch import Kml
 from auvsi_suas.proto.mission_pb2 import WaypointEvaluation
 
 
-class TestMissionConfigModel(TestCase):
-    """Tests the MissionConfig model."""
-
-    def test_str(self):
-        """Tests the str method executes."""
-        pos = GpsPosition()
-        pos.latitude = 10
-        pos.longitude = 100
-        pos.save()
-        apos = AerialPosition()
-        apos.altitude_msl = 1000
-        apos.gps_position = pos
-        apos.save()
-        wpt = Waypoint()
-        wpt.position = apos
-        wpt.order = 10
-        wpt.save()
-        config = MissionConfig()
-        config.home_pos = pos
-        config.emergent_last_known_pos = pos
-        config.off_axis_odlc_pos = pos
-        config.air_drop_pos = pos
-        config.save()
-        config.mission_waypoints.add(wpt)
-        config.search_grid_points.add(wpt)
-        config.save()
-        self.assertTrue(str(config))
-
-
 class TestMissionConfigModelSampleMission(TestCase):
 
     fixtures = ['testdata/sample_mission.json']

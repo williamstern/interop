@@ -170,28 +170,6 @@ class TestMovingObstacle(TestCase):
             cur_obst.save()
             self.obstacles.append(cur_obst)
 
-    def test_str(self):
-        """Tests the str method executes."""
-        obst = MovingObstacle()
-        obst.speed_avg = 10
-        obst.sphere_radius = 100
-        obst.save()
-        for _ in range(3):
-            pos = GpsPosition()
-            pos.latitude = 10
-            pos.longitude = 100
-            pos.save()
-            apos = AerialPosition()
-            apos.altitude_msl = 1000
-            apos.gps_position = pos
-            apos.save()
-            wpt = Waypoint()
-            wpt.position = apos
-            wpt.order = 10
-            wpt.save()
-            obst.waypoints.add(wpt)
-        self.assertTrue(str(obst))
-
     def test_get_waypoint_travel_time_invalid_inputs(self):
         """Tests proper invalid input handling."""
         obstacle = MovingObstacle()

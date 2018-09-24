@@ -10,13 +10,6 @@ from django.utils import timezone
 class TestMissionClockEventModel(TestAccessLogCommon):
     """Tests the MissionClockEvent model."""
 
-    def test_str(self):
-        """Tests the str method executes."""
-        log = MissionClockEvent(
-            user=self.user1, team_on_clock=True, team_on_timeout=False)
-        log.save()
-        self.assertTrue(str(log))
-
     def test_user_on_clock(self):
         """Tests the user_on_clock method."""
         log = MissionClockEvent(

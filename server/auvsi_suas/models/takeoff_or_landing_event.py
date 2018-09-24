@@ -2,6 +2,7 @@
 
 from auvsi_suas.models.access_log import AccessLog
 from auvsi_suas.models.time_period import TimePeriod
+from django.contrib import admin
 from django.db import models
 from django.utils import timezone
 
@@ -13,12 +14,6 @@ class TakeoffOrLandingEvent(AccessLog):
         uas_in_air: Whether the UAS is now in the air.
     """
     uas_in_air = models.BooleanField()
-
-    def __str__(self):
-        """Descriptive text for use in displays."""
-        return ('TakeoffOrLandingEvent (pk:%s, user:%s, uas_in_air:%s, '
-                'timestamp:%s)') % (str(self.pk), str(self.user),
-                                    str(self.uas_in_air), str(self.timestamp))
 
     @classmethod
     def flights(cls, user):
@@ -48,3 +43,9 @@ class TakeoffOrLandingEvent(AccessLog):
         if event:
             return event.uas_in_air
         return False
+
+
+@admin.register(TakeoffOrLandingEvent)
+class TakeoffOrLandingEventModelAdmin(admin.ModelAdmin):
+    show_full_result_count = False
+    list_display = ('timestamp', 'user', 'uas_in_air')

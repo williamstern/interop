@@ -9,6 +9,7 @@ from auvsi_suas.models.mission_clock_event import MissionClockEvent
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.proto import odlc_pb2
 from django.conf import settings
+from django.contrib import admin
 from django.db import models
 from django.utils import timezone
 
@@ -170,11 +171,6 @@ class Odlc(models.Model):
         super(Odlc, self).__init__(*args, **kwargs)
         if not self.creation_time or not self.last_modified_time:
             self.update_last_modified()
-
-    def __str__(self):
-        """Descriptive text for use in displays."""
-        return 'Odlc(pk:%s, user:%s, odlc_type:%s)' % (
-            str(self.pk), str(self.user), str(OdlcType(self.odlc_type).name))
 
     def update_last_modified(self):
         """Updates timestamps for modification."""
@@ -552,3 +548,10 @@ class OdlcEvaluator(object):
         multi_eval.score_ratio = (multi_eval.matched_score_ratio -
                                   multi_eval.extra_object_penalty_ratio)
         return multi_eval
+
+
+@admin.register(Odlc)
+class OdlcModelAdmin(admin.ModelAdmin):
+    show_full_result_count = False
+    raw_id_fields = ("location", )
+    list_display = ('user', 'odlc_type', 'location', 'orientation', 'shape', 'background_color', 'alphanumeric', 'alphanumeric_color', 'autonomous', 'thumbnail_approved', 'creation_time', 'last_modified_time')

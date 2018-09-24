@@ -29,12 +29,6 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
 
         self.assertSequenceEqual(expected, periods)
 
-    def test_str(self):
-        """Tests the str method executes."""
-        log = TakeoffOrLandingEvent(user=self.user1, uas_in_air=True)
-        log.save()
-        self.assertTrue(str(log))
-
     def test_basic_flight_period(self):
         """Single flight reported as period."""
         self.create_event(self.year2000, True)

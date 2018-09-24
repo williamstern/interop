@@ -65,12 +65,6 @@ class TestAccessLogCommon(TestCase):
 class TestAccessLogBasic(TestAccessLogCommon):
     """Tests the AccessLog model basic functionality."""
 
-    def test_str(self):
-        """Tests the str method executes."""
-        logs = self.create_logs(user=self.user1)
-        for log in logs:
-            self.assertTrue(str(log))
-
     def test_no_data(self):
         log = UasTelemetry.last_for_user(self.user1)
         self.assertEqual(None, log)
