@@ -204,8 +204,8 @@ class TestFlyZone(TestCase):
             # Store
             self.testdata_containspos.append((zone, test_pos))
 
-    def test_unicode(self):
-        """Tests the unicode method executes."""
+    def test_str(self):
+        """Tests the str method executes."""
         zone = FlyZone()
         zone.altitude_msl_min = 1
         zone.altitude_msl_max = 2
@@ -224,7 +224,7 @@ class TestFlyZone(TestCase):
             wpt.order = 10
             wpt.save()
             zone.boundary_pts.add(wpt)
-        self.assertTrue(zone.__unicode__())
+        self.assertTrue(str(zone))
 
     def test_contains_pos(self):
         """Tests the contains_pos method."""
@@ -268,7 +268,7 @@ class TestFlyZone(TestCase):
             zone.altitude_msl_min = alt_min
             zone.altitude_msl_max = alt_max
             zone.save()
-            for wpt_id in xrange(len(wpts)):
+            for wpt_id in range(len(wpts)):
                 (lat, lon) = wpts[wpt_id]
                 gpos = GpsPosition()
                 gpos.latitude = lat

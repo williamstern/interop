@@ -37,13 +37,13 @@ class UasTelemetry(AccessLog):
     uas_position = models.ForeignKey(AerialPosition)
     uas_heading = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         """Descriptive text for use in displays."""
-        return unicode("UasTelemetry (pk:%s, user:%s, timestamp:%s, "
-                       "heading:%s, pos:%s)" %
-                       (str(self.pk), self.user.__unicode__(),
-                        str(self.timestamp), str(self.uas_heading),
-                        self.uas_position.__unicode__()))
+        return ("UasTelemetry (pk:%s, user:%s, timestamp:%s, "
+                "heading:%s, pos:%s)") % (str(self.pk), str(self.user),
+                                          str(self.timestamp),
+                                          str(self.uas_heading),
+                                          str(self.uas_position))
 
     def duplicate(self, other):
         """Determines whether this UasTelemetry is equivalent to another.
@@ -169,8 +169,6 @@ class UasTelemetry(AccessLog):
             kml_flight = kml_folder.newfolder(name=label)
 
             flight_logs = filter(lambda x: flight.within(x.timestamp), logs)
-            if len(flight_logs) < 2:
-                continue
 
             coords = []
             angles = []
@@ -328,7 +326,7 @@ class UasTelemetry(AccessLog):
         dp = defaultdict(lambda: defaultdict(lambda: (0, None, None)))
         highest_total = None
         highest_total_pos = (None, None)
-        for iw in xrange(len(waypoints)):
+        for iw in range(len(waypoints)):
             for ih, (hiw, hdist, hscore) in enumerate(hits):
                 # Compute score for assigning current hit to current waypoint.
                 score = hscore if iw == hiw else 0.0
@@ -338,7 +336,7 @@ class UasTelemetry(AccessLog):
                 total_score = score
                 total_score_back = (None, None)
                 if prev_iw >= 0:
-                    for prev_ih in xrange(ih + 1):
+                    for prev_ih in range(ih + 1):
                         (prev_total_score, _) = dp[prev_iw][prev_ih]
                         new_total_score = prev_total_score + score
                         if new_total_score > total_score:
@@ -346,7 +344,7 @@ class UasTelemetry(AccessLog):
                             total_score_back = (prev_iw, prev_ih)
                 dp[iw][ih] = (total_score, total_score_back)
                 # Track highest score seen.
-                if total_score > highest_total:
+                if highest_total is None or total_score > highest_total:
                     highest_total = total_score
                     highest_total_pos = (iw, ih)
         # Traceback sequence to get scores and distance for score.

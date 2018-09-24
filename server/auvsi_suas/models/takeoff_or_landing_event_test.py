@@ -29,11 +29,11 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
 
         self.assertSequenceEqual(expected, periods)
 
-    def test_unicode(self):
-        """Tests the unicode method executes."""
+    def test_str(self):
+        """Tests the str method executes."""
         log = TakeoffOrLandingEvent(user=self.user1, uas_in_air=True)
         log.save()
-        self.assertIsNotNone(log.__unicode__())
+        self.assertTrue(str(log))
 
     def test_basic_flight_period(self):
         """Single flight reported as period."""

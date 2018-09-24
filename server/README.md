@@ -34,13 +34,13 @@ should use the Apache server which is enabled as part of automated setup.
 To start the development web server, execute:
 
 ``` sh
-python manage.py runserver 8080
+python3 manage.py runserver 8080
 ```
 
 To access the web server from external machines, execute:
 
 ``` sh
-python manage.py runserver 0.0.0.0:8080
+python3 manage.py runserver 0.0.0.0:8080
 ```
 
 The server will start on the local address (localhost, 127.0.0.1) with port

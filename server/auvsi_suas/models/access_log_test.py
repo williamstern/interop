@@ -46,7 +46,7 @@ class TestAccessLogCommon(TestCase):
 
         logs = []
 
-        for i in xrange(num):
+        for i in range(num):
             gps_position = GpsPosition(latitude=0, longitude=0)
             gps_position.save()
             uas_position = AerialPosition(
@@ -65,11 +65,11 @@ class TestAccessLogCommon(TestCase):
 class TestAccessLogBasic(TestAccessLogCommon):
     """Tests the AccessLog model basic functionality."""
 
-    def test_unicode(self):
-        """Tests the unicode method executes."""
+    def test_str(self):
+        """Tests the str method executes."""
         logs = self.create_logs(user=self.user1)
         for log in logs:
-            log.__unicode__()
+            self.assertTrue(str(log))
 
     def test_no_data(self):
         log = UasTelemetry.last_for_user(self.user1)
@@ -97,7 +97,7 @@ class TestAccessLogBasic(TestAccessLogCommon):
     def test_multi_user(self):
         # Intersperse logs from two users
         logs = []
-        for _ in xrange(10):
+        for _ in range(10):
             logs += self.create_logs(self.user1, num=1)
             self.create_logs(self.user2, num=1)
 

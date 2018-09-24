@@ -413,7 +413,7 @@ class OdlcsIdImage(View):
         if i.format not in ['JPEG', 'PNG']:
             return HttpResponseBadRequest(
                 'Invalid image format %s, only JPEG and PNG allowed' %
-                i.format)
+                (i.format))
 
         old_path = odlc.thumbnail.path if odlc.thumbnail else None
 

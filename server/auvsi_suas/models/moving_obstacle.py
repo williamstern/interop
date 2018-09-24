@@ -2,7 +2,6 @@
 
 import numpy as np
 from datetime import timedelta
-from waypoint import Waypoint
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -11,6 +10,7 @@ from scipy.interpolate import splrep, splev
 from auvsi_suas.models import distance
 from auvsi_suas.models import units
 from auvsi_suas.models.uas_telemetry import UasTelemetry
+from auvsi_suas.models.waypoint import Waypoint
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
 from auvsi_suas.patches.simplekml_patch import Types
@@ -28,11 +28,10 @@ class MovingObstacle(models.Model):
     speed_avg = models.FloatField()
     sphere_radius = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         """Descriptive text for use in displays."""
-        return unicode("MovingObstacle (pk:%s, speed:%s, radius:%s)" %
-                       (str(self.pk), str(self.speed_avg),
-                        str(self.sphere_radius)))
+        return "MovingObstacle (pk:%s, speed:%s, radius:%s)" % (
+            str(self.pk), str(self.speed_avg), str(self.sphere_radius))
 
     def get_waypoint_travel_time(self, waypoints, id_tm1, id_t):
         """Gets the travel time to the current waypoint from a previous.

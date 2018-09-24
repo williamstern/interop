@@ -317,8 +317,7 @@ button on the mission dashboard to learn how to use this interface.
 
 **Django Admin Dashboard**. From the SUAS Admin Dashboard, you can use the menu
 ``System > Edit Data`` to open the Django Admin dashboard. You should know how
-to use this interface from the Prerequisite work. See :doc:`configuration` for
-more details.
+to use this interface from the Prerequisite work.
 
 **Mission Configuration**. To configure a mission, create or edit the
 ``MissionConfig`` object to specify the desired flight boundaries, waypoints,

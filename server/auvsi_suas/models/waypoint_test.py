@@ -9,8 +9,8 @@ from django.test import TestCase
 class TestWaypointModel(TestCase):
     """Tests the Waypoint model."""
 
-    def test_unicode(self):
-        """Tests the unicode method executes."""
+    def test_str(self):
+        """Tests the str method executes."""
         gps = GpsPosition(latitude=10, longitude=100)
         gps.save()
 
@@ -20,7 +20,7 @@ class TestWaypointModel(TestCase):
         wpt = Waypoint(position=pos, order=10)
         wpt.save()
 
-        wpt.__unicode__()
+        self.assertTrue(str(wpt))
 
     def assertDistanceEqual(self, wpt1, wpt2, dist, threshold=10):
         """Waypoint distances are within threshold (ft)."""

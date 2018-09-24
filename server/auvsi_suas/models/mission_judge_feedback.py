@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import models
 
 from auvsi_suas.proto import mission_pb2
-from mission_config import MissionConfig
+from auvsi_suas.models.mission_config import MissionConfig
 
 
 class MissionJudgeFeedback(models.Model):
@@ -49,11 +49,10 @@ class MissionJudgeFeedback(models.Model):
     class Meta:
         unique_together = (('mission', 'user'), )
 
-    def __unicode__(self):
+    def __str__(self):
         """Descriptive text for use in displays."""
-        return unicode('MissionJudgeFeedback (pk:%s, user:%s, mission:%s)' %
-                       (self.pk, self.user.__unicode__(),
-                        self.mission.__unicode__()))
+        return 'MissionJudgeFeedback (pk:%s, user:%s, mission:%s)' % (
+            self.pk, str(self.user), str(self.mission))
 
     def proto(self):
         """Get the proto formatted feedback."""

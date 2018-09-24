@@ -47,8 +47,8 @@ def create_teams_data(teams_filepath, competition_data):
 
 def get_team_info(teams_filepath, static_min, static_max):
     """Gets the team information from the given file."""
-    static_min_int = int(ipaddress.IPv4Address(unicode(static_min)))
-    static_max_int = int(ipaddress.IPv4Address(unicode(static_max)))
+    static_min_int = int(ipaddress.IPv4Address(str(static_min)))
+    static_max_int = int(ipaddress.IPv4Address(str(static_max)))
     static_range = static_max_int - static_min_int
 
     random.seed()

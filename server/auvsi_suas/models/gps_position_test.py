@@ -7,12 +7,11 @@ from django.test import TestCase
 class TestGpsPositionModel(TestCase):
     """Tests the GpsPosition model."""
 
-    def test_unicode(self):
-        """Tests the unicode method executes."""
+    def test_str(self):
+        """Tests the str method executes."""
         pos = GpsPosition(latitude=10, longitude=100)
         pos.save()
-
-        pos.__unicode__()
+        self.assertTrue(str(pos))
 
     def assert_distance_equal(self, pos1, pos2, dist, threshold=10):
         """GpsPosition distances are within threshold (ft)."""

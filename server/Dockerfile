@@ -12,27 +12,27 @@ RUN apt-get -qq update && apt-get -qq install -y \
         libapache2-mod-auth-pgsql \
         libapache2-mod-auth-plain \
         libapache2-mod-python \
-        libapache2-mod-wsgi \
+        libapache2-mod-wsgi-py3 \
         libapache2-mod-xsendfile \
         memcached \
         postgresql \
         postgresql-client \
         protobuf-compiler \
-        python \
+        python3 \
         # Install from apt as it's much faster.
-        python-matplotlib \
-        python-numpy \
-        python-pip \
-        python-psycopg2 \
-        python-pyproj \
-        python-scipy \
+        python3-matplotlib \
+        python3-numpy \
+        python3-pip \
+        python3-psycopg2 \
+        python3-pyproj \
+        python3-scipy \
         sudo
 
 # Install server Python requirements.
 COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
-# Configure database, web server, Django.
+# Configure database & web server.
 COPY manage.py manage.py
 COPY server server
 COPY auvsi_suas/__init__.py auvsi_suas/__init__.py
@@ -44,7 +44,7 @@ COPY config config
 COPY fixtures fixtures
 RUN ./config/configure_postgresql.sh && \
     ./config/configure_apache.sh && \
-    ./config/configure_django.sh
+    python3 manage.py collectstatic --noinput
 
 # Compile protobuf definitions.
 COPY auvsi_suas/proto auvsi_suas/proto
@@ -56,7 +56,8 @@ COPY . .
 # Load initial data.
 RUN service postgresql start && \
     ./healthcheck.py --check_postgres && \
-    python manage.py loaddata fixtures/test_fixture.yaml
+    python3 manage.py migrate && \
+    python3 manage.py loaddata fixtures/test_fixture.yaml
 
 # Host-mountable sections.
 VOLUME /var/log/apache2 /var/lib/postgresql /var/www/media/objects

@@ -33,6 +33,7 @@ class TestGenerateKMLCommon(TestCase):
         self.eval_url = reverse('auvsi_suas:export_data')
 
     def validate_kml(self, kml_data, folders, users, coordinates):
+        kml_data = kml_data.decode('utf-8')
         ElementTree.fromstring(kml_data)
         for folder in folders:
             tag = '<name>{}</name>'.format(folder)

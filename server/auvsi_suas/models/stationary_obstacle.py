@@ -4,8 +4,8 @@ import numpy as np
 import pyproj
 from auvsi_suas.models import distance
 from auvsi_suas.models import units
+from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.uas_telemetry import UasTelemetry
-from gps_position import GpsPosition
 from django.conf import settings
 from django.db import models
 
@@ -22,12 +22,12 @@ class StationaryObstacle(models.Model):
     cylinder_radius = models.FloatField()
     cylinder_height = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         """Descriptive text for use in displays."""
-        return unicode("StationaryObstacle (pk:%s, radius:%s, height:%s, "
-                       "gps:%s)" % (str(self.pk), str(self.cylinder_radius),
-                                    str(self.cylinder_height),
-                                    self.gps_position.__unicode__()))
+        return ("StationaryObstacle (pk:%s, radius:%s, height:%s, "
+                "gps:%s)") % (str(self.pk), str(self.cylinder_radius),
+                              str(self.cylinder_height),
+                              str(self.gps_position))
 
     def contains_pos(self, aerial_pos):
         """Whether the pos is contained within the obstacle.

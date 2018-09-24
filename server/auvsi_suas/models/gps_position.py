@@ -14,10 +14,11 @@ class GpsPosition(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         """Descriptive text for use in displays."""
-        return unicode("GpsPosition (pk:%s, lat:%s, lon:%s)" %
-                       (str(self.pk), str(self.latitude), str(self.longitude)))
+        return "GpsPosition (pk:%s, lat:%s, lon:%s)" % (str(self.pk),
+                                                        str(self.latitude),
+                                                        str(self.longitude))
 
     def distance_to(self, other):
         """Computes distance to another position.

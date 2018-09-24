@@ -4,13 +4,13 @@ import collections
 import enum
 import networkx as nx
 import operator
+from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.mission_clock_event import MissionClockEvent
+from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.proto import odlc_pb2
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
-from gps_position import GpsPosition
-from takeoff_or_landing_event import TakeoffOrLandingEvent
-from mission_clock_event import MissionClockEvent
 
 
 class Choices(enum.IntEnum):
@@ -171,11 +171,10 @@ class Odlc(models.Model):
         if not self.creation_time or not self.last_modified_time:
             self.update_last_modified()
 
-    def __unicode__(self):
+    def __str__(self):
         """Descriptive text for use in displays."""
-        return unicode('Odlc(pk:%s, user:%s, odlc_type:%s)' %
-                       (str(self.pk), self.user.__unicode__(),
-                        str(OdlcType(self.odlc_type).name)))
+        return 'Odlc(pk:%s, user:%s, odlc_type:%s)' % (
+            str(self.pk), str(self.user), str(OdlcType(self.odlc_type).name))
 
     def update_last_modified(self):
         """Updates timestamps for modification."""

@@ -1,8 +1,8 @@
 """Admin automatic evaluation of teams view."""
 
 import copy
-import cStringIO
 import csv
+import io
 import json
 import zipfile
 from auvsi_suas.models import mission_evaluation
@@ -43,7 +43,7 @@ class EvaluateTeams(View):
             while len(work_queue) > 0:
                 (cur_prefixes, cur_val) = work_queue.pop()
                 if isinstance(cur_val, dict):
-                    for (key, val) in cur_val.iteritems():
+                    for (key, val) in cur_val.items():
                         new_prefixes = copy.copy(cur_prefixes)
                         new_prefixes.append(str(key))
                         work_queue.append((new_prefixes, val))
@@ -62,7 +62,7 @@ class EvaluateTeams(View):
             col_headers.update(csv_dict.keys())
         col_headers = sorted(col_headers)
 
-        csv_io = cStringIO.StringIO()
+        csv_io = io.StringIO()
         writer = csv.DictWriter(csv_io, fieldnames=col_headers)
         writer.writeheader()
         for csv_dict in csv_list:
@@ -100,7 +100,7 @@ class EvaluateTeams(View):
                 'Could not get user evaluation data.')
 
         # Form Zip file.
-        zip_io = cStringIO.StringIO()
+        zip_io = io.BytesIO()
         with zipfile.ZipFile(zip_io, 'w') as zip_file:
             zip_file.writestr(
                 '/evaluate_teams/all.json',

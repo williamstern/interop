@@ -104,14 +104,14 @@ class TestUasTelemetryBase(TestCase):
         expect = [i for i in expect]
         got = [i for i in got]
         self.assertEqual(len(expect), len(got))
-        for ix in xrange(len(expect)):
+        for ix in range(len(expect)):
             self.assertTelemetryEqual(expect[ix], got[ix])
 
     def assertSatisfiedWaypoints(self, expect, got):
         """Assert two satisfied_waypoints return values are equal."""
         msg = '%s != %s' % (expect, got)
         self.assertEqual(len(expect), len(got), msg=msg)
-        for i in xrange(len(expect)):
+        for i in range(len(expect)):
             e = expect[i]
             g = got[i]
             self.assertEqual(e.id, g.id, msg=msg)
@@ -138,9 +138,9 @@ class TestUasTelemetry(TestUasTelemetryBase):
         self.log = self.create_log_element(
             timestamp=0, lat=10, lon=100, alt=200, heading=90)
 
-    def test_unicode(self):
-        """Tests the unicode method executes."""
-        self.assertTrue(self.log.__unicode__())
+    def test_str(self):
+        """Tests the str method executes."""
+        self.assertTrue(str(self.log))
 
     def test_duplicate_unequal(self):
         """Tests duplicate function with unequal telemetry."""
@@ -226,7 +226,7 @@ class TestUasTelemetryFilter(TestUasTelemetryBase):
         """Tests filter_bad()."""
         orig = [self.log1, self.log5]
         expect = [self.log1]
-        self.assertEqual(UasTelemetry.filter_bad(orig), expect)
+        self.assertEqual(list(UasTelemetry.filter_bad(orig)), expect)
 
 
 class TestUasTelemetryInterpolate(TestUasTelemetryBase):

@@ -1,5 +1,6 @@
 // Descriptors for evaluation of object detection.
 
+syntax = "proto2";
 package auvsi_suas.proto;
 
 // Evaluation data for multiple odlcs.

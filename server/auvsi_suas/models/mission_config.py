@@ -8,19 +8,19 @@ from django.contrib.auth.models import User
 from django.db import models
 
 from auvsi_suas.models import units
-from auvsi_suas.patches.simplekml_patch import Color
+from auvsi_suas.models.fly_zone import FlyZone
+from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.mission_clock_event import MissionClockEvent
+from auvsi_suas.models.moving_obstacle import MovingObstacle
+from auvsi_suas.models.odlc import Odlc
+from auvsi_suas.models.odlc import OdlcEvaluator
+from auvsi_suas.models.stationary_obstacle import StationaryObstacle
+from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
+from auvsi_suas.models.time_period import TimePeriod
+from auvsi_suas.models.uas_telemetry import UasTelemetry
+from auvsi_suas.models.waypoint import Waypoint
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
-from fly_zone import FlyZone
-from gps_position import GpsPosition
-from mission_clock_event import MissionClockEvent
-from moving_obstacle import MovingObstacle
-from stationary_obstacle import StationaryObstacle
-from takeoff_or_landing_event import TakeoffOrLandingEvent
-from odlc import Odlc
-from odlc import OdlcEvaluator
-from time_period import TimePeriod
-from uas_telemetry import UasTelemetry
-from waypoint import Waypoint
+from auvsi_suas.patches.simplekml_patch import Color
 
 # Logging for the module
 logger = logging.getLogger(__name__)
@@ -62,11 +62,10 @@ class MissionConfig(models.Model):
     stationary_obstacles = models.ManyToManyField(StationaryObstacle)
     moving_obstacles = models.ManyToManyField(MovingObstacle)
 
-    def __unicode__(self):
+    def __str__(self):
         """Descriptive text for use in displays."""
-        return unicode('MissionConfig (pk:%s, is_active: %s, home_pos:%s)' %
-                       (str(self.pk), str(self.is_active),
-                        self.home_pos.__unicode__()))
+        return 'MissionConfig (pk:%s, is_active: %s, home_pos:%s)' % (
+            str(self.pk), str(self.is_active), str(self.home_pos))
 
     def json(self, is_superuser):
         """Return a dict, for conversion to JSON."""
@@ -186,7 +185,7 @@ class MissionConfig(models.Model):
             'Off Axis': self.off_axis_odlc_pos,
             'Air Drop': self.air_drop_pos,
         }
-        for key, point in locations.iteritems():
+        for key, point in locations.items():
             gps = (point.longitude, point.latitude)
             wp = kml_folder.newpoint(name=key, coords=[gps])
             wp.description = str(point)

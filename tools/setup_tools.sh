@@ -12,18 +12,18 @@ apt-get -qq install -y \
     parallel \
     postgresql-client \
     protobuf-compiler \
-    python-matplotlib \
-    python-nose \
-    python-numpy \
-    python-pip \
-    python-psycopg2 \
-    python-pyproj \
-    python-scipy \
-    python-virtualenv
+    python-virtualenv \
+    python3-matplotlib \
+    python3-nose \
+    python3-numpy \
+    python3-pip \
+    python3-psycopg2 \
+    python3-pyproj \
+    python3-scipy
 
 log "Building tools virtualenv."
 (cd ${TOOLS} && \
-    virtualenv -p /usr/bin/python2 ${TOOLS}/venv && \
+    virtualenv -p /usr/bin/python3 ${TOOLS}/venv && \
     source ${TOOLS}/venv/bin/activate && \
     pip install -U -r requirements.txt && \
     deactivate)

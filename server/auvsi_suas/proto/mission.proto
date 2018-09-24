@@ -1,7 +1,7 @@
 // Descriptors for Mission evaluation.
 
-import "odlc.proto";
-
+syntax = "proto2";
+import "auvsi_suas/proto/odlc.proto";
 package auvsi_suas.proto;
 
 // Multi-user mission evaluation.

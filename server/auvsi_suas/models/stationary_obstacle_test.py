@@ -1,13 +1,13 @@
 """Tests for the stationary_obstacle module."""
 
+from auvsi_suas.models import distance
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.stationary_obstacle import StationaryObstacle
 from auvsi_suas.models.uas_telemetry import UasTelemetry
+from datetime import timedelta
 from django.contrib.auth.models import User
 from django.test import TestCase
-from auvsi_suas.models import distance
-from datetime import timedelta
 
 
 class TestStationaryObstacleModel(TestCase):
@@ -18,14 +18,14 @@ class TestStationaryObstacleModel(TestCase):
                                              'testpass')
         self.user.save()
 
-    def test_unicode(self):
-        """Tests the unicode method executes."""
+    def test_str(self):
+        """Tests the str method executes."""
         pos = GpsPosition(latitude=100, longitude=200)
         pos.save()
         obst = StationaryObstacle(
             gps_position=pos, cylinder_radius=10, cylinder_height=100)
         obst.save()
-        self.assertTrue(obst.__unicode__())
+        self.assertTrue(str(obst))
 
     def create_uas_logs(self, user, entries):
         """Create a list of uas telemetry logs.
