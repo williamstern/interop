@@ -1,5 +1,8 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 WORKDIR /interop/client
+
+# Set the time zone to the competition time zone.
+RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 
 RUN apt-get -qq update && apt-get -qq install -y \
         python \
