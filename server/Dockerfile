@@ -1,5 +1,8 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 WORKDIR /interop/server
+
+# Set the time zone to the competition time zone.
+RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 
 # Install server base dependencies.
 RUN apt-get -qq update && apt-get -qq install -y \

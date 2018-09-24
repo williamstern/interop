@@ -110,15 +110,3 @@ class TestDistanceToLine(TestCase):
                 207,  # dist
             ),
         ])  # yapf: disable
-
-    def test_bad_input(self):
-        """Test inputs well outside the projection return infinite."""
-        # The last of these are on top of one another, but stil return infinite
-        # because they are too far beyond the projection zone.
-        self.evaluate_inputs([
-            # (start,        end,            point,          dist)
-            ((0, 100, 0),    (38, -77, 100), (38, -76, 100), float("inf")),
-            ((38, -76, 100), (0, 100, 0),    (38, -77, 100), float("inf")),
-            ((38, -76, 100), (38, -77, 100), (0, 100, 0),    float("inf")),
-            ((0, 100, 0),    (0, 100, 0),    (0, 100, 0),    float("inf")),
-        ])  # yapf: disable
