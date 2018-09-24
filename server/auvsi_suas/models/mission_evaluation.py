@@ -45,8 +45,8 @@ def generate_feedback(mission_config, user, team_eval):
     # Calculate total time in air.
     flight_periods = TakeoffOrLandingEvent.flights(user)
     if flight_periods:
-        flight_time = reduce(lambda x, y: x + y,
-                             [p.duration() for p in flight_periods])
+        flight_time = sum([p.duration() for p in flight_periods],
+                          datetime.timedelta())
         feedback.flight_time_sec = flight_time.total_seconds()
     else:
         feedback.flight_time_sec = 0
@@ -167,8 +167,7 @@ def score_team(team_eval):
         float(feedback.judge.waypoints_captured) / len(feedback.waypoints))
     wpt_scores = [w.score_ratio for w in feedback.waypoints]
     if telem_prereq:
-        flight.waypoint_accuracy = (
-            reduce(lambda x, y: x + y, wpt_scores) / len(feedback.waypoints))
+        flight.waypoint_accuracy = sum(wpt_scores) / len(feedback.waypoints)
     else:
         flight.waypoint_accuracy = 0
     flight.out_of_bounds_penalty = (
@@ -194,13 +193,11 @@ def score_team(team_eval):
     avoid.telemetry_prerequisite = telem_prereq
     if telem_prereq:
         avoid.stationary_obstacle = pow(
-            reduce(lambda x, y: x + y, [
-                0.0 if o.hit else 1.0 for o in feedback.stationary_obstacles
-            ]) / len(feedback.stationary_obstacles), 3)
+            sum([0.0 if o.hit else 1.0 for o in feedback.stationary_obstacles])
+            / len(feedback.stationary_obstacles), 3)
         avoid.moving_obstacle = pow(
-            reduce(lambda x, y: x + y, [
-                0.0 if o.hit else 1.0 for o in feedback.moving_obstacles
-            ]) / len(feedback.moving_obstacles), 3)
+            sum([0.0 if o.hit else 1.0 for o in feedback.moving_obstacles]) /
+            len(feedback.moving_obstacles), 3)
     else:
         avoid.stationary_obstacle = 0
         avoid.moving_obstacle = 0
@@ -219,8 +216,7 @@ def score_team(team_eval):
     ]
     for eval_field, score_field in object_field_mapping:
         if object_eval.odlcs:
-            total = reduce(lambda x, y: x + y,
-                           [getattr(o, eval_field) for o in object_eval.odlcs])
+            total = sum([getattr(o, eval_field) for o in object_eval.odlcs])
             setattr(objects, score_field,
                     float(total) / len(object_eval.odlcs))
         else:

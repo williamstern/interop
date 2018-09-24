@@ -22,8 +22,6 @@ SECRET_KEY = 'anp#d4lgo3u6j&6dc3+8sn!t+l(6hcuspm^&3(yq10evfwbh+1'
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
-TEMPLATE_DIRS = [os.path.join(BASE_DIR, 'templates')]
-
 ALLOWED_HOSTS = ['*']
 
 # Public IP addresses given access to Django Debug Toolbar
@@ -46,6 +44,7 @@ INSTALLED_APPS = (
 )  # yapf: disable
 
 MIDDLEWARE_CLASSES = (
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -82,6 +81,22 @@ DEBUG_TOOLBAR_CONFIG = {'PROFILER_MAX_DEPTH': 50}
 
 ROOT_URLCONF = 'server.urls'
 WSGI_APPLICATION = 'server.wsgi.application'
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases

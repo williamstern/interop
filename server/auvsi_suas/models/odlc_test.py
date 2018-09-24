@@ -30,7 +30,7 @@ class TestOdlc(TestCase):
         """Test creating a valid odlc."""
         with open(
                 os.path.join(settings.BASE_DIR,
-                             'auvsi_suas/fixtures/testdata/S.jpg')) as f:
+                             'auvsi_suas/fixtures/testdata/S.jpg'), 'rb') as f:
             thumb = SimpleUploadedFile('thumb.jpg', f.read())
 
         l = GpsPosition(latitude=38, longitude=-76)
@@ -49,11 +49,11 @@ class TestOdlc(TestCase):
             thumbnail=thumb)
         t.save()
 
-    def test_unicode(self):
-        """Test unicode conversion."""
+    def test_str(self):
+        """Test str conversion."""
         with open(
                 os.path.join(settings.BASE_DIR,
-                             'auvsi_suas/fixtures/testdata/S.jpg')) as f:
+                             'auvsi_suas/fixtures/testdata/S.jpg'), 'rb') as f:
             thumb = SimpleUploadedFile('thumb.jpg', f.read())
 
         l = GpsPosition(latitude=38, longitude=-76)
@@ -72,14 +72,14 @@ class TestOdlc(TestCase):
             thumbnail=thumb)
         t.save()
 
-        self.assertTrue(t.__unicode__())
+        self.assertTrue(str(t))
 
-    def test_minimal_unicode(self):
+    def test_minimal_str(self):
         """Unicode with only user and odlc."""
         t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
-        self.assertTrue(t.__unicode__())
+        self.assertTrue(str(t))
 
     def test_null_fields(self):
         """Only user and odlc type."""

@@ -45,10 +45,9 @@ class TimePeriod(object):
         self.start = start
         self.end = end
 
-    def __unicode__(self):
+    def __str__(self):
         """Descriptive text for use in displays."""
-        return unicode('TimePeriod (start=%s, end=%s)' % (self.start,
-                                                          self.end))
+        return 'TimePeriod (start=%s, end=%s)' % (self.start, self.end)
 
     def __eq__(self, other):
         """Two TimePeriods are equal if their attributes are equal."""

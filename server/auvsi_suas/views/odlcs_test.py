@@ -76,7 +76,7 @@ class TestGetOdlc(TestCase):
 
         d = json.loads(response.content)
 
-        self.assertItemsEqual([t1.json(), t2.json()], d)
+        self.assertEqual([t2.json(), t1.json()], d)
 
     def test_not_others(self):
         """We don't get odlcs owned by other users."""
@@ -94,7 +94,7 @@ class TestGetOdlc(TestCase):
 
         d = json.loads(response.content)
 
-        self.assertItemsEqual([mine.json()], d)
+        self.assertEqual([mine.json()], d)
 
 
 class TestPostOdlc(TestCase):
@@ -768,7 +768,7 @@ class TestOdlcId(TestCase):
 
         pk = t.pk
 
-        with open(test_image("A.jpg")) as f:
+        with open(test_image("A.jpg"), 'rb') as f:
             response = self.client.post(
                 odlcs_id_image_url(args=[pk]),
                 data=f.read(),
@@ -845,7 +845,7 @@ class TestOdlcIdImage(TestCase):
 
     def post_image(self, name, content_type='image/jpeg'):
         """POST image, assert that it worked"""
-        with open(test_image(name)) as f:
+        with open(test_image(name), 'rb') as f:
             response = self.client.post(
                 odlcs_id_image_url(args=[self.odlc_id]),
                 data=f.read(),
@@ -862,7 +862,7 @@ class TestOdlcIdImage(TestCase):
 
     def test_post_gif(self):
         """GIF upload not allowed"""
-        with open(test_image('A.gif')) as f:
+        with open(test_image('A.gif'), 'rb') as f:
             response = self.client.post(
                 odlcs_id_image_url(args=[self.odlc_id]),
                 data=f.read(),
@@ -877,10 +877,10 @@ class TestOdlcIdImage(TestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual('image/jpeg', response['Content-Type'])
 
-        data = ''.join(response.streaming_content)
+        data = b''.join(response.streaming_content)
 
         # Did we get back what we uploaded?
-        with open(test_image('S.jpg')) as f:
+        with open(test_image('S.jpg'), 'rb') as f:
             self.assertEqual(f.read(), data)
 
     def test_replace_image(self):
@@ -891,15 +891,15 @@ class TestOdlcIdImage(TestCase):
         response = self.client.get(odlcs_id_image_url(args=[self.odlc_id]))
         self.assertEqual(200, response.status_code)
 
-        data = ''.join(response.streaming_content)
+        data = b''.join(response.streaming_content)
 
         # Did we replace it?
-        with open(test_image('A.jpg')) as f:
+        with open(test_image('A.jpg'), 'rb') as f:
             self.assertEqual(f.read(), data)
 
     def test_put_image(self):
         """PUT works just like POST"""
-        with open(test_image('S.jpg')) as f:
+        with open(test_image('S.jpg'), 'rb') as f:
             response = self.client.put(
                 odlcs_id_image_url(args=[self.odlc_id]),
                 data=f.read(),
@@ -909,10 +909,10 @@ class TestOdlcIdImage(TestCase):
         response = self.client.get(odlcs_id_image_url(args=[self.odlc_id]))
         self.assertEqual(200, response.status_code)
 
-        data = ''.join(response.streaming_content)
+        data = b''.join(response.streaming_content)
 
         # Did we get back what we uploaded?
-        with open(test_image('S.jpg')) as f:
+        with open(test_image('S.jpg'), 'rb') as f:
             self.assertEqual(f.read(), data)
 
     def test_post_delete_old(self):
@@ -1030,7 +1030,7 @@ class TestOdlcsAdminReview(TestCase):
         odlc = Odlc(user=self.team, odlc_type=OdlcType.standard)
         odlc.save()
 
-        with open(test_image('A.jpg')) as f:
+        with open(test_image('A.jpg'), 'rb') as f:
             odlc.thumbnail.save('%d.%s' % (odlc.pk, 'jpg'), ImageFile(f))
         odlc.save()
 

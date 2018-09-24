@@ -2,7 +2,7 @@
 
 import datetime
 import numpy as np
-from time_period import TimePeriod
+from auvsi_suas.models.time_period import TimePeriod
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -22,11 +22,12 @@ class AccessLog(models.Model):
         abstract = True
         index_together = (('user', 'timestamp'), )
 
-    def __unicode__(self):
+    def __str__(self):
         """Descriptive text for use in displays."""
-        return unicode("%s (pk:%s, user:%s, timestamp:%s)" %
-                       (self.__class__.__name__, str(self.pk),
-                        self.user.__unicode__(), str(self.timestamp)))
+        return "%s (pk:%s, user:%s, timestamp:%s)" % (self.__class__.__name__,
+                                                      str(self.pk),
+                                                      str(self.user),
+                                                      str(self.timestamp))
 
     @classmethod
     def by_user(cls, user, start_time=None, end_time=None):

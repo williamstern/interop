@@ -8,7 +8,7 @@ from matplotlib import path as mplpath
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
 from auvsi_suas.models import units
-from waypoint import Waypoint
+from auvsi_suas.models.waypoint import Waypoint
 
 
 class FlyZone(models.Model):
@@ -23,11 +23,11 @@ class FlyZone(models.Model):
     altitude_msl_min = models.FloatField()
     altitude_msl_max = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         """Descriptive text for use in displays."""
-        return unicode("FlyZone (pk:%s, alt_min:%s, alt_max:%s)" %
-                       (str(self.pk), str(self.altitude_msl_min),
-                        str(self.altitude_msl_max)))
+        return "FlyZone (pk:%s, alt_min:%s, alt_max:%s)" % (
+            str(self.pk), str(self.altitude_msl_min),
+            str(self.altitude_msl_max))
 
     def contains_pos(self, aerial_pos):
         """Whether the given pos is inside the zone.

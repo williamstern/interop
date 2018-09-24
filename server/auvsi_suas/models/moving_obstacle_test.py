@@ -170,8 +170,8 @@ class TestMovingObstacle(TestCase):
             cur_obst.save()
             self.obstacles.append(cur_obst)
 
-    def test_unicode(self):
-        """Tests the unicode method executes."""
+    def test_str(self):
+        """Tests the str method executes."""
         obst = MovingObstacle()
         obst.speed_avg = 10
         obst.sphere_radius = 100
@@ -190,7 +190,7 @@ class TestMovingObstacle(TestCase):
             wpt.order = 10
             wpt.save()
             obst.waypoints.add(wpt)
-        self.assertTrue(obst.__unicode__())
+        self.assertTrue(str(obst))
 
     def test_get_waypoint_travel_time_invalid_inputs(self):
         """Tests proper invalid input handling."""
@@ -394,7 +394,7 @@ class TestMovingObstacle(TestCase):
         obst.speed_avg = obst_speed
         obst.sphere_radius = obst_rad
         obst.save()
-        for pos_id in xrange(len(obst_pos)):
+        for pos_id in range(len(obst_pos)):
             (lat, lon, alt) = obst_pos[pos_id]
             gpos = GpsPosition()
             gpos.latitude = lat

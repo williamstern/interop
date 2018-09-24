@@ -1,7 +1,7 @@
 """Tests for the evaluate_teams module."""
 
-import cStringIO
 import csv
+import io
 import json
 import logging
 import zipfile
@@ -51,15 +51,15 @@ class TestEvaluateTeams(TestCase):
 
     def load_json(self, response):
         """Gets the json data out of the response's zip archive."""
-        zip_io = cStringIO.StringIO(response.content)
+        zip_io = io.BytesIO(response.content)
         with zipfile.ZipFile(zip_io, 'r') as zip_file:
             return json.loads(zip_file.read('/evaluate_teams/all.json'))
 
     def load_csv(self, response):
         """Gets the CSV data out of the response's zip archive."""
-        zip_io = cStringIO.StringIO(response.content)
+        zip_io = io.BytesIO(response.content)
         with zipfile.ZipFile(zip_io, 'r') as zip_file:
-            return zip_file.read('/evaluate_teams/all.csv')
+            return zip_file.read('/evaluate_teams/all.csv').decode('utf-8')
 
     def test_evaluate_teams(self):
         """Tests the eval Json method."""

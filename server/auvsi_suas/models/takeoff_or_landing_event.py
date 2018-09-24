@@ -1,7 +1,7 @@
 """Takeoff or landing event model."""
 
-from access_log import AccessLog
-from time_period import TimePeriod
+from auvsi_suas.models.access_log import AccessLog
+from auvsi_suas.models.time_period import TimePeriod
 from django.db import models
 from django.utils import timezone
 
@@ -14,12 +14,11 @@ class TakeoffOrLandingEvent(AccessLog):
     """
     uas_in_air = models.BooleanField()
 
-    def __unicode__(self):
+    def __str__(self):
         """Descriptive text for use in displays."""
-        return unicode('TakeoffOrLandingEvent (pk:%s, user:%s, uas_in_air:%s, '
-                       'timestamp:%s)' %
-                       (str(self.pk), self.user.__unicode__(),
-                        str(self.uas_in_air), str(self.timestamp)))
+        return ('TakeoffOrLandingEvent (pk:%s, user:%s, uas_in_air:%s, '
+                'timestamp:%s)') % (str(self.pk), str(self.user),
+                                    str(self.uas_in_air), str(self.timestamp))
 
     @classmethod
     def flights(cls, user):

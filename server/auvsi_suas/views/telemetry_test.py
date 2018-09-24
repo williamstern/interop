@@ -138,7 +138,7 @@ class TestTelemetryPost(TestCase):
         total_t = end_t - start_t
         op_rate = total_ops / total_t
 
-        print 'UAS Post Rate (%f)' % op_rate
+        print('UAS Post Rate (%f)', op_rate)
         self.assertGreaterEqual(op_rate,
                                 settings.TEST_LOADTEST_INTEROP_MIN_RATE)
 
@@ -181,7 +181,7 @@ class TestTelemetryGet(TestCase):
 
         logs = []
 
-        for i in xrange(num):
+        for i in range(num):
             gps = GpsPosition(
                 latitude=38 + 0.001 * i, longitude=-78 + 0.001 * i)
             gps.save()

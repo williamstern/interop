@@ -5,4 +5,4 @@ docker run -it auvsisuas/interop-server bash -c \
     "sudo service postgresql start && \
      sudo service memcached start && \
      cd /interop/server && \
-     python manage.py test"
+     python3 manage.py test"

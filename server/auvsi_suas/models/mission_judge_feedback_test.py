@@ -53,9 +53,9 @@ class TestMissionJudgeFeedback(TestCase):
             operational_excellence_percent=9)
         self.feedback.save()
 
-    def test_unicode(self):
-        """Tests __unicode__()."""
-        self.assertIsNotNone(self.feedback.__unicode__())
+    def test_str(self):
+        """Tests __str__()."""
+        self.assertIsNotNone(str(self.feedback))
 
     def test_proto(self):
         """Tests proto()."""

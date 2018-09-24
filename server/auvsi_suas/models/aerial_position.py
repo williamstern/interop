@@ -1,8 +1,8 @@
 """Aerial position model."""
 
 from auvsi_suas.models import distance
+from auvsi_suas.models.gps_position import GpsPosition
 from django.db import models
-from gps_position import GpsPosition
 
 
 class AerialPosition(models.Model):
@@ -15,11 +15,10 @@ class AerialPosition(models.Model):
     gps_position = models.ForeignKey(GpsPosition)
     altitude_msl = models.FloatField()
 
-    def __unicode__(self):
+    def __str__(self):
         """Descriptive text for use in displays."""
-        return unicode("AerialPosition (pk:%s, alt:%s, gps:%s)" %
-                       (str(self.pk), str(self.altitude_msl),
-                        self.gps_position.__unicode__()))
+        return "AerialPosition (pk:%s, alt:%s, gps:%s)" % (
+            str(self.pk), str(self.altitude_msl), str(self.gps_position))
 
     def distance_to(self, other):
         """Computes distance to another position.

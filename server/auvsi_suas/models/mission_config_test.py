@@ -17,8 +17,8 @@ from auvsi_suas.proto.mission_pb2 import WaypointEvaluation
 class TestMissionConfigModel(TestCase):
     """Tests the MissionConfig model."""
 
-    def test_unicode(self):
-        """Tests the unicode method executes."""
+    def test_str(self):
+        """Tests the str method executes."""
         pos = GpsPosition()
         pos.latitude = 10
         pos.longitude = 100
@@ -40,7 +40,7 @@ class TestMissionConfigModel(TestCase):
         config.mission_waypoints.add(wpt)
         config.search_grid_points.add(wpt)
         config.save()
-        self.assertTrue(config.__unicode__())
+        self.assertTrue(str(config))
 
 
 class TestMissionConfigModelSampleMission(TestCase):

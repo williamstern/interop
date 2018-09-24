@@ -1,7 +1,7 @@
 """Mission Clock event model."""
 
-from access_log import AccessLog
-from time_period import TimePeriod
+from auvsi_suas.models.access_log import AccessLog
+from auvsi_suas.models.time_period import TimePeriod
 from django.db import models
 from django.utils import timezone
 
@@ -16,13 +16,12 @@ class MissionClockEvent(AccessLog):
     team_on_clock = models.BooleanField()
     team_on_timeout = models.BooleanField()
 
-    def __unicode__(self):
+    def __str__(self):
         """Descriptive text for use in displays."""
-        return unicode('MissionClockEvent (pk:%s, user:%s, team_on_clock:%s, '
-                       'team_on_timeout:%s, timestamp:%s)' %
-                       (str(self.pk), self.user.__unicode__(),
-                        str(self.team_on_clock), str(self.team_on_timeout),
-                        str(self.timestamp)))
+        return ('MissionClockEvent (pk:%s, user:%s, team_on_clock:%s, '
+                'team_on_timeout:%s, timestamp:%s)') % (
+                    str(self.pk), str(self.user), str(self.team_on_clock),
+                    str(self.team_on_timeout), str(self.timestamp))
 
     @classmethod
     def user_on_clock(cls, user, time=None):

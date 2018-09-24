@@ -201,7 +201,7 @@ class TestObstaclesView(TestObstaclesViewCommon):
         total_t = end_t - start_t
         op_rate = total_ops / total_t
 
-        print 'Obstacle Info Rate (%f)' % op_rate
+        print('Obstacle Info Rate (%f)', op_rate)
         self.assertGreaterEqual(op_rate,
                                 settings.TEST_LOADTEST_INTEROP_MIN_RATE)
 
