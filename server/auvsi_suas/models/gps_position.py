@@ -1,6 +1,7 @@
 """GPS position model."""
 
 from auvsi_suas.models import distance
+from django.contrib import admin
 from django.db import models
 
 
@@ -13,12 +14,6 @@ class GpsPosition(models.Model):
     """
     latitude = models.FloatField()
     longitude = models.FloatField()
-
-    def __str__(self):
-        """Descriptive text for use in displays."""
-        return "GpsPosition (pk:%s, lat:%s, lon:%s)" % (str(self.pk),
-                                                        str(self.latitude),
-                                                        str(self.longitude))
 
     def distance_to(self, other):
         """Computes distance to another position.
@@ -44,3 +39,9 @@ class GpsPosition(models.Model):
         """
         return (self.latitude == other.latitude and
                 self.longitude == other.longitude)
+
+
+@admin.register(GpsPosition)
+class GpsPositionModelAdmin(admin.ModelAdmin):
+    show_full_result_count = False
+    list_display = ('latitude', 'longitude')

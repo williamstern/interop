@@ -18,15 +18,6 @@ class TestStationaryObstacleModel(TestCase):
                                              'testpass')
         self.user.save()
 
-    def test_str(self):
-        """Tests the str method executes."""
-        pos = GpsPosition(latitude=100, longitude=200)
-        pos.save()
-        obst = StationaryObstacle(
-            gps_position=pos, cylinder_radius=10, cylinder_height=100)
-        obst.save()
-        self.assertTrue(str(obst))
-
     def create_uas_logs(self, user, entries):
         """Create a list of uas telemetry logs.
 

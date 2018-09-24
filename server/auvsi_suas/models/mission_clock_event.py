@@ -2,6 +2,7 @@
 
 from auvsi_suas.models.access_log import AccessLog
 from auvsi_suas.models.time_period import TimePeriod
+from django.contrib import admin
 from django.db import models
 from django.utils import timezone
 
@@ -15,13 +16,6 @@ class MissionClockEvent(AccessLog):
     """
     team_on_clock = models.BooleanField()
     team_on_timeout = models.BooleanField()
-
-    def __str__(self):
-        """Descriptive text for use in displays."""
-        return ('MissionClockEvent (pk:%s, user:%s, team_on_clock:%s, '
-                'team_on_timeout:%s, timestamp:%s)') % (
-                    str(self.pk), str(self.user), str(self.team_on_clock),
-                    str(self.team_on_timeout), str(self.timestamp))
 
     @classmethod
     def user_on_clock(cls, user, time=None):
@@ -62,3 +56,8 @@ class MissionClockEvent(AccessLog):
             MissionClockEvent.by_user(user),
             is_start_func=lambda x: x.team_on_clock,
             is_end_func=lambda x: not x.team_on_clock)
+
+
+@admin.register(MissionClockEvent)
+class MissionClockEventModelAdmin(admin.ModelAdmin):
+    list_display = ('user', 'timestamp', 'team_on_clock', 'team_on_timeout')

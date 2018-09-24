@@ -2,6 +2,7 @@
 
 from auvsi_suas.models import distance
 from auvsi_suas.models.gps_position import GpsPosition
+from django.contrib import admin
 from django.db import models
 
 
@@ -14,11 +15,6 @@ class AerialPosition(models.Model):
     """
     gps_position = models.ForeignKey(GpsPosition)
     altitude_msl = models.FloatField()
-
-    def __str__(self):
-        """Descriptive text for use in displays."""
-        return "AerialPosition (pk:%s, alt:%s, gps:%s)" % (
-            str(self.pk), str(self.altitude_msl), str(self.gps_position))
 
     def distance_to(self, other):
         """Computes distance to another position.
@@ -46,3 +42,10 @@ class AerialPosition(models.Model):
         """
         return (self.gps_position.duplicate(other.gps_position) and
                 self.altitude_msl == other.altitude_msl)
+
+
+@admin.register(AerialPosition)
+class AerialPositionModelAdmin(admin.ModelAdmin):
+    show_full_result_count = False
+    raw_id_fields = ("gps_position", )
+    list_display = ('gps_position', 'altitude_msl')

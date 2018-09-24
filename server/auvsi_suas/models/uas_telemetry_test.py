@@ -138,10 +138,6 @@ class TestUasTelemetry(TestUasTelemetryBase):
         self.log = self.create_log_element(
             timestamp=0, lat=10, lon=100, alt=200, heading=90)
 
-    def test_str(self):
-        """Tests the str method executes."""
-        self.assertTrue(str(self.log))
-
     def test_duplicate_unequal(self):
         """Tests duplicate function with unequal telemetry."""
         log1 = self.create_log_element(

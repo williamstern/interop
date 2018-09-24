@@ -204,28 +204,6 @@ class TestFlyZone(TestCase):
             # Store
             self.testdata_containspos.append((zone, test_pos))
 
-    def test_str(self):
-        """Tests the str method executes."""
-        zone = FlyZone()
-        zone.altitude_msl_min = 1
-        zone.altitude_msl_max = 2
-        zone.save()
-        for _ in range(3):
-            pos = GpsPosition()
-            pos.latitude = 10
-            pos.longitude = 100
-            pos.save()
-            apos = AerialPosition()
-            apos.altitude_msl = 1000
-            apos.gps_position = pos
-            apos.save()
-            wpt = Waypoint()
-            wpt.position = apos
-            wpt.order = 10
-            wpt.save()
-            zone.boundary_pts.add(wpt)
-        self.assertTrue(str(zone))
-
     def test_contains_pos(self):
         """Tests the contains_pos method."""
         for (zone, test_pos) in self.testdata_containspos:

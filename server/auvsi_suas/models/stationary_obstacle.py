@@ -7,6 +7,7 @@ from auvsi_suas.models import units
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from django.conf import settings
+from django.contrib import admin
 from django.db import models
 
 
@@ -21,13 +22,6 @@ class StationaryObstacle(models.Model):
     gps_position = models.ForeignKey(GpsPosition)
     cylinder_radius = models.FloatField()
     cylinder_height = models.FloatField()
-
-    def __str__(self):
-        """Descriptive text for use in displays."""
-        return ("StationaryObstacle (pk:%s, radius:%s, height:%s, "
-                "gps:%s)") % (str(self.pk), str(self.cylinder_radius),
-                              str(self.cylinder_height),
-                              str(self.gps_position))
 
     def contains_pos(self, aerial_pos):
         """Whether the pos is contained within the obstacle.
@@ -76,3 +70,9 @@ class StationaryObstacle(models.Model):
             'cylinder_height': self.cylinder_height
         }
         return data
+
+
+@admin.register(StationaryObstacle)
+class StationaryObstacleModelAdmin(admin.ModelAdmin):
+    raw_id_fields = ("gps_position", )
+    list_display = ('gps_position', 'cylinder_radius', 'cylinder_height')

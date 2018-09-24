@@ -9,19 +9,6 @@ from django.test import TestCase
 class TestWaypointModel(TestCase):
     """Tests the Waypoint model."""
 
-    def test_str(self):
-        """Tests the str method executes."""
-        gps = GpsPosition(latitude=10, longitude=100)
-        gps.save()
-
-        pos = AerialPosition(gps_position=gps, altitude_msl=100)
-        pos.save()
-
-        wpt = Waypoint(position=pos, order=10)
-        wpt.save()
-
-        self.assertTrue(str(wpt))
-
     def assertDistanceEqual(self, wpt1, wpt2, dist, threshold=10):
         """Waypoint distances are within threshold (ft)."""
         self.assertAlmostEqual(wpt1.distance_to(wpt2), dist, delta=threshold)

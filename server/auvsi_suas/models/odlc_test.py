@@ -49,38 +49,6 @@ class TestOdlc(TestCase):
             thumbnail=thumb)
         t.save()
 
-    def test_str(self):
-        """Test str conversion."""
-        with open(
-                os.path.join(settings.BASE_DIR,
-                             'auvsi_suas/fixtures/testdata/S.jpg'), 'rb') as f:
-            thumb = SimpleUploadedFile('thumb.jpg', f.read())
-
-        l = GpsPosition(latitude=38, longitude=-76)
-        l.save()
-
-        t = Odlc(
-            user=self.user,
-            odlc_type=OdlcType.standard,
-            location=l,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
-            alphanumeric='ABC',
-            alphanumeric_color=Color.black,
-            description='Test odlc',
-            thumbnail=thumb)
-        t.save()
-
-        self.assertTrue(str(t))
-
-    def test_minimal_str(self):
-        """Unicode with only user and odlc."""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
-        t.save()
-
-        self.assertTrue(str(t))
-
     def test_null_fields(self):
         """Only user and odlc type."""
         t = Odlc(user=self.user, odlc_type=OdlcType.standard)

@@ -2,6 +2,7 @@
 import datetime
 import numpy as np
 from django.conf import settings
+from django.contrib import admin
 from django.db import models
 from matplotlib import path as mplpath
 
@@ -22,12 +23,6 @@ class FlyZone(models.Model):
     boundary_pts = models.ManyToManyField(Waypoint)
     altitude_msl_min = models.FloatField()
     altitude_msl_max = models.FloatField()
-
-    def __str__(self):
-        """Descriptive text for use in displays."""
-        return "FlyZone (pk:%s, alt_min:%s, alt_max:%s)" % (
-            str(self.pk), str(self.altitude_msl_min),
-            str(self.altitude_msl_max))
 
     def contains_pos(self, aerial_pos):
         """Whether the given pos is inside the zone.
@@ -196,3 +191,9 @@ class FlyZone(models.Model):
         pol.style.linestyle.color = Color.red
         pol.style.linestyle.width = 3
         pol.style.polystyle.color = Color.changealphaint(50, Color.green)
+
+
+@admin.register(FlyZone)
+class FlyZoneModelAdmin(admin.ModelAdmin):
+    filter_horizontal = ("boundary_pts", )
+    list_display = ('altitude_msl_min', 'altitude_msl_max')
