@@ -57,10 +57,6 @@ class TestClient(unittest.TestCase):
 
     def setUp(self):
         """Create a logged in Client."""
-        # Create an admin client to clear cache.
-        client = Client(server, admin_username, admin_password)
-        client.get('/api/clear_cache')
-
         # Test rest with non-admin clients.
         self.client = Client(server, username, password)
         self.async_client = AsyncClient(server, username, password)
