@@ -147,9 +147,11 @@ class Odlc(models.Model):
         creation_time: Time that this object was first created.
         last_modified_time: Time that this object was last modified.
     """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, db_index=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_index=True, on_delete=models.CASCADE)
     odlc_type = models.IntegerField(choices=OdlcType.choices())
-    location = models.ForeignKey(GpsPosition, null=True, blank=True)
+    location = models.ForeignKey(
+        GpsPosition, null=True, blank=True, on_delete=models.CASCADE)
     orientation = models.IntegerField(
         choices=Orientation.choices(), null=True, blank=True)
     shape = models.IntegerField(choices=Shape.choices(), null=True, blank=True)
@@ -554,4 +556,7 @@ class OdlcEvaluator(object):
 class OdlcModelAdmin(admin.ModelAdmin):
     show_full_result_count = False
     raw_id_fields = ("location", )
-    list_display = ('user', 'odlc_type', 'location', 'orientation', 'shape', 'background_color', 'alphanumeric', 'alphanumeric_color', 'autonomous', 'thumbnail_approved', 'creation_time', 'last_modified_time')
+    list_display = ('user', 'odlc_type', 'location', 'orientation', 'shape',
+                    'background_color', 'alphanumeric', 'alphanumeric_color',
+                    'autonomous', 'thumbnail_approved', 'creation_time',
+                    'last_modified_time')

@@ -35,7 +35,7 @@ class UasTelemetry(AccessLog):
         uas_position: The position of the UAS.
         uas_heading: The (true north) heading of the UAS in degrees.
     """
-    uas_position = models.ForeignKey(AerialPosition)
+    uas_position = models.ForeignKey(AerialPosition, on_delete=models.CASCADE)
     uas_heading = models.FloatField()
 
     def duplicate(self, other):
