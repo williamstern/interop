@@ -13,7 +13,7 @@ class AerialPosition(models.Model):
         gps_position: GPS position.
         altitude_msl: Altitude (MSL) in feet.
     """
-    gps_position = models.ForeignKey(GpsPosition)
+    gps_position = models.ForeignKey(GpsPosition, on_delete=models.CASCADE)
     altitude_msl = models.FloatField()
 
     def distance_to(self, other):

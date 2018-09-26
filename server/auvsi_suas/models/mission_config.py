@@ -47,7 +47,9 @@ class MissionConfig(models.Model):
     """
     is_active = models.BooleanField(default=False)
     home_pos = models.ForeignKey(
-        GpsPosition, related_name="missionconfig_home_pos")
+        GpsPosition,
+        related_name="missionconfig_home_pos",
+        on_delete=models.CASCADE)
     fly_zones = models.ManyToManyField(FlyZone)
     mission_waypoints = models.ManyToManyField(
         Waypoint, related_name='missionconfig_mission_waypoints')
@@ -55,11 +57,17 @@ class MissionConfig(models.Model):
         Waypoint, related_name='missionconfig_search_grid_points')
     odlcs = models.ManyToManyField(Odlc, related_name='missionconfig_odlc')
     emergent_last_known_pos = models.ForeignKey(
-        GpsPosition, related_name='missionconfig_emergent_last_known_pos')
+        GpsPosition,
+        related_name='missionconfig_emergent_last_known_pos',
+        on_delete=models.CASCADE)
     off_axis_odlc_pos = models.ForeignKey(
-        GpsPosition, related_name='missionconfig_off_axis_odlc_pos')
+        GpsPosition,
+        related_name='missionconfig_off_axis_odlc_pos',
+        on_delete=models.CASCADE)
     air_drop_pos = models.ForeignKey(
-        GpsPosition, related_name='missionconfig_air_drop_pos')
+        GpsPosition,
+        related_name='missionconfig_air_drop_pos',
+        on_delete=models.CASCADE)
     stationary_obstacles = models.ManyToManyField(StationaryObstacle)
     moving_obstacles = models.ManyToManyField(MovingObstacle)
 

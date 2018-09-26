@@ -15,7 +15,8 @@ class AccessLog(models.Model):
         user: The user which accessed the data.
         timestamp: Timestamp of the access.
     """
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, db_index=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, db_index=True, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:

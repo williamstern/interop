@@ -19,7 +19,7 @@ class StationaryObstacle(models.Model):
         cylinder_radius: The radius of the cylinder in feet.
         cylinder_height: The height of the cylinder in feet.
     """
-    gps_position = models.ForeignKey(GpsPosition)
+    gps_position = models.ForeignKey(GpsPosition, on_delete=models.CASCADE)
     cylinder_radius = models.FloatField()
     cylinder_height = models.FloatField()
 

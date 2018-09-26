@@ -13,7 +13,7 @@ class Waypoint(models.Model):
         order: Waypoint relative order number. Should be unique per waypoint
             set.
     """
-    position = models.ForeignKey(AerialPosition)
+    position = models.ForeignKey(AerialPosition, on_delete=models.CASCADE)
     order = models.IntegerField(db_index=True)
 
     def distance_to(self, other):
