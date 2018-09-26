@@ -14,7 +14,6 @@ RUN apt-get -qq update && apt-get -qq install -y \
         libapache2-mod-python \
         libapache2-mod-wsgi-py3 \
         libapache2-mod-xsendfile \
-        memcached \
         postgresql \
         postgresql-client \
         protobuf-compiler \
@@ -64,7 +63,6 @@ VOLUME /var/log/apache2 /var/lib/postgresql /var/www/media/objects
 
 # On run: start database, cache, server, and don't exit.
 CMD service postgresql start && \
-  service memcached start && \
   service apache2 start && \
   tail -f /dev/null
 

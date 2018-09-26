@@ -1,4 +1,3 @@
-from auvsi_suas.views.clear_cache import ClearCache
 from auvsi_suas.views.login import Login
 from auvsi_suas.views.missions import Missions
 from auvsi_suas.views.missions import MissionsId
@@ -40,7 +39,6 @@ urlpatterns = [
         name='odlcs_review_id'),
     url(r'^api/teams$', Teams.as_view(), name='teams'),
     url(r'^api/teams/(?P<pk>\d+)$', TeamsId.as_view(), name='teams_id'),
-    url(r'^api/clear_cache$', ClearCache.as_view(), name='clear_cache'),
     # Admin access views
     url(r'^$', Index.as_view(), name='index'),
     url(r'^auvsi_admin/evaluate_teams\.zip$',

@@ -187,24 +187,6 @@ class TestObstaclesView(TestObstaclesViewCommon):
         })
         self.assertEqual(400, response.status_code)
 
-    def test_loadtest(self):
-        """Tests the max load the view can handle."""
-        if not settings.TEST_ENABLE_LOADTEST:
-            return
-
-        total_ops = 0
-        start_t = time.clock()
-        while time.clock() - start_t < settings.TEST_LOADTEST_TIME:
-            self.client.get(obstacle_url)
-            total_ops += 1
-        end_t = time.clock()
-        total_t = end_t - start_t
-        op_rate = total_ops / total_t
-
-        print('Obstacle Info Rate (%f)' % op_rate)
-        self.assertGreaterEqual(op_rate,
-                                settings.TEST_LOADTEST_INTEROP_MIN_RATE)
-
 
 class TestObstaclesViewSuperuser(TestObstaclesViewCommon):
     """Tests the obstacles view as superuser."""

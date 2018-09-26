@@ -8,7 +8,6 @@ from auvsi_suas.views import boolean_param
 from auvsi_suas.views import logger
 from auvsi_suas.views.decorators import require_login
 from auvsi_suas.views.missions import active_mission
-from django.core.cache import cache
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.utils import timezone
@@ -48,12 +47,7 @@ class Obstacles(View):
             return err
 
         # Form JSON response portion for stationary obstacles
-        stationary_obstacles_cached = True
-        stationary_obstacles_key = '/StationaryObstacle/all'
-        stationary_obstacles = cache.get(stationary_obstacles_key)
-        if stationary_obstacles is None:
-            stationary_obstacles = mission.stationary_obstacles.all()
-            stationary_obstacles_cached = False
+        stationary_obstacles = mission.stationary_obstacles.all()
         stationary_obstacles_json = []
         for cur_obst in stationary_obstacles:
             # Add current obstacle
@@ -61,12 +55,7 @@ class Obstacles(View):
             stationary_obstacles_json.append(cur_obst_json)
 
         # Form JSON response portion for moving obstacles
-        moving_obstacles_cached = True
-        moving_obstacles_key = '/MovingObstacle/all'
-        moving_obstacles = cache.get(moving_obstacles_key)
-        if moving_obstacles is None:
-            moving_obstacles = mission.moving_obstacles.all()
-            moving_obstacles_cached = False
+        moving_obstacles = mission.moving_obstacles.all()
         moving_obstacles_json = []
         for cur_obst in moving_obstacles:
             # Add current obstacle
@@ -78,12 +67,6 @@ class Obstacles(View):
             'stationary_obstacles': stationary_obstacles_json,
             'moving_obstacles': moving_obstacles_json
         }
-
-        # Cache obstacles for next request
-        if not stationary_obstacles_cached:
-            cache.set(stationary_obstacles_key, stationary_obstacles)
-        if not moving_obstacles_cached:
-            cache.set(moving_obstacles_key, moving_obstacles)
 
         # Return JSON data
         return HttpResponse(json.dumps(data), content_type="application/json")

@@ -36,11 +36,6 @@ NavigationCtrl = function($routeParams) {
             url: "/admin",
             target: "_blank"
         },
-        {
-            text: "Clear Cache",
-            url: "/api/clear_cache",
-            target: "_blank"
-        }
     ];
 
     /**

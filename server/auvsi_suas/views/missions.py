@@ -7,7 +7,6 @@ from auvsi_suas.views import logger
 from auvsi_suas.views.decorators import require_login
 from auvsi_suas.views.decorators import require_superuser
 from django.contrib.auth.models import User
-from django.core.cache import cache
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseNotFound
@@ -25,13 +24,6 @@ def active_mission():
         mission, or None if there is an error. HttpResponse is None if a config
         could be obtained, or the error message if not.
     """
-    # First check cache.
-    active_mission_key = '/MissionConfig/active_mission'
-    active_mission = cache.get(active_mission_key)
-    if active_mission:
-        return (active_mission, None)
-
-    # Active mission not cached, query for one.
     missions = MissionConfig.objects.filter(is_active=True)
     if len(missions) != 1:
         logging.warning('Invalid number of active missions. Missions: %s.',
@@ -39,11 +31,7 @@ def active_mission():
         return (None,
                 HttpResponseServerError('Invalid number of active missions.'))
 
-    # Add to cache for future requests.
-    active_mission = missions[0]
-    cache.set(active_mission_key, active_mission)
-
-    return (active_mission, None)
+    return (missions[0], None)
 
 
 def mission_for_request(request_params):

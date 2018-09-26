@@ -12,7 +12,6 @@ pillow
 protobuf>=3.2
 psycopg2
 pyproj
-python-memcached
 requests
 retrying
 scipy

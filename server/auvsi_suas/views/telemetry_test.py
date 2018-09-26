@@ -117,30 +117,23 @@ class TestTelemetryPost(TestCase):
 
     def test_loadtest(self):
         """Tests the max load the view can handle."""
-        if not settings.TEST_ENABLE_LOADTEST:
-            return
-
         lat = 10
         lon = 20
         alt = 30
         heading = 40
-        total_ops = 0
+
+        total_ops = 1000
         start_t = time.clock()
-        while time.clock() - start_t < settings.TEST_LOADTEST_TIME:
+        for _ in range(total_ops):
             self.client.post(telemetry_url, {
                 'latitude': lat,
                 'longiutde': lon,
                 'altitude_msl': alt,
                 'uas_heading': heading
             })
-            total_ops += 1
         end_t = time.clock()
-        total_t = end_t - start_t
-        op_rate = total_ops / total_t
-
-        print('UAS Post Rate (%f)' % op_rate)
-        self.assertGreaterEqual(op_rate,
-                                settings.TEST_LOADTEST_INTEROP_MIN_RATE)
+        op_rate = total_ops / (end_t - start_t)
+        self.assertGreaterEqual(op_rate, 20)
 
 
 class TestTelemetryGet(TestCase):
