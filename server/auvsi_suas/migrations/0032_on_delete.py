@@ -16,61 +16,76 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='missionconfig',
             name='odlcs',
-            field=models.ManyToManyField(related_name='missionconfig_odlc', to='auvsi_suas.Odlc'),
-        ),
+            field=models.ManyToManyField(
+                related_name='missionconfig_odlc', to='auvsi_suas.Odlc'), ),
         migrations.AlterField(
             model_name='missionconfig',
             name='off_axis_odlc_pos',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='missionconfig_off_axis_odlc_pos', to='auvsi_suas.GpsPosition'),
-        ),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='missionconfig_off_axis_odlc_pos',
+                to='auvsi_suas.GpsPosition'), ),
         migrations.AlterField(
             model_name='odlc',
             name='alphanumeric',
-            field=models.TextField(blank=True, default=''),
-        ),
+            field=models.TextField(blank=True, default=''), ),
         migrations.AlterField(
             model_name='odlc',
             name='alphanumeric_color',
-            field=models.IntegerField(blank=True, choices=[(1, 'white'), (2, 'black'), (3, 'gray'), (4, 'red'), (5, 'blue'), (6, 'green'), (7, 'yellow'), (8, 'purple'), (9, 'brown'), (10, 'orange')], null=True),
-        ),
+            field=models.IntegerField(
+                blank=True,
+                choices=[(1, 'white'), (2, 'black'), (3, 'gray'), (4, 'red'),
+                         (5, 'blue'), (6, 'green'), (7, 'yellow'),
+                         (8, 'purple'), (9, 'brown'), (10, 'orange')],
+                null=True), ),
         migrations.AlterField(
             model_name='odlc',
             name='background_color',
-            field=models.IntegerField(blank=True, choices=[(1, 'white'), (2, 'black'), (3, 'gray'), (4, 'red'), (5, 'blue'), (6, 'green'), (7, 'yellow'), (8, 'purple'), (9, 'brown'), (10, 'orange')], null=True),
-        ),
+            field=models.IntegerField(
+                blank=True,
+                choices=[(1, 'white'), (2, 'black'), (3, 'gray'), (4, 'red'),
+                         (5, 'blue'), (6, 'green'), (7, 'yellow'),
+                         (8, 'purple'), (9, 'brown'), (10, 'orange')],
+                null=True), ),
         migrations.AlterField(
             model_name='odlc',
             name='creation_time',
-            field=models.DateTimeField(),
-        ),
+            field=models.DateTimeField(), ),
         migrations.AlterField(
             model_name='odlc',
             name='description',
-            field=models.TextField(blank=True, default=''),
-        ),
+            field=models.TextField(blank=True, default=''), ),
         migrations.AlterField(
             model_name='odlc',
             name='last_modified_time',
-            field=models.DateTimeField(),
-        ),
+            field=models.DateTimeField(), ),
         migrations.AlterField(
             model_name='odlc',
             name='odlc_type',
-            field=models.IntegerField(choices=[(1, 'standard'), (3, 'off_axis'), (4, 'emergent')]),
-        ),
+            field=models.IntegerField(choices=[(1, 'standard'), (3,
+                                                                 'off_axis'),
+                                               (4, 'emergent')]), ),
         migrations.AlterField(
             model_name='odlc',
             name='orientation',
-            field=models.IntegerField(blank=True, choices=[(1, 'n'), (2, 'ne'), (3, 'e'), (4, 'se'), (5, 's'), (6, 'sw'), (7, 'w'), (8, 'nw')], null=True),
-        ),
+            field=models.IntegerField(
+                blank=True,
+                choices=[(1, 'n'), (2, 'ne'), (3, 'e'), (4, 'se'), (5, 's'),
+                         (6, 'sw'), (7, 'w'), (8, 'nw')],
+                null=True), ),
         migrations.AlterField(
             model_name='odlc',
             name='shape',
-            field=models.IntegerField(blank=True, choices=[(1, 'circle'), (2, 'semicircle'), (3, 'quarter_circle'), (4, 'triangle'), (5, 'square'), (6, 'rectangle'), (7, 'trapezoid'), (8, 'pentagon'), (9, 'hexagon'), (10, 'heptagon'), (11, 'octagon'), (12, 'star'), (13, 'cross')], null=True),
-        ),
+            field=models.IntegerField(
+                blank=True,
+                choices=[(1, 'circle'), (2, 'semicircle'),
+                         (3, 'quarter_circle'), (4, 'triangle'), (5, 'square'),
+                         (6, 'rectangle'), (7, 'trapezoid'), (8, 'pentagon'),
+                         (9, 'hexagon'), (10, 'heptagon'), (11, 'octagon'),
+                         (12, 'star'), (13, 'cross')],
+                null=True), ),
         migrations.AlterField(
             model_name='odlc',
             name='thumbnail',
-            field=models.ImageField(blank=True, upload_to='objects'),
-        ),
+            field=models.ImageField(blank=True, upload_to='objects'), ),
     ]
