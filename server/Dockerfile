@@ -6,14 +6,8 @@ RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 
 # Install server base dependencies.
 RUN apt-get -qq update && apt-get -qq install -y \
-        apache2 \
-        apache2-utils \
+        nginx \
         curl \
-        libapache2-mod-auth-pgsql \
-        libapache2-mod-auth-plain \
-        libapache2-mod-python \
-        libapache2-mod-wsgi-py3 \
-        libapache2-mod-xsendfile \
         postgresql \
         postgresql-client \
         protobuf-compiler \
@@ -27,29 +21,38 @@ RUN apt-get -qq update && apt-get -qq install -y \
         python3-scipy \
         sudo
 
-# Install server Python requirements.
-COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt
+# Create storage for object images.
+RUN mkdir -p /var/www/media/objects && \
+    chown -R www-data /var/www
 
-# Configure database & web server.
+# Install server Python requirements.
+COPY config/requirements.txt config/requirements.txt
+RUN pip3 install -r config/requirements.txt
+
+# Configure web server.
+COPY config/nginx.conf /etc/nginx/sites-enabled/default
+RUN sudo mkdir -p /var/log/uwsgi
+
+# Configure database.
+COPY config/postgresql.conf /etc/postgresql/10/main/
+RUN service postgresql restart && \
+    sudo -u postgres psql -c "CREATE USER postgresql_user WITH CREATEDB PASSWORD 'postgresql_pass';" && \
+    sudo -u postgres psql -c "CREATE DATABASE auvsi_suas_db;"
+
+# Compile protobuf definitions.
+COPY auvsi_suas/proto auvsi_suas/proto
+RUN protoc --python_out=. auvsi_suas/proto/*.proto
+
+# Compile static assets.
 COPY manage.py manage.py
 COPY server server
 COPY auvsi_suas/__init__.py auvsi_suas/__init__.py
 COPY auvsi_suas/models/__init__.py auvsi_suas/models/__init__.py
 COPY auvsi_suas/views/__init__.py auvsi_suas/views/__init__.py
 COPY auvsi_suas/views/auvsi_admin/__init__.py auvsi_suas/views/auvsi_admin/__init__.py
-COPY auvsi_suas/migrations auvsi_suas/migrations
-COPY config config
-COPY fixtures fixtures
-RUN ./config/configure_postgresql.sh && \
-    ./config/configure_apache.sh && \
-    python3 manage.py collectstatic --noinput
+RUN python3 manage.py collectstatic --noinput
 
-# Compile protobuf definitions.
-COPY auvsi_suas/proto auvsi_suas/proto
-RUN ./config/configure_proto.sh
-
-# Copy remaining code.
+# Copy all code.
 COPY . .
 
 # Load initial data.
@@ -59,12 +62,14 @@ RUN service postgresql start && \
     python3 manage.py loaddata fixtures/test_fixture.yaml
 
 # Host-mountable sections.
-VOLUME /var/log/apache2 /var/lib/postgresql /var/www/media/objects
+VOLUME /var/log/uwsgi /var/lib/postgresql /var/www/media/objects
 
-# On run: start database, cache, server, and don't exit.
+# Commands to execute on startup.
 CMD service postgresql start && \
-  service apache2 start && \
-  tail -f /dev/null
+    uwsgi --ini config/uwsgi.ini && \
+    sudo nginx && \
+    tail -f /dev/null
 
+# Command to check health of container.
 HEALTHCHECK \
-  CMD ./healthcheck.py --check_postgres --check_apache --check_homepage
+  CMD ./healthcheck.py --check_postgres --check_server --check_homepage

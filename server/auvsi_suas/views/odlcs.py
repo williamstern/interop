@@ -390,7 +390,7 @@ class OdlcsIdImage(View):
         if not odlc.thumbnail.name:
             return HttpResponseNotFound('Odlc %s has no image' % pk)
 
-        # Tell Apache to serve the thumbnail.
+        # Tell sendfile to serve the thumbnail.
         return sendfile(request, odlc.thumbnail.path)
 
     def post(self, request, pk):
