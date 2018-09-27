@@ -1,15 +1,17 @@
 """Teams view."""
 import json
+import logging
 from auvsi_suas.models.mission_clock_event import MissionClockEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
-from auvsi_suas.views import logger
 from auvsi_suas.views.decorators import require_superuser
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.utils.decorators import method_decorator
 from django.views.generic import View
+
+logger = logging.getLogger(__name__)
 
 
 def user_json(user):

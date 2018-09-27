@@ -1,20 +1,19 @@
 """Tests for the uas_telemetry module."""
 
-import iso8601
 import datetime
-from django.contrib.auth.models import User
-from django.test import TestCase
-from django.utils import timezone
-from simplekml import Kml
-
+import iso8601
+from auvsi_suas.models import distance
 from auvsi_suas.models import units
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.waypoint import Waypoint
-from auvsi_suas.models import distance
 from auvsi_suas.proto.mission_pb2 import WaypointEvaluation
+from django.contrib.auth.models import User
+from django.test import TestCase
+from django.utils import timezone
+from simplekml import Kml
 
 
 class TestUasTelemetryBase(TestCase):

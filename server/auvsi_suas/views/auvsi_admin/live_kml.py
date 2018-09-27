@@ -1,3 +1,4 @@
+import logging
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.moving_obstacle import MovingObstacle
@@ -14,6 +15,8 @@ from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.utils.decorators import method_decorator
 from django.views.generic import View
+
+logger = logging.getLogger(__name__)
 
 
 class LiveKml(View):

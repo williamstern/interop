@@ -1,9 +1,12 @@
 """Index page admin view."""
 
+import logging
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
+
+logger = logging.getLogger(__name__)
 
 
 class Index(View):

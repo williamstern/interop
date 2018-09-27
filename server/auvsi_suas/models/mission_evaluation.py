@@ -3,21 +3,19 @@
 import datetime
 import itertools
 import logging
-from django.conf import settings
-from django.contrib.auth.models import User
-
 from auvsi_suas.models import distance
 from auvsi_suas.models import units
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.mission_clock_event import MissionClockEvent
 from auvsi_suas.models.mission_judge_feedback import MissionJudgeFeedback
-from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.odlc import OdlcEvaluator
+from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.proto import mission_pb2
+from django.conf import settings
+from django.contrib.auth.models import User
 
-# Logging for the module
 logger = logging.getLogger(__name__)
 
 

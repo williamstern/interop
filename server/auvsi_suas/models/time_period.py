@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class TimePeriod(object):
     """
     Describe a continuous period of time.

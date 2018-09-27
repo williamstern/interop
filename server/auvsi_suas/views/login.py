@@ -1,12 +1,14 @@
 """Interoperability login view."""
 
-from auvsi_suas.views import logger
+import logging
 from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.views.generic import View
+
+logger = logging.getLogger(__name__)
 
 
 class Login(View):

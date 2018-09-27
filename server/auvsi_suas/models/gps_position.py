@@ -1,8 +1,11 @@
 """GPS position model."""
 
+import logging
 from auvsi_suas.models import distance
 from django.contrib import admin
 from django.db import models
+
+logger = logging.getLogger(__name__)
 
 
 class GpsPosition(models.Model):

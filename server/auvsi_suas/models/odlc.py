@@ -2,6 +2,7 @@
 
 import collections
 import enum
+import logging
 import networkx as nx
 import operator
 from auvsi_suas.models.gps_position import GpsPosition
@@ -12,6 +13,8 @@ from django.conf import settings
 from django.contrib import admin
 from django.db import models
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 
 class Choices(enum.IntEnum):

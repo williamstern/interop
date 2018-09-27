@@ -1,9 +1,12 @@
 """Aerial position model."""
 
+import logging
 from auvsi_suas.models import distance
 from auvsi_suas.models.gps_position import GpsPosition
 from django.contrib import admin
 from django.db import models
+
+logger = logging.getLogger(__name__)
 
 
 class AerialPosition(models.Model):

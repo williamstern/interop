@@ -1,5 +1,6 @@
 """Stationary obstacle model."""
 
+import logging
 import numpy as np
 import pyproj
 from auvsi_suas.models import distance
@@ -9,6 +10,8 @@ from auvsi_suas.models.uas_telemetry import UasTelemetry
 from django.conf import settings
 from django.contrib import admin
 from django.db import models
+
+logger = logging.getLogger(__name__)
 
 
 class StationaryObstacle(models.Model):

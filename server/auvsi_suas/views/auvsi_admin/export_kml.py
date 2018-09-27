@@ -1,3 +1,4 @@
+import logging
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.uas_telemetry import UasTelemetry
@@ -7,6 +8,8 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
+
+logger = logging.getLogger(__name__)
 
 
 class ExportKml(View):

@@ -1,15 +1,18 @@
 """Fly zone model."""
+
 import datetime
+import logging
 import numpy as np
+from auvsi_suas.models import units
+from auvsi_suas.models.waypoint import Waypoint
+from auvsi_suas.patches.simplekml_patch import AltitudeMode
+from auvsi_suas.patches.simplekml_patch import Color
 from django.conf import settings
 from django.contrib import admin
 from django.db import models
 from matplotlib import path as mplpath
 
-from auvsi_suas.patches.simplekml_patch import AltitudeMode
-from auvsi_suas.patches.simplekml_patch import Color
-from auvsi_suas.models import units
-from auvsi_suas.models.waypoint import Waypoint
+logger = logging.getLogger(__name__)
 
 
 class FlyZone(models.Model):

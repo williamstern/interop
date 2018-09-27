@@ -1,7 +1,9 @@
 """Views middleware."""
 
+import logging
 import time
-from auvsi_suas.views import logger
+
+logger = logging.getLogger(__name__)
 
 
 class LoggingMiddleware(object):
