@@ -16,6 +16,7 @@ requests
 retrying
 scipy
 simplekml==1.2.7
+uwsgi
 
 # yapf is used for automated formatting of Python files.
 # Since it can be finicky from version to version, we fix

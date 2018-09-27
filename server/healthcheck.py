@@ -24,8 +24,8 @@ def check_postgres(host, port):
 
 
 @retrying.retry(wait_fixed=WAIT, stop_max_delay=MAX_DELAY)
-def check_apache(host, port):
-    """Check apache health by attempting to create a TCP connection."""
+def check_server(host, port):
+    """Check server health by attempting to create a TCP connection."""
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((host, port))
     s.close()
@@ -46,9 +46,9 @@ def main():
     parser.add_argument('--postgres_host', type=str, default='localhost')
     parser.add_argument('--postgres_port', type=int, default=5432)
 
-    parser.add_argument('--check_apache', default=False, action='store_true')
-    parser.add_argument('--apache_host', type=str, default='localhost')
-    parser.add_argument('--apache_port', type=int, default=80)
+    parser.add_argument('--check_server', default=False, action='store_true')
+    parser.add_argument('--server_host', type=str, default='localhost')
+    parser.add_argument('--server_port', type=int, default=80)
 
     parser.add_argument('--check_homepage', default=False, action='store_true')
     parser.add_argument('--homepage_host', type=str, default='localhost')
@@ -58,8 +58,8 @@ def main():
 
     if args.check_postgres:
         check_postgres(args.postgres_host, args.postgres_port)
-    if args.check_apache:
-        check_apache(args.apache_host, args.apache_port)
+    if args.check_server:
+        check_server(args.server_host, args.server_port)
     if args.check_homepage:
         check_homepage(args.homepage_host, args.homepage_port)
 

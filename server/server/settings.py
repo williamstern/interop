@@ -187,8 +187,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'auvsi_suas/static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/var/www/media'
 
-# Send with X-SENDFILE in apache
-SENDFILE_BACKEND = 'sendfile.backends.xsendfile'
+# Send images with sendfile.
+SENDFILE_BACKEND = 'sendfile.backends.nginx'
+SENDFILE_ROOT = MEDIA_ROOT
+SENDFILE_URL = MEDIA_URL
 
 # Login URL
 LOGIN_URL = '/admin/login/?next=/'

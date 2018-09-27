@@ -1,5 +1,5 @@
 -r ../client/requirements.txt
--r ../server/requirements.txt
+-r ../server/config/requirements.txt
 pyOpenSSL
 requests
 simplekml==1.2.7

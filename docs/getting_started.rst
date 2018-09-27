@@ -26,7 +26,7 @@ learn these technologies.
 #. `Pip <https://pip.pypa.io/en/stable/user_guide/>`__
 #. `Django <https://docs.djangoproject.com/en/1.8/intro/>`__
 #. `Postgres <https://www.postgresql.org/docs/9.3/static/index.html>`__
-#. `Apache <http://httpd.apache.org/docs/2.0/>`__
+#. `Nginx <https://www.nginx.com/>`__
 
 
 Computers and Networking
