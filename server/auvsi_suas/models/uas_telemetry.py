@@ -2,14 +2,7 @@
 
 import datetime
 import itertools
-from collections import defaultdict
-
-from django.conf import settings
-from django.contrib import admin
-from django.contrib.auth.models import User
-from django.db import models
-from django.utils import timezone
-
+import logging
 from auvsi_suas.models import distance
 from auvsi_suas.models import units
 from auvsi_suas.models.access_log import AccessLog
@@ -19,6 +12,14 @@ from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
 from auvsi_suas.proto import mission_pb2
+from collections import defaultdict
+from django.conf import settings
+from django.contrib import admin
+from django.contrib.auth.models import User
+from django.db import models
+from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 # Threshold at which telemetry is too close to (0, 0) and likely noise.
 BAD_TELEMETRY_THRESHOLD_DEGREES = 0.1

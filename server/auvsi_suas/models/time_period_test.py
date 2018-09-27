@@ -1,8 +1,9 @@
 import datetime
-from collections import namedtuple
 from auvsi_suas.models.time_period import TimePeriod
+from collections import namedtuple
 from django.test import TestCase
 from django.utils import timezone
+
 
 # Sample event class to test TimePeriod with.
 Event = namedtuple('Event', ['timestamp', 'start'])

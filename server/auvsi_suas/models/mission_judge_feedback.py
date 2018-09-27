@@ -1,11 +1,13 @@
 """Feedback from judges on mission performance."""
 
+import logging
+from auvsi_suas.models.mission_config import MissionConfig
+from auvsi_suas.proto import mission_pb2
 from django.conf import settings
 from django.contrib import admin
 from django.db import models
 
-from auvsi_suas.proto import mission_pb2
-from auvsi_suas.models.mission_config import MissionConfig
+logger = logging.getLogger(__name__)
 
 
 class MissionJudgeFeedback(models.Model):

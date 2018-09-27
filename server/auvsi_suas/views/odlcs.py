@@ -1,18 +1,17 @@
 """Odlcs view."""
+from PIL import Image
 import io
 import json
-from PIL import Image
+import logging
 import os
 import os.path
-
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_clock_event import MissionClockEvent
 from auvsi_suas.models.odlc import Color
-from auvsi_suas.models.odlc import Orientation
-from auvsi_suas.models.odlc import Shape
 from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.odlc import OdlcType
-from auvsi_suas.views import logger
+from auvsi_suas.models.odlc import Orientation
+from auvsi_suas.models.odlc import Shape
 from auvsi_suas.views.decorators import require_login
 from auvsi_suas.views.decorators import require_superuser
 from django.conf import settings
@@ -27,6 +26,8 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 from sendfile import sendfile
+
+logger = logging.getLogger(__name__)
 
 
 def normalize_data(data):

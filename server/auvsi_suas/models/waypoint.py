@@ -1,8 +1,11 @@
 """Waypoint model."""
 
+import logging
 from auvsi_suas.models.aerial_position import AerialPosition
 from django.contrib import admin
 from django.db import models
+
+logger = logging.getLogger(__name__)
 
 
 class Waypoint(models.Model):

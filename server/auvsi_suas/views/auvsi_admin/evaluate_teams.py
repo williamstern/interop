@@ -4,9 +4,9 @@ import copy
 import csv
 import io
 import json
+import logging
 import zipfile
 from auvsi_suas.models import mission_evaluation
-from auvsi_suas.views import logger
 from auvsi_suas.views.decorators import require_superuser
 from auvsi_suas.views.missions import mission_for_request
 from django.contrib.auth.models import User
@@ -17,6 +17,8 @@ from django.http import HttpResponseServerError
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 from google.protobuf import json_format
+
+logger = logging.getLogger(__name__)
 
 
 class EvaluateTeams(View):

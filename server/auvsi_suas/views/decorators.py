@@ -1,7 +1,10 @@
 """Simple decorators for views."""
 
+import logging
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.decorators import user_passes_test
+
+logger = logging.getLogger(__name__)
 
 
 def require_login(func):

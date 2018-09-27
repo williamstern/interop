@@ -3,11 +3,6 @@
 import datetime
 import itertools
 import logging
-from django.conf import settings
-from django.contrib import admin
-from django.contrib.auth.models import User
-from django.db import models
-
 from auvsi_suas.models import units
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.gps_position import GpsPosition
@@ -22,8 +17,11 @@ from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.waypoint import Waypoint
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
+from django.conf import settings
+from django.contrib import admin
+from django.contrib.auth.models import User
+from django.db import models
 
-# Logging for the module
 logger = logging.getLogger(__name__)
 
 
