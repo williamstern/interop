@@ -8,18 +8,9 @@ source ${TOOLS}/common.sh
 log "Installing APT packages."
 apt-get -qq update
 apt-get -qq install -y \
-    graphviz \
     parallel \
-    postgresql-client \
-    protobuf-compiler \
     python-virtualenv \
-    python3-matplotlib \
-    python3-nose \
-    python3-numpy \
-    python3-pip \
-    python3-psycopg2 \
-    python3-pyproj \
-    python3-scipy
+    python3-pip
 
 log "Building tools virtualenv."
 (cd ${TOOLS} && \

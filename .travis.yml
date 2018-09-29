@@ -17,8 +17,6 @@ script:
   - ./server/run.sh
   # Test client.
   - ./client/test.sh
-  # Verify that docs build.
-  - ./tools/build_docs.sh
   # Check formatting.
   - ./tools/format.sh --all
 
