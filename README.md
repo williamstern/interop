@@ -1,7 +1,7 @@
 AUVSI SUAS Interoperability
 ===========================
 
-[Docs](https://github.com/auvsi-suas/interop/wiki) | [![Build Status](https://travis-ci.org/auvsi-suas/interop.svg)](https://travis-ci.org/auvsi-suas/interop)
+[![Build Status](https://travis-ci.org/auvsi-suas/interop.svg)](https://travis-ci.org/auvsi-suas/interop)
 
 This is the repository for the Association for Unmanned Vehicle Systems
 International (AUVSI) Student Unmanned Aerial System (SUAS) Competition. It
