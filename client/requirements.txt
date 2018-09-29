@@ -1,6 +1,7 @@
 LatLon
 future
 futures
+lxml
 nose
 pymavlink
 pyserial

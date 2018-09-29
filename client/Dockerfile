@@ -5,13 +5,15 @@ WORKDIR /interop/client
 RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 
 RUN apt-get -qq update && apt-get -qq install -y \
+        libxml2-dev \
+        libxslt-dev \
         python \
         python-dev \
+        python-lxml \
         python-nose \
         python-pip \
         python-pyproj \
         python-virtualenv \
-        python-lxml \
         python3 \
         python3-dev \
         python3-nose \
