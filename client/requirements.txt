@@ -3,6 +3,6 @@ future
 futures
 lxml
 nose
-pymavlink
+pymavlink<=2.2.10
 pyserial
 requests
