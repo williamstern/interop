@@ -3,7 +3,7 @@
 
 set -e
 TOOLS=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
-source ${SETUP}/common.sh
+source ${TOOLS}/common.sh
 
 
 log "Tagging Docker images."
