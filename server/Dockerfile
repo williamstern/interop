@@ -8,6 +8,7 @@ RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 RUN apt-get -qq update && apt-get -qq install -y \
         nginx \
         curl \
+        npm \
         postgresql \
         postgresql-client \
         protobuf-compiler \
@@ -28,6 +29,10 @@ RUN mkdir -p /var/www/media/objects && \
 # Install server Python requirements.
 COPY config/requirements.txt config/requirements.txt
 RUN pip3 install -r config/requirements.txt
+
+# Install server JS requirements.
+COPY config/npm.txt config/npm.txt
+RUN cat config/npm.txt | xargs sudo npm install -g
 
 # Configure web server.
 COPY config/nginx.conf /etc/nginx/sites-enabled/default
@@ -50,6 +55,7 @@ COPY auvsi_suas/__init__.py auvsi_suas/__init__.py
 COPY auvsi_suas/models/__init__.py auvsi_suas/models/__init__.py
 COPY auvsi_suas/views/__init__.py auvsi_suas/views/__init__.py
 COPY auvsi_suas/views/auvsi_admin/__init__.py auvsi_suas/views/auvsi_admin/__init__.py
+COPY auvsi_suas/frontend auvsi_suas/frontend
 RUN python3 manage.py collectstatic --noinput
 
 # Copy all code.

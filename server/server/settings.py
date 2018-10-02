@@ -20,7 +20,6 @@ SECRET_KEY = 'anp#d4lgo3u6j&6dc3+8sn!t+l(6hcuspm^&3(yq10evfwbh+1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = ['*']
 
@@ -28,23 +27,24 @@ ALLOWED_HOSTS = ['*']
 # Add your IP here, if not localhost.
 INTERNAL_IPS = ['127.0.0.1']
 
-# Path to jQuery for the Django Debug Toolbar to use.
-JQUERY_URL = '/static/admin/js/jquery.js'
-
 # Application definition
 INSTALLED_APPS = (
+    'auvsi_suas',
+    'auvsi_suas.views.auvsi_admin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.sessions',
     'django.contrib.staticfiles',
-    'auvsi_suas',
-    'auvsi_suas.views.auvsi_admin',
+    'pipeline',
 )  # yapf: disable
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
+    'pipeline.middleware.MinifyHTMLMiddleware',
+    'django.middleware.http.ConditionalGetMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -52,32 +52,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'auvsi_suas.views.middleware.LoggingMiddleware',
 )  # yapf: disable
-
-# Add a '?debug' parameter to API endpoints, which wraps them in an HTML
-# response, allowing the use of Django Debug Toolbar with the endpoints.
-if DEBUG:
-    import debug
-    INSTALLED_APPS += 'debug_toolbar',
-    MIDDLEWARE_CLASSES += debug.middleware
-
-# All of the default panels, plus the profiling panel.
-DEBUG_TOOLBAR_PANELS = [
-    'debug_toolbar.panels.versions.VersionsPanel',
-    'debug_toolbar.panels.timer.TimerPanel',
-    'debug_toolbar.panels.settings.SettingsPanel',
-    'debug_toolbar.panels.headers.HeadersPanel',
-    'debug_toolbar.panels.request.RequestPanel',
-    'debug_toolbar.panels.profiling.ProfilingPanel',
-    'debug_toolbar.panels.sql.SQLPanel',
-    'debug_toolbar.panels.staticfiles.StaticFilesPanel',
-    'debug_toolbar.panels.templates.TemplatesPanel',
-    'debug_toolbar.panels.cache.CachePanel',
-    'debug_toolbar.panels.signals.SignalsPanel',
-    'debug_toolbar.panels.logging.LoggingPanel',
-    'debug_toolbar.panels.redirects.RedirectsPanel',
-]
-
-DEBUG_TOOLBAR_CONFIG = {'PROFILER_MAX_DEPTH': 50}
 
 ROOT_URLCONF = 'server.urls'
 WSGI_APPLICATION = 'server.wsgi.application'
@@ -181,7 +155,75 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'auvsi_suas/static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'auvsi_suas/frontend'),
+]
+
+STATICFILES_STORAGE = 'pipeline.storage.PipelineStorage'
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'pipeline.finders.PipelineFinder',
+)
+
+PIPELINE = {
+    'STYLESHEETS': {
+        'styles': {
+            'source_filenames': (
+                'third_party/foundation/css/foundation.min.css',
+                'third_party/foundation/css/normalize.css',
+                'app.css',
+                'components/mission-map/mission-map.css',
+                'components/team-status/team-status.css',
+                'pages/mission-dashboard/mission-dashboard.css',
+                'pages/mission-list/mission-list.css',
+                'pages/odlc-review/odlc-review.css',
+                'pages/evaluate-teams/evaluate-teams.css',
+            ),
+            'output_filename': 'styles.css',
+        },
+    },
+    'JAVASCRIPT': {
+        'scripts': {
+            'source_filenames': (
+                'third_party/foundation/js/fastclick.js',
+                'third_party/foundation/js/jquery.js',
+                'third_party/foundation/js/jquery.cookie.js',
+                'third_party/foundation/js/modernizr.js',
+                'third_party/foundation/js/placeholder.js',
+                'third_party/foundation/js/foundation.min.js',
+                'third_party/foundation/js/foundation.accordion.js',
+                'third_party/foundation/js/foundation.alert.js',
+                'third_party/foundation/js/foundation.dropdown.js',
+                'third_party/foundation/js/foundation.tooltip.js',
+                'third_party/foundation/js/foundation.topbar.js',
+                'third_party/threejs/three.js',
+                'third_party/angularjs/angular.js',
+                'third_party/angularjs/angular-cookies.js',
+                'third_party/angularjs/angular-resource.js',
+                'third_party/angularjs/angular-route.js',
+                'third_party/angularjs/angular-sanitize.js',
+                'third_party/angularjs/angular-touch.js',
+                'app.js',
+                'components/settings/settings-service.js',
+                'components/navigation/navigation.js',
+                'components/backend/backend-service.js',
+                'components/units/units-service.js',
+                'components/distance/distance-service.js',
+                'components/mission-scene/mission-scene.js',
+                'components/mission-map/mission-map-controller.js',
+                'components/team-status/team-status-controller.js',
+                'pages/mission-dashboard/mission-dashboard-controller.js',
+                'pages/mission-list/mission-list-controller.js',
+                'pages/odlc-review/odlc-review-controller.js',
+                'pages/evaluate-teams/evaluate-teams-controller.js',
+            ),
+            'output_filename': 'scripts.js',
+        },
+    },
+} # yapf: disable
 
 # User uploaded files
 MEDIA_URL = '/media/'

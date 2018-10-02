@@ -1,0 +1,60 @@
+<!-- Main Application Page --!>
+<!DOCTYPE html>
+{% load pipeline %}
+
+<html lang="en" ng-app="auvsiSuasApp">
+
+<head>
+  <meta charset="utf-8" />
+  <title>AUVSI SUAS Server</title>
+  {% stylesheet 'styles' %}
+  {% javascript 'scripts' %}
+</head>
+
+<body>
+
+  <!-- Navigation --!>
+  <nav class="top-bar" data-topbar role="navigation" ng-controller="NavigationCtrl as navigationCtrl">
+    <ul class="title-area">
+      <li class="name">
+        <h1><a href="/#/">AUVSI SUAS Server</a></h1>
+      </li>
+    </ul>
+
+    {% verbatim %}
+    <section class="top-bar-section">
+      <ul class="right" ng-if="navigationCtrl.shouldShowMissionLinks()">
+        <li class="has-dropdown">
+            <a>Mission</a>
+            <ul class="dropdown">
+                <li ng-repeat="link in navigationCtrl.getMissionLinks()">
+                    <a href="{{link.url}}" odlc="{{link.odlc}}">{{link.text}}</a>
+                </li>
+            </ul>
+        </li>
+      </ul>
+      <ul class="right">
+        <li class="has-dropdown">
+            <a>System</a>
+            <ul class="dropdown">
+                <li ng-repeat="link in navigationCtrl.getLinks()">
+                    <a href="{{link.url}}" odlc="{{link.odlc}}">{{link.text}}</a>
+                </li>
+            </ul>
+        </li>
+      </ul>
+    </section>
+    {% endverbatim %}
+  </nav>
+
+  <!-- Route specific view --!>
+  <div ng-view></div>
+
+  <!-- Init Foundation !-->
+  <script>
+    $(document).foundation();
+  </script>
+
+</body>
+
+</html>

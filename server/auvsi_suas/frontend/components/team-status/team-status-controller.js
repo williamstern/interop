@@ -62,7 +62,7 @@ angular.module('auvsiSuasApp').directive('teamStatus', [
             },
             controller: TeamStatusCtrl,
             controllerAs: 'teamStatusCtrl',
-            templateUrl: ('/static/auvsi_suas/components/' +
+            templateUrl: ('/static/components/' +
                           'team-status/team-status.html'),
         };
     }

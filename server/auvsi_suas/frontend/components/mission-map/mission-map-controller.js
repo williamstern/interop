@@ -333,7 +333,7 @@ angular.module('auvsiSuasApp').directive('missionMap', [
                 offsetHeight: '=',
                 missionScene: '='
             },
-            templateUrl: ('/static/auvsi_suas/components/' +
+            templateUrl: ('/static/components/' +
                           'mission-map/mission-map.html'),
             link: angular.bind(mapCtrl, mapCtrl.link)
         };
