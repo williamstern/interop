@@ -72,7 +72,7 @@ MissionScene = function($rootScope, Distance, Units, Settings) {
      * @private @const {!Object} The ground plane texture.
      */
     this.groundTexture_ = THREE.ImageUtils.loadTexture(
-            '/static/auvsi_suas/components/' +
+            '/static/components/' +
             'mission-scene/img/ground.jpg');
     this.groundTexture_.wrapS = THREE.RepeatWrapping;
     this.groundTexture_.wrapT = THREE.RepeatWrapping;

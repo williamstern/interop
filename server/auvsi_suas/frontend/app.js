@@ -17,22 +17,22 @@ var auvsiSuasApp = angular.module('auvsiSuasApp', [
 auvsiSuasApp.config(['$routeProvider', function($routeProvider) {
     $routeProvider.
         when('/', {
-            templateUrl: '/static/auvsi_suas/pages/mission-list/mission-list.html',
+            templateUrl: '/static/pages/mission-list/mission-list.html',
             controller: 'MissionListCtrl',
             controllerAs: 'missionListCtrl'
         }).
         when('/mission/:missionId', {
-            templateUrl: '/static/auvsi_suas/pages/mission-dashboard/mission-dashboard.html',
+            templateUrl: '/static/pages/mission-dashboard/mission-dashboard.html',
             controller: 'MissionDashboardCtrl',
             controllerAs: 'missionDashboardCtrl'
         }).
         when('/mission/:missionId/odlcs', {
-            templateUrl: '/static/auvsi_suas/pages/odlc-review/odlc-review.html',
+            templateUrl: '/static/pages/odlc-review/odlc-review.html',
             controller: 'OdlcReviewCtrl',
             controllerAs: 'odlcReviewCtrl'
         }).
         when('/mission/:missionId/evaluate', {
-            templateUrl: '/static/auvsi_suas/pages/evaluate-teams/evaluate-teams.html',
+            templateUrl: '/static/pages/evaluate-teams/evaluate-teams.html',
             controller: 'EvaluateTeamsCtrl',
             controllerAs: 'evaluateTeamsCtrl'
         }).

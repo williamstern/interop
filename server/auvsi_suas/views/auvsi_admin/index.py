@@ -24,4 +24,4 @@ class Index(View):
         return super(Index, self).dispatch(*args, **kwargs)
 
     def get(self, request):
-        return render(request, 'auvsi_suas/index.html')
+        return render(request, 'index.html')
