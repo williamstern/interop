@@ -1,7 +1,6 @@
 """Interoperability login view."""
 
 import logging
-from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.http import HttpResponse
@@ -19,17 +18,7 @@ class Login(View):
     request to this view which will return a cookie containing the session ID.
     Users then send this cookie with each request to make requests as an
     authenticated user.
-
-    In DEBUG mode, login GET requests are also accepted.
     """
-
-    def get(self, request):
-        """Allow GET login, but only in debug mode."""
-        if settings.DEBUG:
-            request.POST = request.GET
-            return self.post(request)
-        else:
-            return self.http_method_not_allowed(request)
 
     def post(self, request):
         # Attempt authentication

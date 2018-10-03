@@ -16,6 +16,19 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
+# Ratio of object points to lose for every extra unmatched object submitted.
+EXTRA_OBJECT_PENALTY_RATIO = 0.05
+# The weight of classification accuracy when calculating a odlc match score.
+CHARACTERISTICS_WEIGHT = 0.2
+# The lowest allowed location accuracy (in feet)
+TARGET_LOCATION_THRESHOLD = 150
+# The weight of geolocation accuracy when calculating a odlc match score.
+GEOLOCATION_WEIGHT = 0.3
+# The weight of actionable intelligence when calculating a odlc match score.
+ACTIONABLE_WEIGHT = 0.3
+# The weight of autonomy when calculating a odlc match score.
+AUTONOMY_WEIGHT = 0.2
+
 
 class Choices(enum.IntEnum):
     """Base class for enums used to limit Django field choices,
@@ -438,9 +451,9 @@ class OdlcEvaluator(object):
                 object_eval.classifications_ratio
         if object_eval.HasField('geolocation_accuracy_ft'):
             object_eval.geolocation_score_ratio = max(
-                0, (float(settings.TARGET_LOCATION_THRESHOLD) -
+                0, (float(TARGET_LOCATION_THRESHOLD) -
                     object_eval.geolocation_accuracy_ft) /
-                float(settings.TARGET_LOCATION_THRESHOLD))
+                float(TARGET_LOCATION_THRESHOLD))
         else:
             object_eval.geolocation_score_ratio = 0
         object_eval.actionable_score_ratio = \
@@ -448,12 +461,10 @@ class OdlcEvaluator(object):
         object_eval.autonomous_score_ratio = \
                 1 if object_eval.autonomous_submission else 0
         object_eval.score_ratio = (
-            (settings.CHARACTERISTICS_WEIGHT *
-             object_eval.classifications_score_ratio) +
-            (settings.GEOLOCATION_WEIGHT * object_eval.geolocation_score_ratio)
-            +
-            (settings.ACTIONABLE_WEIGHT * object_eval.actionable_score_ratio) +
-            (settings.AUTONOMY_WEIGHT * object_eval.autonomous_score_ratio))
+            (CHARACTERISTICS_WEIGHT * object_eval.classifications_score_ratio)
+            + (GEOLOCATION_WEIGHT * object_eval.geolocation_score_ratio) +
+            (ACTIONABLE_WEIGHT * object_eval.actionable_score_ratio) +
+            (AUTONOMY_WEIGHT * object_eval.autonomous_score_ratio))
 
         return object_eval
 
@@ -548,7 +559,7 @@ class OdlcEvaluator(object):
         multi_eval.unmatched_odlc_count = len(self.unmatched)
         multi_eval.extra_object_penalty_ratio = \
                 (multi_eval.unmatched_odlc_count *
-                        settings.EXTRA_OBJECT_PENALTY_RATIO)
+                        EXTRA_OBJECT_PENALTY_RATIO)
         # Compute total score.
         multi_eval.score_ratio = (multi_eval.matched_score_ratio -
                                   multi_eval.extra_object_penalty_ratio)
