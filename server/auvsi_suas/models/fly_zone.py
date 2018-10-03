@@ -7,12 +7,16 @@ from auvsi_suas.models import units
 from auvsi_suas.models.waypoint import Waypoint
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
-from django.conf import settings
 from django.contrib import admin
 from django.db import models
 from matplotlib import path as mplpath
 
 logger = logging.getLogger(__name__)
+
+# The time window (in seconds) in which a plane cannot be counted as going out
+# of bounds multiple times. This prevents noisy input data from recording
+# significant more violations than a human observer.
+OUT_OF_BOUNDS_DEBOUNCE_SEC = 10.0
 
 
 class FlyZone(models.Model):
@@ -144,7 +148,7 @@ class FlyZone(models.Model):
                 time_diff = (uas_telemetry_logs[i].timestamp -
                              uas_telemetry_logs[prev_event_id].timestamp)
                 currently_in_bounds = (time_diff.total_seconds() >=
-                                       settings.OUT_OF_BOUNDS_DEBOUNCE_SEC)
+                                       OUT_OF_BOUNDS_DEBOUNCE_SEC)
 
             if not currently_in_bounds and i > 0:
                 time_diff = (uas_telemetry_logs[i].timestamp -

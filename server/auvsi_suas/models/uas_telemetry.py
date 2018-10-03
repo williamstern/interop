@@ -28,6 +28,12 @@ TELEMETRY_INTERPOLATION_STEP = datetime.timedelta(seconds=0.1)
 # The max time gap between two telemetry to interpolate between.
 TELEMETRY_INTERPOLATION_MAX_GAP = datetime.timedelta(seconds=5.0)
 
+# The time window (in seconds) in which a plane cannot be counted as going out
+# of bounds multiple times. This prevents noisy input data from recording
+# significant more violations than a human observer.
+# The max distance for a waypoint to be considered satisfied.
+SATISFIED_WAYPOINT_DIST_MAX_FT = 100
+
 
 class UasTelemetry(AccessLog):
     """UAS telemetry reported by teams.
@@ -283,7 +289,7 @@ class UasTelemetry(AccessLog):
         will be returned.
 
         Assumes that waypoints are at least
-        settings.SATISFIED_WAYPOINT_DIST_MAX_FT apart.
+        SATISFIED_WAYPOINT_DIST_MAX_FT apart.
 
         Args:
             home_pos: The home position for projections.
@@ -301,10 +307,9 @@ class UasTelemetry(AccessLog):
             for iw, waypoint in enumerate(waypoints):
                 dist = log.uas_position.distance_to(waypoint.position)
                 best[iw] = min(best.get(iw, dist), dist)
-                score = max(
-                    0,
-                    float(settings.SATISFIED_WAYPOINT_DIST_MAX_FT - dist) /
-                    settings.SATISFIED_WAYPOINT_DIST_MAX_FT)
+                score = max(0,
+                            float(SATISFIED_WAYPOINT_DIST_MAX_FT - dist) /
+                            SATISFIED_WAYPOINT_DIST_MAX_FT)
                 if score > 0:
                     hits.append((iw, dist, score))
         # Remove redundant hits which wouldn't be part of best sequence.
