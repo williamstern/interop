@@ -16,12 +16,8 @@ class TestMissionScoring(TestCase):
         self.eval = mission_pb2.MissionEvaluation()
         self.eval.team = 'team'
         feedback = self.eval.feedback
-        feedback.mission_clock_time_sec = 60 * 10
-        feedback.flight_time_sec = 60 * 4
         feedback.uas_telemetry_time_max_sec = 1.0
         feedback.uas_telemetry_time_avg_sec = 1.0
-        feedback.out_of_bounds_time_sec = 10
-        feedback.boundary_violations = 2
         wpt = feedback.waypoints.add()
         wpt.score_ratio = 0.5
         wpt = feedback.waypoints.add()
@@ -215,12 +211,8 @@ class TestMissionScoring(TestCase):
         self.eval = mission_pb2.MissionEvaluation()
         self.eval.team = 'team'
         feedback = self.eval.feedback
-        feedback.mission_clock_time_sec = 60 * 100
-        feedback.flight_time_sec = 60 * 100
         feedback.uas_telemetry_time_max_sec = 100.0
         feedback.uas_telemetry_time_avg_sec = 100.0
-        feedback.out_of_bounds_time_sec = 60 * 100
-        feedback.boundary_violations = 10
         wpt = feedback.waypoints.add()
         wpt.score_ratio = 0
         wpt = feedback.waypoints.add()
@@ -285,9 +277,6 @@ class TestMissionEvaluation(TestCase):
         self.assertEqual(1.0, feedback.waypoints[0].score_ratio)
         self.assertEqual(0.0,
                          feedback.waypoints[1].closest_for_scored_approach_ft)
-        self.assertAlmostEqual(2, feedback.mission_clock_time_sec)
-        self.assertAlmostEqual(1, feedback.flight_time_sec)
-        self.assertAlmostEqual(0.6, feedback.out_of_bounds_time_sec)
 
         self.assertAlmostEqual(0.5, feedback.uas_telemetry_time_max_sec)
         self.assertAlmostEqual(1. / 6, feedback.uas_telemetry_time_avg_sec)
@@ -344,9 +333,6 @@ class TestMissionEvaluation(TestCase):
         self.assertEqual(1.0, feedback.waypoints[0].score_ratio)
         self.assertEqual(0.0,
                          feedback.waypoints[1].closest_for_scored_approach_ft)
-        self.assertAlmostEqual(18, feedback.mission_clock_time_sec)
-        self.assertAlmostEqual(4, feedback.flight_time_sec)
-        self.assertAlmostEqual(1.0, feedback.out_of_bounds_time_sec)
 
         self.assertAlmostEqual(2.0, feedback.uas_telemetry_time_max_sec)
         self.assertAlmostEqual(1.0, feedback.uas_telemetry_time_avg_sec)
