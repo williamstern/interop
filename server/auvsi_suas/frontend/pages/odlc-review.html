@@ -1,0 +1,43 @@
+<div class="row p-4 text-center">
+    <div class="col-3 p-2">
+        <h4>Odlc Review</h4>
+
+        <hr></hr>
+
+        <div id="odlc-list" class="button-group stacked">
+            <button type="button"
+                class="odlc-list-item {{odlcReviewCtrl.getOdlcButtonClass(odlc)}}"
+                ng-repeat="odlc in odlcReviewCtrl.getReviewOdlcs()"
+                ng-click="odlcReviewCtrl.setReviewOdlc(odlc)">
+                {{odlc.id}}
+            </button>
+        </div>
+  </div>
+
+  <div id="odlc-detail" class="col-3"
+       ng-show="odlcReviewCtrl.getReviewOdlc()">
+    <div id="odlc-review">
+        <button type="button" class="btn btn-success" ng-click="odlcReviewCtrl.saveReview()">Save and Advance</button>
+        <h5>
+            <input type="checkbox" ng-model="odlcReviewCtrl.getReviewOdlc().thumbnail_approved">
+            Thumbnail Approved
+        </h5>
+        <h5 ng-show="odlcReviewCtrl.getReviewOdlc().type == 'emergent'">
+            <input type="checkbox" ng-model="odlcReviewCtrl.getReviewOdlc().description_approved">
+            Emergent Description Approved
+        </h5>
+    </div>
+    <div class="">
+        <div ng-repeat="detail in odlcReviewCtrl.getReviewOdlcDetails()">
+            <h4>{{detail.key}}</h4>
+            <h5>{{detail.value}}</h5>
+        </div>
+    </div>
+  </div>
+
+  <div id="odlc-img-holder" class="col-4">
+      <div ng-show="odlcReviewCtrl.getReviewOdlc()"
+          style="{{odlcReviewCtrl.getOdlcImgStyle()}}"></div>
+  </div>
+</div>
+

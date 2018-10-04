@@ -1,0 +1,19 @@
+<div class="row p-4">
+    <div class="col-3">
+        <div class="text-center text-middle">
+          <h4>Dashboard</h4>
+        </div>
+
+        <hr></hr>
+
+        <team-status ng-repeat="team in missionDashboardCtrl.teams" team="team" active="missionDashboardCtrl.isActive(team)">
+        </team-status>
+    </div>
+
+    <div class="col-9">
+        <div class="mission-dashboard-mission-view">
+            <mission-map offset-width="0" offset-height="160" mission-scene="missionDashboardCtrl.missionScene">
+            </mission-map>
+        </div>
+    </div>
+</div>
