@@ -78,26 +78,8 @@ def generate_feedback(mission_config, user, team_eval):
     """
     feedback = team_eval.feedback
 
-    # Calculate the total mission clock time.
-    missions = MissionClockEvent.missions(user)
-    mission_clock_time = datetime.timedelta(seconds=0)
-    for mission in missions:
-        duration = mission.duration()
-        if duration is None:
-            team_eval.warnings.append('Infinite mission clock.')
-        else:
-            mission_clock_time += duration
-    feedback.mission_clock_time_sec = mission_clock_time.total_seconds()
-
-    # Calculate total time in air.
-    flight_periods = TakeoffOrLandingEvent.flights(user)
-    if flight_periods:
-        flight_time = sum([p.duration() for p in flight_periods],
-                          datetime.timedelta())
-        feedback.flight_time_sec = flight_time.total_seconds()
-    else:
-        feedback.flight_time_sec = 0
     # Find the user's flights.
+    flight_periods = TakeoffOrLandingEvent.flights(user)
     for period in flight_periods:
         if period.duration() is None:
             team_eval.warnings.append('Infinite flight period.')
@@ -116,18 +98,6 @@ def generate_feedback(mission_config, user, team_eval):
         feedback.uas_telemetry_time_max_sec = telem_max
     if telem_avg:
         feedback.uas_telemetry_time_avg_sec = telem_avg
-
-    # Determine if the uas went out of bounds. This must be done for
-    # each period individually so time between periods isn't counted as
-    # out of bounds time. Note that this calculates reported time out
-    # of bounds, not actual or possible time spent out of bounds.
-    out_of_bounds = datetime.timedelta(seconds=0)
-    feedback.boundary_violations = 0
-    for logs in uas_period_logs:
-        bv, bt = FlyZone.out_of_bounds(mission_config.fly_zones.all(), logs)
-        feedback.boundary_violations += bv
-        out_of_bounds += bt
-    feedback.out_of_bounds_time_sec = out_of_bounds.total_seconds()
 
     # Determine if the uas hit the waypoints.
     feedback.waypoints.extend(
@@ -157,13 +127,6 @@ def generate_feedback(mission_config, user, team_eval):
         feedback.judge.CopyFrom(judge_feedback.proto())
     except MissionJudgeFeedback.DoesNotExist:
         team_eval.warnings.append('No MissionJudgeFeedback for team.')
-
-    # Sanity check mission time.
-    judge_mission_clock = (
-        feedback.judge.flight_time_sec + feedback.judge.post_process_time_sec)
-    if abs(feedback.mission_clock_time_sec - judge_mission_clock) > 30:
-        team_eval.warnings.append(
-            'Mission clock differs between interop and judge.')
 
 
 def score_team(team_eval):
