@@ -1,0 +1,17 @@
+<div class="row p-4 text-center">
+    <div class="col-3">
+        <h4>Evaluate Teams</h4>
+
+        <hr></hr>
+
+        <label>
+            Team
+            <select ng-model="evaluateTeamsCtrl.selectedTeamId">
+                <option value=-1>All</option>
+                <option ng-repeat="t in evaluateTeamsCtrl.teams | orderBy: 'name'" ng-value="t.id">{{t.name}}</option>
+            </select>
+        </label>
+        <button type="button" class="success button" ng-click="evaluateTeamsCtrl.evaluate()">Evaluate</button>
+    </div>
+  </div>
+</div>
