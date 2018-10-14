@@ -1,7 +1,6 @@
 import auvsi_suas.models.aerial_position
 import auvsi_suas.models.fly_zone
 import auvsi_suas.models.gps_position
-import auvsi_suas.models.mission_clock_event
 import auvsi_suas.models.mission_config
 import auvsi_suas.models.mission_judge_feedback
 import auvsi_suas.models.moving_obstacle

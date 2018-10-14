@@ -20,8 +20,6 @@ describe("EvaluateTeamsCtrl controller", function() {
         var teams = [
             {
                 id: 1,
-                on_clock: false,
-                on_timeout: false,
                 active: false,
                 in_air: false
             }

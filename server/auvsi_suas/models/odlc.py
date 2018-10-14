@@ -6,7 +6,6 @@ import logging
 import networkx as nx
 import operator
 from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.mission_clock_event import MissionClockEvent
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.proto import odlc_pb2
 from django.conf import settings
@@ -382,7 +381,6 @@ class OdlcEvaluator(object):
                         "All submitted objects must be from the same user")
 
             self.flights = TakeoffOrLandingEvent.flights(self.user)
-            self.missions = MissionClockEvent.missions(self.user)
 
         self.matches = self.match_odlcs(submitted_objects, real_objects)
         self.unmatched = self.find_unmatched(submitted_objects, real_objects,

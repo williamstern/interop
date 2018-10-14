@@ -10,8 +10,6 @@ describe("TeamStatusCtrl controller", function() {
     beforeEach(inject(function($controller) {
         team = {
             id: 4,
-            on_clock: false,
-            on_timeout: false,
             telemetry: {
                 id: 10,
                 user: 4,

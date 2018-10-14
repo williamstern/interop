@@ -6,7 +6,6 @@ import logging
 import os
 import os.path
 from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.mission_clock_event import MissionClockEvent
 from auvsi_suas.models.odlc import Color
 from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.odlc import OdlcType
@@ -344,6 +343,7 @@ class OdlcsId(View):
                 l.save()
                 odlc.location = l
 
+        odlc.description_approved = None
         if not request.user.is_superuser:
             odlc.update_last_modified()
         odlc.save()
@@ -416,8 +416,12 @@ class OdlcsIdImage(View):
                 'Invalid image format %s, only JPEG and PNG allowed' %
                 (i.format))
 
-        old_path = odlc.thumbnail.path if odlc.thumbnail else None
+        # Clear thumbnail review state.
+        if odlc.thumbnail_approved is not None:
+            odlc.thumbnail_approved = None
+            odlc.save()
 
+        old_path = odlc.thumbnail.path if odlc.thumbnail else None
         odlc.thumbnail.save('%d.%s' % (odlc.pk, i.format), ImageFile(f))
 
         if old_path and odlc.thumbnail.path != old_path:
@@ -445,6 +449,11 @@ class OdlcsIdImage(View):
         if not odlc.thumbnail or not odlc.thumbnail.path:
             return HttpResponseNotFound('Odlc %s has no image' % pk)
 
+        # Clear thumbnail review state.
+        if odlc.thumbnail_approved is not None:
+            odlc.thumbnail_approved = None
+            odlc.save()
+
         path = odlc.thumbnail.path
         # Remove the thumbnail from the odlc.
         # Note that this does not delete it from disk!
@@ -469,10 +478,6 @@ class OdlcsAdminReview(View):
         """Gets all of the odlcs ready for review."""
         odlcs = []
         for user in User.objects.all():
-            # Odlcs still editable aren't ready for review.
-            if (MissionClockEvent.user_on_clock(user) or
-                    MissionClockEvent.user_on_timeout(user)):
-                continue
             # Get odlcs which have thumbnail.
             odlcs.extend([
                 t for t in Odlc.objects.filter(user=user).all() if t.thumbnail

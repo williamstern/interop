@@ -45,8 +45,7 @@ TeamStatusCtrl.prototype.getTeamColorClasses = function() {
  * @export
  */
 TeamStatusCtrl.prototype.shouldShow = function() {
-    return this.active || this.team.in_air || this.team.on_clock ||
-           this.team.on_timeout;
+    return this.active || this.team.in_air;
 };
 
 

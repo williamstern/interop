@@ -4,7 +4,6 @@ import functools
 import json
 import os.path
 from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.mission_clock_event import MissionClockEvent
 from auvsi_suas.models.odlc import Color
 from auvsi_suas.models.odlc import Orientation
 from auvsi_suas.models.odlc import Shape
@@ -676,6 +675,23 @@ class TestOdlcId(TestCase):
             odlcs_id_url(args=[t.pk]), data=json.dumps(data))
         self.assertEqual(403, response.status_code)
 
+    def test_put_invalidates_description_review(self):
+        """Test that update invalidates description field."""
+        t = Odlc(
+            user=self.user, odlc_type=OdlcType.emergent, description='Hello')
+        t.description_approved = True
+        t.save()
+
+        data = {'description': 'World'}
+
+        response = self.client.put(
+            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
+        self.assertEqual(200, response.status_code)
+
+        t.refresh_from_db()
+        self.assertEqual('World', t.description)
+        self.assertIsNone(t.description_approved)
+
     def test_put_superuser_change_actionable_override(self):
         """Admin user can update actionable_override flag."""
         # Login as superuser.
@@ -813,6 +829,7 @@ class TestOdlcIdImage(TestCase):
             content_type='application/json')
         self.assertEqual(201, response.status_code)
         self.odlc_id = json.loads(response.content)['id']
+        self.odlc = Odlc.objects.get(pk=self.odlc_id)
 
     def test_get_no_image(self):
         """404 when GET image before upload."""
@@ -843,22 +860,40 @@ class TestOdlcIdImage(TestCase):
             content_type='image/jpeg')
         self.assertEqual(400, response.status_code)
 
-    def post_image(self, name, content_type='image/jpeg'):
-        """POST image, assert that it worked"""
+    def upload_image(self, name, method='POST', content_type='image/jpeg'):
+        """Upload image, assert that it worked"""
+        # Read image to upload.
+        data = None
         with open(test_image(name), 'rb') as f:
+            data = f.read()
+
+        # Upload image.
+        response = None
+        if method == 'POST':
             response = self.client.post(
                 odlcs_id_image_url(args=[self.odlc_id]),
-                data=f.read(),
+                data=data,
                 content_type=content_type)
-            self.assertEqual(200, response.status_code)
+        else:
+            response = self.client.put(
+                odlcs_id_image_url(args=[self.odlc_id]),
+                data=data,
+                content_type=content_type)
+        self.assertEqual(200, response.status_code)
+
+        # Validate can retrieve image with uploaded contents.
+        response = self.client.get(odlcs_id_image_url(args=[self.odlc_id]))
+        self.assertEqual(200, response.status_code)
+        resp_data = b''.join(response.streaming_content)
+        self.assertEqual(data, resp_data)
 
     def test_post_jpg(self):
         """Successfully upload jpg"""
-        self.post_image('S.jpg')
+        self.upload_image('S.jpg')
 
     def test_post_png(self):
         """Successfully upload png"""
-        self.post_image('A.png', content_type='image/png')
+        self.upload_image('A.png', content_type='image/png')
 
     def test_post_gif(self):
         """GIF upload not allowed"""
@@ -871,7 +906,7 @@ class TestOdlcIdImage(TestCase):
 
     def test_get_image(self):
         """Successfully GET uploaded image"""
-        self.post_image('S.jpg')
+        self.upload_image('S.jpg')
 
         response = self.client.get(odlcs_id_image_url(args=[self.odlc_id]))
         self.assertEqual(200, response.status_code)
@@ -885,50 +920,56 @@ class TestOdlcIdImage(TestCase):
 
     def test_replace_image(self):
         """Successfully replace uploaded image"""
-        self.post_image('S.jpg')
-        self.post_image('A.jpg')
-
-        response = self.client.get(odlcs_id_image_url(args=[self.odlc_id]))
-        self.assertEqual(200, response.status_code)
-
-        data = b''.join(response.streaming_content)
-
-        # Did we replace it?
-        with open(test_image('A.jpg'), 'rb') as f:
-            self.assertEqual(f.read(), data)
+        self.upload_image('S.jpg')
+        self.upload_image('A.jpg')
 
     def test_put_image(self):
         """PUT works just like POST"""
-        with open(test_image('S.jpg'), 'rb') as f:
-            response = self.client.put(
-                odlcs_id_image_url(args=[self.odlc_id]),
-                data=f.read(),
-                content_type='image/jpeg')
-            self.assertEqual(200, response.status_code)
+        self.upload_image('S.jpg', method='PUT')
 
-        response = self.client.get(odlcs_id_image_url(args=[self.odlc_id]))
+    def test_update_invalidates_thumbnail_review(self):
+        """Test that update invalidates thumbnail field."""
+        self.odlc.thumbnail_approved = True
+        self.odlc.save()
+
+        # POST
+        self.upload_image('A.jpg')
+        self.odlc.refresh_from_db()
+        self.assertIsNone(self.odlc.thumbnail_approved)
+
+        self.odlc.thumbnail_approved = True
+        self.odlc.description_approved = True
+        self.odlc.save()
+
+        # PUT
+        self.upload_image('A.jpg', method='PUT')
+        self.odlc.refresh_from_db()
+        self.assertIsNone(self.odlc.thumbnail_approved)
+
+        self.odlc.thumbnail_approved = True
+        self.odlc.description_approved = True
+        self.odlc.save()
+
+        # DELETE
+        response = self.client.delete(odlcs_id_image_url(args=[self.odlc_id]))
         self.assertEqual(200, response.status_code)
-
-        data = b''.join(response.streaming_content)
-
-        # Did we get back what we uploaded?
-        with open(test_image('S.jpg'), 'rb') as f:
-            self.assertEqual(f.read(), data)
+        self.odlc.refresh_from_db()
+        self.assertIsNone(self.odlc.thumbnail_approved)
 
     def test_post_delete_old(self):
         """Old image deleted when new doesn't overwrite."""
-        self.post_image('A.jpg')
+        self.upload_image('A.jpg')
 
         t = Odlc.objects.get(pk=self.odlc_id)
         jpg_path = t.thumbnail.path
         self.assertTrue(os.path.exists(jpg_path))
 
-        self.post_image('A.png', content_type='image/png')
+        self.upload_image('A.png', content_type='image/png')
         self.assertFalse(os.path.exists(jpg_path))
 
     def test_delete(self):
         """Image deleted on DELETE"""
-        self.post_image('A.jpg')
+        self.upload_image('A.jpg')
 
         t = Odlc.objects.get(pk=self.odlc_id)
         jpg_path = t.thumbnail.path
@@ -941,7 +982,7 @@ class TestOdlcIdImage(TestCase):
 
     def test_get_after_delete(self):
         """GET returns 404 after DELETE"""
-        self.post_image('A.jpg')
+        self.upload_image('A.jpg')
 
         response = self.client.delete(odlcs_id_image_url(args=[self.odlc_id]))
         self.assertEqual(200, response.status_code)
@@ -991,28 +1032,14 @@ class TestOdlcsAdminReview(TestCase):
                         'password': 'testpass'})
         self.assertEqual(200, response.status_code)
 
-    def test_get_no_odlcs(self):
+    def test_get_none(self):
         """Test GET when there are no odlcs."""
         response = self.client.get(odlcs_review_url)
         self.assertEqual(200, response.status_code)
         self.assertEqual([], json.loads(response.content))
 
-    def test_get_editable_odlcs(self):
-        """Test GET when there are odlcs but are still in editable window."""
-        MissionClockEvent(
-            user=self.team, team_on_clock=True, team_on_timeout=False).save()
-        Odlc(user=self.team, odlc_type=OdlcType.standard).save()
-
-        response = self.client.get(odlcs_review_url)
-        self.assertEqual(200, response.status_code)
-        self.assertEqual([], json.loads(response.content))
-
-    def test_get_noneditable_without_thumbnail_odlcs(self):
-        """Test GET when there are non-editable odlcs without thumbnail."""
-        MissionClockEvent(
-            user=self.team, team_on_clock=True, team_on_timeout=False).save()
-        MissionClockEvent(
-            user=self.team, team_on_clock=False, team_on_timeout=False).save()
+    def test_get_without_thumbnail(self):
+        """Test GET when there are odlcs without thumbnail."""
         odlc = Odlc(user=self.team, odlc_type=OdlcType.standard)
         odlc.save()
 
@@ -1021,12 +1048,8 @@ class TestOdlcsAdminReview(TestCase):
         data = json.loads(response.content)
         self.assertEqual(0, len(data))
 
-    def test_get_noneditable_odlcs(self):
-        """Test GET when there are non-editable odlcs."""
-        MissionClockEvent(
-            user=self.team, team_on_clock=True, team_on_timeout=False).save()
-        MissionClockEvent(
-            user=self.team, team_on_clock=False, team_on_timeout=False).save()
+    def test_get(self):
+        """Test GET when there are odlcs."""
         odlc = Odlc(user=self.team, odlc_type=OdlcType.standard)
         odlc.save()
 
