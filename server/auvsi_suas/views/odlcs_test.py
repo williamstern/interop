@@ -15,7 +15,6 @@ from django.core.files.images import ImageFile
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-login_url = reverse('auvsi_suas:login')
 odlcs_url = reverse('auvsi_suas:odlcs')
 odlcs_id_url = functools.partial(reverse, 'auvsi_suas:odlcs_id')
 odlcs_id_image_url = functools.partial(reverse, 'auvsi_suas:odlcs_id_image')
@@ -49,11 +48,7 @@ class TestGetOdlc(TestCase):
         """Creates user and logs in."""
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
-
-        response = self.client.post(
-            login_url, {'username': 'testuser',
-                        'password': 'testpass'})
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(self.user)
 
     def test_no_odlcs(self):
         """We get back an empty list if we have no odlcs."""
@@ -103,11 +98,8 @@ class TestPostOdlc(TestCase):
         """Creates user and logs in."""
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
-
-        response = self.client.post(
-            login_url, {'username': 'testuser',
-                        'password': 'testpass'})
-        self.assertEqual(200, response.status_code)
+        self.user.save()
+        self.client.force_login(self.user)
 
     def test_complete(self):
         """Send complete odlc with all fields."""
@@ -370,11 +362,7 @@ class TestPostOdlc(TestCase):
         # Login as superuser.
         superuser = User.objects.create_superuser(
             'testsuperuser', 'testsuperemail@x.com', 'testsuperpass')
-        response = self.client.post(login_url, {
-            'username': 'testsuperuser',
-            'password': 'testsuperpass'
-        })
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(superuser)
 
         # Create odlc.
         odlc = {'type': 'standard', 'team_id': self.user.username}
@@ -398,11 +386,7 @@ class TestPostOdlc(TestCase):
         # Login as superuser.
         superuser = User.objects.create_superuser(
             'testsuperuser', 'testsuperemail@x.com', 'testsuperpass')
-        response = self.client.post(login_url, {
-            'username': 'testsuperuser',
-            'password': 'testsuperpass'
-        })
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(superuser)
 
         # Create odlc.
         odlc = {'type': 'standard', 'actionable_override': True}
@@ -431,11 +415,7 @@ class TestOdlcId(TestCase):
         """Creates user and logs in."""
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
-
-        response = self.client.post(
-            login_url, {'username': 'testuser',
-                        'password': 'testpass'})
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(self.user)
 
     def test_get_nonexistent(self):
         """Test GETting a odlc that doesn't exist."""
@@ -697,11 +677,7 @@ class TestOdlcId(TestCase):
         # Login as superuser.
         superuser = User.objects.create_superuser(
             'testsuperuser', 'testsuperemail@x.com', 'testsuperpass')
-        response = self.client.post(login_url, {
-            'username': 'testsuperuser',
-            'password': 'testsuperpass'
-        })
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(superuser)
 
         t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
@@ -720,11 +696,7 @@ class TestOdlcId(TestCase):
         # Login as superuser.
         superuser = User.objects.create_superuser(
             'testsuperuser', 'testsuperemail@x.com', 'testsuperpass')
-        response = self.client.post(login_url, {
-            'username': 'testsuperuser',
-            'password': 'testsuperpass'
-        })
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(superuser)
 
         t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
@@ -814,11 +786,7 @@ class TestOdlcIdImage(TestCase):
         """Creates user and logs in."""
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
-
-        response = self.client.post(
-            login_url, {'username': 'testuser',
-                        'password': 'testpass'})
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(self.user)
 
         # Create a odlc
         response = self.client.post(
@@ -1006,10 +974,7 @@ class TestOdlcsAdminReviewNotAdmin(TestCase):
         """Unauthenticated requests should fail."""
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
-        response = self.client.post(
-            login_url, {'username': 'testuser',
-                        'password': 'testpass'})
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(self.user)
 
         response = self.client.get(odlcs_review_url)
         self.assertEqual(403, response.status_code)
@@ -1027,10 +992,7 @@ class TestOdlcsAdminReview(TestCase):
             'testuser', 'testemail@x.com', 'testpass')
         self.team = User.objects.create_user('testuser2', 'testemail@x.com',
                                              'testpass')
-        response = self.client.post(
-            login_url, {'username': 'testuser',
-                        'password': 'testpass'})
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(self.user)
 
     def test_get_none(self):
         """Test GET when there are no odlcs."""

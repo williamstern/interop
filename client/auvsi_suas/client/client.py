@@ -4,20 +4,20 @@ This module provides a Python interface to the SUAS interoperability API.
 
 Users should use the AsyncClient to manage the interface, as it has performance
 features. A simpler Client is also given as a base implementation.
+"""
 
-See README.md for more details."""
-
-from concurrent.futures import ThreadPoolExecutor
 import functools
 import json
 import requests
 import threading
 
-from .exceptions import InteropError
-from .types import Mission
-from .types import MovingObstacle
-from .types import StationaryObstacle
-from .types import Odlc
+from auvsi_suas.client.exceptions import InteropError
+from auvsi_suas.client.types import Mission
+from auvsi_suas.client.types import Mission
+from auvsi_suas.client.types import MovingObstacle
+from auvsi_suas.client.types import Odlc
+from auvsi_suas.client.types import StationaryObstacle
+from concurrent.futures import ThreadPoolExecutor
 
 
 class Client(object):
@@ -51,8 +51,11 @@ class Client(object):
 
         # All endpoints require authentication, so always login.
         self.post(
-            '/api/login', data={'username': username,
-                                'password': password})
+            '/api/login',
+            data=json.dumps({
+                'username': username,
+                'password': password
+            }))
 
     def get(self, uri, **kwargs):
         """GET request to server.

@@ -14,7 +14,6 @@ from django.http import HttpResponseServerError
 from django.test import TestCase
 from django.utils import timezone
 
-login_url = reverse('auvsi_suas:login')
 missions_url = reverse('auvsi_suas:missions')
 missions_id_url = functools.partial(reverse, 'auvsi_suas:missions_id')
 
@@ -120,15 +119,9 @@ class TestMissionsViewCommon(TestCase):
     def Login(self, is_superuser):
         response = None
         if is_superuser:
-            response = self.client.post(
-                login_url, {'username': 'superuser',
-                            'password': 'superpass'})
+            self.client.force_login(self.superuser)
         else:
-            response = self.client.post(login_url, {
-                'username': 'normaluser',
-                'password': 'normalpass'
-            })
-        self.assertEqual(200, response.status_code)
+            self.client.force_login(self.normaluser)
 
 
 class TestMissionsViewBasic(TestMissionsViewCommon):

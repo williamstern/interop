@@ -29,7 +29,6 @@ class TestGenerateKMLCommon(TestCase):
         self.admin_user.save()
 
         # Create URLs for testing
-        self.login_url = reverse('auvsi_suas:login')
         self.eval_url = reverse('auvsi_suas:export_data')
 
     def validate_kml(self, kml_data, folders, users, coordinates):
@@ -64,20 +63,15 @@ class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
 
     def test_generateKML_nonadmin(self):
         """Tests the generate KML method."""
-        self.client.post(self.login_url,
-                         {'username': 'testuser',
-                          'password': 'testpass'})
+        self.client.force_login(self.nonadmin_user)
         response = self.client.get(self.eval_url)
         self.assertEqual(403, response.status_code)
 
     def test_generateKML(self):
         """Tests the generate KML method."""
-        self.client.post(self.login_url,
-                         {'username': 'testuser2',
-                          'password': 'testpass'})
+        self.client.force_login(self.admin_user)
         response = self.client.get(self.eval_url)
         self.assertEqual(200, response.status_code)
-
         kml_data = response.content
         self.validate_kml(kml_data, self.folders, self.users, self.coordinates)
 
@@ -108,17 +102,13 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
 
     def test_generateKML_nonadmin(self):
         """Tests the generate KML method."""
-        self.client.post(self.login_url,
-                         {'username': 'testuser',
-                          'password': 'testpass'})
+        self.client.force_login(self.nonadmin_user)
         response = self.client.get(self.eval_url)
         self.assertEqual(403, response.status_code)
 
     def test_generateKML(self):
         """Tests the generate KML method."""
-        self.client.post(self.login_url,
-                         {'username': 'testuser2',
-                          'password': 'testpass'})
+        self.client.force_login(self.admin_user)
         response = self.client.get(self.eval_url)
         self.assertEqual(200, response.status_code)
 

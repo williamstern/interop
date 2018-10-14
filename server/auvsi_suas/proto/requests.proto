@@ -1,0 +1,9 @@
+// Descriptions for requests.
+
+syntax = "proto2";
+package auvsi_suas.proto;
+
+message LoginRequest {
+    optional string username = 1;
+    optional string password = 2;
+}

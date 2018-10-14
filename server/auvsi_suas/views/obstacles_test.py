@@ -17,7 +17,6 @@ from django.test import TestCase
 from django.test.client import Client
 from django.utils import timezone
 
-login_url = reverse('auvsi_suas:login')
 obstacle_url = reverse('auvsi_suas:obstacles')
 
 
@@ -84,6 +83,7 @@ class TestObstaclesViewCommon(TestCase):
         self.user = User.objects.create_user('testuser', 'email@example.com',
                                              'testpass')
         self.user.save()
+        self.client.force_login(self.user)
 
         # Create an active mission.
         pos = GpsPosition()
@@ -127,12 +127,6 @@ class TestObstaclesViewCommon(TestCase):
         config.moving_obstacles.add(obst)
 
         config.save()
-
-        # Login
-        response = self.client.post(
-            login_url, {'username': 'testuser',
-                        'password': 'testpass'})
-        self.assertEqual(200, response.status_code)
 
 
 class TestObstaclesView(TestObstaclesViewCommon):
@@ -197,12 +191,7 @@ class TestObstaclesViewSuperuser(TestObstaclesViewCommon):
         self.user = User.objects.create_superuser(
             'superuser', 'email@example.com', 'superpass')
         self.user.save()
-
-        # Login
-        response = self.client.post(
-            login_url, {'username': 'superuser',
-                        'password': 'superpass'})
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(self.user)
 
     def test_bad_time(self):
         """Bad time format rejected."""

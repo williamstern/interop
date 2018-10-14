@@ -2,12 +2,12 @@ import os
 import requests
 import unittest
 
-from . import AsyncClient
-from . import Client
-from . import InteropError
-from . import Mission
-from . import Odlc
-from . import Telemetry
+from auvsi_suas.client.client import AsyncClient
+from auvsi_suas.client.client import Client
+from auvsi_suas.client.exceptions import InteropError
+from auvsi_suas.client.types import Mission
+from auvsi_suas.client.types import Odlc
+from auvsi_suas.client.types import Telemetry
 
 # These tests run against a real interop server.
 # The server be loaded with the data from the test fixture in

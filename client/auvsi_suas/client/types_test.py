@@ -1,13 +1,13 @@
 import unittest
 
-from . import FlyZone
-from . import GpsPosition
-from . import Mission
-from . import MovingObstacle
-from . import StationaryObstacle
-from . import Odlc
-from . import Telemetry
-from . import Waypoint
+from auvsi_suas.client.types import FlyZone
+from auvsi_suas.client.types import GpsPosition
+from auvsi_suas.client.types import Mission
+from auvsi_suas.client.types import MovingObstacle
+from auvsi_suas.client.types import Odlc
+from auvsi_suas.client.types import StationaryObstacle
+from auvsi_suas.client.types import Telemetry
+from auvsi_suas.client.types import Waypoint
 
 
 class TestMission(unittest.TestCase):
