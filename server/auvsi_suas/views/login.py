@@ -1,7 +1,7 @@
 """Interoperability login view."""
 
 import logging
-from auvsi_suas.proto.requests_pb2 import LoginRequest
+from auvsi_suas.proto.account_pb2 import LoginRequest
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.http import HttpResponse
