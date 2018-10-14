@@ -13,7 +13,7 @@ import time
 from interop import AsyncClient
 from interop import Odlc
 from interop import Telemetry
-from proxy_mavlink import proxy_mavlink
+from mavlink_proxy import MavlinkProxy
 from upload_odlcs import upload_odlcs
 
 logger = logging.getLogger(__name__)
@@ -55,7 +55,8 @@ def probe(args, client):
 
 
 def mavlink(args, client):
-    proxy_mavlink(args.device, client)
+    proxy = MavlinkProxy(args.device, client)
+    proxy.proxy()
 
 
 def main():
