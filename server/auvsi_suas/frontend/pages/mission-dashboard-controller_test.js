@@ -15,29 +15,21 @@ describe("MissionDashboardCtrl controller", function() {
         teams = [
             {
                 id: 1,
-                on_clock: false,
-                on_timeout: false,
                 telemetry: null,
                 in_air: false
             },
             {
                 id: 2,
-                on_clock: true,
-                on_timeout: false,
                 telemetry: null,
                 in_air: false
             },
             {
                 id: 3,
-                on_clock: false,
-                on_timeout: true,
                 telemetry: null,
                 in_air: false
             },
             {
                 id: 4,
-                on_clock: false,
-                on_timeout: false,
                 telemetry: {
                     id: 10,
                     user: 4,
@@ -51,8 +43,6 @@ describe("MissionDashboardCtrl controller", function() {
             },
             {
                 id: 5,
-                on_clock: false,
-                on_timeout: false,
                 telemetry: null,
                 in_air: true
             },

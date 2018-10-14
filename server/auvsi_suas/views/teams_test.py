@@ -5,7 +5,6 @@ import functools
 import json
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.mission_clock_event import MissionClockEvent
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from django.contrib.auth.models import User
@@ -49,10 +48,6 @@ class TestTeamsView(TestCase):
                                               'testpass')
         self.user2.save()
 
-        # user1 is on mission
-        event = MissionClockEvent(
-            user=self.user1, team_on_clock=True, team_on_timeout=False)
-        event.save()
         # user1 is flying
         event = TakeoffOrLandingEvent(user=self.user1, uas_in_air=True)
         event.save()
@@ -121,8 +116,6 @@ class TestTeamsView(TestCase):
         for user in data:
             self.assertIn('id', user)
             self.assertIn('name', user)
-            self.assertIn('on_clock', user)
-            self.assertIn('on_timeout', user)
             self.assertIn('in_air', user)
             self.assertIn('telemetry', user)
 
@@ -140,14 +133,10 @@ class TestTeamsView(TestCase):
         self.assertIn('user2', names)
 
         user1 = data[names.index('user1')]
-        self.assertEqual(True, user1['on_clock'])
-        self.assertEqual(False, user1['on_timeout'])
         self.assertEqual(True, user1['in_air'])
         self.assertEqual(None, user1['telemetry'])
 
         user2 = data[names.index('user2')]
-        self.assertEqual(False, user2['on_clock'])
-        self.assertEqual(False, user2['on_timeout'])
         self.assertEqual(False, user2['in_air'])
         self.assertEqual({
             u'id': self.telem.pk,
@@ -199,8 +188,6 @@ class TestTeamsIdView(TestCase):
 
         self.assertEqual('user1', data['name'])
         self.assertEqual(self.user1.pk, data['id'])
-        self.assertEqual(False, data['on_clock'])
-        self.assertEqual(False, data['on_timeout'])
         self.assertEqual(False, data['in_air'])
         self.assertEqual(None, data['telemetry'])
 
@@ -222,34 +209,12 @@ class TestTeamsIdView(TestCase):
         response = self.client.put(teams_id_url(args=[self.user1.pk]), data)
         self.assertGreaterEqual(400, response.status_code)
 
-    def test_invalid_clock(self):
-        """invalid on_clock and on_timeout rejected"""
-        invalid_values = [
-            ('Hi', False),
-            (False, 'Hi'),
-            (True, True),
-        ]
-        for on_clock, on_timeout in invalid_values:
-            data = json.dumps({
-                'name': self.user1.username,
-                'id': self.user1.pk,
-                'telemetry': None,
-                'on_clock': on_clock,
-                'on_timeout': on_timeout,
-            })
-
-            response = self.client.put(
-                teams_id_url(args=[self.user1.pk]), data)
-            self.assertGreaterEqual(400, response.status_code)
-
     def test_no_extra_events(self):
         """No new TakeoffOrLandingEvents created if status doesn't change"""
         data = json.dumps({
             'name': self.user1.username,
             'id': self.user1.pk,
             'telemetry': None,
-            'on_clock': False,
-            'on_timeout': False,
             'in_air': False,
         })
 
@@ -259,7 +224,6 @@ class TestTeamsIdView(TestCase):
         data = json.loads(response.content)
 
         self.assertEqual(0, TakeoffOrLandingEvent.objects.count())
-        self.assertEqual(0, MissionClockEvent.objects.count())
 
     def test_update_in_air(self):
         """In-air can be updated"""
@@ -281,50 +245,6 @@ class TestTeamsIdView(TestCase):
         event = TakeoffOrLandingEvent.objects.get()
         self.assertEqual(self.user1, event.user)
         self.assertEqual(True, event.uas_in_air)
-
-    def test_update_on_clock(self):
-        """on_clock can be updated"""
-        data = json.dumps({
-            'name': self.user1.username,
-            'id': self.user1.pk,
-            'telemetry': None,
-            'on_clock': True,
-        })
-
-        response = self.client.put(teams_id_url(args=[self.user1.pk]), data)
-        self.assertEqual(200, response.status_code)
-
-        data = json.loads(response.content)
-
-        self.assertEqual(True, data['on_clock'])
-        self.assertEqual(False, data['on_timeout'])
-
-        # Event created
-        event = MissionClockEvent.objects.get()
-        self.assertEqual(self.user1, event.user)
-        self.assertEqual(True, event.team_on_clock)
-
-    def test_update_on_timeout(self):
-        """on_timeout can be updated"""
-        data = json.dumps({
-            'name': self.user1.username,
-            'id': self.user1.pk,
-            'telemetry': None,
-            'on_timeout': True,
-        })
-
-        response = self.client.put(teams_id_url(args=[self.user1.pk]), data)
-        self.assertEqual(200, response.status_code)
-
-        data = json.loads(response.content)
-
-        self.assertEqual(False, data['on_clock'])
-        self.assertEqual(True, data['on_timeout'])
-
-        # Event created
-        event = MissionClockEvent.objects.get()
-        self.assertEqual(self.user1, event.user)
-        self.assertEqual(True, event.team_on_timeout)
 
     def test_name_ignored(self):
         """name field ignored"""

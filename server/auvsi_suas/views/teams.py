@@ -1,7 +1,6 @@
 """Teams view."""
 import json
 import logging
-from auvsi_suas.models.mission_clock_event import MissionClockEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.views.decorators import require_superuser
@@ -20,8 +19,6 @@ def user_json(user):
     return {
         'name': user.username,
         'id': user.pk,
-        'on_clock': MissionClockEvent.user_on_clock(user),
-        'on_timeout': MissionClockEvent.user_on_timeout(user),
         'in_air': TakeoffOrLandingEvent.user_in_air(user),
         'telemetry': telemetry.json() if telemetry else None
     }
@@ -87,27 +84,6 @@ class TeamsId(View):
             if currently_in_air != in_air:
                 takeoff_event = TakeoffOrLandingEvent(
                     user=user, uas_in_air=in_air)
-        # Update whether UAS in on clock or timeout.
-        if 'on_clock' in data or 'on_timeout' in data:
-            currently_on_clock = MissionClockEvent.user_on_clock(user)
-
-            currently_on_timeout = MissionClockEvent.user_on_timeout(user)
-            on_clock = data.get('on_clock', currently_on_clock)
-            on_timeout = data.get('on_timeout', currently_on_timeout)
-            if (not isinstance(on_clock, bool) or
-                    not isinstance(on_timeout, bool)):
-                return HttpResponseBadRequest(
-                    'on_clock and on_timeout must be boolean.')
-            if on_clock and on_timeout:
-                return HttpResponseBadRequest(
-                    'Cannot be on mission clock and on timeout.')
-            # New event only necessary if changing status
-            if (on_clock != currently_on_clock or
-                    on_timeout != currently_on_timeout):
-                clock_event = MissionClockEvent(
-                    user=user,
-                    team_on_clock=on_clock,
-                    team_on_timeout=on_timeout)
         # Request was valid. Save updates.
         if takeoff_event:
             takeoff_event.save()

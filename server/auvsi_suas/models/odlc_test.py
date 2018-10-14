@@ -2,7 +2,6 @@
 
 import os.path
 from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.mission_clock_event import MissionClockEvent
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.odlc import Color
 from auvsi_suas.models.odlc import Odlc
@@ -372,10 +371,6 @@ class TestOdlcEvaluator(TestCase):
         l4 = GpsPosition(latitude=0, longitude=0)
         l4.save()
 
-        event = MissionClockEvent(
-            user=self.user, team_on_clock=True, team_on_timeout=False)
-        event.save()
-
         event = TakeoffOrLandingEvent(user=self.user, uas_in_air=True)
         event.save()
 
@@ -405,10 +400,6 @@ class TestOdlcEvaluator(TestCase):
             alphanumeric_color=Color.black,
             description='Real odlc 1')
         self.real1.save()
-
-        event = MissionClockEvent(
-            user=self.user, team_on_clock=False, team_on_timeout=False)
-        event.save()
 
         # A odlc worth less than full points.
         self.submit2 = Odlc(

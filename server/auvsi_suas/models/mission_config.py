@@ -6,7 +6,6 @@ import logging
 from auvsi_suas.models import units
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.mission_clock_event import MissionClockEvent
 from auvsi_suas.models.moving_obstacle import MovingObstacle
 from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.odlc import OdlcEvaluator
