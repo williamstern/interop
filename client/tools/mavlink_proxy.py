@@ -30,9 +30,6 @@ class MavlinkProxy(object):
         self.client = client
         # Create mavlink connection.
         self.mav = mavutil.mavlink_connection(device, autoreconnect=True)
-        # Limit inflight forwarded telemetry.
-        # Selected based on worst-case healthy behavior.
-        self.inflight = threading.Semaphore(128)
         # Protects concurrent access to state.
         self.state_lock = threading.Lock()
         # Track rate of requests.
@@ -64,13 +61,11 @@ class MavlinkProxy(object):
                 altitude_msl=self._mavlink_alt(msg.alt),
                 uas_heading=self._mavlink_heading(msg.hdg))
             # Forward via client.
-            self.inflight.acquire()
             self.client.post_telemetry(telemetry).add_done_callback(
                 self._send_done)
 
     def _send_done(self, future):
         """Callback executed after telemetry post done."""
-        self.inflight.release()
         try:
             future.result()
             with self.state_lock:

@@ -17,7 +17,9 @@ from auvsi_suas.client.types import Mission
 from auvsi_suas.client.types import MovingObstacle
 from auvsi_suas.client.types import Odlc
 from auvsi_suas.client.types import StationaryObstacle
+from auvsi_suas.proto.requests_pb2 import LoginRequest
 from concurrent.futures import ThreadPoolExecutor
+from google.protobuf import json_format
 
 
 class Client(object):
@@ -31,7 +33,13 @@ class Client(object):
     AsyncClient uses this base Client to add performance features.
     """
 
-    def __init__(self, url, username, password, timeout=10, max_retries=10):
+    def __init__(self,
+                 url,
+                 username,
+                 password,
+                 timeout=10,
+                 max_concurrent=128,
+                 max_retries=10):
         """Create a new Client and login.
 
         Args:
@@ -40,22 +48,24 @@ class Client(object):
             username: Interoperability username.
             password: Interoperability password.
             timeout: Individual session request timeout (seconds).
+            max_concurrent: Maximum number of concurrent requests.
             max_retries: Maximum attempts to establish a connection.
         """
         self.url = url
         self.timeout = timeout
+        self.max_concurrent = 128
 
         self.session = requests.Session()
-        self.session.mount(
-            'http://', requests.adapters.HTTPAdapter(max_retries=max_retries))
+        self.session.mount('http://',
+                           requests.adapters.HTTPAdapter(
+                               pool_maxsize=max_concurrent,
+                               max_retries=max_retries))
 
         # All endpoints require authentication, so always login.
-        self.post(
-            '/api/login',
-            data=json.dumps({
-                'username': username,
-                'password': password
-            }))
+        login_request = LoginRequest()
+        login_request.username = username
+        login_request.password = password
+        self.post('/api/login', data=json_format.MessageToJson(login_request))
 
     def get(self, uri, **kwargs):
         """GET request to server.
@@ -298,7 +308,13 @@ class AsyncClient(object):
     Future response or error is received prior to making another request.
     """
 
-    def __init__(self, url, username, password, timeout=10, workers=128):
+    def __init__(self,
+                 url,
+                 username,
+                 password,
+                 timeout=10,
+                 max_concurrent=128,
+                 max_retries=10):
         """Create a new AsyncClient and login.
 
         Args:
@@ -307,10 +323,12 @@ class AsyncClient(object):
             username: Interoperability username
             password: Interoperability password
             timeout: Individual session request timeout (seconds)
-            workers: Number of threads to use for sending/receiving requests.
+            max_concurrent: Maximum number of concurrent requests.
+            max_retries: Maximum attempts to establish a connection.
         """
-        self.client = Client(url, username, password, timeout)
-        self.executor = ThreadPoolExecutor(max_workers=workers)
+        self.client = Client(url, username, password, timeout, max_concurrent,
+                             max_retries)
+        self.executor = ThreadPoolExecutor(max_workers=max_concurrent)
 
     def get_missions(self):
         """GET missions.
