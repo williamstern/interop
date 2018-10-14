@@ -7,6 +7,7 @@ RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 RUN apt-get -qq update && apt-get -qq install -y \
         libxml2-dev \
         libxslt-dev \
+        protobuf-compiler \
         python \
         python-dev \
         python-lxml \
@@ -22,7 +23,7 @@ RUN apt-get -qq update && apt-get -qq install -y \
         python3-lxml \
         sudo
 
-COPY requirements.txt requirements.txt
+COPY client/requirements.txt requirements.txt
 RUN bash -c "virtualenv --system-site-packages -p /usr/bin/python2 \
             /interop/client/venv2 && \
         source /interop/client/venv2/bin/activate && \
@@ -34,6 +35,9 @@ RUN bash -c "virtualenv --system-site-packages -p /usr/bin/python2 \
         pip3 install -r requirements.txt && \
         deactivate"
 
-COPY . .
+COPY client/ .
+
+COPY proto auvsi_suas/proto
+RUN protoc --python_out=. auvsi_suas/proto/*.proto
 
 CMD bash --init-file configure.sh

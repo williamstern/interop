@@ -27,39 +27,39 @@ RUN mkdir -p /var/www/media/objects && \
     chown -R www-data /var/www
 
 # Install server Python requirements.
-COPY config/requirements.txt config/requirements.txt
+COPY server/config/requirements.txt config/requirements.txt
 RUN pip3 install -r config/requirements.txt
 
 # Install server JS requirements.
-COPY config/npm.txt config/npm.txt
+COPY server/config/npm.txt config/npm.txt
 RUN cat config/npm.txt | xargs sudo npm install -g
 
 # Configure web server.
-COPY config/nginx.conf /etc/nginx/sites-enabled/default
+COPY server/config/nginx.conf /etc/nginx/sites-enabled/default
 RUN sudo mkdir -p /var/log/uwsgi
 
 # Configure database.
-COPY config/postgresql.conf /etc/postgresql/10/main/
+COPY server/config/postgresql.conf /etc/postgresql/10/main/
 RUN service postgresql restart && \
     sudo -u postgres psql -c "CREATE USER postgresql_user WITH CREATEDB PASSWORD 'postgresql_pass';" && \
     sudo -u postgres psql -c "CREATE DATABASE auvsi_suas_db;"
 
-# Compile protobuf definitions.
-COPY auvsi_suas/proto auvsi_suas/proto
-RUN protoc --python_out=. auvsi_suas/proto/*.proto
-
 # Compile static assets.
-COPY manage.py manage.py
-COPY server server
-COPY auvsi_suas/__init__.py auvsi_suas/__init__.py
-COPY auvsi_suas/models/__init__.py auvsi_suas/models/__init__.py
-COPY auvsi_suas/views/__init__.py auvsi_suas/views/__init__.py
-COPY auvsi_suas/views/auvsi_admin/__init__.py auvsi_suas/views/auvsi_admin/__init__.py
-COPY auvsi_suas/frontend auvsi_suas/frontend
+COPY server/manage.py manage.py
+COPY server/server server
+COPY server/auvsi_suas/__init__.py auvsi_suas/__init__.py
+COPY server/auvsi_suas/models/__init__.py auvsi_suas/models/__init__.py
+COPY server/auvsi_suas/views/__init__.py auvsi_suas/views/__init__.py
+COPY server/auvsi_suas/views/auvsi_admin/__init__.py auvsi_suas/views/auvsi_admin/__init__.py
+COPY server/auvsi_suas/frontend auvsi_suas/frontend
 RUN python3 manage.py collectstatic --noinput
 
-# Copy all code.
-COPY . .
+# Copy all remaining code.
+COPY server/ .
+
+# Compile protobuf definitions.
+COPY proto auvsi_suas/proto
+RUN protoc --python_out=. auvsi_suas/proto/*.proto
 
 # Load initial data.
 RUN service postgresql start && \

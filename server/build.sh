@@ -2,4 +2,5 @@
 # Builds the Interop Server Docker image.
 
 SERVER=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
-docker build -t auvsisuas/interop-server ${SERVER}
+REPO=${SERVER}/..
+docker build -t auvsisuas/interop-server ${REPO} -f ${SERVER}/Dockerfile
