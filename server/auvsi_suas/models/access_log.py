@@ -20,11 +20,16 @@ class AccessLog(models.Model):
     """
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, db_index=True, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    timestamp = models.DateTimeField(db_index=True)
 
     class Meta:
         abstract = True
         index_together = (('user', 'timestamp'), )
+
+    def __init__(self, *args, **kwargs):
+        super(AccessLog, self).__init__(*args, **kwargs)
+        if self.timestamp is None:
+            self.timestamp = timezone.now()
 
     @classmethod
     def by_user(cls, user, start_time=None, end_time=None):
