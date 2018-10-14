@@ -59,7 +59,7 @@ def proxy_mavlink(device, client):
             uas_heading=mavlink_heading(msg.hdg))
         # Forward telemetry.
         try:
-            client.post_telemetry(telemetry)
+            client.post_telemetry(telemetry).result()
         except:
             logger.exception('Failed to post telemetry to interop.')
             sys.exit(-1)

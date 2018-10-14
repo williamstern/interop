@@ -10,7 +10,7 @@ import pprint
 import sys
 import time
 
-from interop import Client
+from interop import AsyncClient
 from interop import Odlc
 from interop import Telemetry
 from proxy_mavlink import proxy_mavlink
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def missions(args, client):
-    missions = client.get_missions()
+    missions = client.get_missions().result()
     for m in missions:
         pprint.pprint(m.serialize())
 
@@ -30,7 +30,7 @@ def odlcs(args, client):
         upload_odlcs(client, args.odlc_dir, args.team_id,
                      args.actionable_override)
     else:
-        odlcs = client.get_odlcs()
+        odlcs = client.get_odlcs().result()
         for odlc in odlcs:
             pprint.pprint(odlc.serialize())
 
@@ -40,8 +40,7 @@ def probe(args, client):
         start_time = datetime.datetime.now()
 
         telemetry = Telemetry(0, 0, 0, 0)
-        telemetry_resp = client.post_telemetry(telemetry)
-        obstacle_resp = client.get_obstacles()
+        telemetry_resp = client.post_telemetry(telemetry).result()
 
         end_time = datetime.datetime.now()
         elapsed_time = (end_time - start_time).total_seconds()
@@ -136,7 +135,7 @@ forward as telemetry to interop server.''')
         password = getpass.getpass('Interoperability Password: ')
 
     # Create client and dispatch subcommand.
-    client = Client(args.url, args.username, password)
+    client = AsyncClient(args.url, args.username, password)
     args.func(args, client)
 
 

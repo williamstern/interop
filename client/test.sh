@@ -12,4 +12,7 @@ docker run --net="host" -it auvsisuas/interop-client bash -c \
      deactivate && \
      source venv2/bin/activate && \
      python /usr/bin/nosetests tools && \
+     deactivate && \
+     source venv3/bin/activate && \
+     python /usr/bin/nosetests tools && \
      deactivate"

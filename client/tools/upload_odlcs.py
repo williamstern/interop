@@ -121,11 +121,11 @@ def upload_odlc(client,
     odlc.team_id = team_id
     odlc.actionable_override = actionable_override
     logger.info('Uploading odlc %s: %r' % (odlc_file, odlc))
-    odlc = client.post_odlc(odlc)
+    odlc = client.post_odlc(odlc).result()
     if image_file:
         logger.info('Uploading odlc thumbnail %s' % image_file)
-        with open(image_file) as img:
-            client.post_odlc_image(odlc.id, img.read())
+        with open(image_file, 'rb') as img:
+            client.post_odlc_image(odlc.id, img.read()).result()
     else:
         logger.warning('No thumbnail for odlc %s' % odlc_file)
 
