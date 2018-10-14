@@ -2,9 +2,9 @@ import os
 import subprocess
 import time
 import unittest
-from pymavlink import mavutil
 
-from interop import Telemetry
+from auvsi_suas.client.types import Telemetry
+from pymavlink import mavutil
 
 
 class InteropCliTestBase(unittest.TestCase):

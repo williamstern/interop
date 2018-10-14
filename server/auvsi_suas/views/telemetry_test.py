@@ -13,7 +13,6 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils import timezone
 
-login_url = reverse('auvsi_suas:login')
 telemetry_url = reverse('auvsi_suas:telemetry')
 
 
@@ -32,11 +31,7 @@ class TestTelemetryPost(TestCase):
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
         self.user.save()
-
-        response = self.client.post(
-            login_url, {'username': 'testuser',
-                        'password': 'testpass'})
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(self.user)
 
     def test_invalid_request(self):
         """Tests an invalid request by mis-specifying parameters."""
@@ -143,22 +138,15 @@ class TestTelemetryGet(TestCase):
         self.superuser = User.objects.create_superuser(
             'superuser', 'email@example.com', 'superpass')
         self.superuser.save()
+        self.client.force_login(self.superuser)
 
         self.user1 = User.objects.create_user('user1', 'email@example.com',
                                               'pass')
-
         self.user2 = User.objects.create_user('user2', 'email@example.com',
                                               'pass')
-
         self.year2000 = datetime.datetime(2000, 1, 1, tzinfo=timezone.utc)
         self.year2001 = datetime.datetime(2001, 1, 1, tzinfo=timezone.utc)
         self.year2002 = datetime.datetime(2002, 1, 1, tzinfo=timezone.utc)
-
-        # Login
-        response = self.client.post(
-            login_url, {'username': 'superuser',
-                        'password': 'superpass'})
-        self.assertEqual(200, response.status_code)
 
     def create_logs(self,
                     user,
@@ -196,12 +184,7 @@ class TestTelemetryGet(TestCase):
         user = User.objects.create_user('testuser', 'email@example.com',
                                         'testpass')
         user.save()
-
-        # Login
-        response = self.client.post(
-            login_url, {'username': 'testuser',
-                        'password': 'testpass'})
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(user)
 
         response = self.client.get(telemetry_url)
         self.assertEqual(403, response.status_code)

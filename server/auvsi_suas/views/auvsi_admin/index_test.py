@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-login_url = reverse('auvsi_suas:login')
 index_url = reverse('auvsi_suas:index')
 
 
@@ -28,21 +27,13 @@ class TestIndex(TestCase):
 
     def test_index_normal_user(self):
         """Index requires superuser."""
-        response = self.client.post(
-            login_url, {'username': 'testuser',
-                        'password': 'testpass'})
-        self.assertEqual(200, response.status_code)
-
+        self.client.force_login(self.user)
         response = self.client.get(index_url)
         # Redirect to login
         self.assertEqual(302, response.status_code)
 
     def test_index_superuser(self):
         """Index works for superuser."""
-        response = self.client.post(
-            login_url, {'username': 'superuser',
-                        'password': 'superpass'})
-        self.assertEqual(200, response.status_code)
-
+        self.client.force_login(self.superuser)
         response = self.client.get(index_url)
         self.assertEqual(200, response.status_code)

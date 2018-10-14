@@ -10,9 +10,9 @@ import pprint
 import sys
 import time
 
-from interop import AsyncClient
-from interop import Odlc
-from interop import Telemetry
+from auvsi_suas.client.client import AsyncClient
+from auvsi_suas.client.types import Odlc
+from auvsi_suas.client.types import Telemetry
 from mavlink_proxy import MavlinkProxy
 from upload_odlcs import upload_odlcs
 

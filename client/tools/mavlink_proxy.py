@@ -5,9 +5,9 @@ import logging
 import sys
 import threading
 import time
-from pymavlink import mavutil
 
-from interop import Telemetry
+from auvsi_suas.client.types import Telemetry
+from pymavlink import mavutil
 
 logger = logging.getLogger(__name__)
 

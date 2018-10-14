@@ -12,7 +12,6 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils import timezone
 
-login_url = reverse('auvsi_suas:login')
 teams_url = reverse('auvsi_suas:teams')
 teams_id_url = functools.partial(reverse, 'auvsi_suas:teams_id')
 
@@ -31,12 +30,7 @@ class TestTeamsView(TestCase):
         self.superuser = User.objects.create_superuser(
             'superuser', 'email@example.com', 'superpass')
         self.superuser.save()
-
-        # Login
-        response = self.client.post(
-            login_url, {'username': 'superuser',
-                        'password': 'superpass'})
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(self.superuser)
 
     def create_data(self):
         """Create a basic sample dataset."""
@@ -80,12 +74,7 @@ class TestTeamsView(TestCase):
         user = User.objects.create_user('testuser', 'email@example.com',
                                         'testpass')
         user.save()
-
-        # Login
-        response = self.client.post(
-            login_url, {'username': 'testuser',
-                        'password': 'testpass'})
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(user)
 
         response = self.client.get(teams_url)
         self.assertEqual(403, response.status_code)
@@ -167,12 +156,7 @@ class TestTeamsIdView(TestCase):
         self.superuser = User.objects.create_superuser(
             'superuser', 'email@example.com', 'superpass')
         self.superuser.save()
-
-        # Login
-        response = self.client.post(
-            login_url, {'username': 'superuser',
-                        'password': 'superpass'})
-        self.assertEqual(200, response.status_code)
+        self.client.force_login(self.superuser)
 
     def test_bad_id(self):
         """Invalid user id rejected"""

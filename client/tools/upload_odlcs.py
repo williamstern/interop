@@ -8,7 +8,7 @@ import os
 import pprint
 import re
 
-from interop import Odlc
+from auvsi_suas.client.types import Odlc
 
 logger = logging.getLogger(__name__)
 
