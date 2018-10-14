@@ -14,13 +14,10 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterIndexTogether(
             name='missionclockevent',
-            index_together=set([]),
-        ),
+            index_together=set([]), ),
         migrations.RemoveField(
             model_name='missionclockevent',
-            name='user',
-        ),
+            name='user', ),
         migrations.DeleteModel(
-            name='MissionClockEvent',
-        ),
+            name='MissionClockEvent', ),
     ]

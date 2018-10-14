@@ -295,7 +295,7 @@ class AsyncClient(object):
     Future response or error is received prior to making another request.
     """
 
-    def __init__(self, url, username, password, timeout=10, workers=8):
+    def __init__(self, url, username, password, timeout=10, workers=128):
         """Create a new AsyncClient and login.
 
         Args:
