@@ -30,7 +30,6 @@ INTERNAL_IPS = ['127.0.0.1']
 # Application definition
 INSTALLED_APPS = (
     'auvsi_suas',
-    'auvsi_suas.views.auvsi_admin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

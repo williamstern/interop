@@ -35,7 +35,7 @@ describe("EvaluateTeamsCtrl controller", function() {
     it("Should get evaluate teams", function() {
         httpBackend.flush();
         evaluateTeamsCtrl.selectedTeamId = '1';
-        window.expectUrl = '/auvsi_admin/evaluate_teams.zip?team=1';
+        window.expectUrl = '/api/missions/evaluate.zip?team=1';
         evaluateTeamsCtrl.evaluate();
     });
 });

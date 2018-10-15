@@ -2,14 +2,13 @@
 
 import logging
 from django.contrib.auth.decorators import user_passes_test
-from django.shortcuts import render
 from django.utils.decorators import method_decorator
-from django.views.generic import View
+from django.views.generic import TemplateView
 
 logger = logging.getLogger(__name__)
 
 
-class Index(View):
+class Index(TemplateView):
     """Main view for users connecting via web browsers.
 
     This view downloads and displays a JS view. This view first logs in the
@@ -17,11 +16,13 @@ class Index(View):
     to manage the competition and evaluate teams.
     """
 
-    # We want a real redirect to the login page rather than a 403, so
-    # we use user_passes_test directly.
+    template_name = 'index.html'
+
+    # Use user_passes_test to redirect to login rather than return 403.
     @method_decorator(user_passes_test(lambda u: u.is_superuser))
     def dispatch(self, *args, **kwargs):
         return super(Index, self).dispatch(*args, **kwargs)
 
-    def get(self, request):
-        return render(request, 'index.html')
+    def get_context_data(self, **kwargs):
+        context = super(Index, self).get_context_data(**kwargs)
+        return context

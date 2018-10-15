@@ -23,12 +23,12 @@ NavigationCtrl = function($routeParams) {
     this.links_ = [
         {
             text: "Live View (KML)",
-            url: "/auvsi_admin/live.kml",
+            url: "/api/missions/live.kml",
             target: "_blank"
         },
         {
             text: "Export Data (KML)",
-            url: "/auvsi_admin/export_data.kml",
+            url: "/api/missions/export.kml",
             target: "_blank"
         },
         {

@@ -50,7 +50,6 @@ COPY server/server server
 COPY server/auvsi_suas/__init__.py auvsi_suas/__init__.py
 COPY server/auvsi_suas/models/__init__.py auvsi_suas/models/__init__.py
 COPY server/auvsi_suas/views/__init__.py auvsi_suas/views/__init__.py
-COPY server/auvsi_suas/views/auvsi_admin/__init__.py auvsi_suas/views/auvsi_admin/__init__.py
 COPY server/auvsi_suas/frontend auvsi_suas/frontend
 RUN python3 manage.py collectstatic --noinput
 
