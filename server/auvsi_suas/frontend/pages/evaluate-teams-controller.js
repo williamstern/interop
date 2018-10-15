@@ -47,7 +47,7 @@ EvaluateTeamsCtrl.prototype.evaluate = function() {
     }
 
     // Open evaluation in new tab.
-    this.window_.open('/auvsi_admin/evaluate_teams.zip'+ query, '_blank');
+    this.window_.open('/api/missions/evaluate.zip'+ query, '_blank');
 };
 
 

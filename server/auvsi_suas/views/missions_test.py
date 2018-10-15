@@ -1,97 +1,31 @@
 """Tests for the missions module."""
 
+import csv
 import datetime
 import functools
+import io
 import json
+import logging
+import zipfile
+from auvsi_suas.models import units
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.views.missions import active_mission
-from auvsi_suas.views.missions import mission_for_request
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseServerError
 from django.test import TestCase
+from django.test.client import Client
 from django.utils import timezone
+from xml.etree import ElementTree
 
 missions_url = reverse('auvsi_suas:missions')
 missions_id_url = functools.partial(reverse, 'auvsi_suas:missions_id')
-
-
-class TestMissionForRequest(TestCase):
-    """Tests for function mission_for_request."""
-
-    def create_config(self):
-        """Creates a dummy config for testing."""
-        pos = GpsPosition()
-        pos.latitude = 10
-        pos.longitude = 10
-        pos.save()
-
-        config = MissionConfig()
-        config.is_active = False
-        config.home_pos = pos
-        config.emergent_last_known_pos = pos
-        config.off_axis_odlc_pos = pos
-        config.air_drop_pos = pos
-        return config
-
-    def test_noninteger_id(self):
-        """Tests a non-integer mission ID in request."""
-        params = {'mission': 'a'}
-        _, err = mission_for_request(params)
-        self.assertTrue(isinstance(err, HttpResponseBadRequest))
-
-    def test_config_doesnt_exist(self):
-        """Tests a mission ID for a mission that doesn't exist."""
-        params = {'mission': '1'}
-        _, err = mission_for_request(params)
-        self.assertTrue(isinstance(err, HttpResponseBadRequest))
-
-    def test_specified_mission(self):
-        """Tests getting the mission for a specified ID."""
-        config = self.create_config()
-        config.is_active = False
-        config.save()
-
-        params = {'mission': str(config.pk)}
-        recv_config, _ = mission_for_request(params)
-        self.assertEqual(config, recv_config)
-
-    def test_no_active_missions(self):
-        """Tests when there are no active missions."""
-        _, err = active_mission()
-        self.assertTrue(isinstance(err, HttpResponseServerError))
-
-        _, err = mission_for_request({})
-        self.assertTrue(isinstance(err, HttpResponseServerError))
-
-    def test_multiple_active_missions(self):
-        """Tests when too many active missions."""
-        config = self.create_config()
-        config.is_active = True
-        config.save()
-        config = self.create_config()
-        config.is_active = True
-        config.save()
-
-        _, err = active_mission()
-        self.assertTrue(isinstance(err, HttpResponseServerError))
-
-        _, err = mission_for_request({})
-        self.assertTrue(isinstance(err, HttpResponseServerError))
-
-    def test_active_mission(self):
-        """Tests getting the single active mission."""
-        config = self.create_config()
-        config.is_active = True
-        config.save()
-
-        recv_config, _ = active_mission()
-        self.assertEqual(config, recv_config)
-
-        recv_config, _ = mission_for_request({})
-        self.assertEqual(config, recv_config)
+export_url = reverse('auvsi_suas:export_kml')
+live_url = reverse('auvsi_suas:live_kml')
+update_url = update_url = reverse('auvsi_suas:update_kml')
+evaluate_url = reverse('auvsi_suas:evaluate')
 
 
 class TestMissionsViewLoggedOut(TestCase):
@@ -270,3 +204,280 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assert_non_superuser_data(data)
         self.assertIn('stationary_obstacles', data)
         self.assertIn('moving_obstacles', data)
+
+
+class TestGenerateKMLCommon(TestCase):
+    """Tests the generateKML view."""
+
+    # String formatter for KML format that expects lon, lat, alt arguments
+    coord_format = '<gx:coord>{} {} {}</gx:coord>'
+
+    def setUp(self):
+        """Sets up the tests."""
+        # Create nonadmin user
+        self.nonadmin_user = User.objects.create_user(
+            'testuser', 'testemail@x.com', 'testpass')
+        self.nonadmin_user.save()
+
+        # Create admin user
+        self.admin_user = User.objects.create_superuser(
+            'testuser2', 'testemail@x.com', 'testpass')
+        self.admin_user.save()
+
+    def validate_kml(self, kml_data, folders, users, coordinates):
+        kml_data = kml_data.decode('utf-8')
+        ElementTree.fromstring(kml_data)
+        for folder in folders:
+            tag = '<name>{}</name>'.format(folder)
+            self.assertTrue(tag in kml_data)
+
+        for user in users:
+            tag = '<name>{}</name>'.format(user)
+            self.assertTrue(tag in kml_data)
+
+        for coord in coordinates:
+            coord_str = self.coord_format.format(coord[0], coord[1], coord[2])
+            self.assertIn(coord_str, kml_data)
+
+
+class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
+    """Tests the generateKML view."""
+
+    def __init__(self, *args, **kwargs):
+        super(TestGenerateKMLNoFixture, self).__init__(*args, **kwargs)
+        self.folders = ['Teams', 'Missions']
+        self.users = ['testuser']
+        self.coordinates = []
+
+    def test_generateKML_not_logged_in(self):
+        """Tests the generate KML method."""
+        response = self.client.get(export_url)
+        self.assertEqual(403, response.status_code)
+
+    def test_generateKML_nonadmin(self):
+        """Tests the generate KML method."""
+        self.client.force_login(self.nonadmin_user)
+        response = self.client.get(export_url)
+        self.assertEqual(403, response.status_code)
+
+    def test_generateKML(self):
+        """Tests the generate KML method."""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(export_url)
+        self.assertEqual(200, response.status_code)
+        kml_data = response.content
+        self.validate_kml(kml_data, self.folders, self.users, self.coordinates)
+
+
+class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
+    """Tests the generateKML view."""
+    fixtures = ['testdata/sample_mission.json']
+
+    def __init__(self, *args, **kwargs):
+        super(TestGenerateKMLWithFixture, self).__init__(*args, **kwargs)
+        self.folders = ['Teams', 'Missions']
+        self.users = ['testuser', 'user0', 'user1']
+        self.coordinates = [(lat, lon, units.feet_to_meters(alt))
+                            for lat, lon, alt in [
+                                (-76.0, 38.0, 0.0),
+                                (-76.0, 38.0, 10.0),
+                                (-76.0, 38.0, 20.0),
+                                (-76.0, 38.0, 30.0),
+                                (-76.0, 38.0, 100.0),
+                                (-76.0, 38.0, 30.0),
+                                (-77.0, 38.0, 60.0),
+                            ]]
+
+    def test_generateKML_not_logged_in(self):
+        """Tests the generate KML method."""
+        response = self.client.get(export_url)
+        self.assertEqual(403, response.status_code)
+
+    def test_generateKML_nonadmin(self):
+        """Tests the generate KML method."""
+        self.client.force_login(self.nonadmin_user)
+        response = self.client.get(export_url)
+        self.assertEqual(403, response.status_code)
+
+    def test_generateKML(self):
+        """Tests the generate KML method."""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(export_url)
+        self.assertEqual(200, response.status_code)
+
+        kml_data = response.content
+        self.validate_kml(kml_data, self.folders, self.users, self.coordinates)
+
+
+class TestGenerateLiveKMLCommon(TestCase):
+    """Tests the generateKML view."""
+
+    def setUp(self):
+        """Sets up the tests."""
+        # Create nonadmin user
+        self.nonadmin_user = User.objects.create_user(
+            'testuser', 'testemail@x.com', 'testpass')
+        self.nonadmin_user.save()
+
+        # Create admin user
+        self.admin_user = User.objects.create_superuser(
+            'testuser2', 'testemail@x.com', 'testpass')
+        self.admin_user.save()
+
+
+class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
+    def setUp(self):
+        """Setup a single active mission to test live kml with."""
+        super(TestGenerateLiveKMLNoFixture, self).setUp()
+
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 10
+        pos.save()
+
+        config = MissionConfig()
+        config.is_active = True
+        config.home_pos = pos
+        config.emergent_last_known_pos = pos
+        config.off_axis_odlc_pos = pos
+        config.air_drop_pos = pos
+        config.save()
+        self.config = config
+
+    def test_generate_live_kml_not_logged_in(self):
+        """Tests the generate KML method."""
+        response = self.client.get(live_url)
+        self.assertEqual(403, response.status_code)
+
+    def test_generate_live_kml(self):
+        """Tests the generate KML method."""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(live_url)
+        self.assertEqual(200, response.status_code)
+
+    def test_generate_live_kml_nonadmin(self):
+        """Tests the generate KML method."""
+        self.client.force_login(self.nonadmin_user)
+        response = self.client.get(live_url)
+        self.assertEqual(403, response.status_code)
+
+    def test_generate_live_kml_update_no_session_id(self):
+        """Tests the generate KML method."""
+        response = self.client.get(update_url)
+        self.assertEqual(403, response.status_code)
+
+    def test_generate_live_kml_update_bad_session_id(self):
+        """Tests the generate KML method."""
+        bad_id = '360l8fjqnvzbviy590gmjeltma9fx26f'
+        response = self.client.get(update_url, {'sessionid': bad_id})
+        self.assertEqual(403, response.status_code)
+
+    def test_generate_live_kml_update_nonadmin(self):
+        """Tests the generate KML method."""
+        self.client.force_login(self.nonadmin_user)
+        response = self.client.get(update_url,
+                                   {'sessionid': self.get_session_id()})
+        self.assertEqual(403, response.status_code)
+
+    def test_generate_live_kml_update(self):
+        """Tests the generate KML method."""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(update_url,
+                                   {'sessionid': self.get_session_id()})
+        self.assertEqual(200, response.status_code)
+
+    def get_session_id(self):
+        for item in self.client.cookies.items():
+            morsel = item[1]
+            if morsel.key == 'sessionid':
+                return morsel.value
+
+
+class TestGenerateLiveKMLWithFixture(TestGenerateLiveKMLCommon):
+    """Tests the generateKML view."""
+    fixtures = ['testdata/sample_mission.json']
+
+    def test_generate_live_kml(self):
+        """Tests the generate KML method."""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(live_url)
+        self.assertEqual(200, response.status_code)
+
+
+class TestEvaluateTeams(TestCase):
+    """Tests the evaluate_teams view."""
+
+    fixtures = ['testdata/sample_mission.json']
+
+    def setUp(self):
+        """Sets up the tests."""
+        # Create nonadmin user
+        self.nonadmin_user = User.objects.create_user(
+            'testuser', 'testemail@x.com', 'testpass')
+        self.nonadmin_user.save()
+        self.nonadmin_client = Client()
+        # Create admin user
+        self.admin_user = User.objects.create_superuser(
+            'testuser2', 'testemail@x.com', 'testpass')
+        self.admin_user.save()
+        self.admin_client = Client()
+
+    def test_evaluate_teams_nonadmin(self):
+        """Tests that you can only access data as admin."""
+        self.client.force_login(self.nonadmin_user)
+        response = self.client.get(evaluate_url)
+        self.assertEqual(403, response.status_code)
+
+    def test_invalid_mission(self):
+        """Tests that an invalid mission ID results in error."""
+        self.client.force_login(self.nonadmin_user)
+        response = self.client.get(evaluate_url, {'mission': 100000})
+        self.assertGreaterEqual(response.status_code, 400)
+
+    def load_json(self, response):
+        """Gets the json data out of the response's zip archive."""
+        zip_io = io.BytesIO(response.content)
+        with zipfile.ZipFile(zip_io, 'r') as zip_file:
+            return json.loads(zip_file.read('/evaluate_teams/all.json'))
+
+    def load_csv(self, response):
+        """Gets the CSV data out of the response's zip archive."""
+        zip_io = io.BytesIO(response.content)
+        with zipfile.ZipFile(zip_io, 'r') as zip_file:
+            return zip_file.read('/evaluate_teams/all.csv').decode('utf-8')
+
+    def test_evaluate_teams(self):
+        """Tests the eval Json method."""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(evaluate_url)
+        self.assertEqual(response.status_code, 200)
+        data = self.load_json(response)
+        self.assertIn('teams', data)
+        teams = data['teams']
+        self.assertEqual(len(teams), 3)
+        self.assertEqual('user0', teams[1]['team'])
+        self.assertEqual('user1', teams[2]['team'])
+        self.assertIn('waypoints', teams[0]['feedback'])
+
+    def test_evaluate_teams_specific_team(self):
+        """Tests the eval Json method on a specific team."""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(evaluate_url, {'team': 53})
+        self.assertEqual(response.status_code, 200)
+        data = self.load_json(response)
+        self.assertIn('teams', data)
+        teams = data['teams']
+        self.assertEqual(len(teams), 1)
+        self.assertEqual('user0', teams[0]['team'])
+
+    def test_evaluate_teams_csv(self):
+        """Tests the CSV method."""
+        self.client.force_login(self.admin_user)
+        response = self.client.get(evaluate_url)
+        self.assertEqual(response.status_code, 200)
+        csv_data = self.load_csv(response)
+        self.assertEqual(len(csv_data.split('\n')), 5)
+        self.assertIn('team', csv_data)
+        self.assertIn('waypoints', csv_data)
+        self.assertIn('user0', csv_data)
+        self.assertIn('user1', csv_data)
