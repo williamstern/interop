@@ -5,7 +5,6 @@ import unittest
 from auvsi_suas.client.client import AsyncClient
 from auvsi_suas.client.client import Client
 from auvsi_suas.client.exceptions import InteropError
-from auvsi_suas.client.types import Mission
 from auvsi_suas.client.types import Odlc
 from auvsi_suas.client.types import Telemetry
 

@@ -3,7 +3,6 @@
 import datetime
 import itertools
 import logging
-from auvsi_suas.models import distance
 from auvsi_suas.models import units
 from auvsi_suas.models.access_log import AccessLog
 from auvsi_suas.models.aerial_position import AerialPosition
@@ -13,7 +12,6 @@ from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
 from auvsi_suas.proto import mission_pb2
 from collections import defaultdict
-from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.db import models

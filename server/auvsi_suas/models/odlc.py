@@ -1,6 +1,5 @@
 """Object detection, localization, and classification model."""
 
-import collections
 import enum
 import logging
 import networkx as nx

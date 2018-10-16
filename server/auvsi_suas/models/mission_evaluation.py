@@ -1,11 +1,7 @@
 """Mission evaluation."""
 
-import datetime
 import itertools
 import logging
-from auvsi_suas.models import distance
-from auvsi_suas.models import units
-from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.mission_judge_feedback import MissionJudgeFeedback
 from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.odlc import OdlcEvaluator

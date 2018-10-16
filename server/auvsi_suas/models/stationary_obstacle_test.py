@@ -1,6 +1,5 @@
 """Tests for the stationary_obstacle module."""
 
-from auvsi_suas.models import distance
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.stationary_obstacle import StationaryObstacle

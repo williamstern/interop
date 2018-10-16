@@ -1,7 +1,6 @@
 # Module to load odlcs from file and upload via interoperability.
 
 import csv
-import imghdr
 import json
 import logging
 import os

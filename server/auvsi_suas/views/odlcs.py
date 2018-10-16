@@ -13,13 +13,11 @@ from auvsi_suas.models.odlc import Orientation
 from auvsi_suas.models.odlc import Shape
 from auvsi_suas.views.decorators import require_login
 from auvsi_suas.views.decorators import require_superuser
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.images import ImageFile
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseForbidden
-from django.http import HttpResponseNotAllowed
 from django.http import HttpResponseNotFound
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator

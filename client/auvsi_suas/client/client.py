@@ -6,11 +6,8 @@ Users should use the AsyncClient to manage the interface, as it has performance
 features. A simpler Client is also given as a base implementation.
 """
 
-import functools
 import json
 import requests
-import threading
-
 from auvsi_suas.client.exceptions import InteropError
 from auvsi_suas.client.types import Mission
 from auvsi_suas.client.types import Mission

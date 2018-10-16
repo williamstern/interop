@@ -5,7 +5,6 @@ import logging
 import numpy as np
 from auvsi_suas.models import units
 from auvsi_suas.models.waypoint import Waypoint
-from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
 from django.contrib import admin
 from django.db import models

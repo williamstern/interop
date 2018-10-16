@@ -4,7 +4,6 @@ import datetime
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.time_period import TimePeriod
 from auvsi_suas.models.access_log_test import TestAccessLogCommon
-from django.utils import timezone
 
 
 class TestTakeoffOrLandingEventModel(TestAccessLogCommon):

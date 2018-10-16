@@ -5,11 +5,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-import datetime
-from django.utils import timezone
 from django.conf import settings
-import functools
-import logging
 
 
 class Migration(migrations.Migration):
