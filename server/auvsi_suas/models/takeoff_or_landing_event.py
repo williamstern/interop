@@ -5,7 +5,6 @@ from auvsi_suas.models.access_log import AccessLog
 from auvsi_suas.models.time_period import TimePeriod
 from django.contrib import admin
 from django.db import models
-from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 

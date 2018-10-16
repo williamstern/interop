@@ -1,6 +1,5 @@
 """Tests for the distance module."""
 
-import pyproj
 from auvsi_suas.models import distance
 from django.test import TestCase
 

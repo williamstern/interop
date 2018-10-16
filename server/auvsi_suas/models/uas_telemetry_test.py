@@ -2,7 +2,6 @@
 
 import datetime
 import iso8601
-from auvsi_suas.models import distance
 from auvsi_suas.models import units
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition

@@ -2,8 +2,6 @@ import os
 import subprocess
 import time
 import unittest
-
-from auvsi_suas.client.types import Telemetry
 from pymavlink import mavutil
 
 

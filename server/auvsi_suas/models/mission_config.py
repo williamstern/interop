@@ -1,22 +1,16 @@
 """Mission configuration model."""
 
-import datetime
-import itertools
 import logging
 from auvsi_suas.models import units
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.moving_obstacle import MovingObstacle
 from auvsi_suas.models.odlc import Odlc
-from auvsi_suas.models.odlc import OdlcEvaluator
 from auvsi_suas.models.stationary_obstacle import StationaryObstacle
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
-from auvsi_suas.models.time_period import TimePeriod
-from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.waypoint import Waypoint
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
-from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.db import models

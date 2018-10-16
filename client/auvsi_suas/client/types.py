@@ -5,9 +5,6 @@ requires. They include input validation, making a best-effort to ensure
 values will be accepted by the server.
 """
 
-import re
-import sys
-
 
 class ClientBaseType(object):
     """ ClientBaseType is a simple base class which provides basic functions.

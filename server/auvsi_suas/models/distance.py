@@ -5,7 +5,6 @@ import math
 import numpy as np
 import pyproj
 from auvsi_suas.models import units
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 wgs84 = pyproj.Proj(init="epsg:4326")

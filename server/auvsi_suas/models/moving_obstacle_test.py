@@ -10,11 +10,9 @@ from auvsi_suas.models.time_period import TimePeriod
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.waypoint import Waypoint
 from auvsi_suas.patches.simplekml_patch import Kml
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
-from auvsi_suas.models import distance
 
 TESTDATA_COMPETITION_DIST = [(-76.428709, 38.145306, -76.426375, 38.146146,
                               0.22446), (-76.428537, 38.145399, -76.427818,

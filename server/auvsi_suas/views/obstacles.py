@@ -3,9 +3,6 @@
 import iso8601
 import json
 import logging
-from auvsi_suas.models.moving_obstacle import MovingObstacle
-from auvsi_suas.models.stationary_obstacle import StationaryObstacle
-from auvsi_suas.views import boolean_param
 from auvsi_suas.views.decorators import require_login
 from auvsi_suas.views.missions import active_mission
 from django.http import HttpResponse

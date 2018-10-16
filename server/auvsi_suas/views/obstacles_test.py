@@ -1,20 +1,15 @@
 """Tests for the obstacles module."""
 
-import datetime
 import json
-import logging
-import time
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.moving_obstacle import MovingObstacle
 from auvsi_suas.models.stationary_obstacle import StationaryObstacle
 from auvsi_suas.models.waypoint import Waypoint
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from django.test.client import Client
 from django.utils import timezone
 
 obstacle_url = reverse('auvsi_suas:obstacles')

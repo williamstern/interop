@@ -2,7 +2,6 @@
 # Packet details at http://mavlink.org/messages/common#GLOBAL_POSITION_INT.
 
 import logging
-import sys
 import threading
 import time
 

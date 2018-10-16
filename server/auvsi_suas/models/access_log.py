@@ -1,9 +1,7 @@
 """Model for an access log."""
 
-import datetime
 import logging
 import numpy as np
-from auvsi_suas.models.time_period import TimePeriod
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
