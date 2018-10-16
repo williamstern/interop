@@ -19,7 +19,6 @@ RUN apt-get -qq update && apt-get -qq install -y \
         python3-pip \
         python3-psycopg2 \
         python3-pyproj \
-        python3-scipy \
         sudo
 
 # Create storage for object images.

@@ -53,18 +53,9 @@ class Obstacles(View):
             cur_obst_json = cur_obst.json()
             stationary_obstacles_json.append(cur_obst_json)
 
-        # Form JSON response portion for moving obstacles
-        moving_obstacles = mission.moving_obstacles.all()
-        moving_obstacles_json = []
-        for cur_obst in moving_obstacles:
-            # Add current obstacle
-            cur_obst_json = cur_obst.json(time=time)
-            moving_obstacles_json.append(cur_obst_json)
-
         # Form final JSON response
         data = {
             'stationary_obstacles': stationary_obstacles_json,
-            'moving_obstacles': moving_obstacles_json
         }
 
         # Return JSON data

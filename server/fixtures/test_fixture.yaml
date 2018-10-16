@@ -34,12 +34,6 @@
 - model: auvsi_suas.stationaryobstacle
   pk: 2
   fields: {cylinder_height: 300.0, cylinder_radius: 50.0, gps_position: 2}
-- model: auvsi_suas.movingobstacle
-  pk: 1
-  fields:
-    speed_avg: 30.0
-    sphere_radius: 50.0
-    waypoints: [1, 2, 3]
 - model: auvsi_suas.odlc
   pk: 1
   fields:
@@ -98,7 +92,6 @@
     home_pos: 1
     is_active: true
     mission_waypoints: [1]
-    moving_obstacles: [1]
     off_axis_odlc_pos: 3
     search_grid_points: [1]
     stationary_obstacles: [1, 2]

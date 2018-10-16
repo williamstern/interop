@@ -26,10 +26,6 @@ class TestMissionScoring(TestCase):
         obs.hit = True
         obs = feedback.stationary_obstacles.add()
         obs.hit = False
-        obs = feedback.moving_obstacles.add()
-        obs.hit = True
-        obs = feedback.moving_obstacles.add()
-        obs.hit = True
         odlcs = feedback.odlc
         odlcs.score_ratio = 0.46
         odlcs.extra_object_penalty_ratio = 0.1
@@ -133,23 +129,16 @@ class TestMissionScoring(TestCase):
 
         mission_evaluation.score_team(self.eval)
         self.assertTrue(avoid.telemetry_prerequisite)
-        self.assertAlmostEqual(0.125, avoid.stationary_obstacle)
-        self.assertAlmostEqual(0, avoid.moving_obstacle)
-        self.assertAlmostEqual(0.0625, avoid.score_ratio)
+        self.assertAlmostEqual(0.125, avoid.score_ratio)
 
         feedback.stationary_obstacles[0].hit = False
-        feedback.moving_obstacles[0].hit = False
         mission_evaluation.score_team(self.eval)
         self.assertTrue(avoid.telemetry_prerequisite)
-        self.assertAlmostEqual(1, avoid.stationary_obstacle)
-        self.assertAlmostEqual(0.125, avoid.moving_obstacle)
-        self.assertAlmostEqual(0.5625, avoid.score_ratio)
+        self.assertAlmostEqual(1, avoid.score_ratio)
 
         feedback.uas_telemetry_time_avg_sec = 1.01
         mission_evaluation.score_team(self.eval)
         self.assertFalse(avoid.telemetry_prerequisite)
-        self.assertAlmostEqual(0, avoid.stationary_obstacle)
-        self.assertAlmostEqual(0, avoid.moving_obstacle)
         self.assertAlmostEqual(0, avoid.score_ratio)
 
     def test_objects(self):
@@ -204,7 +193,7 @@ class TestMissionScoring(TestCase):
     def test_total(self):
         """Test the total scoring."""
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(0.4175777777777778, self.eval.score.score_ratio)
+        self.assertAlmostEqual(0.4300777777777778, self.eval.score.score_ratio)
 
     def test_non_negative(self):
         """Test that total score doesn't go negative."""
@@ -220,10 +209,6 @@ class TestMissionScoring(TestCase):
         obs = feedback.stationary_obstacles.add()
         obs.hit = True
         obs = feedback.stationary_obstacles.add()
-        obs.hit = True
-        obs = feedback.moving_obstacles.add()
-        obs.hit = True
-        obs = feedback.moving_obstacles.add()
         obs.hit = True
         odlcs = feedback.odlc
         odlcs.score_ratio = 0
@@ -288,11 +273,6 @@ class TestMissionEvaluation(TestCase):
         self.assertEqual(26, feedback.stationary_obstacles[1].id)
         self.assertEqual(False, feedback.stationary_obstacles[1].hit)
 
-        self.assertEqual(25, feedback.moving_obstacles[0].id)
-        self.assertEqual(True, feedback.moving_obstacles[0].hit)
-        self.assertEqual(26, feedback.moving_obstacles[1].id)
-        self.assertEqual(False, feedback.moving_obstacles[1].hit)
-
         self.assertEqual(1, feedback.judge.flight_time_sec)
 
         self.assertAlmostEqual(0.99948148, score.timeline.mission_time)
@@ -343,11 +323,6 @@ class TestMissionEvaluation(TestCase):
         self.assertEqual(False, feedback.stationary_obstacles[0].hit)
         self.assertEqual(26, feedback.stationary_obstacles[1].id)
         self.assertEqual(False, feedback.stationary_obstacles[1].hit)
-
-        self.assertEqual(25, feedback.moving_obstacles[0].id)
-        self.assertEqual(False, feedback.moving_obstacles[0].hit)
-        self.assertEqual(26, feedback.moving_obstacles[1].id)
-        self.assertEqual(False, feedback.moving_obstacles[1].hit)
 
         self.assertEqual(2, feedback.judge.flight_time_sec)
 

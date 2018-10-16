@@ -112,20 +112,13 @@ class TestClient(unittest.TestCase):
 
     def test_get_obstacles(self):
         """Test getting obstacles."""
-        stationary, moving = self.client.get_obstacles()
+        stationary = self.client.get_obstacles()
         async_future = self.async_client.get_obstacles()
-        async_stationary, async_moving = async_future.result()
+        async_stationary = async_future.result()
 
         # No exceptions is a good sign, let's see if the data matches the fixture.
         self.assertEqual(2, len(stationary))
         self.assertEqual(2, len(async_stationary))
-        self.assertEqual(1, len(moving))
-        self.assertEqual(1, len(async_moving))
-
-        # Lat, lon, and altitude of the moving obstacles change, so we don't
-        # check those.
-        self.assertEqual(50, moving[0].sphere_radius)
-        self.assertEqual(50, async_moving[0].sphere_radius)
 
         radii = [o.cylinder_radius for o in stationary]
         async_radii = [o.cylinder_radius for o in async_stationary]

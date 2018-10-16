@@ -431,30 +431,6 @@
 },
 {
     "fields": {
-        "sphere_radius": 15.0,
-        "speed_avg": 1.0,
-        "waypoints": [
-            157,
-            158
-        ]
-    },
-    "model": "auvsi_suas.movingobstacle",
-    "pk": 25
-},
-{
-    "fields": {
-        "sphere_radius": 20.0,
-        "speed_avg": 1.0,
-        "waypoints": [
-            159,
-            160
-        ]
-    },
-    "model": "auvsi_suas.movingobstacle",
-    "pk": 26
-},
-{
-    "fields": {
         "cylinder_height": 10.0,
         "cylinder_radius": 10.0,
         "gps_position": 331
@@ -521,10 +497,6 @@
             22
         ],
         "off_axis_odlc_pos": 324,
-        "moving_obstacles": [
-            25,
-            26
-        ],
         "is_active": true,
         "mission_waypoints": [
             155,

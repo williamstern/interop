@@ -4,7 +4,6 @@ import logging
 from auvsi_suas.models import units
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.moving_obstacle import MovingObstacle
 from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.stationary_obstacle import StationaryObstacle
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
@@ -34,7 +33,6 @@ class MissionConfig(models.Model):
         off_axis_odlc_pos: Off-axis object position.
         air_drop_pos: The air drop position.
         stationary_obstacles: The stationary obstacles.
-        moving_obstacles: The moving obstacles.
     """
     is_active = models.BooleanField(default=False)
     home_pos = models.ForeignKey(
@@ -60,7 +58,6 @@ class MissionConfig(models.Model):
         related_name='missionconfig_air_drop_pos',
         on_delete=models.CASCADE)
     stationary_obstacles = models.ManyToManyField(StationaryObstacle)
-    moving_obstacles = models.ManyToManyField(MovingObstacle)
 
     def json(self, is_superuser):
         """Return a dict, for conversion to JSON."""
@@ -125,7 +122,6 @@ class MissionConfig(models.Model):
 
         ret.update({
             'stationary_obstacles': [],  # Filled in below
-            'moving_obstacles': [],  # Filled in below
         })
         for obst in self.stationary_obstacles.all():
             ret['stationary_obstacles'].append({
@@ -137,11 +133,6 @@ class MissionConfig(models.Model):
                 obst.cylinder_radius,
                 'cylinder_height':
                 obst.cylinder_height,
-            })
-        for obst in self.moving_obstacles.all():
-            ret['moving_obstacles'].append({
-                'speed_avg': obst.speed_avg,
-                'sphere_radius': obst.sphere_radius,
             })
         return ret
 
@@ -244,22 +235,11 @@ class MissionConfig(models.Model):
             name='Stationary Obstacles')
         # TODO: Implement
 
-        # Moving Obstacles.
-        users = User.objects.all()
-        moving_obstacle_periods = []
-        for user in users:
-            moving_obstacle_periods.extend(TakeoffOrLandingEvent.flights(user))
-        moving_obstacles_folder = kml_folder.newfolder(name='Moving Obstacles')
-        for obstacle in self.moving_obstacles.all():
-            obstacle.kml(moving_obstacle_periods, moving_obstacles_folder,
-                         kml_doc)
-
 
 @admin.register(MissionConfig)
 class MissionConfigModelAdmin(admin.ModelAdmin):
     raw_id_fields = ("home_pos", "emergent_last_known_pos",
                      "off_axis_odlc_pos", "air_drop_pos")
     filter_horizontal = ("fly_zones", "mission_waypoints",
-                         "search_grid_points", "odlcs", "stationary_obstacles",
-                         "moving_obstacles")
+                         "search_grid_points", "odlcs", "stationary_obstacles")
     list_display = ('is_active', 'home_pos')

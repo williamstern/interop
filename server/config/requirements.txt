@@ -14,7 +14,6 @@ psycopg2
 pyproj
 requests
 retrying
-scipy
 simplekml==1.2.7
 uwsgi
 

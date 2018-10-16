@@ -4,7 +4,6 @@ import json
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_config import MissionConfig
-from auvsi_suas.models.moving_obstacle import MovingObstacle
 from auvsi_suas.models.stationary_obstacle import StationaryObstacle
 from auvsi_suas.models.waypoint import Waypoint
 from django.contrib.auth.models import User
@@ -45,35 +44,6 @@ class TestObstaclesViewCommon(TestCase):
         obstacle.save()
         return obstacle
 
-    def create_moving_obstacle(self, waypoints):
-        """Create a new MovingObstacle model.
-
-        Args:
-            waypoints: List of (lat, lon, alt) tuples
-
-        Returns:
-            Saved MovingObstacle
-        """
-        obstacle = MovingObstacle(speed_avg=40, sphere_radius=100)
-        obstacle.save()
-
-        for num, waypoint in enumerate(waypoints):
-            (lat, lon, alt) = waypoint
-
-            gps = GpsPosition(latitude=lat, longitude=lon)
-            gps.save()
-
-            pos = AerialPosition(gps_position=gps, altitude_msl=alt)
-            pos.save()
-
-            waypoint = Waypoint(order=num, position=pos)
-            waypoint.save()
-
-            obstacle.waypoints.add(waypoint)
-
-        obstacle.save()
-        return obstacle
-
     def setUp(self):
         self.user = User.objects.create_user('testuser', 'email@example.com',
                                              'testpass')
@@ -102,25 +72,6 @@ class TestObstaclesViewCommon(TestCase):
             lat=38.442233, lon=-76.834082, radius=100, height=750)
         config.stationary_obstacles.add(obst)
 
-        # And a couple of moving obstacles
-        obst = self.create_moving_obstacle([
-            # (lat,     lon,        alt)
-            (38.142233, -76.434082, 300),
-            (38.141878, -76.425198, 700),
-        ])
-        config.moving_obstacles.add(obst)
-
-        obst = self.create_moving_obstacle([
-            # (lat,     lon,        alt)
-            (38.145405, -76.428310, 100),
-            (38.146582, -76.424099, 200),
-            (38.144662, -76.427634, 300),
-            (38.147729, -76.419185, 200),
-            (38.147573, -76.420832, 100),
-            (38.148522, -76.419507, 750),
-        ])
-        config.moving_obstacles.add(obst)
-
         config.save()
 
 
@@ -146,35 +97,6 @@ class TestObstaclesView(TestObstaclesViewCommon):
             self.assertIn('longitude', obstacle)
             self.assertIn('cylinder_radius', obstacle)
             self.assertIn('cylinder_height', obstacle)
-
-        self.assertIn('moving_obstacles', data)
-        self.assertEqual(2, len(data['moving_obstacles']))
-        for obstacle in data['moving_obstacles']:
-            self.assertIn('latitude', obstacle)
-            self.assertIn('longitude', obstacle)
-            self.assertIn('altitude_msl', obstacle)
-            self.assertIn('sphere_radius', obstacle)
-
-    def test_different(self):
-        """Responses at different times are different (moving obstacles move)"""
-        response = self.client.get(obstacle_url)
-        self.assertEqual(200, response.status_code)
-
-        data1 = json.loads(response.content)
-
-        response = self.client.get(obstacle_url)
-        self.assertEqual(200, response.status_code)
-
-        data2 = json.loads(response.content)
-
-        self.assertNotEqual(data1, data2)
-
-    def test_no_time(self):
-        """Normal users cannot set time."""
-        response = self.client.get(obstacle_url, {
-            'time': timezone.now().isoformat(),
-        })
-        self.assertEqual(400, response.status_code)
 
 
 class TestObstaclesViewSuperuser(TestObstaclesViewCommon):
