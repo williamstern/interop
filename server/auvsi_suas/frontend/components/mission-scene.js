@@ -181,16 +181,6 @@ MissionScene = function($rootScope, Distance, Units, Settings) {
             {color: 0xff0000, opacity: 0.7, transparent: true});
 
     /**
-     * @private @const {!Object} The moving obstacle geometry.
-     */
-    this.movingObstacleGeometry_ = this.missionComponentGeometry_;
-
-    /**
-     * @private @const {!Object} The moving obstacle material.
-     */
-    this.movingObstacleMaterial_ = this.stationaryObstacleMaterial_;
-
-    /**
      * @private @const {!Object} The UAS telemetry geometry.
      */
     this.telemetryGeometry_ = this.missionComponentGeometry_;
@@ -400,14 +390,6 @@ MissionScene.prototype.addObstacleSceneElements_ = function(
                 obstacle.cylinder_radius, obstacle.cylinder_height,
                 obstacle.cylinder_radius);
         obstacleObj.rotation.set(Math.PI/2, 0, 0);
-    }
-
-    for (var i = 0; i < obstacles.moving_obstacles.length; i++) {
-        var obstacle = obstacles.moving_obstacles[i];
-        var obstacleObj = this.createObject_(
-                this.movingObstacleGeometry_, this.movingObstacleMaterial_,
-                obstacle, obstacle.altitude_msl, mission.home_pos,
-                obstacle.sphere_radius, scene);
     }
 };
 

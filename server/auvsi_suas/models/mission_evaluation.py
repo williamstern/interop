@@ -46,11 +46,6 @@ WAYPOINT_CAPTURE_WEIGHT = 0.1
 # Weight of accuracy points to all autonomous flight.
 WAYPOINT_ACCURACY_WEIGHT = 0.5
 
-# Weight of stationary obstacle avoidance.
-STATIONARY_OBST_WEIGHT = 0.5
-# Weight of moving obstacle avoidance.
-MOVING_OBST_WEIGHT = 0.5
-
 # Air delivery accuracy threshold.
 AIR_DELIVERY_THRESHOLD_FT = 150.0
 
@@ -105,13 +100,9 @@ def generate_feedback(mission_config, user, team_eval):
     evaluator = OdlcEvaluator(user_odlcs, mission_config.odlcs.all())
     feedback.odlc.CopyFrom(evaluator.evaluate())
 
-    # Determine collisions with stationary and moving obstacles.
+    # Determine collisions with stationary.
     for obst in mission_config.stationary_obstacles.all():
         obst_eval = feedback.stationary_obstacles.add()
-        obst_eval.id = obst.pk
-        obst_eval.hit = obst.evaluate_collision_with_uas(uas_logs)
-    for obst in mission_config.moving_obstacles.all():
-        obst_eval = feedback.moving_obstacles.add()
         obst_eval.id = obst.pk
         obst_eval.hit = obst.evaluate_collision_with_uas(uas_logs)
 
@@ -195,17 +186,11 @@ def score_team(team_eval):
     avoid = score.obstacle_avoidance
     avoid.telemetry_prerequisite = telem_prereq
     if telem_prereq:
-        avoid.stationary_obstacle = pow(
+        avoid.score_ratio = pow(
             sum([0.0 if o.hit else 1.0 for o in feedback.stationary_obstacles])
             / len(feedback.stationary_obstacles), 3)
-        avoid.moving_obstacle = pow(
-            sum([0.0 if o.hit else 1.0 for o in feedback.moving_obstacles]) /
-            len(feedback.moving_obstacles), 3)
     else:
-        avoid.stationary_obstacle = 0
-        avoid.moving_obstacle = 0
-    avoid.score_ratio = (avoid.stationary_obstacle * STATIONARY_OBST_WEIGHT +
-                         avoid.moving_obstacle * STATIONARY_OBST_WEIGHT)
+        avoid.score_ratio = 0
 
     # Score objects.
     objects = score.object

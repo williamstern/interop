@@ -9,7 +9,6 @@ import zipfile
 from auvsi_suas.models import mission_evaluation
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.mission_config import MissionConfig
-from auvsi_suas.models.moving_obstacle import MovingObstacle
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.patches.simplekml_patch import Kml
 from auvsi_suas.patches.simplekml_patch import RefreshMode
@@ -215,7 +214,6 @@ class LiveKmlUpdate(View):
 
     def get(self, request):
         kml = Kml(name='LIVE Data')
-        MovingObstacle.live_kml(kml, timedelta(seconds=5))
         UasTelemetry.live_kml(kml, timedelta(seconds=5))
 
         response = HttpResponse(kml.kml())

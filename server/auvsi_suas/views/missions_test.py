@@ -155,7 +155,6 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
 
         self.assert_non_superuser_data_array(data)
         self.assertNotIn('stationary_obstacles', data[0])
-        self.assertNotIn('moving_obstacles', data[0])
 
         response = self.client.get(missions_url)
         self.assertEqual(200, response.status_code)
@@ -170,7 +169,6 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
 
         self.assert_non_superuser_data_array(data)
         self.assertIn('stationary_obstacles', data[0])
-        self.assertIn('moving_obstacles', data[0])
 
         response = self.client.get(missions_url)
         self.assertEqual(200, response.status_code)
@@ -185,7 +183,6 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
 
         self.assert_non_superuser_data(data)
         self.assertNotIn('stationary_obstacles', data)
-        self.assertNotIn('moving_obstacles', data)
 
     def test_superuser_id(self):
         """Mission ID response JSON is properly formatted for superuser."""
@@ -196,7 +193,6 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
 
         self.assert_non_superuser_data(data)
         self.assertIn('stationary_obstacles', data)
-        self.assertIn('moving_obstacles', data)
 
 
 class TestGenerateKMLCommon(TestCase):

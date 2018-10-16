@@ -165,11 +165,7 @@ class Client(object):
         for o in d['stationary_obstacles']:
             stationary.append(StationaryObstacle.deserialize(o))
 
-        moving = []
-        for o in d['moving_obstacles']:
-            moving.append(MovingObstacle.deserialize(o))
-
-        return stationary, moving
+        return stationary
 
     def get_odlcs(self):
         """GET odlcs.

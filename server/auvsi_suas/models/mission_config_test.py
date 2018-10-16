@@ -94,7 +94,6 @@ class TestMissionConfigModelSampleMission(TestCase):
         self.assert_non_superuser_data(data)
 
         self.assertNotIn('stationary_obstacles', data)
-        self.assertNotIn('moving_obstacles', data)
 
     def test_superuser_json(self):
         """Conversion to dict for JSON."""
@@ -115,14 +114,6 @@ class TestMissionConfigModelSampleMission(TestCase):
                          data['stationary_obstacles'][0]['cylinder_radius'])
         self.assertEqual(38.0, data['stationary_obstacles'][0]['latitude'])
         self.assertEqual(-76.0, data['stationary_obstacles'][0]['longitude'])
-
-        self.assertIn('moving_obstacles', data)
-        self.assertEqual(2, len(data['moving_obstacles']))
-        for obst in data['moving_obstacles']:
-            self.assertIn('speed_avg', obst)
-            self.assertIn('sphere_radius', obst)
-        self.assertEqual(1.0, data['moving_obstacles'][0]['speed_avg'])
-        self.assertEqual(15.0, data['moving_obstacles'][0]['sphere_radius'])
 
     def test_toKML(self):
         """Test Generation of kml for all mission data"""

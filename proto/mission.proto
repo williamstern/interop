@@ -36,7 +36,6 @@ message MissionFeedback {
 
     // Obstacle evaluation data.
     repeated ObstacleEvaluation stationary_obstacles = 4;
-    repeated ObstacleEvaluation moving_obstacles = 5;
 
     // Object detection evaluation data.
     optional MultiOdlcEvaluation odlc = 6;
@@ -134,8 +133,6 @@ message AutonomousFlightScore {
 message ObstacleAvoidanceScore {
     optional double score_ratio = 1;
     optional bool telemetry_prerequisite = 2;
-    optional double stationary_obstacle = 3;
-    optional double moving_obstacle = 4;
 }
 
 // Scoring data for objects.
