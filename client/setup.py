@@ -1,13 +1,46 @@
-from codecs import open
-from setuptools import setup
+import os
+import setuptools
+import shutil
+import subprocess
+import sys
+from distutils.command.build_py import build_py as _build_py
+from distutils.command.clean import clean as _clean
+from distutils.spawn import find_executable
 
-with open('README.md', encoding='utf-8') as f:
-    readme = f.read()
 
-setup(
-    name='interop',
-    description='AUVSI SUAS interoperability client library.',
-    long_description=readme,
-    license='Apache 2.0',
-    packages=['interop'],
-)  # yapf: disable
+class build_py(_build_py):
+    def run(self):
+        protoc = find_executable("protoc")
+        if not protoc:
+            sys.stderr.write('Cant find protoc.\n')
+            sys.exit(-1)
+        if os.path.exists('auvsi_suas/proto'):
+            shutil.rmtree('auvsi_suas/proto')
+        shutil.copytree('../proto', 'auvsi_suas/proto')
+        for (dirpath, dirnames, filenames) in os.walk("auvsi_suas/proto"):
+            for filename in filenames:
+                filepath = os.path.join(dirpath, filename)
+                if filepath.endswith(".proto"):
+                    if subprocess.call(
+                        [protoc, '-I.', '--python_out=.', filepath]) != 0:
+                        sys.stderr.write('Failed to compile protos.\n')
+                        sys.exit(-1)
+
+        _build_py.run(self)
+
+
+class clean(_clean):
+    def run(self):
+        if os.path.exists('auvsi_suas/proto'):
+            shutil.rmtree('auvsi_suas/proto')
+        _clean.run(self)
+
+
+if __name__ == '__main__':
+    setuptools.setup(
+        name='auvsi_suas',
+        description='AUVSI SUAS interoperability client library.',
+        license='Apache 2.0',
+        packages=['auvsi_suas'],
+        cmdclass = { 'clean': clean, 'build_py': build_py },
+    )  # yapf: disable

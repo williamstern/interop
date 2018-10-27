@@ -14,23 +14,18 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RemoveField(
             model_name='movingobstacle',
-            name='waypoints',
-        ),
+            name='waypoints', ),
         migrations.RemoveField(
             model_name='missionconfig',
-            name='moving_obstacles',
-        ),
+            name='moving_obstacles', ),
         migrations.AlterField(
             model_name='takeofforlandingevent',
             name='timestamp',
-            field=models.DateTimeField(db_index=True),
-        ),
+            field=models.DateTimeField(db_index=True), ),
         migrations.AlterField(
             model_name='uastelemetry',
             name='timestamp',
-            field=models.DateTimeField(db_index=True),
-        ),
+            field=models.DateTimeField(db_index=True), ),
         migrations.DeleteModel(
-            name='MovingObstacle',
-        ),
+            name='MovingObstacle', ),
     ]
