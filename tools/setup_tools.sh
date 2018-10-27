@@ -9,6 +9,7 @@ log "Installing APT packages."
 apt-get -qq update
 apt-get -qq install -y \
     parallel \
+    protobuf-compiler \
     python-virtualenv \
     python3-pip
 
