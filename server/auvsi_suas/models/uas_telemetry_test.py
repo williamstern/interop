@@ -8,7 +8,7 @@ from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.waypoint import Waypoint
-from auvsi_suas.proto.mission_pb2 import WaypointEvaluation
+from auvsi_suas.proto.interop_admin_api_pb2 import WaypointEvaluation
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone

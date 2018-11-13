@@ -14,7 +14,7 @@ from auvsi_suas.client.types import Mission
 from auvsi_suas.client.types import MovingObstacle
 from auvsi_suas.client.types import Odlc
 from auvsi_suas.client.types import StationaryObstacle
-from auvsi_suas.proto.account_pb2 import LoginRequest
+from auvsi_suas.proto.interop_api_pb2 import LoginRequest
 from concurrent.futures import ThreadPoolExecutor
 from google.protobuf import json_format
 

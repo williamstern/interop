@@ -6,7 +6,7 @@ import networkx as nx
 import operator
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
-from auvsi_suas.proto import odlc_pb2
+from auvsi_suas.proto import interop_admin_api_pb2
 from django.conf import settings
 from django.contrib import admin
 from django.db import models
@@ -416,7 +416,7 @@ class OdlcEvaluator(object):
         Returns:
             auvsi_suas.proto.OdlcEvaluation. The match evaluation.
         """
-        object_eval = odlc_pb2.OdlcEvaluation()
+        object_eval = interop_admin_api_pb2.OdlcEvaluation()
         object_eval.real_odlc = real.pk
         object_eval.submitted_odlc = submitted.pk
         object_eval.score_ratio = 0
@@ -537,7 +537,7 @@ class OdlcEvaluator(object):
         Returns:
             auvsi_suas.proto.MultiOdlcEvaluation.
         """
-        multi_eval = odlc_pb2.MultiOdlcEvaluation()
+        multi_eval = interop_admin_api_pb2.MultiOdlcEvaluation()
         # Compute match value.
         for real in self.real_objects:
             object_eval = multi_eval.odlcs.add()

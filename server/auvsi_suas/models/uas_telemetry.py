@@ -10,7 +10,7 @@ from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.patches.simplekml_patch import AltitudeMode
 from auvsi_suas.patches.simplekml_patch import Color
-from auvsi_suas.proto import mission_pb2
+from auvsi_suas.proto import interop_admin_api_pb2
 from collections import defaultdict
 from django.contrib import admin
 from django.contrib.auth.models import User
@@ -358,7 +358,7 @@ class UasTelemetry(AccessLog):
         waypoint_evals = []
         for iw, waypoint in enumerate(waypoints):
             score, dist = scores[iw]
-            waypoint_eval = mission_pb2.WaypointEvaluation()
+            waypoint_eval = interop_admin_api_pb2.WaypointEvaluation()
             waypoint_eval.id = iw
             waypoint_eval.score_ratio = score
             if dist is not None:

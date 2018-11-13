@@ -1,6 +1,6 @@
 """Tests for the login module."""
 
-from auvsi_suas.proto.account_pb2 import LoginRequest
+from auvsi_suas.proto.interop_api_pb2 import LoginRequest
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase

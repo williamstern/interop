@@ -2,7 +2,7 @@
 
 import logging
 from auvsi_suas.models.mission_config import MissionConfig
-from auvsi_suas.proto import mission_pb2
+from auvsi_suas.proto import interop_admin_api_pb2
 from django.conf import settings
 from django.contrib import admin
 from django.db import models
@@ -54,7 +54,7 @@ class MissionJudgeFeedback(models.Model):
 
     def proto(self):
         """Get the proto formatted feedback."""
-        feedback = mission_pb2.MissionJudgeFeedback()
+        feedback = interop_admin_api_pb2.MissionJudgeFeedback()
 
         feedback.flight_time_sec = self.flight_time.total_seconds()
         feedback.post_process_time_sec = self.post_process_time.total_seconds()

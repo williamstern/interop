@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from auvsi_suas.models import mission_evaluation
 from auvsi_suas.models import mission_config
-from auvsi_suas.proto import mission_pb2
+from auvsi_suas.proto import interop_admin_api_pb2
 
 
 class TestMissionScoring(TestCase):
@@ -13,7 +13,7 @@ class TestMissionScoring(TestCase):
 
     def setUp(self):
         """Create a base evaluation to save redefining it."""
-        self.eval = mission_pb2.MissionEvaluation()
+        self.eval = interop_admin_api_pb2.MissionEvaluation()
         self.eval.team = 'team'
         feedback = self.eval.feedback
         feedback.uas_telemetry_time_max_sec = 1.0
@@ -197,7 +197,7 @@ class TestMissionScoring(TestCase):
 
     def test_non_negative(self):
         """Test that total score doesn't go negative."""
-        self.eval = mission_pb2.MissionEvaluation()
+        self.eval = interop_admin_api_pb2.MissionEvaluation()
         self.eval.team = 'team'
         feedback = self.eval.feedback
         feedback.uas_telemetry_time_max_sec = 100.0

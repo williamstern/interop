@@ -7,7 +7,7 @@ from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.odlc import OdlcEvaluator
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
-from auvsi_suas.proto import mission_pb2
+from auvsi_suas.proto import interop_admin_api_pb2
 from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
@@ -247,7 +247,7 @@ def evaluate_teams(mission_config, users=None):
         A auvsi_suas.proto.MultiUserMissionEvaluation.
     """
     # Start a results map from user to MissionEvaluation.
-    mission_eval = mission_pb2.MultiUserMissionEvaluation()
+    mission_eval = interop_admin_api_pb2.MultiUserMissionEvaluation()
 
     # If not provided, eval all users.
     if users is None:
