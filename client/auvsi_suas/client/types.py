@@ -207,30 +207,6 @@ class StationaryObstacle(ClientBaseType):
         self.cylinder_height = float(cylinder_height)
 
 
-class MovingObstacle(ClientBaseType):
-    """A moving obstacle.
-
-    This obstacle is a sphere with a given location, altitude, and radius.
-
-    Attributes:
-        latitude: Latitude of the center of the cylinder in decimal degrees
-        longitude: Longitude of the center of the cylinder in decimal degrees
-        altitude_msl: Sphere centroid altitude MSL in feet
-        sphere_radius: Radius in feet
-
-    Raises:
-        ValueError: Argument not convertable to float.
-    """
-
-    attrs = ['latitude', 'longitude', 'altitude_msl', 'sphere_radius']
-
-    def __init__(self, latitude, longitude, altitude_msl, sphere_radius):
-        self.latitude = float(latitude)
-        self.longitude = float(longitude)
-        self.altitude_msl = float(altitude_msl)
-        self.sphere_radius = float(sphere_radius)
-
-
 class Odlc(ClientBaseType):
     """An odlc.
 

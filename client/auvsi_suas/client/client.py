@@ -11,7 +11,6 @@ import requests
 from auvsi_suas.client.exceptions import InteropError
 from auvsi_suas.client.types import Mission
 from auvsi_suas.client.types import Mission
-from auvsi_suas.client.types import MovingObstacle
 from auvsi_suas.client.types import Odlc
 from auvsi_suas.client.types import StationaryObstacle
 from auvsi_suas.proto.interop_api_pb2 import LoginRequest
@@ -151,8 +150,7 @@ class Client(object):
         """GET obstacles.
 
         Returns:
-            List of StationaryObstacles and list of MovingObstacles
-                i.e., ([StationaryObstacle], [MovingObstacles]).
+            List of StationaryObstacles.
         Raises:
             InteropError: Error from server.
             requests.Timeout: Request timeout.

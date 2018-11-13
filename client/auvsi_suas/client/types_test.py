@@ -3,7 +3,6 @@ import unittest
 from auvsi_suas.client.types import FlyZone
 from auvsi_suas.client.types import GpsPosition
 from auvsi_suas.client.types import Mission
-from auvsi_suas.client.types import MovingObstacle
 from auvsi_suas.client.types import Odlc
 from auvsi_suas.client.types import StationaryObstacle
 from auvsi_suas.client.types import Telemetry
@@ -253,73 +252,6 @@ class TestStationaryObstacle(unittest.TestCase):
         self.assertEqual(-76, o.longitude)
         self.assertEqual(100, o.cylinder_radius)
         self.assertEqual(200, o.cylinder_height)
-
-
-class TestMovingObstacle(unittest.TestCase):
-    """Test the MovingObstacle object. There is very little to see here."""
-
-    def test_valid(self):
-        """Test valid inputs"""
-        # No exceptions
-        MovingObstacle(
-            latitude=38, longitude=-76, altitude_msl=100, sphere_radius=200)
-
-    def test_invalid(self):
-        """Test invalid inputs"""
-        # Bad latitude
-        with self.assertRaises(ValueError):
-            MovingObstacle(
-                latitude='a',
-                longitude=-76,
-                altitude_msl=100,
-                sphere_radius=200)
-        # Bad longitude
-        with self.assertRaises(ValueError):
-            MovingObstacle(
-                latitude=38,
-                longitude='a',
-                altitude_msl=100,
-                sphere_radius=200)
-        # Bad altitude
-        with self.assertRaises(ValueError):
-            MovingObstacle(
-                latitude=38,
-                longitude=-76,
-                altitude_msl='a',
-                sphere_radius=-200)
-        # Bad radius
-        with self.assertRaises(ValueError):
-            MovingObstacle(
-                latitude=38,
-                longitude=-76,
-                altitude_msl=100,
-                sphere_radius='a')
-
-    def test_serialize(self):
-        """Test serialization."""
-        o = MovingObstacle(
-            latitude=38, longitude=-76, altitude_msl=100, sphere_radius=200)
-        s = o.serialize()
-
-        self.assertEqual(4, len(s))
-        self.assertEqual(38, s['latitude'])
-        self.assertEqual(-76, s['longitude'])
-        self.assertEqual(100, s['altitude_msl'])
-        self.assertEqual(200, s['sphere_radius'])
-
-    def test_deserialize(self):
-        """Test deserialization."""
-        o = MovingObstacle.deserialize({
-            'latitude': 38,
-            'longitude': -76,
-            'altitude_msl': 100,
-            'sphere_radius': 200
-        })
-
-        self.assertEqual(38, o.latitude)
-        self.assertEqual(-76, o.longitude)
-        self.assertEqual(100, o.altitude_msl)
-        self.assertEqual(200, o.sphere_radius)
 
 
 class TestOdlc(unittest.TestCase):
