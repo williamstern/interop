@@ -23,21 +23,28 @@ RUN apt-get -qq update && apt-get -qq install -y \
         python3-lxml \
         sudo
 
-COPY client/requirements.txt requirements.txt
-RUN bash -c "virtualenv --system-site-packages -p /usr/bin/python2 \
-            /interop/client/venv2 && \
-        source /interop/client/venv2/bin/activate && \
+COPY client/requirements.txt .
+
+RUN bash -c "cd /interop/client && \
+        virtualenv --system-site-packages -p /usr/bin/python2 venv2 && \
+        source venv2/bin/activate && \
         pip install -r requirements.txt && \
         deactivate" && \
-    bash -c "virtualenv --system-site-packages -p /usr/bin/python3 \
-            /interop/client/venv3 && \
-        source /interop/client/venv3/bin/activate && \
+    bash -c "cd /interop/client && \
+        virtualenv --system-site-packages -p /usr/bin/python3 venv3 && \
+        source venv3/bin/activate && \
         pip3 install -r requirements.txt && \
         deactivate"
 
+COPY proto/ ../proto
 COPY client/ .
-
-COPY proto auvsi_suas/proto
-RUN protoc --python_out=. auvsi_suas/proto/*.proto
+RUN bash -c "cd /interop/client && \
+        source venv2/bin/activate && \
+        python setup.py install && \
+        deactivate" && \
+    bash -c "cd /interop/client && \
+        source venv3/bin/activate && \
+        python3 setup.py install && \
+        deactivate"
 
 CMD bash --init-file configure.sh
