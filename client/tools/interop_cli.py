@@ -11,7 +11,7 @@ import sys
 import time
 
 from auvsi_suas.client.client import AsyncClient
-from auvsi_suas.client.types import Telemetry
+from auvsi_suas.proto.interop_api_pb2 import Telemetry
 from mavlink_proxy import MavlinkProxy
 from upload_odlcs import upload_odlcs
 
@@ -38,7 +38,11 @@ def probe(args, client):
     while True:
         start_time = datetime.datetime.now()
 
-        telemetry = Telemetry(0, 0, 0, 0)
+        telemetry = Telemetry()
+        telemetry.latitude = 0
+        telemetry.longitude = 0
+        telemetry.altitude = 0
+        telemetry.heading = 0
         telemetry_resp = client.post_telemetry(telemetry).result()
 
         end_time = datetime.datetime.now()

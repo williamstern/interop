@@ -5,7 +5,6 @@ from auvsi_suas.client.types import GpsPosition
 from auvsi_suas.client.types import Mission
 from auvsi_suas.client.types import Odlc
 from auvsi_suas.client.types import StationaryObstacle
-from auvsi_suas.client.types import Telemetry
 from auvsi_suas.client.types import Waypoint
 
 
@@ -125,60 +124,6 @@ class TestMission(unittest.TestCase):
         self.assertEqual(3, m.search_grid_points[0].order)
         self.assertEqual(29, m.search_grid_points[0].latitude)
         self.assertEqual(-72, m.search_grid_points[0].longitude)
-
-
-class TestTelemetry(unittest.TestCase):
-    """Test the Telemetry object. There is very little to see here."""
-
-    def test_valid(self):
-        """Test valid inputs"""
-        # No exceptions
-        Telemetry(latitude=38, longitude=-76, altitude_msl=100, uas_heading=90)
-
-    def test_invalid(self):
-        """Test invalid inputs"""
-        # Bad latitude
-        with self.assertRaises(ValueError):
-            Telemetry(
-                latitude='a', longitude=-76, altitude_msl=100, uas_heading=90)
-        # Bad longitude
-        with self.assertRaises(ValueError):
-            Telemetry(
-                latitude=38, longitude='a', altitude_msl=100, uas_heading=90)
-        # Bad altitude
-        with self.assertRaises(ValueError):
-            Telemetry(
-                latitude=38, longitude=-76, altitude_msl='a', uas_heading=90)
-        # Bad heading
-        with self.assertRaises(ValueError):
-            Telemetry(
-                latitude=38, longitude=-76, altitude_msl=100, uas_heading='a')
-
-    def test_serialize(self):
-        """Test serialization."""
-        t = Telemetry(
-            latitude=38, longitude=-76, altitude_msl=100, uas_heading=90)
-        s = t.serialize()
-
-        self.assertEqual(4, len(s))
-        self.assertEqual(38, s['latitude'])
-        self.assertEqual(-76, s['longitude'])
-        self.assertEqual(100, s['altitude_msl'])
-        self.assertEqual(90, s['uas_heading'])
-
-    def test_deserialize(self):
-        """Test deserialization."""
-        t = Telemetry.deserialize({
-            'latitude': 38,
-            'longitude': '-76',
-            'altitude_msl': 100,
-            'uas_heading': 90
-        })
-
-        self.assertEqual(38, t.latitude)
-        self.assertEqual(-76, t.longitude)
-        self.assertEqual(100, t.altitude_msl)
-        self.assertEqual(90, t.uas_heading)
 
 
 class TestStationaryObstacle(unittest.TestCase):

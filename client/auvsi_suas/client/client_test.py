@@ -6,7 +6,7 @@ from auvsi_suas.client.client import AsyncClient
 from auvsi_suas.client.client import Client
 from auvsi_suas.client.exceptions import InteropError
 from auvsi_suas.client.types import Odlc
-from auvsi_suas.client.types import Telemetry
+from auvsi_suas.proto.interop_api_pb2 import Telemetry
 
 # These tests run against a real interop server.
 # The server be loaded with the data from the test fixture in
@@ -78,8 +78,11 @@ class TestClient(unittest.TestCase):
 
     def test_post_telemetry(self):
         """Test sending some telemetry."""
-        t = Telemetry(
-            latitude=38, longitude=-76, altitude_msl=100, uas_heading=90)
+        t = Telemetry()
+        t.latitude = 38
+        t.longitude = -76
+        t.altitude = 100
+        t.heading = 90
 
         # Raises an exception on error.
         self.client.post_telemetry(t)
@@ -87,28 +90,15 @@ class TestClient(unittest.TestCase):
 
     def test_post_bad_telemetry(self):
         """Test sending some (incorrect) telemetry."""
-        t0 = Telemetry(
-            latitude=38, longitude=-76, altitude_msl=100, uas_heading=90)
-        # The Telemetry constructor prevents us from passing invalid
-        # values, but we can still screw things up in an update
-        t0.latitude = 'baz'
+        t = Telemetry()
+        t.latitude = 38
+        t.longitude = -76
+        t.altitude = 100
+        t.heading = 400  # Out of range.
         with self.assertRaises(InteropError):
-            self.client.post_telemetry(t0)
+            self.client.post_telemetry(t)
         with self.assertRaises(InteropError):
-            self.async_client.post_telemetry(t0).result()
-
-        # We only accept Telemetry objects (or objects that behave like
-        # Telemetry, not dicts.
-        t1 = {
-            'latitude': 38,
-            'longitude': -76,
-            'altitude_msl': 100,
-            'uas_heading': 90
-        }
-        with self.assertRaises(AttributeError):
-            self.client.post_telemetry(t1)
-        with self.assertRaises(AttributeError):
-            self.async_client.post_telemetry(t1).result()
+            self.async_client.post_telemetry(t).result()
 
     def test_get_obstacles(self):
         """Test getting obstacles."""

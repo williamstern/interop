@@ -1,7 +1,7 @@
 """Interoperability login view."""
 
 import logging
-from auvsi_suas.proto.interop_api_pb2 import LoginRequest
+from auvsi_suas.proto.interop_api_pb2 import Credentials
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.http import HttpResponse
@@ -16,29 +16,31 @@ class Login(View):
     """Logs the user in with a POST request using the given parameters."""
 
     def post(self, request):
-        request_proto = LoginRequest()
+        creds = Credentials()
         try:
-            json_format.Parse(request.body, request_proto)
-        except:
-            logging.warning('Failed to parse request.')
-            return HttpResponseBadRequest('Failed to parse request.')
+            json_format.Parse(request.body, creds)
+        except Exception as e:
+            msg = 'Failed to parse request. Error: %s' % str(e)
+            logging.warning(msg)
+            logging.debug(request)
+            return HttpResponseBadRequest(msg)
 
-        if (not request_proto.HasField('username') or
-                not request_proto.HasField('password')):
-            logging.warning('Missing fields in request.')
-            return HttpResponseBadRequest(
-                'Missing fields in request. Both username and password required.'
-            )
+        if not creds.HasField('username') or not creds.HasField('password'):
+            msg = 'Request missing fields.'
+            logging.warning(msg)
+            logging.debug(request)
+            return HttpResponseBadRequest(msg)
 
-        user = authenticate(
-            username=request_proto.username, password=request_proto.password)
+        user = authenticate(username=creds.username, password=creds.password)
         if user is not None and user.is_active:
             # Successful authentication with active user, login
             login(request, user)
-            logger.info('User logged in: %s.' % user.username)
-            return HttpResponse('Login Successful.')
+            msg = 'User logged in: %s' % user.username
+            logger.info(msg)
+            return HttpResponse(msg)
         else:
             # Invalid user credentials, invalid request
-            logger.warning('Invalid credentials in login request.')
+            msg = 'Invalid credentials in request. Could not log in.'
+            logger.warning(msg)
             logger.debug(request)
-            return HttpResponse('Invalid Credentials.', status=401)
+            return HttpResponse(msg, status=401)

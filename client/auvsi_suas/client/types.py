@@ -161,28 +161,6 @@ class Mission(ClientBaseType):
         ]
 
 
-class Telemetry(ClientBaseType):
-    """UAS Telemetry at a single point in time.
-
-    Attributes:
-        latitude: Latitude in decimal degrees.
-        longitude: Longitude in decimal degrees.
-        altitude_msl: Altitude MSL in feet.
-        uas_heading: Aircraft heading (true north) in degrees (0-360).
-
-    Raises:
-        ValueError: Argument not convertable to float.
-    """
-
-    attrs = ['latitude', 'longitude', 'altitude_msl', 'uas_heading']
-
-    def __init__(self, latitude, longitude, altitude_msl, uas_heading):
-        self.latitude = float(latitude)
-        self.longitude = float(longitude)
-        self.altitude_msl = float(altitude_msl)
-        self.uas_heading = float(uas_heading)
-
-
 class StationaryObstacle(ClientBaseType):
     """A stationary obstacle.
 

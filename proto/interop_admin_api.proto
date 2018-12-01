@@ -1,4 +1,4 @@
-// Descriptors for Mission evaluation.
+// Descriptors for Interop Admin API.
 
 syntax = "proto2";
 package auvsi_suas.proto;

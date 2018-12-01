@@ -13,7 +13,7 @@ from auvsi_suas.client.types import Mission
 from auvsi_suas.client.types import Mission
 from auvsi_suas.client.types import Odlc
 from auvsi_suas.client.types import StationaryObstacle
-from auvsi_suas.proto.interop_api_pb2 import LoginRequest
+from auvsi_suas.proto.interop_api_pb2 import Credentials
 from concurrent.futures import ThreadPoolExecutor
 from google.protobuf import json_format
 
@@ -58,10 +58,10 @@ class Client(object):
                                max_retries=max_retries))
 
         # All endpoints require authentication, so always login.
-        login_request = LoginRequest()
-        login_request.username = username
-        login_request.password = password
-        self.post('/api/login', data=json_format.MessageToJson(login_request))
+        creds = Credentials()
+        creds.username = username
+        creds.password = password
+        self.post('/api/login', data=json_format.MessageToJson(creds))
 
     def get(self, uri, **kwargs):
         """GET request to server.
@@ -144,7 +144,7 @@ class Client(object):
             InteropError: Error from server.
             requests.Timeout: Request timeout.
         """
-        self.post('/api/telemetry', data=telem.serialize())
+        self.post('/api/telemetry', data=json_format.MessageToJson(telem))
 
     def get_obstacles(self):
         """GET obstacles.

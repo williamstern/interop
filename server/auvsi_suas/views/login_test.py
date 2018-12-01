@@ -1,6 +1,6 @@
 """Tests for the login module."""
 
-from auvsi_suas.proto.interop_api_pb2 import LoginRequest
+from auvsi_suas.proto.interop_api_pb2 import Credentials
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -19,7 +19,7 @@ class TestLoginUserView(TestCase):
         self.user.save()
 
     def login_request_body(self, username=None, password=None):
-        request_proto = LoginRequest()
+        request_proto = Credentials()
         if username:
             request_proto.username = username
         if password:

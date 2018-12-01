@@ -6,12 +6,14 @@ import logging
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.uas_telemetry import UasTelemetry
+from auvsi_suas.proto import interop_api_pb2
 from auvsi_suas.views.decorators import require_login
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.utils.decorators import method_decorator
 from django.views.generic import View
+from google.protobuf import json_format
 
 logger = logging.getLogger(__name__)
 
@@ -21,33 +23,22 @@ class Telemetry(View):
 
     @method_decorator(require_login)
     def post(self, request):
-        """Posts the UAS position with a POST request.
-
-        User must send a POST request with the following paramters:
-        latitude: A latitude in decimal degrees.
-        longitude: A logitude in decimal degrees.
-        altitude_msl: An MSL altitude in decimal feet.
-        uas_heading: The UAS (true north) heading in decimal degrees.
-        """
+        """Posts the UAS position with a POST request."""
+        telemetry_proto = interop_api_pb2.Telemetry()
         try:
-            # Get the parameters
-            latitude = float(request.POST['latitude'])
-            longitude = float(request.POST['longitude'])
-            altitude_msl = float(request.POST['altitude_msl'])
-            uas_heading = float(request.POST['uas_heading'])
-        except KeyError:
-            # Failed to get POST parameters
-            logger.warning(
-                'User did not specify all params for uas telemetry request.')
+            json_format.Parse(request.body, telemetry_proto)
+        except Exception as e:
+            msg = 'Failed to parse request. Error: %s' % str(e)
+            logger.warning(msg)
             logger.debug(request)
-            return HttpResponseBadRequest(
-                'Posting UAS position must contain POST parameters "latitude", '
-                '"longitude", "altitude_msl", and "uas_heading".')
-        except ValueError:
-            # Failed to convert parameters
-            logger.warning(
-                'User specified a param which could not converted to an ' +
-                'appropriate type.')
+            return HttpResponseBadRequest(msg)
+
+        if (not telemetry_proto.HasField('latitude') or
+                not telemetry_proto.HasField('longitude') or
+                not telemetry_proto.HasField('altitude') or
+                not telemetry_proto.HasField('heading')):
+            msg = 'Request missing fields.'
+            logger.warning(msg)
             logger.debug(request)
             return HttpResponseBadRequest(
                 'Failed to convert provided POST parameters to correct form.')

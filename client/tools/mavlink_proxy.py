@@ -5,7 +5,7 @@ import logging
 import threading
 import time
 
-from auvsi_suas.client.types import Telemetry
+from auvsi_suas.proto.interop_api_pb2 import Telemetry
 from pymavlink import mavutil
 
 logger = logging.getLogger(__name__)
@@ -54,11 +54,11 @@ class MavlinkProxy(object):
                     'Did not receive MAVLink packet for over 10 seconds.')
                 return
             # Convert to telemetry.
-            telemetry = Telemetry(
-                latitude=self._mavlink_latlon(msg.lat),
-                longitude=self._mavlink_latlon(msg.lon),
-                altitude_msl=self._mavlink_alt(msg.alt),
-                uas_heading=self._mavlink_heading(msg.hdg))
+            telemetry = Telemetry()
+            telemetry.latitude = self._mavlink_latlon(msg.lat)
+            telemetry.longitude = self._mavlink_latlon(msg.lon)
+            telemetry.altitude = self._mavlink_alt(msg.alt)
+            telemetry.heading = self._mavlink_heading(msg.hdg)
             # Forward via client.
             self.client.post_telemetry(telemetry).add_done_callback(
                 self._send_done)
