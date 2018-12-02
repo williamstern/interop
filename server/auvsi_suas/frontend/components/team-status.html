@@ -1,28 +1,25 @@
 <div class="card team-status {{teamStatusCtrl.getTeamColorClasses()}} p-1" ng-show="teamStatusCtrl.shouldShow()" ng-cloak>
     <div class="card-body">
-        <h4>{{teamStatusCtrl.team.id}}: {{teamStatusCtrl.team.name}}</h4>
-    </div>
-    <ul class="list-group list-group-flush">
-        <li class="list-group-item">
-            <span class="team-status-icon col-6" ng-show="teamStatusCtrl.active"
+        <h4 class="card-title">{{teamStatusCtrl.team.id}}: {{teamStatusCtrl.team.name}}</h4>
+        <div class="row">
+            <div class="team-status-icon col-1" ng-show="teamStatusCtrl.active"
                   title="Sending Telemtry">
                 &#8633;  <!-- LEFTWARDS ARROW TO BAR OVER RIGHTWARDS ARROW TO BAR --!>
-            </span>
-            <span class="team-status-icon col-6" ng-show="teamStatusCtrl.team.in_air"
+            </div>
+            <div class="team-status-icon col-1" ng-show="teamStatusCtrl.team.in_air"
                   title="In Air">
                 &#9992;  <!-- AIRPLANE --!>
-            </span>
-        </li>
-        <li class="list-group-item">
-            <span class="col-4">
+            </div>
+            <div class="col"></div>
+            <div class="col-3">
                 Lat: {{teamStatusCtrl.team.telemetry.latitude | number : 6}}
-            </span>
-            <span class="col-4">
+            </div>
+            <div class="col-3">
                 Lon: {{teamStatusCtrl.team.telemetry.longitude | number: 6}}
-            </span>
-            <span class="col-4">
+            </div>
+            <div class="col-3">
                 Alt: {{teamStatusCtrl.team.telemetry.altitude_msl | number: 1}}
-            </span>
-        </li>
-    </ul>
+            </div>
+        </div>
+    </div>
 </div>
