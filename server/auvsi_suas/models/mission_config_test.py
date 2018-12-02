@@ -122,7 +122,7 @@ class TestMissionConfigModelSampleMission(TestCase):
         data = kml.kml()
         names = [
             'Off Axis',
-            'Home Position',
+            'Home',
             'Air Drop',
             'Emergent LKP',
             'Search Area',
