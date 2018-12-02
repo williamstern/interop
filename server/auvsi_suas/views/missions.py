@@ -135,8 +135,6 @@ class ExportKml(View):
                 kml=kml_teams,
                 kml_doc=kml.document)
         MissionConfig.kml_all(kml_mission, kml.document)
-        kml_flyzone = kml.newfolder(name='Fly Zones')
-        FlyZone.kml_all(kml_flyzone)
 
         response = HttpResponse(kml.kml())
         response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
@@ -162,9 +160,6 @@ class LiveKml(View):
         if err:
             return err
         MissionConfig.kml_all(kml_mission, kml.document, [mission])
-
-        kml_flyzone = kml.newfolder(name='Fly Zones')
-        FlyZone.kml_all(kml_flyzone)
 
         parameters = '?sessionid={}'.format(request.COOKIES['sessionid'])
         uri = request.build_absolute_uri(

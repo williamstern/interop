@@ -169,6 +169,11 @@ class MissionConfig(models.Model):
         mission_name = 'Mission {}'.format(self.pk)
         kml_folder = kml.newfolder(name=mission_name)
 
+        # Flight boundaries.
+        fly_zone_folder = kml_folder.newfolder(name='Fly Zones')
+        for flyzone in self.fly_zones.all():
+            flyzone.kml(fly_zone_folder)
+
         # Static Points
         locations = [
             ('Home', self.home_pos, KML_HOME_ICON),
@@ -209,28 +214,17 @@ class MissionConfig(models.Model):
             100, Color.green)
 
         # Search Area
-        search_area_folder = kml_folder.newfolder(name='Search Area')
         search_area = []
-        search_area_num = 1
         for point in self.search_grid_points.order_by('order'):
             gps = point.position.gps_position
             coord = (gps.longitude, gps.latitude,
                      units.feet_to_meters(point.position.altitude_msl))
             search_area.append(coord)
-
-            # Add boundary marker
-            wp = search_area_folder.newpoint(
-                name=str(search_area_num), coords=[coord])
-            wp.description = str(point)
-            wp.visibility = False
-            search_area_num += 1
         if search_area:
-            # Create search area polygon.
-            pol = search_area_folder.newpolygon(name='Search Area')
+            pol = kml_folder.newpolygon(name='Search Area')
             search_area.append(search_area[0])
             pol.outerboundaryis = search_area
-            # Search Area Style.
-            pol.style.linestyle.color = Color.black
+            pol.style.linestyle.color = Color.blue
             pol.style.linestyle.width = 2
             pol.style.polystyle.color = Color.changealphaint(50, Color.blue)
 
