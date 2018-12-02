@@ -169,7 +169,12 @@ class MissionConfig(models.Model):
         mission_name = 'Mission {}'.format(self.pk)
         kml_folder = kml.newfolder(name=mission_name)
 
-        # Static Points
+        # Flight boundaries.
+        fly_zone_folder = kml_folder.newfolder(name='Fly Zones')
+        for flyzone in self.fly_zones.all():
+            flyzone.kml(fly_zone_folder)
+
+        # Static points.
         locations = [
             ('Home', self.home_pos, KML_HOME_ICON),
             ('Emergent LKP', self.emergent_last_known_pos, KML_ODLC_ICON),
@@ -178,9 +183,18 @@ class MissionConfig(models.Model):
         ]
         for key, point, icon in locations:
             gps = (point.longitude, point.latitude)
-            wp = kml_folder.newpoint(name=key, coords=[gps])
-            wp.iconstyle.icon.href = icon
-            wp.description = str(point)
+            p = kml_folder.newpoint(name=key, coords=[gps])
+            p.iconstyle.icon.href = icon
+            p.description = str(point)
+
+        # ODLCs.
+        oldc_folder = kml_folder.newfolder(name='ODLCs')
+        for odlc in self.odlcs.all():
+            name = 'ODLC %d' % odlc.pk
+            gps = (odlc.location.longitude, odlc.location.latitude)
+            p = oldc_folder.newpoint(name=name, coords=[gps])
+            p.iconstyle.icon.href = KML_ODLC_ICON
+            p.description = name
 
         # Waypoints
         waypoints_folder = kml_folder.newfolder(name='Waypoints')
@@ -193,15 +207,13 @@ class MissionConfig(models.Model):
             waypoints.append(coord)
 
             # Add waypoint marker
-            wp = waypoints_folder.newpoint(
+            p = waypoints_folder.newpoint(
                 name='Waypoint %d' % (i + 1), coords=[coord])
-            wp.iconstyle.icon.href = KML_WAYPOINT_ICON
-            wp.description = str(waypoint)
-            wp.altitudemode = AltitudeMode.absolute
-            wp.extrude = 1
+            p.iconstyle.icon.href = KML_WAYPOINT_ICON
+            p.description = str(waypoint)
+            p.altitudemode = AltitudeMode.absolute
+            p.extrude = 1
         linestring.coords = waypoints
-
-        # Waypoints Style
         linestring.altitudemode = AltitudeMode.absolute
         linestring.extrude = 1
         linestring.style.linestyle.color = Color.black
@@ -209,28 +221,17 @@ class MissionConfig(models.Model):
             100, Color.green)
 
         # Search Area
-        search_area_folder = kml_folder.newfolder(name='Search Area')
         search_area = []
-        search_area_num = 1
         for point in self.search_grid_points.order_by('order'):
             gps = point.position.gps_position
             coord = (gps.longitude, gps.latitude,
                      units.feet_to_meters(point.position.altitude_msl))
             search_area.append(coord)
-
-            # Add boundary marker
-            wp = search_area_folder.newpoint(
-                name=str(search_area_num), coords=[coord])
-            wp.description = str(point)
-            wp.visibility = False
-            search_area_num += 1
         if search_area:
-            # Create search area polygon.
-            pol = search_area_folder.newpolygon(name='Search Area')
+            pol = kml_folder.newpolygon(name='Search Area')
             search_area.append(search_area[0])
             pol.outerboundaryis = search_area
-            # Search Area Style.
-            pol.style.linestyle.color = Color.black
+            pol.style.linestyle.color = Color.blue
             pol.style.linestyle.width = 2
             pol.style.polystyle.color = Color.changealphaint(50, Color.blue)
 
