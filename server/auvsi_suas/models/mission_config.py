@@ -16,6 +16,11 @@ from django.db import models
 
 logger = logging.getLogger(__name__)
 
+KML_HOME_ICON = 'http://maps.google.com/mapfiles/kml/paddle/grn-circle.png'
+KML_WAYPOINT_ICON = 'http://maps.google.com/mapfiles/kml/paddle/blu-circle.png'
+KML_ODLC_ICON = 'http://maps.google.com/mapfiles/kml/shapes/donut.png'
+KML_DROP_ICON = 'http://maps.google.com/mapfiles/kml/shapes/target.png'
+
 
 class MissionConfig(models.Model):
     """The details for the mission.
@@ -165,23 +170,23 @@ class MissionConfig(models.Model):
         kml_folder = kml.newfolder(name=mission_name)
 
         # Static Points
-        locations = {
-            'Home Position': self.home_pos,
-            'Emergent LKP': self.emergent_last_known_pos,
-            'Off Axis': self.off_axis_odlc_pos,
-            'Air Drop': self.air_drop_pos,
-        }
-        for key, point in locations.items():
+        locations = [
+            ('Home', self.home_pos, KML_HOME_ICON),
+            ('Emergent LKP', self.emergent_last_known_pos, KML_ODLC_ICON),
+            ('Off Axis', self.off_axis_odlc_pos, KML_ODLC_ICON),
+            ('Air Drop', self.air_drop_pos, KML_DROP_ICON),
+        ]
+        for key, point, icon in locations:
             gps = (point.longitude, point.latitude)
             wp = kml_folder.newpoint(name=key, coords=[gps])
+            wp.iconstyle.icon.href = icon
             wp.description = str(point)
 
         # Waypoints
         waypoints_folder = kml_folder.newfolder(name='Waypoints')
         linestring = waypoints_folder.newlinestring(name='Waypoints')
         waypoints = []
-        waypoint_num = 1
-        for waypoint in self.mission_waypoints.order_by('order'):
+        for i, waypoint in enumerate(self.mission_waypoints.order_by('order')):
             gps = waypoint.position.gps_position
             coord = (gps.longitude, gps.latitude,
                      units.feet_to_meters(waypoint.position.altitude_msl))
@@ -189,12 +194,11 @@ class MissionConfig(models.Model):
 
             # Add waypoint marker
             wp = waypoints_folder.newpoint(
-                name=str(waypoint_num), coords=[coord])
+                name='Waypoint %d' % (i + 1), coords=[coord])
+            wp.iconstyle.icon.href = KML_WAYPOINT_ICON
             wp.description = str(waypoint)
             wp.altitudemode = AltitudeMode.absolute
             wp.extrude = 1
-            wp.visibility = False
-            waypoint_num += 1
         linestring.coords = waypoints
 
         # Waypoints Style
