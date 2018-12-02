@@ -174,7 +174,7 @@ class MissionConfig(models.Model):
         for flyzone in self.fly_zones.all():
             flyzone.kml(fly_zone_folder)
 
-        # Static Points
+        # Static points.
         locations = [
             ('Home', self.home_pos, KML_HOME_ICON),
             ('Emergent LKP', self.emergent_last_known_pos, KML_ODLC_ICON),
@@ -183,9 +183,18 @@ class MissionConfig(models.Model):
         ]
         for key, point, icon in locations:
             gps = (point.longitude, point.latitude)
-            wp = kml_folder.newpoint(name=key, coords=[gps])
-            wp.iconstyle.icon.href = icon
-            wp.description = str(point)
+            p = kml_folder.newpoint(name=key, coords=[gps])
+            p.iconstyle.icon.href = icon
+            p.description = str(point)
+
+        # ODLCs.
+        oldc_folder = kml_folder.newfolder(name='ODLCs')
+        for odlc in self.odlcs.all():
+            name = 'ODLC %d' % odlc.pk
+            gps = (odlc.location.longitude, odlc.location.latitude)
+            p = oldc_folder.newpoint(name=name, coords=[gps])
+            p.iconstyle.icon.href = KML_ODLC_ICON
+            p.description = name
 
         # Waypoints
         waypoints_folder = kml_folder.newfolder(name='Waypoints')
@@ -198,15 +207,13 @@ class MissionConfig(models.Model):
             waypoints.append(coord)
 
             # Add waypoint marker
-            wp = waypoints_folder.newpoint(
+            p = waypoints_folder.newpoint(
                 name='Waypoint %d' % (i + 1), coords=[coord])
-            wp.iconstyle.icon.href = KML_WAYPOINT_ICON
-            wp.description = str(waypoint)
-            wp.altitudemode = AltitudeMode.absolute
-            wp.extrude = 1
+            p.iconstyle.icon.href = KML_WAYPOINT_ICON
+            p.description = str(waypoint)
+            p.altitudemode = AltitudeMode.absolute
+            p.extrude = 1
         linestring.coords = waypoints
-
-        # Waypoints Style
         linestring.altitudemode = AltitudeMode.absolute
         linestring.extrude = 1
         linestring.style.linestyle.color = Color.black
