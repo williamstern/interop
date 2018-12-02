@@ -10,6 +10,10 @@
     padding: 0.5rem;
 }
 
+.team-status .card-body .row {
+    background-color: white;
+}
+
 .team-status-active,
 .team-status-in-air {
     background-color: #FFCC66;  // Orange if only 1

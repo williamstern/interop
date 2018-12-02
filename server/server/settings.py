@@ -172,7 +172,6 @@ PIPELINE = {
             'source_filenames': (
                 'third_party/bootstrap/bootstrap.min.css',
                 'app.css',
-                'components/mission-map.css',
                 'components/team-status.css',
                 'pages/mission-dashboard.css',
                 'pages/mission-list.css',
@@ -186,20 +185,13 @@ PIPELINE = {
         'scripts': {
             'source_filenames': (
                 'third_party/jquery/jquery.min.js',
-                'third_party/poppler/poppler.min.js',
                 'third_party/bootstrap/bootstrap.min.js',
-                'third_party/threejs/three.js',
                 'third_party/angularjs/angular.min.js',
                 'third_party/angularjs/angular-resource.min.js',
                 'third_party/angularjs/angular-route.min.js',
                 'app.js',
-                'components/settings-service.js',
                 'components/navigation.js',
                 'components/backend-service.js',
-                'components/units-service.js',
-                'components/distance-service.js',
-                'components/mission-scene.js',
-                'components/mission-map-controller.js',
                 'components/team-status-controller.js',
                 'pages/mission-dashboard-controller.js',
                 'pages/mission-list-controller.js',

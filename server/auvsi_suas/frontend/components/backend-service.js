@@ -26,16 +26,6 @@ Backend = function($resource) {
     this.teamsResource = $resource('/api/teams');
 
     /**
-     * @export @const {!Object} Obstacles interface.
-     */
-    this.obstaclesResource = $resource('/api/obstacles');
-
-    /**
-     * @export @const {!Object} Telemetry interface.
-     */
-    this.telemetryResource = $resource('/api/telemetry');
-
-    /**
      * @export @const {!Object} Odlc review interface.
      */
     this.odlcReviewResource = $resource(

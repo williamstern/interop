@@ -1,9 +1,11 @@
-<div class="row p-4 text-center">
-    <div class="col-3 p-2">
-        <h4>Odlc Review</h4>
+<div class="row p-4">
+    <div class="col-12 text-center">
+        <h4>ODLC Review</h4>
+    </div>
+</div>
 
-        <hr></hr>
-
+<div class="row text-center">
+    <div class="col-2 p-2">
         <div id="odlc-list" class="button-group stacked">
             <button type="button"
                 class="odlc-list-item {{odlcReviewCtrl.getOdlcButtonClass(odlc)}}"
@@ -14,7 +16,7 @@
         </div>
   </div>
 
-  <div id="odlc-detail" class="col-3"
+  <div id="odlc-detail" class="col-5 p-2"
        ng-show="odlcReviewCtrl.getReviewOdlc()">
     <div id="odlc-review">
         <button type="button" class="btn btn-success" ng-click="odlcReviewCtrl.saveReview()">Save and Advance</button>
@@ -35,7 +37,7 @@
     </div>
   </div>
 
-  <div id="odlc-img-holder" class="col-4">
+  <div id="odlc-img-holder" class="col-5 p-2">
       <div ng-show="odlcReviewCtrl.getReviewOdlc()"
           style="{{odlcReviewCtrl.getOdlcImgStyle()}}"></div>
   </div>
