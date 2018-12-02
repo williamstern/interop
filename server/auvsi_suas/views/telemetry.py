@@ -28,49 +28,44 @@ class Telemetry(View):
         try:
             json_format.Parse(request.body, telemetry_proto)
         except Exception as e:
-            msg = 'Failed to parse request. Error: %s' % str(e)
-            logger.warning(msg)
-            logger.debug(request)
-            return HttpResponseBadRequest(msg)
+            return HttpResponseBadRequest(
+                'Failed to parse request. Error: %s' % str(e))
 
         if (not telemetry_proto.HasField('latitude') or
                 not telemetry_proto.HasField('longitude') or
                 not telemetry_proto.HasField('altitude') or
                 not telemetry_proto.HasField('heading')):
-            msg = 'Request missing fields.'
-            logger.warning(msg)
-            logger.debug(request)
+            return HttpResponseBadRequest('Request missing fields.')
+
+        # Check the values make sense.
+        if telemetry_proto.latitude < -90 or telemetry_proto.latitude > 90:
             return HttpResponseBadRequest(
-                'Failed to convert provided POST parameters to correct form.')
-        else:
-            # Check the values make sense
-            if latitude < -90 or latitude > 90:
-                logger.warning('User specified latitude out of valid range.')
-                logger.debug(request)
-                return HttpResponseBadRequest(
-                    'Must provide latitude between -90 and 90 degrees.')
-            if longitude < -180 or longitude > 180:
-                logger.warning('User specified longitude out of valid range.')
-                logger.debug(request)
-                return HttpResponseBadRequest(
-                    'Must provide longitude between -180 and 180 degrees.')
-            if uas_heading < 0 or uas_heading > 360:
-                logger.warning('User specified altitude out of valid range.')
-                logger.debug(request)
-                return HttpResponseBadRequest(
-                    'Must provide heading between 0 and 360 degrees.')
+                'Latitude out of range [-90, 90]: %f' %
+                telemetry_proto.latitude)
+        if telemetry_proto.longitude < -180 or telemetry_proto.longitude > 180:
+            return HttpResponseBadRequest(
+                'Longitude out of range [-180, 180]: %f' %
+                telemetry_proto.longitude)
+        if telemetry_proto.altitude < -1500 or telemetry_proto.altitude > 330000:
+            return HttpResponseBadRequest(
+                'Altitude out of range [-1500, 330000]: %f' %
+                telemetry_proto.altitude)
+        if telemetry_proto.heading < 0 or telemetry_proto.heading > 360:
+            return HttpResponseBadRequest(
+                'Heading out of range [0, 360]: %f' % telemetry_proto.heading)
 
-            # Store telemetry
-            logger.info('User uploaded telemetry: %s' % request.user.username)
+        # Store telemetry.
+        gpos = GpsPosition(
+            latitude=telemetry_proto.latitude,
+            longitude=telemetry_proto.longitude)
+        gpos.save()
+        apos = AerialPosition(
+            gps_position=gpos, altitude_msl=telemetry_proto.altitude)
+        apos.save()
+        telemetry = UasTelemetry(
+            user=request.user,
+            uas_position=apos,
+            uas_heading=telemetry_proto.heading)
+        telemetry.save()
 
-            gpos = GpsPosition(latitude=latitude, longitude=longitude)
-            gpos.save()
-
-            apos = AerialPosition(gps_position=gpos, altitude_msl=altitude_msl)
-            apos.save()
-
-            telemetry = UasTelemetry(
-                user=request.user, uas_position=apos, uas_heading=uas_heading)
-            telemetry.save()
-
-            return HttpResponse('UAS Telemetry Successfully Posted.')
+        return HttpResponse('UAS Telemetry Successfully Posted.')

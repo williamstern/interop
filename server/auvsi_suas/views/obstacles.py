@@ -7,7 +7,6 @@ from auvsi_suas.views.decorators import require_login
 from auvsi_suas.views.missions import active_mission
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
-from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 
@@ -22,31 +21,14 @@ class Obstacles(View):
         return super(Obstacles, self).dispatch(*args, **kwargs)
 
     def get(self, request):
-        time = timezone.now()
-
-        # ?time=TIMESTAMP to get obstacle location at specific time
-        if 'time' in request.GET:
-            if not request.user.is_superuser:
-                return HttpResponseBadRequest(
-                    'Only superusers may set the time parameter')
-
-            try:
-                time = iso8601.parse_date(request.GET['time'])
-            except iso8601.ParseError:
-                return HttpResponseBadRequest("Bad timestamp '%s'" % \
-                                                request.GET['time'])
-
-        # Log user access to obstacle info
-        logger.info(
-            'User downloaded obstacle info: %s.' % request.user.username)
-
         # Get active mission for forming responses.
         (mission, err) = active_mission()
         if err:
             return err
 
         # Form JSON response portion for stationary obstacles
-        stationary_obstacles = mission.stationary_obstacles.all()
+        stationary_obstacles = mission.stationary_obstacles.select_related(
+        ).all().order_by('pk')
         stationary_obstacles_json = []
         for cur_obst in stationary_obstacles:
             # Add current obstacle

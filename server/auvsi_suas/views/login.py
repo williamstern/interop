@@ -20,27 +20,19 @@ class Login(View):
         try:
             json_format.Parse(request.body, creds)
         except Exception as e:
-            msg = 'Failed to parse request. Error: %s' % str(e)
-            logging.warning(msg)
-            logging.debug(request)
-            return HttpResponseBadRequest(msg)
+            return HttpResponseBadRequest(
+                'Failed to parse request. Error: %s' % str(e))
 
         if not creds.HasField('username') or not creds.HasField('password'):
-            msg = 'Request missing fields.'
-            logging.warning(msg)
-            logging.debug(request)
-            return HttpResponseBadRequest(msg)
+            return HttpResponseBadRequest('Request missing fields.')
 
         user = authenticate(username=creds.username, password=creds.password)
         if user is not None and user.is_active:
             # Successful authentication with active user, login
             login(request, user)
-            msg = 'User logged in: %s' % user.username
-            logger.info(msg)
-            return HttpResponse(msg)
+            return HttpResponse('User logged in: %s' % user.username)
         else:
             # Invalid user credentials, invalid request
-            msg = 'Invalid credentials in request. Could not log in.'
-            logger.warning(msg)
-            logger.debug(request)
-            return HttpResponse(msg, status=401)
+            return HttpResponse(
+                'Invalid credentials in request. Could not log in.',
+                status=401)

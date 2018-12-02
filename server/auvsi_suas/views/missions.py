@@ -69,11 +69,9 @@ def mission_for_request(request_params):
             mission = MissionConfig.objects.get(pk=mission_id)
             return (mission, None)
         except ValueError:
-            logger.warning('Invalid mission ID given. ID: %d.', mission_id_str)
             return (None,
                     HttpResponseBadRequest('Mission ID is not an integer.'))
         except MissionConfig.DoesNotExist:
-            logger.warning('Given mission ID not found. ID: %d.', mission_id)
             return (None, HttpResponseBadRequest('Mission not found.'))
 
     # Mission not specified, get the single active mission.
@@ -272,12 +270,9 @@ class Evaluate(View):
         return csv_output
 
     def get(self, request):
-        logger.info('Admin downloading team evaluation.')
-
         # Get the mission to evaluate a team for.
         mission, error = mission_for_request(request.GET)
         if error:
-            logger.warning('Could not get mission to evaluate teams.')
             return error
 
         # Get the optional team to eval.
@@ -294,7 +289,6 @@ class Evaluate(View):
         # Get the eval data for the teams.
         mission_eval = mission_evaluation.evaluate_teams(mission, users)
         if not mission_eval:
-            logger.warning('No data for team evaluation.')
             return HttpResponseServerError(
                 'Could not get user evaluation data.')
 
