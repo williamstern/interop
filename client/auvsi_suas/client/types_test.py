@@ -4,7 +4,6 @@ from auvsi_suas.client.types import FlyZone
 from auvsi_suas.client.types import GpsPosition
 from auvsi_suas.client.types import Mission
 from auvsi_suas.client.types import Odlc
-from auvsi_suas.client.types import StationaryObstacle
 from auvsi_suas.client.types import Waypoint
 
 
@@ -124,79 +123,6 @@ class TestMission(unittest.TestCase):
         self.assertEqual(3, m.search_grid_points[0].order)
         self.assertEqual(29, m.search_grid_points[0].latitude)
         self.assertEqual(-72, m.search_grid_points[0].longitude)
-
-
-class TestStationaryObstacle(unittest.TestCase):
-    """Test the StationaryObstacle object. There is very little to see here."""
-
-    def test_valid(self):
-        """Test valid inputs"""
-        # No exceptions
-        StationaryObstacle(
-            latitude=38,
-            longitude=-76,
-            cylinder_radius=100,
-            cylinder_height=200)
-
-    def test_invalid(self):
-        """Test invalid inputs"""
-        # Bad latitude
-        with self.assertRaises(ValueError):
-            StationaryObstacle(
-                latitude='a',
-                longitude=-76,
-                cylinder_radius=100,
-                cylinder_height=200)
-        # Bad longitude
-        with self.assertRaises(ValueError):
-            StationaryObstacle(
-                latitude=38,
-                longitude='a',
-                cylinder_radius=100,
-                cylinder_height=200)
-        # Bad radius
-        with self.assertRaises(ValueError):
-            StationaryObstacle(
-                latitude=38,
-                longitude=-76,
-                cylinder_radius='a',
-                cylinder_height=200)
-        # Bad height
-        with self.assertRaises(ValueError):
-            StationaryObstacle(
-                latitude=38,
-                longitude=-76,
-                cylinder_radius=100,
-                cylinder_height='a')
-
-    def test_serialize(self):
-        """Test serialization."""
-        o = StationaryObstacle(
-            latitude=38,
-            longitude=-76,
-            cylinder_radius=100,
-            cylinder_height=200)
-        s = o.serialize()
-
-        self.assertEqual(4, len(s))
-        self.assertEqual(38, s['latitude'])
-        self.assertEqual(-76, s['longitude'])
-        self.assertEqual(100, s['cylinder_radius'])
-        self.assertEqual(200, s['cylinder_height'])
-
-    def test_deserialize(self):
-        """Test deserialization."""
-        o = StationaryObstacle.deserialize({
-            'latitude': '38',
-            'longitude': -76,
-            'cylinder_radius': 100,
-            'cylinder_height': 200
-        })
-
-        self.assertEqual(38, o.latitude)
-        self.assertEqual(-76, o.longitude)
-        self.assertEqual(100, o.cylinder_radius)
-        self.assertEqual(200, o.cylinder_height)
 
 
 class TestOdlc(unittest.TestCase):

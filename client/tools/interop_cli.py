@@ -12,6 +12,7 @@ import time
 
 from auvsi_suas.client.client import AsyncClient
 from auvsi_suas.proto.interop_api_pb2 import Telemetry
+from google.protobuf import text_format
 from mavlink_proxy import MavlinkProxy
 from upload_odlcs import upload_odlcs
 
@@ -22,6 +23,11 @@ def missions(args, client):
     missions = client.get_missions().result()
     for m in missions:
         pprint.pprint(m.serialize())
+
+
+def obstacles(args, client):
+    obstacles = client.get_obstacles().result()
+    print(text_format.MessageToString(obstacles))
 
 
 def odlcs(args, client):
@@ -81,6 +87,9 @@ def main():
 
     subparser = subparsers.add_parser('missions', help='Get missions.')
     subparser.set_defaults(func=missions)
+
+    subparser = subparsers.add_parser('obstacles', help='Get obstaclesj.')
+    subparser.set_defaults(func=obstacles)
 
     subparser = subparsers.add_parser(
         'odlcs',

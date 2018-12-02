@@ -39,9 +39,8 @@ class Telemetry(View):
 
         # Check the values make sense.
         if telemetry_proto.latitude < -90 or telemetry_proto.latitude > 90:
-            return HttpResponseBadRequest(
-                'Latitude out of range [-90, 90]: %f' %
-                telemetry_proto.latitude)
+            return HttpResponseBadRequest('Latitude out of range [-90, 90]: %f'
+                                          % telemetry_proto.latitude)
         if telemetry_proto.longitude < -180 or telemetry_proto.longitude > 180:
             return HttpResponseBadRequest(
                 'Longitude out of range [-180, 180]: %f' %

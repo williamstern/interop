@@ -3,6 +3,7 @@
 syntax = "proto2";
 package auvsi_suas.proto;
 
+// Credentials used to login to interop.
 message Credentials {
     // Username for login.
     // Required.
@@ -12,6 +13,7 @@ message Credentials {
     optional string password = 2;
 }
 
+// UAS telemetry teams must upload.
 message Telemetry {
     // Latitude of GPS position in degrees.
     // Required. [-90, 90]
@@ -25,4 +27,26 @@ message Telemetry {
     // Heading relative to true north in degrees.
     // Required. [0, 360]
     optional double heading = 4;
+}
+
+// Set of obstacles returned for a given mission.
+message ObstacleSet {
+    // Stationary obstacles.
+    repeated StationaryObstacle stationary_obstacle = 1;
+}
+
+// Stationary obstacle modeled as a cylinder.
+message StationaryObstacle {
+    // Latitude of GPS position in degrees.
+    // Required. [-90, 90]
+    optional double latitude = 1;
+    // Longitude of GPS position in degrees.
+    // Required. [-180, 180]
+    optional double longitude = 2;
+    // Radius of the obstacle cylinder in feet.
+    // Required. [30, 300]
+    optional double radius = 3;
+    // Height of the obstacle cylinder above mean sea level (MSL) in feet.
+    // Required. [-1500, 330000]
+    optional double height = 4;
 }

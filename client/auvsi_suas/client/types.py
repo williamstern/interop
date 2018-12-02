@@ -161,30 +161,6 @@ class Mission(ClientBaseType):
         ]
 
 
-class StationaryObstacle(ClientBaseType):
-    """A stationary obstacle.
-
-    This obstacle is a cylinder with a given location, height, and radius.
-
-    Attributes:
-        latitude: Latitude of the center of the cylinder in decimal degrees
-        longitude: Longitude of the center of the cylinder in decimal degrees
-        cylinder_radius: Radius in feet
-        cylinder_height: Height in feet
-
-    Raises:
-        ValueError: Argument not convertable to float.
-    """
-
-    attrs = ['latitude', 'longitude', 'cylinder_radius', 'cylinder_height']
-
-    def __init__(self, latitude, longitude, cylinder_radius, cylinder_height):
-        self.latitude = float(latitude)
-        self.longitude = float(longitude)
-        self.cylinder_radius = float(cylinder_radius)
-        self.cylinder_height = float(cylinder_height)
-
-
 class Odlc(ClientBaseType):
     """An odlc.
 

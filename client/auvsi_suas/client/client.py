@@ -12,8 +12,7 @@ from auvsi_suas.client.exceptions import InteropError
 from auvsi_suas.client.types import Mission
 from auvsi_suas.client.types import Mission
 from auvsi_suas.client.types import Odlc
-from auvsi_suas.client.types import StationaryObstacle
-from auvsi_suas.proto.interop_api_pb2 import Credentials
+from auvsi_suas.proto import interop_api_pb2
 from concurrent.futures import ThreadPoolExecutor
 from google.protobuf import json_format
 
@@ -58,7 +57,7 @@ class Client(object):
                                max_retries=max_retries))
 
         # All endpoints require authentication, so always login.
-        creds = Credentials()
+        creds = interop_api_pb2.Credentials()
         creds.username = username
         creds.password = password
         self.post('/api/login', data=json_format.MessageToJson(creds))
@@ -150,20 +149,17 @@ class Client(object):
         """GET obstacles.
 
         Returns:
-            List of StationaryObstacles.
+            ObstacleSet.List of StationaryObstacles.
         Raises:
             InteropError: Error from server.
             requests.Timeout: Request timeout.
             ValueError or AttributeError: Malformed response from server.
         """
         r = self.get('/api/obstacles')
-        d = r.json()
 
-        stationary = []
-        for o in d['stationary_obstacles']:
-            stationary.append(StationaryObstacle.deserialize(o))
-
-        return stationary
+        obstacle_set = interop_api_pb2.ObstacleSet()
+        json_format.Parse(r.text, obstacle_set)
+        return obstacle_set
 
     def get_odlcs(self):
         """GET odlcs.

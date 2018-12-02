@@ -6,7 +6,7 @@ from auvsi_suas.client.client import AsyncClient
 from auvsi_suas.client.client import Client
 from auvsi_suas.client.exceptions import InteropError
 from auvsi_suas.client.types import Odlc
-from auvsi_suas.proto.interop_api_pb2 import Telemetry
+from auvsi_suas.proto import interop_api_pb2
 
 # These tests run against a real interop server.
 # The server be loaded with the data from the test fixture in
@@ -78,7 +78,7 @@ class TestClient(unittest.TestCase):
 
     def test_post_telemetry(self):
         """Test sending some telemetry."""
-        t = Telemetry()
+        t = interop_api_pb2.Telemetry()
         t.latitude = 38
         t.longitude = -76
         t.altitude = 100
@@ -90,7 +90,7 @@ class TestClient(unittest.TestCase):
 
     def test_post_bad_telemetry(self):
         """Test sending some (incorrect) telemetry."""
-        t = Telemetry()
+        t = interop_api_pb2.Telemetry()
         t.latitude = 38
         t.longitude = -76
         t.altitude = 100
@@ -102,25 +102,24 @@ class TestClient(unittest.TestCase):
 
     def test_get_obstacles(self):
         """Test getting obstacles."""
-        stationary = self.client.get_obstacles()
-        async_future = self.async_client.get_obstacles()
-        async_stationary = async_future.result()
+        obstacles = self.client.get_obstacles()
+        async_obstacles = self.async_client.get_obstacles().result()
 
         # No exceptions is a good sign, let's see if the data matches the fixture.
-        self.assertEqual(2, len(stationary))
-        self.assertEqual(2, len(async_stationary))
+        self.assertEqual(2, len(obstacles.stationary_obstacle))
+        self.assertEqual(2, len(async_obstacles.stationary_obstacle))
 
-        radii = [o.cylinder_radius for o in stationary]
-        async_radii = [o.cylinder_radius for o in async_stationary]
+        radii = [o.radius for o in obstacles.stationary_obstacle]
+        async_radii = [o.radius for o in async_obstacles.stationary_obstacle]
         self.assertIn(50, radii)
         self.assertIn(50, async_radii)
         self.assertIn(150, radii)
         self.assertIn(150, async_radii)
 
-        heights = [o.cylinder_height for o in stationary]
+        heights = [o.height for o in obstacles.stationary_obstacle]
         self.assertIn(300, heights)
         self.assertIn(200, heights)
-        async_heights = [o.cylinder_height for o in async_stationary]
+        async_heights = [o.height for o in async_obstacles.stationary_obstacle]
         self.assertIn(300, async_heights)
         self.assertIn(200, async_heights)
 
