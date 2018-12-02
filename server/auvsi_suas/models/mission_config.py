@@ -1,6 +1,9 @@
 """Mission configuration model."""
 
 import logging
+import math
+import numpy as np
+from auvsi_suas.models import distance
 from auvsi_suas.models import units
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.gps_position import GpsPosition
@@ -20,6 +23,7 @@ KML_HOME_ICON = 'http://maps.google.com/mapfiles/kml/paddle/grn-circle.png'
 KML_WAYPOINT_ICON = 'http://maps.google.com/mapfiles/kml/paddle/blu-circle.png'
 KML_ODLC_ICON = 'http://maps.google.com/mapfiles/kml/shapes/donut.png'
 KML_DROP_ICON = 'http://maps.google.com/mapfiles/kml/shapes/target.png'
+KML_OBST_NUM_POINTS = 20
 
 
 class MissionConfig(models.Model):
@@ -216,7 +220,7 @@ class MissionConfig(models.Model):
         linestring.coords = waypoints
         linestring.altitudemode = AltitudeMode.absolute
         linestring.extrude = 1
-        linestring.style.linestyle.color = Color.black
+        linestring.style.linestyle.color = Color.green
         linestring.style.polystyle.color = Color.changealphaint(
             100, Color.green)
 
@@ -228,8 +232,8 @@ class MissionConfig(models.Model):
                      units.feet_to_meters(point.position.altitude_msl))
             search_area.append(coord)
         if search_area:
-            pol = kml_folder.newpolygon(name='Search Area')
             search_area.append(search_area[0])
+            pol = kml_folder.newpolygon(name='Search Area')
             pol.outerboundaryis = search_area
             pol.style.linestyle.color = Color.blue
             pol.style.linestyle.width = 2
@@ -238,7 +242,27 @@ class MissionConfig(models.Model):
         # Stationary Obstacles.
         stationary_obstacles_folder = kml_folder.newfolder(
             name='Stationary Obstacles')
-        # TODO: Implement
+        for obst in self.stationary_obstacles.all():
+            gpos = obst.gps_position
+            zone, north = distance.utm_zone(gpos.latitude, gpos.longitude)
+            proj = distance.proj_utm(zone, north)
+            cx, cy = proj(gpos.longitude, gpos.latitude)
+            rm = units.feet_to_meters(obst.cylinder_radius)
+            hm = units.feet_to_meters(obst.cylinder_height)
+            obst_points = []
+            for angle in np.linspace(0, 2 * math.pi, num=KML_OBST_NUM_POINTS):
+                px = cx + rm * math.cos(angle)
+                py = cy + rm * math.sin(angle)
+                lon, lat = proj(px, py, inverse=True)
+                obst_points.append((lon, lat, hm))
+            pol = stationary_obstacles_folder.newpolygon(
+                name='Obstacle %d' % obst.pk)
+            pol.outerboundaryis = obst_points
+            pol.altitudemode = AltitudeMode.absolute
+            pol.extrude = 1
+            pol.style.linestyle.color = Color.yellow
+            pol.style.linestyle.width = 2
+            pol.style.polystyle.color = Color.changealphaint(50, Color.yellow)
 
 
 @admin.register(MissionConfig)
