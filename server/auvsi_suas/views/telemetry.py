@@ -130,7 +130,8 @@ class Telemetry(View):
         # Prefetch data from all ForeignKeys (e.g., AerialPosition) when
         # evaluating the query.  This allows us to avoid making hundreds
         # of other queries as we access all of those fields.
-        query = UasTelemetry.objects.select_related()
+        query = UasTelemetry.objects.select_related(
+            'uas_position', 'uas_position__gps_position')
 
         if user:
             query = query.filter(user=user)
