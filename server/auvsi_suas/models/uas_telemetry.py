@@ -32,6 +32,11 @@ TELEMETRY_INTERPOLATION_MAX_GAP = datetime.timedelta(seconds=5.0)
 # The max distance for a waypoint to be considered satisfied.
 SATISFIED_WAYPOINT_DIST_MAX_FT = 100
 
+# Plane icon for KML for better styling.
+KML_PLANE_ICON = 'http://maps.google.com/mapfiles/kml/shapes/airports.png'
+# KML Compliant Datetime Formatter
+KML_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+
 
 class UasTelemetry(AccessLog):
     """UAS telemetry reported by teams.
@@ -87,7 +92,7 @@ class UasTelemetry(AccessLog):
         # the related AerialPosition and GpsPosition.  To avoid excessive
         # database queries, we select these values from the database up front.
         return super(UasTelemetry, cls).by_user(*args, **kwargs) \
-                .select_related('uas_position__gps_position')
+                .select_related('uas_position', 'uas_position__gps_position')
 
     @classmethod
     def dedupe(cls, logs):
@@ -151,10 +156,6 @@ class UasTelemetry(AccessLog):
         Returns:
             None
         """
-        # KML Compliant Datetime Formatter
-        kml_datetime_format = "%Y-%m-%dT%H:%M:%S.%fZ"
-        icon = 'http://maps.google.com/mapfiles/kml/shapes/airports.png'
-
         kml_folder = kml.newfolder(name=user.username)
 
         flights = TakeoffOrLandingEvent.flights(user)
@@ -163,15 +164,13 @@ class UasTelemetry(AccessLog):
 
         logs = UasTelemetry.dedupe(UasTelemetry.filter_bad(logs))
         for i, flight in enumerate(flights):
-            label = 'Flight {}'.format(i + 1)  # Flights are one-indexed
-            kml_flight = kml_folder.newfolder(name=label)
-
+            name = '%s Flight %d' % (user.username, i + 1)
             flight_logs = filter(lambda x: flight.within(x.timestamp), logs)
 
             coords = []
             angles = []
             when = []
-            for entry in flight_logs:
+            for entry in logs:
                 pos = entry.uas_position.gps_position
                 # Spatial Coordinates
                 coord = (pos.longitude, pos.latitude,
@@ -179,7 +178,7 @@ class UasTelemetry(AccessLog):
                 coords.append(coord)
 
                 # Time Elements
-                time = entry.timestamp.strftime(kml_datetime_format)
+                time = entry.timestamp.strftime(KML_DATETIME_FORMAT)
                 when.append(time)
 
                 # Degrees heading, tilt, and roll
@@ -187,7 +186,7 @@ class UasTelemetry(AccessLog):
                 angles.append(angle)
 
             # Create a new track in the folder
-            trk = kml_flight.newgxtrack(name='Flight Path')
+            trk = kml_folder.newgxtrack(name=name)
             trk.altitudemode = AltitudeMode.absolute
 
             # Append flight data
@@ -199,32 +198,31 @@ class UasTelemetry(AccessLog):
             trk.extrude = 1  # Extend path to ground
             trk.style.linestyle.width = 2
             trk.style.linestyle.color = Color.blue
-            trk.iconstyle.icon.href = icon
+            trk.iconstyle.icon.href = KML_PLANE_ICON
 
     @classmethod
     def live_kml(cls, kml, timespan):
-        users = User.objects.all()
+        users = User.objects.all().order_by('username')
         for user in users:
-            period_logs = UasTelemetry.by_user(user)\
-                .filter(timestamp__gt=timezone.now() - timespan)
-
-            if len(period_logs) < 1:
+            try:
+                log = UasTelemetry.by_user(user).latest('timestamp')
+            except UasTelemetry.DoesNotExist:
                 continue
 
-            linestring = kml.newlinestring(name=user.username)
-            coords = []
-            for entry in period_logs:
-                pos = entry.uas_position.gps_position
-                # Spatial Coordinates
-                coord = (pos.longitude, pos.latitude,
-                         units.feet_to_meters(entry.uas_position.altitude_msl))
-                coords.append(coord)
-            linestring.coords = coords
-            linestring.altitudemode = AltitudeMode.absolute
-            linestring.extrude = 1
-            linestring.style.linestyle.color = Color.blue
-            linestring.style.polystyle.color = Color.changealphaint(
-                100, Color.blue)
+            if log.timestamp < timezone.now() - timespan:
+                continue
+
+            apos = log.uas_position
+            gpos = apos.gps_position
+
+            point = kml.newpoint(
+                name=user.username,
+                coords=[(gpos.longitude, gpos.latitude,
+                         units.feet_to_meters(apos.altitude_msl))])
+            point.iconstyle.icon.href = KML_PLANE_ICON
+            point.iconstyle.heading = log.uas_heading
+            point.extrude = 1  # Extend path to ground
+            point.altitudemode = AltitudeMode.absolute
 
     @classmethod
     def interpolate(cls,

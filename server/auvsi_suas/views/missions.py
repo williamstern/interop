@@ -173,7 +173,7 @@ class LiveKml(View):
         netlink = kml.newnetworklink(name="Live Data")
         netlink.link.href = uri
         netlink.link.refreshmode = RefreshMode.oninterval
-        netlink.link.refreshinterval = 0.5
+        netlink.link.refreshinterval = 1.0
 
         response = HttpResponse(kml.kml())
         response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
