@@ -119,7 +119,9 @@ class TestClient(unittest.TestCase):
         heights = [o.height for o in obstacles.stationary_obstacles]
         self.assertIn(300, heights)
         self.assertIn(200, heights)
-        async_heights = [o.height for o in async_obstacles.stationary_obstacles]
+        async_heights = [
+            o.height for o in async_obstacles.stationary_obstacles
+        ]
         self.assertIn(300, async_heights)
         self.assertIn(200, async_heights)
 

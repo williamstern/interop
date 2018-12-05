@@ -2,6 +2,22 @@
 
 syntax = "proto2";
 package auvsi_suas.proto;
+import "auvsi_suas/proto/interop_api.proto";
+
+// Status of a team.
+message TeamStatus {
+    // The team this status describes.
+    optional string team = 1;
+
+    // Whether the team is marked in air by admin.
+    optional bool in_air = 2;
+
+    // Most recent telemetry position, if it exists.
+    optional Telemetry telemetry = 3;
+
+    // Timestamp of the telemetry position as ISO string.
+    optional string telemetry_timestamp = 4;
+}
 
 // Multi-user mission evaluation.
 message MultiUserMissionEvaluation {

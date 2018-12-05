@@ -37,18 +37,6 @@ MissionDashboardCtrl = function($rootScope, $routeParams, $interval, Backend) {
             angular.bind(this, this.update_), 1000);
 };
 
-
-/**
- * @param {!Object} The team.
- * @return {!boolean} Whether the team is active.
- * @export
- */
-MissionDashboardCtrl.prototype.isActive = function(team) {
-    return !!team.telemetry &&
-        new Date() - new Date(team.telemetry.timestamp) < 3000;
-};
-
-
 /**
  * Executes asynchronous updates for data.
  * @private

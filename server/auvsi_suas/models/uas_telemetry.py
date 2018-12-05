@@ -62,19 +62,6 @@ class UasTelemetry(AccessLog):
         return (self.uas_position.duplicate(other.uas_position) and
                 self.uas_heading == other.uas_heading)
 
-    def json(self):
-        ret = {
-            'id': self.pk,
-            'user': self.user.pk,
-            'timestamp': self.timestamp.isoformat(),
-            'latitude': self.uas_position.gps_position.latitude,
-            'longitude': self.uas_position.gps_position.longitude,
-            'altitude_msl': self.uas_position.altitude_msl,
-            'heading': self.uas_heading,
-        }
-
-        return ret
-
     @classmethod
     def by_user(cls, *args, **kwargs):
         """Gets the time-sorted list of access log for the given user.

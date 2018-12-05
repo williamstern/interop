@@ -13,7 +13,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 teams_url = reverse('auvsi_suas:teams')
-teams_id_url = functools.partial(reverse, 'auvsi_suas:teams_id')
+team_url = functools.partial(reverse, 'auvsi_suas:team')
 
 
 class TestTeamsViewLoggedOut(TestCase):
@@ -103,10 +103,10 @@ class TestTeamsView(TestCase):
         self.assertEqual(2, len(data))
 
         for user in data:
-            self.assertIn('id', user)
-            self.assertIn('name', user)
-            self.assertIn('in_air', user)
-            self.assertIn('telemetry', user)
+            self.assertIn('team', user)
+            self.assertIn('inAir', user)
+            if 'telemetry' in user:
+                self.assertIn('telemetryTimestamp', user)
 
     def test_users_correct(self):
         """User names and status correct."""
@@ -117,35 +117,34 @@ class TestTeamsView(TestCase):
 
         data = json.loads(response.content)
 
-        names = [d['name'] for d in data]
+        names = [d['team'] for d in data]
         self.assertIn('user1', names)
         self.assertIn('user2', names)
 
         user1 = data[names.index('user1')]
-        self.assertEqual(True, user1['in_air'])
-        self.assertEqual(None, user1['telemetry'])
+        self.assertEqual(True, user1['inAir'])
+        self.assertNotIn('telemetry', user1)
 
         user2 = data[names.index('user2')]
-        self.assertEqual(False, user2['in_air'])
+        self.assertEqual(False, user2['inAir'])
         self.assertEqual({
-            u'id': self.telem.pk,
-            u'user': user2['id'],
-            u'timestamp': u'2016-10-01T00:00:00+00:00',
             u'latitude': 38.6462,
             u'longitude': -76.2452,
-            u'altitude_msl': 0.0,
+            u'altitude': 0.0,
             u'heading': 90.0,
         }, user2['telemetry'])
+        self.assertEqual(user2['telemetryTimestamp'],
+                         u'2016-10-01T00:00:00+00:00')
 
 
-class TestTeamsIdViewLoggedOut(TestCase):
+class TestTeamViewLoggedOut(TestCase):
     def test_not_authenticated(self):
         """Tests requests that have not yet been authenticated."""
-        response = self.client.get(teams_id_url(args=[1]))
+        response = self.client.get(team_url(args=[1]))
         self.assertEqual(403, response.status_code)
 
 
-class TestTeamsIdView(TestCase):
+class TestTeamView(TestCase):
     """Tests the teams-by-id view."""
 
     def setUp(self):
@@ -160,49 +159,46 @@ class TestTeamsIdView(TestCase):
 
     def test_bad_id(self):
         """Invalid user id rejected"""
-        response = self.client.get(teams_id_url(args=[999]))
+        response = self.client.get(team_url(args=[999]))
         self.assertGreaterEqual(400, response.status_code)
 
     def test_correct_user(self):
         """User requested is correct"""
-        response = self.client.get(teams_id_url(args=[self.user1.pk]))
+        response = self.client.get(team_url(args=[self.user1.username]))
         self.assertEqual(200, response.status_code)
 
         data = json.loads(response.content)
-
-        self.assertEqual('user1', data['name'])
-        self.assertEqual(self.user1.pk, data['id'])
-        self.assertEqual(False, data['in_air'])
-        self.assertEqual(None, data['telemetry'])
+        self.assertIn('team', data)
+        self.assertEqual('user1', data['team'])
+        self.assertIn('inAir', data)
+        self.assertEqual(False, data['inAir'])
+        self.assertNotIn('telemetry', data)
 
     def test_bad_json(self):
         """Invalid json rejected"""
         response = self.client.put(
-            teams_id_url(args=[self.user1.pk]), 'Hi there!')
+            team_url(args=[self.user1.username]), 'Hi there!')
         self.assertGreaterEqual(400, response.status_code)
 
     def test_invalid_in_air(self):
         """invalid in_air rejected"""
         data = json.dumps({
-            'name': self.user1.username,
-            'id': self.user1.pk,
+            'team': self.user1.username,
             'active': False,
-            'in_air': 'Hi!',
+            'inAir': 'Hi!',
         })
 
-        response = self.client.put(teams_id_url(args=[self.user1.pk]), data)
+        response = self.client.put(team_url(args=[self.user1.username]), data)
         self.assertGreaterEqual(400, response.status_code)
 
     def test_no_extra_events(self):
         """No new TakeoffOrLandingEvents created if status doesn't change"""
         data = json.dumps({
-            'name': self.user1.username,
-            'id': self.user1.pk,
-            'telemetry': None,
-            'in_air': False,
+            'team': self.user1.username,
+            'inAir': False,
         })
 
-        response = self.client.put(teams_id_url(args=[self.user1.pk]), data)
+        response = self.client.put(team_url(args=[self.user1.username]), data)
         self.assertEqual(200, response.status_code)
 
         data = json.loads(response.content)
@@ -212,18 +208,16 @@ class TestTeamsIdView(TestCase):
     def test_update_in_air(self):
         """In-air can be updated"""
         data = json.dumps({
-            'name': self.user1.username,
-            'id': self.user1.pk,
-            'telemetry': None,
-            'in_air': True,
+            'team': self.user1.username,
+            'inAir': True,
         })
 
-        response = self.client.put(teams_id_url(args=[self.user1.pk]), data)
+        response = self.client.put(team_url(args=[self.user1.username]), data)
         self.assertEqual(200, response.status_code)
 
         data = json.loads(response.content)
 
-        self.assertEqual(True, data['in_air'])
+        self.assertEqual(True, data['inAir'])
 
         # Event created
         event = TakeoffOrLandingEvent.objects.get()
@@ -235,51 +229,30 @@ class TestTeamsIdView(TestCase):
         expected = self.user1.username
 
         data = json.dumps({
-            'name': 'Hello World!',
-            'id': self.user1.pk,
-            'telemetery': False,
-            'in_air': False,
+            'team': 'Hello World!',
+            'inAir': False,
         })
 
-        response = self.client.put(teams_id_url(args=[self.user1.pk]), data)
+        response = self.client.put(team_url(args=[self.user1.username]), data)
         self.assertEqual(200, response.status_code)
 
         data = json.loads(response.content)
 
-        self.assertEqual(expected, data['name'])
-
-    def test_id_ignored(self):
-        """id field ignored"""
-        expected = self.user1.pk
-
-        data = json.dumps({
-            'name': self.user1.username,
-            'id': 999,
-            'telemetry': None,
-            'in_air': False,
-        })
-
-        response = self.client.put(teams_id_url(args=[self.user1.pk]), data)
-        self.assertEqual(200, response.status_code)
-
-        data = json.loads(response.content)
-
-        self.assertEqual(expected, data['id'])
+        self.assertEqual(expected, data['team'])
 
     def test_telemetry_ignored(self):
         """telemetry field ignored"""
         data = json.dumps({
-            'name': self.user1.username,
-            'id': self.user1.pk,
+            'team': self.user1.username,
             'telemetry': {
-                'id': 1
+                'latitude': 1
             },
-            'in_air': False,
+            'inAir': False,
         })
 
-        response = self.client.put(teams_id_url(args=[self.user1.pk]), data)
+        response = self.client.put(team_url(args=[self.user1.username]), data)
         self.assertEqual(200, response.status_code)
 
         data = json.loads(response.content)
 
-        self.assertEqual(None, data['telemetry'])
+        self.assertNotIn('telemetry', data)
