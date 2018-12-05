@@ -33,7 +33,7 @@ class Obstacles(View):
         ).all().order_by('pk')
         obst_set_proto = interop_api_pb2.ObstacleSet()
         for obst in stationary_obstacles:
-            obst_proto = obst_set_proto.stationary_obstacle.add()
+            obst_proto = obst_set_proto.stationary_obstacles.add()
             obst_proto.latitude = obst.gps_position.latitude
             obst_proto.longitude = obst.gps_position.longitude
             obst_proto.radius = obst.cylinder_radius

@@ -32,7 +32,7 @@ message Telemetry {
 // Set of obstacles returned for a given mission.
 message ObstacleSet {
     // Stationary obstacles.
-    repeated StationaryObstacle stationary_obstacle = 1;
+    repeated StationaryObstacle stationary_obstacles = 1;
 }
 
 // Stationary obstacle modeled as a cylinder.

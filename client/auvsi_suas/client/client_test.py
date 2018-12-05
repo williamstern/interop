@@ -106,20 +106,20 @@ class TestClient(unittest.TestCase):
         async_obstacles = self.async_client.get_obstacles().result()
 
         # No exceptions is a good sign, let's see if the data matches the fixture.
-        self.assertEqual(2, len(obstacles.stationary_obstacle))
-        self.assertEqual(2, len(async_obstacles.stationary_obstacle))
+        self.assertEqual(2, len(obstacles.stationary_obstacles))
+        self.assertEqual(2, len(async_obstacles.stationary_obstacles))
 
-        radii = [o.radius for o in obstacles.stationary_obstacle]
-        async_radii = [o.radius for o in async_obstacles.stationary_obstacle]
+        radii = [o.radius for o in obstacles.stationary_obstacles]
+        async_radii = [o.radius for o in async_obstacles.stationary_obstacles]
         self.assertIn(50, radii)
         self.assertIn(50, async_radii)
         self.assertIn(150, radii)
         self.assertIn(150, async_radii)
 
-        heights = [o.height for o in obstacles.stationary_obstacle]
+        heights = [o.height for o in obstacles.stationary_obstacles]
         self.assertIn(300, heights)
         self.assertIn(200, heights)
-        async_heights = [o.height for o in async_obstacles.stationary_obstacle]
+        async_heights = [o.height for o in async_obstacles.stationary_obstacles]
         self.assertIn(300, async_heights)
         self.assertIn(200, async_heights)
 

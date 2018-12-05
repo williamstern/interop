@@ -86,9 +86,9 @@ class TestObstaclesView(TestCase):
 
         data = json.loads(response.content)
 
-        self.assertIn('stationaryObstacle', data)
-        self.assertEqual(2, len(data['stationaryObstacle']))
-        for obstacle in data['stationaryObstacle']:
+        self.assertIn('stationaryObstacles', data)
+        self.assertEqual(2, len(data['stationaryObstacles']))
+        for obstacle in data['stationaryObstacles']:
             self.assertIn('latitude', obstacle)
             self.assertIn('longitude', obstacle)
             self.assertIn('radius', obstacle)
