@@ -9,8 +9,6 @@ features. A simpler Client is also given as a base implementation.
 import json
 import requests
 from auvsi_suas.client.exceptions import InteropError
-from auvsi_suas.client.types import Mission
-from auvsi_suas.client.types import Mission
 from auvsi_suas.client.types import Odlc
 from auvsi_suas.proto import interop_api_pb2
 from concurrent.futures import ThreadPoolExecutor
@@ -132,7 +130,12 @@ class Client(object):
             ValueError or AttributeError: Malformed response from server.
         """
         r = self.get('/api/missions')
-        return [Mission.deserialize(m) for m in r.json()]
+        missions = []
+        for mission_dict in r.json():
+            mission_proto = interop_api_pb2.Mission()
+            json_format.Parse(json.dumps(mission_dict), mission_proto)
+            missions.append(mission_proto)
+        return missions
 
     def post_telemetry(self, telem):
         """POST new telemetry.

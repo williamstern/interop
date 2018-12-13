@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def missions(args, client):
     missions = client.get_missions().result()
     for m in missions:
-        pprint.pprint(m.serialize())
+        print(json_format.MessageToJson(m))
 
 
 def obstacles(args, client):

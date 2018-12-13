@@ -69,12 +69,8 @@ class TestClient(unittest.TestCase):
         self.assertEqual(1, len(missions))
         self.assertEqual(1, len(async_missions))
         # Check a few fields.
-        self.assertTrue(missions[0].active)
-        self.assertTrue(async_missions[0].active)
         self.assertEqual(1, missions[0].id)
         self.assertEqual(1, async_missions[0].id)
-        self.assertEqual(38.14792, missions[0].home_pos.latitude)
-        self.assertEqual(38.14792, async_missions[0].home_pos.latitude)
 
     def test_post_telemetry(self):
         """Test sending some telemetry."""
