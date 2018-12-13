@@ -6,6 +6,7 @@ from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.proto import interop_admin_api_pb2
 from auvsi_suas.views.decorators import require_superuser
+from auvsi_suas.views.json import ProtoJsonEncoder
 from auvsi_suas.views.missions import active_mission
 from django.contrib.auth.models import User
 from django.http import HttpResponse
@@ -17,8 +18,8 @@ from google.protobuf import json_format
 logger = logging.getLogger(__name__)
 
 
-def user_json(user):
-    """Generate JSON string for user."""
+def team_proto(user):
+    """Generate TeamStatus proto for team."""
     team_status_proto = interop_admin_api_pb2.TeamStatus()
     team_status_proto.team = user.username
     team_status_proto.in_air = TakeoffOrLandingEvent.user_in_air(user)
@@ -34,7 +35,7 @@ def user_json(user):
         telemetry_proto.heading = telemetry.uas_heading
         team_status_proto.telemetry_timestamp = telemetry.timestamp.isoformat()
 
-    return json_format.MessageToJson(team_status_proto)
+    return team_status_proto
 
 
 class Teams(View):
@@ -51,9 +52,11 @@ class Teams(View):
         for user in users:
             # Only standard users are exported
             if not user.is_superuser:
-                teams.append(json.loads(user_json(user)))
+                teams.append(team_proto(user))
 
-        return HttpResponse(json.dumps(teams), content_type="application/json")
+        return HttpResponse(
+            json.dumps(teams, cls=ProtoJsonEncoder),
+            content_type="application/json")
 
 
 class Team(View):
@@ -69,4 +72,6 @@ class Team(View):
         except User.DoesNotExist:
             return HttpResponseBadRequest('Unknown team %s' % username)
 
-        return HttpResponse(user_json(user), content_type="application/json")
+        return HttpResponse(
+            json_format.MessageToJson(team_proto(user)),
+            content_type="application/json")
