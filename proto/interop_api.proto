@@ -18,6 +18,7 @@ message Mission {
     // Unique identifier for the mission.
     // Required.
     optional int32 id = 1;
+
     // Valid areas to fly. A team is out of bounds if not contained within.
     // Required. At least one FlyZone must be provided.
     repeated FlyZone fly_zones = 2;
@@ -48,6 +49,7 @@ message FlyZone {
     // Maximum altitude above mean sea level (MSL) in feet.
     // Required. [-1500, 330000]
     optional double altitude_max = 2;
+
     // Boundary points which define a closed polygon.
     // Required. Will form a polygon, so at least 3 points must be provided.
     repeated Position boundary_points = 3;
@@ -96,10 +98,96 @@ message StationaryObstacle {
     // Longitude of GPS position in degrees.
     // Required. [-180, 180]
     optional double longitude = 2;
+
     // Radius of the obstacle cylinder in feet.
     // Required. [30, 300]
     optional double radius = 3;
     // Height of the obstacle cylinder above mean sea level (MSL) in feet.
     // Required. [-1500, 330000]
     optional double height = 4;
+}
+
+// Object detection, localization, and classification (ODLC).
+message Odlc {
+    // ID of the ODLC.
+    // Set by the server on responses. Use to update ODLC after upload.
+    optional int32 id = 1;
+
+    // Type of the ODLC.
+    // Required.
+    enum Type {
+        STANDARD = 0;
+        OFF_AXIS = 1;
+        EMERGENT = 2;
+    }
+    optional Type type = 2;
+
+    // Latitude of GPS position in degrees.
+    // Optional. [-90, 90]
+    optional double latitude = 3;
+    // Longitude of GPS position in degrees.
+    // Optional. [-180, 180]
+    optional double longitude = 4;
+
+    // Orientation of the ODLC, for normal and off axis.
+    // Optional.
+    enum Orientation {
+        N = 0;
+        NE = 1;
+        E = 2;
+        SE = 3;
+        S = 4;
+        SW = 5;
+        W = 6;
+        NW = 7;
+    }
+    optional Orientation orientation = 5;
+
+    // Shape of the ODLC, for normal and off axis.
+    // Optional.
+    enum Shape {
+        CIRCLE = 0;
+        SEMICIRCLE = 1;
+        QUARTER_CIRCLE = 2;
+        TRIANGLE = 3;
+        SQUARE = 4;
+        RECTANGLE = 5;
+        TRAPEZOID = 6;
+        PENTAGON = 7;
+        HEXAGON = 8;
+        HEPTAGON = 9;
+        OCTAGON = 10;
+        STAR = 11;
+        CROSS = 12;
+    }
+    optional Shape shape = 6;
+
+    // Alphanumeric of the ODLC, for normal and off axis.
+    // Optional. [A-Z, 0-9]
+    optional string alphanumeric = 7;
+
+    // Colors of the ODLC, for normal and off axis.
+    // Optional.
+    enum Color {
+        WHITE = 0;
+        BLACK = 1;
+        GRAY = 2;
+        RED = 3;
+        BLUE = 4;
+        GREEN = 5;
+        YELLOW = 6;
+        PURPLE = 7;
+        BROWN = 8;
+        ORANGE = 9;
+    }
+    optional Color shape_color = 8;
+    optional Color alphanumeric_color = 9;
+
+    // Description for emergent ODLCs.
+    // Optional.
+    optional string description = 10;
+
+    // Whether the ODLC was detected, localized, and classified autonomously.
+    // Required.
+    optional bool autonomous = 11;
 }
