@@ -27,7 +27,7 @@ describe("MissionDashboardCtrl controller", function() {
             },
             {
                 team: 'user4',
-                inAir: false
+                inAir: false,
                 telemetry: {
                     latitude: 38,
                     longitude: -76,

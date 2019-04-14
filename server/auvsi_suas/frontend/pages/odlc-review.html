@@ -8,10 +8,10 @@
     <div class="col-2 p-2">
         <div id="odlc-list" class="button-group stacked">
             <button type="button"
-                class="odlc-list-item {{odlcReviewCtrl.getOdlcButtonClass(odlc)}}"
-                ng-repeat="odlc in odlcReviewCtrl.getReviewOdlcs()"
-                ng-click="odlcReviewCtrl.setReviewOdlc(odlc)">
-                {{odlc.id}}
+                class="odlc-list-item {{odlcReviewCtrl.getOdlcButtonClass(odlcReview)}}"
+                ng-repeat="odlcReview in odlcReviewCtrl.getReviewOdlcs()"
+                ng-click="odlcReviewCtrl.setReviewOdlc(odlcReview)">
+                {{odlcReview.odlc.id}}
             </button>
         </div>
   </div>
@@ -21,11 +21,11 @@
     <div id="odlc-review">
         <button type="button" class="btn btn-success" ng-click="odlcReviewCtrl.saveReview()">Save and Advance</button>
         <h5>
-            <input type="checkbox" ng-model="odlcReviewCtrl.getReviewOdlc().thumbnail_approved">
+            <input type="checkbox" ng-model="odlcReviewCtrl.getReviewOdlc().thumbnailApproved">
             Thumbnail Approved
         </h5>
-        <h5 ng-show="odlcReviewCtrl.getReviewOdlc().type == 'emergent'">
-            <input type="checkbox" ng-model="odlcReviewCtrl.getReviewOdlc().description_approved">
+        <h5 ng-show="odlcReviewCtrl.getReviewOdlc().odlc.type == 'EMERGENT'">
+            <input type="checkbox" ng-model="odlcReviewCtrl.getReviewOdlc().descriptionApproved">
             Emergent Description Approved
         </h5>
     </div>

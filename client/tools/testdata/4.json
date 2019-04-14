@@ -1,9 +1,9 @@
 {
     "alphanumeric": "F",
-    "alphanumeric_color": "white",
+    "alphanumeric_color": "WHITE",
     "autonomous": false,
-    "background_color": "green",
-    "orientation": "e",
-    "shape": "triangle",
-    "type": "off_axis"
+    "orientation": "E",
+    "shape": "TRIANGLE",
+    "shape_color": "GREEN",
+    "type": "OFF_AXIS"
 }

@@ -1,7 +1,6 @@
 """Telemetry view."""
 
 import iso8601
-import json
 import logging
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition

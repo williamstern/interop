@@ -19,6 +19,21 @@ message TeamStatus {
     optional string telemetry_timestamp = 4;
 }
 
+// Review details for an ODLC.
+message OdlcReview {
+    // The ODLC being reviewed.
+    optional Odlc odlc = 1;
+
+    // When the ODLC was last modified as ISO string.
+    optional string last_modified_timestamp = 2;
+
+    // Whether the thumbnail was approved.
+    optional bool thumbnail_approved = 3;
+
+    // Whether the description was approved.
+    optional bool description_approved = 4;
+}
+
 // Multi-user mission evaluation.
 message MultiUserMissionEvaluation {
     repeated MissionEvaluation teams = 1;

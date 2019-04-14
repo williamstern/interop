@@ -5,7 +5,6 @@ import unittest
 from auvsi_suas.client.client import AsyncClient
 from auvsi_suas.client.client import Client
 from auvsi_suas.client.exceptions import InteropError
-from auvsi_suas.client.types import Odlc
 from auvsi_suas.proto import interop_api_pb2
 
 # These tests run against a real interop server.
@@ -124,16 +123,15 @@ class TestClient(unittest.TestCase):
     def test_odlcs(self):
         """Test odlc workflow."""
         # Post a odlc gets an updated odlc.
-        odlc = Odlc(type='standard')
+        odlc = interop_api_pb2.Odlc()
+        odlc.type = interop_api_pb2.Odlc.STANDARD
         post_odlc = self.client.post_odlc(odlc)
         async_post_odlc = self.client.post_odlc(odlc)
 
         self.assertIsNotNone(post_odlc.id)
         self.assertIsNotNone(async_post_odlc.id)
-        self.assertIsNotNone(post_odlc.user)
-        self.assertIsNotNone(async_post_odlc.user)
-        self.assertEqual('standard', post_odlc.type)
-        self.assertEqual('standard', async_post_odlc.type)
+        self.assertEqual(interop_api_pb2.Odlc.STANDARD, post_odlc.type)
+        self.assertEqual(interop_api_pb2.Odlc.STANDARD, async_post_odlc.type)
         self.assertNotEqual(post_odlc.id, async_post_odlc.id)
 
         # Get odlcs.
@@ -149,8 +147,8 @@ class TestClient(unittest.TestCase):
         self.assertIn(async_post_odlc, async_get_odlcs)
 
         # Update odlc.
-        post_odlc.shape = 'circle'
-        async_post_odlc.shape = 'circle'
+        post_odlc.shape = interop_api_pb2.Odlc.CIRCLE
+        async_post_odlc.shape = interop_api_pb2.Odlc.CIRCLE
         put_odlc = self.client.put_odlc(post_odlc.id, post_odlc)
         async_put_odlc = self.async_client.put_odlc(async_post_odlc.id,
                                                     async_post_odlc).result()

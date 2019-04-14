@@ -6,7 +6,6 @@ import argparse
 import datetime
 import getpass
 import logging
-import pprint
 import sys
 import time
 
@@ -32,12 +31,11 @@ def obstacles(args, client):
 
 def odlcs(args, client):
     if args.odlc_dir:
-        upload_odlcs(client, args.odlc_dir, args.team_id,
-                     args.actionable_override)
+        upload_odlcs(client, args.odlc_dir)
     else:
         odlcs = client.get_odlcs().result()
         for odlc in odlcs:
-            pprint.pprint(odlc.serialize())
+            print(json_format.MessageToJson(odlc))
 
 
 def probe(args, client):
@@ -113,14 +111,6 @@ unique odlcs, if the tool is run multiple times.''',
     subparser.add_argument(
         '--odlc_dir',
         help='Enables odlc upload. Directory containing odlc data.')
-    subparser.add_argument(
-        '--team_id',
-        help='''The username of the team on whose behalf to submit odlcs.
-Must be admin user to specify.''')
-    subparser.add_argument(
-        '--actionable_override',
-        help='''Manually sets all the odlcs in the odlc dir to be
-actionable. Must be admin user to specify.''')
 
     subparser = subparsers.add_parser('probe', help='Send dummy requests.')
     subparser.set_defaults(func=probe)

@@ -19,7 +19,7 @@ module.exports = function(config) {
       'third_party/angularjs/angular.min.js',
       'third_party/angularjs/angular-resource.min.js',
       'third_party/angularjs/angular-route.min.js',
-      'third_parth/angularjs/angular-mocks.js',
+      'third_party/angularjs/angular-mocks.js',
       // Source files.
       'app.js',
       'components/navigation.js',

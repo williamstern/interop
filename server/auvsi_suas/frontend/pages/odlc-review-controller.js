@@ -21,12 +21,12 @@ OdlcReviewCtrl = function($window, Backend) {
     /**
      * @private{?Array<Object>} The odlcs for review.
      */
-    this.odlcs_ = null;
+    this.odlcReviews_ = null;
 
     /**
      * @private {?Object} The odlc under review.
      */
-    this.odlc_ = null;
+    this.odlcReview_ = null;
 
     /**
      * @private {?Array<Object>} The odlc review details.
@@ -45,7 +45,7 @@ OdlcReviewCtrl = function($window, Backend) {
  * @export
  */
 OdlcReviewCtrl.prototype.getReviewOdlcs = function() {
-    return this.odlcs_;
+    return this.odlcReviews_;
 };
 
 
@@ -53,7 +53,7 @@ OdlcReviewCtrl.prototype.getReviewOdlcs = function() {
  * @return {?Object} The odlc under review.
  */
 OdlcReviewCtrl.prototype.getReviewOdlc = function() {
-    return this.odlc_;
+    return this.odlcReview_;
 };
 
 
@@ -73,15 +73,15 @@ OdlcReviewCtrl.prototype.getReviewOdlcDetails = function() {
  */
 OdlcReviewCtrl.prototype.getOdlcButtonClass = function(odlc) {
     var thumbnailClass;
-    if (odlc.thumbnail_approved == null) {
+    if (odlc.thumbnailApproved == null) {
         thumbnailClass = 'btn btn-primary';
-    } else if (odlc.thumbnail_approved) {
+    } else if (odlc.thumbnailApproved) {
         thumbnailClass = 'btn btn-success';
     } else {
         thumbnailClass = 'btn btn-warning';
     }
 
-    if (this.odlc_ && odlc.id == this.odlc_.id) {
+    if (this.odlcReview_ && odlc.id == this.odlcReview_.odlc.id) {
         return thumbnailClass + ' disabled';
     } else {
         return thumbnailClass;
@@ -91,37 +91,38 @@ OdlcReviewCtrl.prototype.getOdlcButtonClass = function(odlc) {
 
 /**
  * Sets the odlc under review.
- * @param {!Object} odlc The odlc to review.
+ * @param {!Object} odlcReview The odlc review.
  * @export
  */
-OdlcReviewCtrl.prototype.setReviewOdlc = function(odlc) {
-    this.odlc_ = odlc;
+OdlcReviewCtrl.prototype.setReviewOdlc = function(odlcReview) {
+    this.odlcReview_ = odlcReview;
 
-    if (this.odlc_ == null) {
+    if (this.odlcReview_ == null) {
         return;
     }
 
     this.odlcDetails_ = [
         {'key': 'ID',
-         'value': this.odlc_.id},
+         'value': this.odlcReview_.odlc.id},
         {'key': 'Type',
-         'value': this.odlc_.type},
+         'value': this.odlcReview_.odlc.type},
     ];
-    if (this.odlc_.type == 'standard' || this.odlc_.type == 'off_axis') {
+    if (this.odlcReview_.odlc.type == 'STANDARD' ||
+            this.odlcReview_.odlc.type == 'OFF_AXIS') {
         this.odlcDetails_ = this.odlcDetails_.concat([
             {'key': 'Alpha Color',
-             'value': this.odlc_.alphanumeric_color},
+             'value': this.odlcReview_.odlc.alphanumericColor},
             {'key': 'Alpha',
-             'value': this.odlc_.alphanumeric},
+             'value': this.odlcReview_.odlc.alphanumeric},
             {'key': 'Shape Color',
-             'value': this.odlc_.background_color},
+             'value': this.odlcReview_.odlc.backgroundColor},
             {'key': 'Shape',
-             'value': this.odlc_.shape}
+             'value': this.odlcReview_.odlc.shape}
         ]);
     } else {
         this.odlcDetails_ = this.odlcDetails_.concat([
             {'key': 'Desc',
-             'value': this.odlc_.description}
+             'value': this.odlcReview_.odlc.description}
         ]);
     }
 };
@@ -132,7 +133,7 @@ OdlcReviewCtrl.prototype.setReviewOdlc = function(odlc) {
  * the next odlc for review.
  */
 OdlcReviewCtrl.prototype.saveReview = function() {
-    this.odlc_.$put().then(
+    this.odlcReview_.$put().then(
             angular.bind(this, this.nextOdlc_));
 };
 
@@ -141,8 +142,8 @@ OdlcReviewCtrl.prototype.saveReview = function() {
  * @return {string} The class info for the odlc image review.
  */
 OdlcReviewCtrl.prototype.getOdlcImgStyle = function() {
-    if (!!this.odlc_) {
-        return 'background-image: url(/api/odlcs/' + this.odlc_.id +
+    if (!!this.odlcReview_) {
+        return 'background-image: url(/api/odlcs/' + this.odlcReview_.odlc.id +
                 '/image); height: ' + this.getOdlcImgHeight() + 'px;';
     } else {
         return '';
@@ -162,9 +163,9 @@ OdlcReviewCtrl.prototype.getOdlcImgHeight = function() {
  * @param {Array<Object>} odlcs The odlcs to review.
  */
 OdlcReviewCtrl.prototype.setOdlcs_ = function(odlcs) {
-    this.odlcs_ = odlcs;
-    if (this.odlcs_.length > 0) {
-        this.setReviewOdlc(this.odlcs_[0]);
+    this.odlcReviews_ = odlcs;
+    if (this.odlcReviews_.length > 0) {
+        this.setReviewOdlc(this.odlcReviews_[0]);
     } else {
         this.setReviewOdlc(null);
     }
@@ -175,16 +176,16 @@ OdlcReviewCtrl.prototype.setOdlcs_ = function(odlcs) {
  * Advances to the next odlc.
  */
 OdlcReviewCtrl.prototype.nextOdlc_ = function() {
-    var odlcs = this.getReviewOdlcs();
+    var odlcReviews = this.getReviewOdlcs();
 
-    for (var i = 0; i < odlcs.length-1; i++) {
-        if (odlcs[i].id == this.odlc_.id) {
-            this.setReviewOdlc(odlcs[i+1]);
+    for (var i = 0; i < odlcReviews.length-1; i++) {
+        if (odlcReviews[i].odlc.id == this.odlcReview_.odlc.id) {
+            this.setReviewOdlc(odlcReviews[i+1]);
             return;
         }
     }
 
-    this.setReviewOdlc(odlcs[odlcs.length-1]);
+    this.setReviewOdlc(odlcReviews[odlcReviews.length-1]);
 };
 
 
