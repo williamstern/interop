@@ -116,8 +116,13 @@ message Odlc {
     // Type of the ODLC.
     // Required.
     enum Type {
+        // Standard and off axis ODLCs take latitude, longitude, orientation,
+        // shape and color, alphanumeric and color, and if processed
+        // autonomously.
         STANDARD = 1;
         OFF_AXIS = 3;
+        // Emergent takes latitude, longitude, description, and if process
+        // autonomously.
         EMERGENT = 4;
     }
     optional Type type = 2;
