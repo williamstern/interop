@@ -21,8 +21,8 @@ class TestObstaclesViewLoggedOut(TestCase):
         self.assertEqual(403, response.status_code)
 
 
-class TestObstaclesViewCommon(TestCase):
-    """Obstacles view common test setup."""
+class TestObstaclesView(TestCase):
+    """Tests the obstacles view."""
 
     def create_stationary_obstacle(self, lat, lon, radius, height):
         """Create a new StationaryObstacle model.
@@ -74,10 +74,6 @@ class TestObstaclesViewCommon(TestCase):
 
         config.save()
 
-
-class TestObstaclesView(TestObstaclesViewCommon):
-    """Tests the obstacles view."""
-
     def test_post(self):
         """POST requests are not allowed."""
         response = self.client.post(obstacle_url)
@@ -90,49 +86,10 @@ class TestObstaclesView(TestObstaclesViewCommon):
 
         data = json.loads(response.content)
 
-        self.assertIn('stationary_obstacles', data)
-        self.assertEqual(2, len(data['stationary_obstacles']))
-        for obstacle in data['stationary_obstacles']:
+        self.assertIn('stationaryObstacles', data)
+        self.assertEqual(2, len(data['stationaryObstacles']))
+        for obstacle in data['stationaryObstacles']:
             self.assertIn('latitude', obstacle)
             self.assertIn('longitude', obstacle)
-            self.assertIn('cylinder_radius', obstacle)
-            self.assertIn('cylinder_height', obstacle)
-
-
-class TestObstaclesViewSuperuser(TestObstaclesViewCommon):
-    """Tests the obstacles view as superuser."""
-
-    def setUp(self):
-        super(TestObstaclesViewSuperuser, self).setUp()
-
-        self.user = User.objects.create_superuser(
-            'superuser', 'email@example.com', 'superpass')
-        self.user.save()
-        self.client.force_login(self.user)
-
-    def test_bad_time(self):
-        """Bad time format rejected."""
-        response = self.client.get(obstacle_url, {
-            'time': 'June 1, 2000',
-        })  # yapf: disable
-        self.assertEqual(400, response.status_code)
-
-    def test_same_time(self):
-        """Obstacles at the same time are the same."""
-        time = timezone.now().isoformat()
-
-        response = self.client.get(obstacle_url, {
-            'time': time,
-        })  # yapf: disable
-        self.assertEqual(200, response.status_code)
-
-        data1 = json.loads(response.content)
-
-        response = self.client.get(obstacle_url, {
-            'time': time,
-        })  # yapf: disable
-        self.assertEqual(200, response.status_code)
-
-        data2 = json.loads(response.content)
-
-        self.assertEqual(data1, data2)
+            self.assertIn('radius', obstacle)
+            self.assertIn('height', obstacle)

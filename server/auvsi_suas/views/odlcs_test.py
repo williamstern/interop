@@ -28,7 +28,7 @@ class TestOdlcsLoggedOut(TestCase):
     def test_not_authenticated(self):
         """Unauthenticated requests should fail."""
         odlc = {
-            'type': 'standard',
+            'type': 'STANDARD',
             'latitude': 38,
             'longitude': -76,
         }
@@ -54,7 +54,6 @@ class TestGetOdlc(TestCase):
         """We get back an empty list if we have no odlcs."""
         response = self.client.get(odlcs_url)
         self.assertEqual(200, response.status_code)
-
         self.assertEqual([], json.loads(response.content))
 
     def test_get_odlcs(self):
@@ -62,15 +61,31 @@ class TestGetOdlc(TestCase):
         t1 = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t1.save()
 
-        t2 = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t2 = Odlc(user=self.user, odlc_type=OdlcType.off_axis)
         t2.save()
+
+        t3 = Odlc(user=self.user, odlc_type=OdlcType.emergent)
+        t3.save()
 
         response = self.client.get(odlcs_url)
         self.assertEqual(200, response.status_code)
-
-        d = json.loads(response.content)
-
-        self.assertEqual([t2.json(), t1.json()], d)
+        self.assertEqual([
+            {
+                'id': t3.pk,
+                'type': 'EMERGENT',
+                'autonomous': False,
+            },
+            {
+                'id': t2.pk,
+                'type': 'OFF_AXIS',
+                'autonomous': False,
+            },
+            {
+                'id': t1.pk,
+                'type': 'STANDARD',
+                'autonomous': False,
+            },
+        ], json.loads(response.content))
 
     def test_not_others(self):
         """We don't get odlcs owned by other users."""
@@ -79,16 +94,18 @@ class TestGetOdlc(TestCase):
 
         mine = Odlc(user=self.user, odlc_type=OdlcType.standard)
         mine.save()
-
         theirs = Odlc(user=user2, odlc_type=OdlcType.standard)
         theirs.save()
 
         response = self.client.get(odlcs_url)
         self.assertEqual(200, response.status_code)
-
-        d = json.loads(response.content)
-
-        self.assertEqual([mine.json()], d)
+        self.assertEqual([
+            {
+                'id': mine.pk,
+                'type': 'STANDARD',
+                'autonomous': False,
+            },
+        ], json.loads(response.content))
 
 
 class TestPostOdlc(TestCase):
@@ -104,81 +121,60 @@ class TestPostOdlc(TestCase):
     def test_complete(self):
         """Send complete odlc with all fields."""
         odlc = {
-            'type': 'standard',
+            'type': 'STANDARD',
             'latitude': 38,
             'longitude': -76,
-            'orientation': 'n',
-            'shape': 'square',
-            'background_color': 'white',
-            'alphanumeric': 'ABC',
-            'alphanumeric_color': 'black',
+            'orientation': 'N',
+            'shape': 'SQUARE',
+            'shapeColor': 'WHITE',
+            'alphanumeric': 'A',
+            'alphanumericColor': 'BLACK',
             'description': 'Best odlc',
             'autonomous': False,
         }
 
         response = self.client.post(
             odlcs_url, data=json.dumps(odlc), content_type='application/json')
-        self.assertEqual(201, response.status_code)
+        self.assertEqual(200, response.status_code)
 
         # Check that returned odlc matches
         created = json.loads(response.content)
 
+        self.assertIn('id', created)
         self.assertEqual(odlc['type'], created['type'])
         self.assertEqual(odlc['latitude'], created['latitude'])
         self.assertEqual(odlc['longitude'], created['longitude'])
         self.assertEqual(odlc['orientation'], created['orientation'])
         self.assertEqual(odlc['shape'], created['shape'])
-        self.assertEqual(odlc['background_color'], created['background_color'])
+        self.assertEqual(odlc['shapeColor'], created['shapeColor'])
         self.assertEqual(odlc['alphanumeric'], created['alphanumeric'])
-        self.assertEqual(odlc['alphanumeric_color'],
-                         created['alphanumeric_color'])
+        self.assertEqual(odlc['alphanumericColor'],
+                         created['alphanumericColor'])
         self.assertEqual(odlc['description'], created['description'])
         self.assertEqual(odlc['autonomous'], created['autonomous'])
 
-        # It also contains 'user' and 'id' fields.
-        self.assertIn('id', created)
-        self.assertIn('user', created)
-
     def test_minimal(self):
         """Send odlc minimal fields."""
-        odlc = {'type': 'standard'}
+        odlc = {'type': 'STANDARD'}
 
         response = self.client.post(
             odlcs_url, data=json.dumps(odlc), content_type='application/json')
-        self.assertEqual(201, response.status_code)
+        self.assertEqual(200, response.status_code)
 
         # Check that returned odlc matches
         created = json.loads(response.content)
 
-        self.assertEqual(odlc['type'], created['type'])
-        self.assertEqual(None, created['latitude'])
-        self.assertEqual(None, created['longitude'])
-        self.assertEqual(None, created['orientation'])
-        self.assertEqual(None, created['shape'])
-        self.assertEqual(None, created['background_color'])
-        self.assertEqual(None, created['alphanumeric'])
-        self.assertEqual(None, created['alphanumeric_color'])
-        self.assertEqual(None, created['description'])
-        self.assertEqual(False, created['autonomous'])
-
-        # It also contains 'user' and 'id' fields.
         self.assertIn('id', created)
-        self.assertIn('user', created)
-
-    def test_none(self):
-        """Send odlc with None fields has no effect."""
-        odlc = {'type': 'standard', 'latitude': None, 'shape': None}
-
-        response = self.client.post(
-            odlcs_url, data=json.dumps(odlc), content_type='application/json')
-        self.assertEqual(201, response.status_code)
-
-        # Check that returned odlc matches
-        created = json.loads(response.content)
-
         self.assertEqual(odlc['type'], created['type'])
-        self.assertEqual(None, created['latitude'])
-        self.assertEqual(None, created['shape'])
+        self.assertNotIn('latitude', created)
+        self.assertNotIn('longitude', created)
+        self.assertNotIn('orientation', created)
+        self.assertNotIn('shape', created)
+        self.assertNotIn('shapeColor', created)
+        self.assertNotIn('alphanumeric', created)
+        self.assertNotIn('alphanumericColor', created)
+        self.assertNotIn('description', created)
+        self.assertEqual(False, created['autonomous'])
 
     def test_missing_type(self):
         """Odlc type required."""
@@ -186,10 +182,10 @@ class TestPostOdlc(TestCase):
             'latitude': 38,
             'longitude': -76,
             'orientation': 'N',
-            'shape': 'square',
-            'background_color': 'white',
-            'alphanumeric': 'ABC',
-            'alphanumeric_color': 'black',
+            'shape': 'SQUARE',
+            'shapeColor': 'WHITE',
+            'alphanumeric': 'A',
+            'alphanumericColor': 'BLACK',
             'description': 'Best odlc',
         }
 
@@ -201,13 +197,13 @@ class TestPostOdlc(TestCase):
         """Request body must contain valid JSON."""
         response = self.client.post(
             odlcs_url,
-            data='type=standard&longitude=-76',
+            data='type=STANDARD&longitude=-76',
             content_type='multipart/form-data')
         self.assertEqual(400, response.status_code)
 
     def test_missing_latitude(self):
         """Odlc latitude required if longitude specified."""
-        odlc = {'type': 'standard', 'longitude': -76}
+        odlc = {'type': 'STANDARD', 'longitude': -76}
 
         response = self.client.post(
             odlcs_url, data=json.dumps(odlc), content_type='application/json')
@@ -215,7 +211,7 @@ class TestPostOdlc(TestCase):
 
     def test_missing_longitude(self):
         """Odlc longitude required if latitude specified."""
-        odlc = {'type': 'standard', 'latitude': 38}
+        odlc = {'type': 'STANDARD', 'latitude': 38}
 
         response = self.client.post(
             odlcs_url, data=json.dumps(odlc), content_type='application/json')
@@ -223,7 +219,7 @@ class TestPostOdlc(TestCase):
 
     def test_invalid_type(self):
         """Send bad odlc type."""
-        bad = ['foo', 'standard nonsense', 42]
+        bad = ['foo', 'STANDARD nonsense', 42]
 
         for b in bad:
             odlc = {'type': b, 'latitude': 38, 'longitude': -76}
@@ -239,7 +235,7 @@ class TestPostOdlc(TestCase):
         bad = ['string', 120, -120]
 
         for b in bad:
-            odlc = {'type': 'standard', 'latitude': b, 'longitude': -76}
+            odlc = {'type': 'STANDARD', 'latitude': b, 'longitude': -76}
 
             response = self.client.post(
                 odlcs_url,
@@ -252,7 +248,7 @@ class TestPostOdlc(TestCase):
         bad = ['string', 200, -200]
 
         for b in bad:
-            odlc = {'type': 'standard', 'latitude': 38, 'longitude': b}
+            odlc = {'type': 'STANDARD', 'latitude': 38, 'longitude': b}
 
             response = self.client.post(
                 odlcs_url,
@@ -266,9 +262,7 @@ class TestPostOdlc(TestCase):
 
         for b in bad:
             odlc = {
-                'type': 'standard',
-                'latitude': 38,
-                'longitude': -76,
+                'type': 'STANDARD',
                 'shape': b,
             }
 
@@ -284,10 +278,8 @@ class TestPostOdlc(TestCase):
 
         for b in bad:
             odlc = {
-                'type': 'standard',
-                'latitude': 38,
-                'longitude': -76,
-                'background_color': b,
+                'type': 'STANDARD',
+                'shapeColor': b,
             }
 
             response = self.client.post(
@@ -302,10 +294,8 @@ class TestPostOdlc(TestCase):
 
         for b in bad:
             odlc = {
-                'type': 'standard',
-                'latitude': 38,
-                'longitude': -76,
-                'alphanumeric_color': b,
+                'type': 'STANDARD',
+                'alphanumericColor': b,
             }
 
             response = self.client.post(
@@ -320,9 +310,7 @@ class TestPostOdlc(TestCase):
 
         for b in bad:
             odlc = {
-                'type': 'standard',
-                'latitude': 38,
-                'longitude': -76,
+                'type': 'STANDARD',
                 'orientation': b,
             }
 
@@ -338,9 +326,7 @@ class TestPostOdlc(TestCase):
 
         for b in bad:
             odlc = {
-                'type': 'standard',
-                'latitude': 38,
-                'longitude': -76,
+                'type': 'STANDARD',
                 'autonomous': b,
             }
 
@@ -349,54 +335,6 @@ class TestPostOdlc(TestCase):
                 data=json.dumps(odlc),
                 content_type='application/json')
             self.assertEqual(400, response.status_code)
-
-    def test_create_odlc_team_id(self):
-        """Request fails if non-admin user specifies team_id."""
-        odlc = {'type': 'standard', 'team_id': self.user.username}
-        response = self.client.post(
-            odlcs_url, data=json.dumps(odlc), content_type='application/json')
-        self.assertEqual(403, response.status_code)
-
-    def test_superuser_create_odlc(self):
-        """Admin user can create odlc on behalf of another team."""
-        # Login as superuser.
-        superuser = User.objects.create_superuser(
-            'testsuperuser', 'testsuperemail@x.com', 'testsuperpass')
-        self.client.force_login(superuser)
-
-        # Create odlc.
-        odlc = {'type': 'standard', 'team_id': self.user.username}
-        response = self.client.post(
-            odlcs_url, data=json.dumps(odlc), content_type='application/json')
-        self.assertEqual(201, response.status_code)
-
-        # Ensure odlc created for proper user.
-        created = json.loads(response.content)
-        self.assertEqual(self.user.id, created['user'])
-
-    def test_actionable_override(self):
-        """Request fails if non-admin user specifies actionable_override."""
-        odlc = {'type': 'standard', 'actionable_override': True}
-        response = self.client.post(
-            odlcs_url, data=json.dumps(odlc), content_type='application/json')
-        self.assertEqual(403, response.status_code)
-
-    def test_superuser_actionable_override(self):
-        """Admin user can set actionable_override flag."""
-        # Login as superuser.
-        superuser = User.objects.create_superuser(
-            'testsuperuser', 'testsuperemail@x.com', 'testsuperpass')
-        self.client.force_login(superuser)
-
-        # Create odlc.
-        odlc = {'type': 'standard', 'actionable_override': True}
-        response = self.client.post(
-            odlcs_url, data=json.dumps(odlc), content_type='application/json')
-        self.assertEqual(201, response.status_code)
-
-        # Ensure odlc has actionable_override flag set.
-        created = json.loads(response.content)
-        self.assertEqual(True, created['actionable_override'])
 
 
 class TestOdlcsIdLoggedOut(TestCase):
@@ -440,14 +378,18 @@ class TestOdlcId(TestCase):
         response = self.client.get(odlcs_id_url(args=[t.pk]))
         self.assertEqual(200, response.status_code)
 
-        self.assertEqual(t.json(), json.loads(response.content))
+        self.assertEqual({
+            'id': t.pk,
+            'type': 'STANDARD',
+            'autonomous': False,
+        }, json.loads(response.content))
 
     def test_put_append(self):
         """PUT sets a new field that wasn't set before."""
         t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
-        data = {'description': 'Hello'}
+        data = {'type': 'STANDARD', 'description': 'Hello'}
 
         response = self.client.put(
             odlcs_id_url(args=[t.pk]), data=json.dumps(data))
@@ -456,16 +398,13 @@ class TestOdlcId(TestCase):
         t.refresh_from_db()
         self.assertEqual('Hello', t.description)
 
-        # Response also matches
-        self.assertEqual(t.json(), json.loads(response.content))
-
     def test_put_changes_last_modified(self):
         """PUT sets a new field that wasn't set before."""
         t = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t.save()
         orig_last_modified = t.last_modified_time
 
-        data = {'description': 'Hello'}
+        data = {'type': 'STANDARD', 'description': 'Hello'}
 
         response = self.client.put(
             odlcs_id_url(args=[t.pk]), data=json.dumps(data))
@@ -474,11 +413,8 @@ class TestOdlcId(TestCase):
         t.refresh_from_db()
         self.assertNotEqual(orig_last_modified, t.last_modified_time)
 
-        # Response also matches
-        self.assertEqual(t.json(), json.loads(response.content))
-
-    def test_put_one(self):
-        """PUT update one field without affecting others."""
+    def test_put_updates_fields(self):
+        """PUT updates fields."""
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
 
@@ -494,222 +430,71 @@ class TestOdlcId(TestCase):
             description='Test odlc')
         t.save()
 
-        data = {'shape': 'circle'}
+        updated = {
+            'type': 'OFF_AXIS',
+            'latitude': 39,
+            'longitude': -77,
+            'orientation': 'N',
+            'shape': 'CIRCLE',
+            'shapeColor': 'BLACK',
+            'alphanumeric': 'A',
+            'alphanumericColor': 'GREEN',
+            'description': 'Best odlc',
+            'autonomous': False,
+        }
 
         response = self.client.put(
-            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(updated))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
         t.location.refresh_from_db()
         self.assertEqual(self.user, t.user)
-        self.assertEqual(OdlcType.standard, t.odlc_type)
-        self.assertEqual(38, t.location.latitude)
-        self.assertEqual(-76, t.location.longitude)
-        self.assertEqual(Orientation.s, t.orientation)
+        self.assertEqual(OdlcType.off_axis, t.odlc_type)
+        self.assertEqual(39, t.location.latitude)
+        self.assertEqual(-77, t.location.longitude)
+        self.assertEqual(Orientation.n, t.orientation)
         self.assertEqual(Shape.circle, t.shape)
-        self.assertEqual(Color.white, t.background_color)
-        self.assertEqual('ABC', t.alphanumeric)
-        self.assertEqual(Color.black, t.alphanumeric_color)
-        self.assertEqual('Test odlc', t.description)
+        self.assertEqual(Color.black, t.background_color)
+        self.assertEqual('A', t.alphanumeric)
+        self.assertEqual(Color.green, t.alphanumeric_color)
+        self.assertEqual('Best odlc', t.description)
 
     def test_put_clear_shape(self):
         """PUT clear a field with None."""
+        l = GpsPosition(latitude=38, longitude=-76)
+        l.save()
+
         t = Odlc(
-            user=self.user, odlc_type=OdlcType.standard, shape=Shape.square)
+            user=self.user,
+            odlc_type=OdlcType.standard,
+            location=l,
+            orientation=Orientation.s,
+            shape=Shape.square,
+            background_color=Color.white,
+            alphanumeric='ABC',
+            alphanumeric_color=Color.black,
+            description='Test odlc')
         t.save()
 
-        data = {'shape': None}
+        updated = {
+            'type': 'STANDARD',
+        }
 
         response = self.client.put(
-            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
+            odlcs_id_url(args=[t.pk]), data=json.dumps(updated))
         self.assertEqual(200, response.status_code)
 
         t.refresh_from_db()
-        self.assertEqual(None, t.shape)
-
-    def test_put_clear_type(self):
-        """PUT type may not be cleared."""
-        t = Odlc(
-            user=self.user, odlc_type=OdlcType.standard, shape=Shape.square)
-        t.save()
-
-        data = {'type': None}
-
-        response = self.client.put(
-            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
-        self.assertEqual(400, response.status_code)
-
-    def test_put_location(self):
-        """PUT new location"""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
-        t.save()
-
-        data = {'latitude': 38, 'longitude': -76}
-
-        response = self.client.put(
-            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
-        self.assertEqual(200, response.status_code)
-
-        t.refresh_from_db()
-        self.assertEqual(38, t.location.latitude)
-        self.assertEqual(-76, t.location.longitude)
-
-    def test_put_location_missing_one(self):
-        """PUTting new location requires both latitude and longitude."""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
-        t.save()
-
-        data = {'latitude': 38}
-
-        response = self.client.put(
-            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
-        self.assertEqual(400, response.status_code)
-
-    def test_put_update_location(self):
-        """PUT updating location only requires one of lat/lon."""
-        l = GpsPosition(latitude=38, longitude=-76)
-        l.save()
-
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard, location=l)
-        t.save()
-
-        data = {'latitude': 39}
-
-        response = self.client.put(
-            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
-        self.assertEqual(200, response.status_code)
-
-        t.refresh_from_db()
-        t.location.refresh_from_db()
-        self.assertEqual(39, t.location.latitude)
-        self.assertEqual(-76, t.location.longitude)
-
-    def test_put_clear_location(self):
-        """PUT clear location by clearing lat and lon."""
-        l = GpsPosition(latitude=38, longitude=-76)
-        l.save()
-
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard, location=l)
-        t.save()
-
-        data = {'latitude': None, 'longitude': None}
-
-        response = self.client.put(
-            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
-        self.assertEqual(200, response.status_code)
-
-        t.refresh_from_db()
-        self.assertEqual(None, t.location)
-
-    def test_put_partial_clear_location(self):
-        """PUT can't clear location with only one of lat/lon."""
-        l = GpsPosition(latitude=38, longitude=-76)
-        l.save()
-
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard, location=l)
-        t.save()
-
-        data = {'latitude': None}
-
-        response = self.client.put(
-            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
-        self.assertEqual(400, response.status_code)
-
-    def test_put_invalid_json(self):
-        """PUT request body must be valid JSON."""
-        l = GpsPosition(latitude=38, longitude=-76)
-        l.save()
-
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard, location=l)
-        t.save()
-
-        response = self.client.put(
-            odlcs_id_url(args=[t.pk]),
-            data="latitude=76",
-            content_type='multipart/form-data')
-        self.assertEqual(400, response.status_code)
-
-    def test_put_change_autonomous(self):
-        """Change autonomous with PUT"""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
-        t.save()
-
-        data = {'autonomous': True}
-
-        response = self.client.put(
-            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
-        self.assertEqual(200, response.status_code)
-
-        t.refresh_from_db()
-        self.assertEqual(True, t.autonomous)
-
-    def test_put_change_actionable_override(self):
-        """PUT fails if non-admin user tries to change actionable_override."""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
-        t.save()
-
-        data = {'actionable_override': True}
-
-        response = self.client.put(
-            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
-        self.assertEqual(403, response.status_code)
-
-    def test_put_invalidates_description_review(self):
-        """Test that update invalidates description field."""
-        t = Odlc(
-            user=self.user, odlc_type=OdlcType.emergent, description='Hello')
-        t.description_approved = True
-        t.save()
-
-        data = {'description': 'World'}
-
-        response = self.client.put(
-            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
-        self.assertEqual(200, response.status_code)
-
-        t.refresh_from_db()
-        self.assertEqual('World', t.description)
-        self.assertIsNone(t.description_approved)
-
-    def test_put_superuser_change_actionable_override(self):
-        """Admin user can update actionable_override flag."""
-        # Login as superuser.
-        superuser = User.objects.create_superuser(
-            'testsuperuser', 'testsuperemail@x.com', 'testsuperpass')
-        self.client.force_login(superuser)
-
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
-        t.save()
-
-        data = {'actionable_override': True}
-
-        response = self.client.put(
-            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
-        self.assertEqual(200, response.status_code)
-
-        t.refresh_from_db()
-        self.assertEqual(True, t.actionable_override)
-
-    def test_put_superuser_doesnt_change_modified(self):
-        """Admin user can update without modifying last updated time."""
-        # Login as superuser.
-        superuser = User.objects.create_superuser(
-            'testsuperuser', 'testsuperemail@x.com', 'testsuperpass')
-        self.client.force_login(superuser)
-
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
-        t.save()
-        orig_last_modified = t.last_modified_time
-
-        data = {'thumbnail_approved': True}
-
-        response = self.client.put(
-            odlcs_id_url(args=[t.pk]), data=json.dumps(data))
-        self.assertEqual(200, response.status_code)
-
-        t.refresh_from_db()
-        self.assertEqual(orig_last_modified, t.last_modified_time)
+        self.assertEqual(self.user, t.user)
+        self.assertEqual(OdlcType.standard, t.odlc_type)
+        self.assertIsNone(t.location)
+        self.assertIsNone(t.orientation)
+        self.assertIsNone(t.shape)
+        self.assertIsNone(t.background_color)
+        self.assertEqual('', t.alphanumeric)
+        self.assertIsNone(t.alphanumeric_color)
+        self.assertEqual('', t.description)
 
     def test_delete_own(self):
         """Test DELETEing a odlc owned by the correct user."""
@@ -792,10 +577,10 @@ class TestOdlcIdImage(TestCase):
         response = self.client.post(
             odlcs_url,
             data=json.dumps({
-                'type': 'standard'
+                'type': 'STANDARD'
             }),
             content_type='application/json')
-        self.assertEqual(201, response.status_code)
+        self.assertEqual(200, response.status_code)
         self.odlc_id = json.loads(response.content)['id']
         self.odlc = Odlc.objects.get(pk=self.odlc_id)
 
@@ -1023,8 +808,9 @@ class TestOdlcsAdminReview(TestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertEqual(1, len(data))
-        self.assertIn('type', data[0])
-        self.assertEqual('standard', data[0]['type'])
+        self.assertIn('odlc', data[0])
+        self.assertIn('type', data[0]['odlc'])
+        self.assertEqual('STANDARD', data[0]['odlc']['type'])
 
     def test_put_review_no_approved(self):
         """Test PUT review with no approved field."""
@@ -1039,8 +825,8 @@ class TestOdlcsAdminReview(TestCase):
         response = self.client.put(
             odlcs_review_id_url(args=[1]),
             data=json.dumps({
-                'thumbnail_approved': True,
-                'description_approved': True,
+                'thumbnailApproved': True,
+                'descriptionApproved': True,
             }))
         self.assertEqual(404, response.status_code)
 
@@ -1052,16 +838,17 @@ class TestOdlcsAdminReview(TestCase):
         response = self.client.put(
             odlcs_review_id_url(args=[odlc.pk]),
             data=json.dumps({
-                'thumbnail_approved': True,
-                'description_approved': True,
+                'thumbnailApproved': True,
+                'descriptionApproved': True,
             }))
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-        self.assertIn('id', data)
-        self.assertEqual(odlc.pk, data['id'])
-        self.assertIn('thumbnail_approved', data)
-        self.assertTrue(data['thumbnail_approved'])
-        self.assertTrue(data['description_approved'])
+        self.assertIn('odlc', data)
+        self.assertIn('id', data['odlc'])
+        self.assertEqual(odlc.pk, data['odlc']['id'])
+        self.assertIn('thumbnailApproved', data)
+        self.assertTrue(data['thumbnailApproved'])
+        self.assertTrue(data['descriptionApproved'])
 
         odlc.refresh_from_db()
         self.assertTrue(odlc.thumbnail_approved)

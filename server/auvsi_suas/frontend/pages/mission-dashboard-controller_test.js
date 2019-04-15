@@ -14,37 +14,31 @@ describe("MissionDashboardCtrl controller", function() {
                                $controller, Backend) {
         teams = [
             {
-                id: 1,
-                telemetry: null,
-                in_air: false
+                team: 'user1',
+                inAir: false
             },
             {
-                id: 2,
-                telemetry: null,
-                in_air: false
+                team: 'user2',
+                inAir: false
             },
             {
-                id: 3,
-                telemetry: null,
-                in_air: false
+                team: 'user3',
+                inAir: false
             },
             {
-                id: 4,
+                team: 'user4',
+                inAir: false,
                 telemetry: {
-                    id: 10,
-                    user: 4,
-                    timestamp: '3000-10-01T00:00:00+00:00',
                     latitude: 38,
                     longitude: -76,
-                    altitude_msl: 0,
+                    altitude: 0,
                     heading: 90
                 },
-                in_air: false
+                telemetry_timestamp: '3000-10-01T00:00:00+00:00',
             },
             {
-                id: 5,
-                telemetry: null,
-                in_air: true
+                team: 'user5',
+                inAir: true
             },
         ];
 

@@ -15,11 +15,6 @@ TeamStatusCtrl = function() {
      * @export {?Object} The team object, injected by directive.
      */
     this.team;
-
-    /**
-     * @export {?boolean} Whether the team is active.
-     */
-    this.active;
 };
 
 
@@ -29,11 +24,11 @@ TeamStatusCtrl = function() {
  * @export
  */
 TeamStatusCtrl.prototype.getTeamColorClasses = function() {
-    classes = [];
-    if (this.active) {
+    var classes = [];
+    if (this.isActive()) {
         classes.push('team-status-active');
     }
-    if (this.team.in_air) {
+    if (this.team.inAir) {
         classes.push('team-status-in-air');
     }
     return classes.join(' ');
@@ -45,7 +40,17 @@ TeamStatusCtrl.prototype.getTeamColorClasses = function() {
  * @export
  */
 TeamStatusCtrl.prototype.shouldShow = function() {
-    return this.active || this.team.in_air;
+    return this.isActive() || this.team.inAir;
+};
+
+
+/**
+ * @return {!boolean} Whether the team is actively sending telemetry.
+ * @export
+ */
+TeamStatusCtrl.prototype.isActive = function() {
+    return !!this.team.telemetry && !!this.team.telemetryTimestamp &&
+        new Date() - new Date(this.team.telemetryTimestamp) < 3000;
 };
 
 
@@ -57,7 +62,6 @@ angular.module('auvsiSuasApp').directive('teamStatus', [
             scope: {},
             bindToController: {
                 team: '=',
-                active: '='
             },
             controller: TeamStatusCtrl,
             controllerAs: 'teamStatusCtrl',

@@ -26,7 +26,8 @@ class LoggingMiddleware(object):
         else:
             req_logger = logger.error
 
-        req_logger('[%d] %s (%s)\n%s\n===\n%s', response.status_code,
+        req_logger('[%d] %s (%s)\n>>>\n%s\n===\n%s\n<<<', response.status_code,
                    request.get_full_path(), delta_time,
                    str(request), str(response))
+
         return response

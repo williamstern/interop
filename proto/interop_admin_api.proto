@@ -1,7 +1,38 @@
-// Descriptors for Mission evaluation.
+// Descriptors for Interop Admin API.
 
 syntax = "proto2";
 package auvsi_suas.proto;
+import "auvsi_suas/proto/interop_api.proto";
+
+// Status of a team.
+message TeamStatus {
+    // The team this status describes.
+    optional string team = 1;
+
+    // Whether the team is marked in air by admin.
+    optional bool in_air = 2;
+
+    // Most recent telemetry position, if it exists.
+    optional Telemetry telemetry = 3;
+
+    // Timestamp of the telemetry position as ISO string.
+    optional string telemetry_timestamp = 4;
+}
+
+// Review details for an ODLC.
+message OdlcReview {
+    // The ODLC being reviewed.
+    optional Odlc odlc = 1;
+
+    // When the ODLC was last modified as ISO string.
+    optional string last_modified_timestamp = 2;
+
+    // Whether the thumbnail was approved.
+    optional bool thumbnail_approved = 3;
+
+    // Whether the description was approved.
+    optional bool description_approved = 4;
+}
 
 // Multi-user mission evaluation.
 message MultiUserMissionEvaluation {

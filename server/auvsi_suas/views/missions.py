@@ -12,8 +12,10 @@ from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.patches.simplekml_patch import Kml
 from auvsi_suas.patches.simplekml_patch import RefreshMode
+from auvsi_suas.proto import interop_api_pb2
 from auvsi_suas.views.decorators import require_login
 from auvsi_suas.views.decorators import require_superuser
+from auvsi_suas.views.json import ProtoJsonEncoder
 from datetime import timedelta
 from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
@@ -23,7 +25,6 @@ from django.http import HttpResponseBadRequest
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseNotFound
 from django.http import HttpResponseServerError
-from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 from google.protobuf import json_format
@@ -39,7 +40,7 @@ def active_mission():
         mission, or None if there is an error. HttpResponse is None if a config
         could be obtained, or the error message if not.
     """
-    missions = MissionConfig.objects.filter(is_active=True)
+    missions = MissionConfig.objects.filter(is_active=True).select_related()
     if len(missions) != 1:
         logger.warning('Invalid number of active missions. Missions: %s.',
                        str(missions))
@@ -66,18 +67,56 @@ def mission_for_request(request_params):
         try:
             mission_id_str = request_params['mission']
             mission_id = int(mission_id_str)
-            mission = MissionConfig.objects.get(pk=mission_id)
+            mission = MissionConfig.objects.get(pk=mission_id).select_related()
             return (mission, None)
         except ValueError:
-            logger.warning('Invalid mission ID given. ID: %d.', mission_id_str)
             return (None,
                     HttpResponseBadRequest('Mission ID is not an integer.'))
         except MissionConfig.DoesNotExist:
-            logger.warning('Given mission ID not found. ID: %d.', mission_id)
             return (None, HttpResponseBadRequest('Mission not found.'))
 
     # Mission not specified, get the single active mission.
     return active_mission()
+
+
+def mission_proto(mission):
+    """Converts a mission to protobuf format."""
+    mission_proto = interop_api_pb2.Mission()
+    mission_proto.id = mission.pk
+
+    for fly_zone in mission.fly_zones.select_related().all():
+        fly_zone_proto = mission_proto.fly_zones.add()
+        fly_zone_proto.altitude_min = fly_zone.altitude_msl_min
+        fly_zone_proto.altitude_max = fly_zone.altitude_msl_max
+        for boundary_point in fly_zone.boundary_pts.order_by(
+                'order').select_related().all():
+            boundary_proto = fly_zone_proto.boundary_points.add()
+            boundary_proto.latitude = boundary_point.position.gps_position.latitude
+            boundary_proto.longitude = boundary_point.position.gps_position.longitude
+
+    for waypoint in mission.mission_waypoints.order_by(
+            'order').select_related().all():
+        waypoint_proto = mission_proto.waypoints.add()
+        waypoint_proto.latitude = waypoint.position.gps_position.latitude
+        waypoint_proto.longitude = waypoint.position.gps_position.longitude
+        waypoint_proto.altitude = waypoint.position.altitude_msl
+
+    for search_point in mission.search_grid_points.order_by(
+            'order').select_related().all():
+        search_point_proto = mission_proto.search_grid_points.add()
+        search_point_proto.latitude = search_point.position.gps_position.latitude
+        search_point_proto.longitude = search_point.position.gps_position.longitude
+
+    mission_proto.off_axis_odlc_pos.latitude = mission.off_axis_odlc_pos.latitude
+    mission_proto.off_axis_odlc_pos.longitude = mission.off_axis_odlc_pos.longitude
+
+    mission_proto.emergent_last_known_pos.latitude = mission.emergent_last_known_pos.latitude
+    mission_proto.emergent_last_known_pos.longitude = mission.emergent_last_known_pos.longitude
+
+    mission_proto.air_drop_pos.latitude = mission.air_drop_pos.latitude
+    mission_proto.air_drop_pos.longitude = mission.air_drop_pos.longitude
+
+    return mission_proto
 
 
 class Missions(View):
@@ -91,11 +130,11 @@ class Missions(View):
         missions = MissionConfig.objects.all()
         out = []
         for mission in missions:
-            out.append(mission.json(request.user.is_superuser))
+            out.append(mission_proto(mission))
 
-        # Older versions of JS allow hijacking the Array constructor to steal
-        # JSON data. It is not a problem in recent versions.
-        return JsonResponse(out, safe=False)
+        return HttpResponse(
+            json.dumps(out, cls=ProtoJsonEncoder),
+            content_type="application/json")
 
 
 class MissionsId(View):
@@ -108,9 +147,12 @@ class MissionsId(View):
     def get(self, request, pk):
         try:
             mission = MissionConfig.objects.get(pk=pk)
-            return JsonResponse(mission.json(request.user.is_superuser))
         except MissionConfig.DoesNotExist:
             return HttpResponseNotFound('Mission %s not found.' % pk)
+
+        return HttpResponse(
+            json_format.MessageToJson(mission_proto(mission)),
+            content_type="application/json")
 
 
 class ExportKml(View):
@@ -272,12 +314,9 @@ class Evaluate(View):
         return csv_output
 
     def get(self, request):
-        logger.info('Admin downloading team evaluation.')
-
         # Get the mission to evaluate a team for.
         mission, error = mission_for_request(request.GET)
         if error:
-            logger.warning('Could not get mission to evaluate teams.')
             return error
 
         # Get the optional team to eval.
@@ -294,7 +333,6 @@ class Evaluate(View):
         # Get the eval data for the teams.
         mission_eval = mission_evaluation.evaluate_teams(mission, users)
         if not mission_eval:
-            logger.warning('No data for team evaluation.')
             return HttpResponseServerError(
                 'Could not get user evaluation data.')
 

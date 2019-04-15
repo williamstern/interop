@@ -12,7 +12,7 @@ from auvsi_suas.views.odlcs import OdlcsAdminReview
 from auvsi_suas.views.odlcs import OdlcsId
 from auvsi_suas.views.odlcs import OdlcsIdImage
 from auvsi_suas.views.teams import Teams
-from auvsi_suas.views.teams import TeamsId
+from auvsi_suas.views.teams import Team
 from auvsi_suas.views.telemetry import Telemetry
 from django.conf.urls import url
 from django.conf import settings
@@ -37,7 +37,7 @@ urlpatterns = [
     url(r'^api/odlcs/review$', OdlcsAdminReview.as_view(), name='odlcs_review'),
     url(r'^api/odlcs/review/(?P<pk>\d+)$', OdlcsAdminReview.as_view(), name='odlcs_review_id'),
     url(r'^api/teams$', Teams.as_view(), name='teams'),
-    url(r'^api/teams/(?P<pk>\d+)$', TeamsId.as_view(), name='teams_id'),
+    url(r'^api/teams/(?P<username>.+)$', Team.as_view(), name='team'),
     url(r'^api/telemetry$', Telemetry.as_view(), name='telemetry'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # yapf: enable

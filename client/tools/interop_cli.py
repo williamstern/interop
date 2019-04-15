@@ -6,12 +6,12 @@ import argparse
 import datetime
 import getpass
 import logging
-import pprint
 import sys
 import time
 
 from auvsi_suas.client.client import AsyncClient
-from auvsi_suas.client.types import Telemetry
+from auvsi_suas.proto.interop_api_pb2 import Telemetry
+from google.protobuf import json_format
 from mavlink_proxy import MavlinkProxy
 from upload_odlcs import upload_odlcs
 
@@ -21,24 +21,32 @@ logger = logging.getLogger(__name__)
 def missions(args, client):
     missions = client.get_missions().result()
     for m in missions:
-        pprint.pprint(m.serialize())
+        print(json_format.MessageToJson(m))
+
+
+def obstacles(args, client):
+    obstacles = client.get_obstacles().result()
+    print(json_format.MessageToJson(obstacles))
 
 
 def odlcs(args, client):
     if args.odlc_dir:
-        upload_odlcs(client, args.odlc_dir, args.team_id,
-                     args.actionable_override)
+        upload_odlcs(client, args.odlc_dir)
     else:
         odlcs = client.get_odlcs().result()
         for odlc in odlcs:
-            pprint.pprint(odlc.serialize())
+            print(json_format.MessageToJson(odlc))
 
 
 def probe(args, client):
     while True:
         start_time = datetime.datetime.now()
 
-        telemetry = Telemetry(0, 0, 0, 0)
+        telemetry = Telemetry()
+        telemetry.latitude = 0
+        telemetry.longitude = 0
+        telemetry.altitude = 0
+        telemetry.heading = 0
         telemetry_resp = client.post_telemetry(telemetry).result()
 
         end_time = datetime.datetime.now()
@@ -78,6 +86,9 @@ def main():
     subparser = subparsers.add_parser('missions', help='Get missions.')
     subparser.set_defaults(func=missions)
 
+    subparser = subparsers.add_parser('obstacles', help='Get obstaclesj.')
+    subparser.set_defaults(func=obstacles)
+
     subparser = subparsers.add_parser(
         'odlcs',
         help='Upload odlcs.',
@@ -100,14 +111,6 @@ unique odlcs, if the tool is run multiple times.''',
     subparser.add_argument(
         '--odlc_dir',
         help='Enables odlc upload. Directory containing odlc data.')
-    subparser.add_argument(
-        '--team_id',
-        help='''The username of the team on whose behalf to submit odlcs.
-Must be admin user to specify.''')
-    subparser.add_argument(
-        '--actionable_override',
-        help='''Manually sets all the odlcs in the odlc dir to be
-actionable. Must be admin user to specify.''')
 
     subparser = subparsers.add_parser('probe', help='Send dummy requests.')
     subparser.set_defaults(func=probe)

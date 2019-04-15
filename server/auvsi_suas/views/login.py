@@ -1,7 +1,7 @@
 """Interoperability login view."""
 
 import logging
-from auvsi_suas.proto.interop_api_pb2 import LoginRequest
+from auvsi_suas.proto.interop_api_pb2 import Credentials
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.http import HttpResponse
@@ -16,29 +16,23 @@ class Login(View):
     """Logs the user in with a POST request using the given parameters."""
 
     def post(self, request):
-        request_proto = LoginRequest()
+        creds = Credentials()
         try:
-            json_format.Parse(request.body, request_proto)
-        except:
-            logging.warning('Failed to parse request.')
-            return HttpResponseBadRequest('Failed to parse request.')
-
-        if (not request_proto.HasField('username') or
-                not request_proto.HasField('password')):
-            logging.warning('Missing fields in request.')
+            json_format.Parse(request.body, creds)
+        except Exception as e:
             return HttpResponseBadRequest(
-                'Missing fields in request. Both username and password required.'
-            )
+                'Failed to parse request. Error: %s' % str(e))
 
-        user = authenticate(
-            username=request_proto.username, password=request_proto.password)
+        if not creds.HasField('username') or not creds.HasField('password'):
+            return HttpResponseBadRequest('Request missing fields.')
+
+        user = authenticate(username=creds.username, password=creds.password)
         if user is not None and user.is_active:
             # Successful authentication with active user, login
             login(request, user)
-            logger.info('User logged in: %s.' % user.username)
-            return HttpResponse('Login Successful.')
+            return HttpResponse('User logged in: %s' % user.username)
         else:
             # Invalid user credentials, invalid request
-            logger.warning('Invalid credentials in login request.')
-            logger.debug(request)
-            return HttpResponse('Invalid Credentials.', status=401)
+            return HttpResponse(
+                'Invalid credentials in request. Could not log in.',
+                status=401)

@@ -11,115 +11,121 @@ from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.odlc import OdlcType
 from auvsi_suas.models.odlc import Orientation
 from auvsi_suas.models.odlc import Shape
+from auvsi_suas.proto import interop_admin_api_pb2
+from auvsi_suas.proto import interop_api_pb2
 from auvsi_suas.views.decorators import require_login
 from auvsi_suas.views.decorators import require_superuser
+from auvsi_suas.views.json import ProtoJsonEncoder
 from django.contrib.auth.models import User
 from django.core.files.images import ImageFile
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseNotFound
-from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.generic import View
+from google.protobuf import json_format
 from sendfile import sendfile
 
 logger = logging.getLogger(__name__)
 
 
-def normalize_data(data):
-    """Convert received odlc parameters to native Python types.
+def odlc_to_proto(odlc):
+    """Converts an ODLC into protobuf format."""
+    odlc_proto = interop_api_pb2.Odlc()
+    odlc_proto.id = odlc.pk
+    odlc_proto.type = odlc.odlc_type
+    if odlc.location is not None:
+        odlc_proto.latitude = odlc.location.latitude
+        odlc_proto.longitude = odlc.location.longitude
+    if odlc.orientation is not None:
+        odlc_proto.orientation = odlc.orientation
+    if odlc.shape is not None:
+        odlc_proto.shape = odlc.shape
+    if odlc.alphanumeric:
+        odlc_proto.alphanumeric = odlc.alphanumeric
+    if odlc.background_color is not None:
+        odlc_proto.shape_color = odlc.background_color
+    if odlc.alphanumeric_color is not None:
+        odlc_proto.alphanumeric_color = odlc.alphanumeric_color
+    if odlc.description:
+        odlc_proto.description = odlc.description
+    odlc_proto.autonomous = odlc.autonomous
+    return odlc_proto
 
-    Checks whether values are valid and in-range. Skips any non-existent
-    fields.
 
-    Args:
-        data: JSON-converted dictionary of odlc parameters
+def validate_odlc_proto(odlc_proto):
+    """Validates ODLC proto, raising ValueError if invalid."""
+    if not odlc_proto.HasField('type'):
+        raise ValueError('ODLC type is required.')
 
-    Returns:
-        data dictionary with all present odlc fields in native types.
+    if odlc_proto.HasField('latitude') != odlc_proto.HasField('longitude'):
+        raise ValueError('Must specify both latitude and longitude.')
 
-    Raises:
-        ValueError: Parameter not convertable or out-of-range
-    """
+    if odlc_proto.HasField('latitude') and (odlc_proto.latitude < -90 or
+                                            odlc_proto.latitude > 90):
+        raise ValueError('Invalid latitude "%f", must be -90 <= lat <= 90' %
+                         odlc_proto.latitude)
 
-    # 'alphanumeric' and 'description' use the empty string instead of None
-    if 'alphanumeric' in data and data['alphanumeric'] is None:
-        data['alphanumeric'] = ""
-    if 'description' in data and data['description'] is None:
-        data['description'] = ""
+    if odlc_proto.HasField('longitude') and (odlc_proto.longitude < -180 or
+                                             odlc_proto.longitude > 180):
+        raise ValueError('Invalid longitude "%s", must be -180 <= lat <= 180' %
+                         odlc_proto.longitude)
 
-    # Values may be None to clear them or leave them blank.
 
-    # Type is the one exception; it is required and may not be None.
-    if 'type' in data:
-        try:
-            data['type'] = OdlcType.lookup(data['type'])
-        except KeyError:
-            raise ValueError('Unknown odlc type "%s"; known types %r' %
-                             (data['type'], OdlcType.names()))
+def update_odlc_from_proto(odlc, odlc_proto):
+    """Sets fields of the ODLC from the proto format."""
+    odlc.odlc_type = odlc_proto.type
 
-    if 'latitude' in data and data['latitude'] is not None:
-        try:
-            data['latitude'] = float(data['latitude'])
-            if data['latitude'] < -90 or data['latitude'] > 90:
-                raise ValueError
-        except ValueError:
-            # Unable to convert to float or out-of-range
-            raise ValueError('Invalid latitude "%s", must be -90 <= lat <= 90'
-                             % data['latitude'])
+    if odlc_proto.HasField('latitude') and odlc_proto.HasField('longitude'):
+        if odlc.location is None:
+            l = GpsPosition(
+                latitude=odlc_proto.latitude, longitude=odlc_proto.longitude)
+            l.save()
+            odlc.location = l
+        else:
+            odlc.location.latitude = odlc_proto.latitude
+            odlc.location.longitude = odlc_proto.longitude
+            odlc.location.save()
+    else:
+        # Don't delete underlying GPS position in case it's shared by admin.
+        # Just unreference it.
+        odlc.location = None
 
-    if 'longitude' in data and data['longitude'] is not None:
-        try:
-            data['longitude'] = float(data['longitude'])
-            if data['longitude'] < -180 or data['longitude'] > 180:
-                raise ValueError
-        except ValueError:
-            # Unable to convert to float or out-of-range
-            raise ValueError(
-                'Invalid longitude "%s", must be -180 <= lat <= 180' %
-                (data['longitude']))
+    if odlc_proto.HasField('orientation'):
+        odlc.orientation = odlc_proto.orientation
+    else:
+        odlc.orientation = None
 
-    if 'orientation' in data and data['orientation'] is not None:
-        try:
-            data['orientation'] = Orientation.lookup(data['orientation'])
-        except KeyError:
-            raise ValueError(
-                'Unknown orientation "%s"; known orientations %r' %
-                (data['orientation'], Orientation.names()))
+    if odlc_proto.HasField('shape'):
+        odlc.shape = odlc_proto.shape
+    else:
+        odlc.shape = None
 
-    if 'shape' in data and data['shape'] is not None:
-        try:
-            data['shape'] = Shape.lookup(data['shape'])
-        except KeyError:
-            raise ValueError('Unknown shape "%s"; known shapes %r' %
-                             (data['shape'], Shape.names()))
+    if odlc_proto.HasField('alphanumeric'):
+        odlc.alphanumeric = odlc_proto.alphanumeric
+    else:
+        odlc.alphanumeric = ''
 
-    if 'background_color' in data and data['background_color'] is not None:
-        try:
-            data['background_color'] = Color.lookup(data['background_color'])
-        except KeyError:
-            raise ValueError('Unknown color "%s"; known colors %r' %
-                             (data['background_color'], Color.names()))
+    if odlc_proto.HasField('shape_color'):
+        odlc.background_color = odlc_proto.shape_color
+    else:
+        odlc.background_color = None
 
-    if 'alphanumeric_color' in data and data['alphanumeric_color'] is not None:
-        try:
-            data['alphanumeric_color'] = \
-                Color.lookup(data['alphanumeric_color'])
-        except KeyError:
-            raise ValueError('Unknown color "%s"; known colors %r' %
-                             (data['alphanumeric_color'], Color.names()))
+    if odlc_proto.HasField('alphanumeric_color'):
+        odlc.alphanumeric_color = odlc_proto.alphanumeric_color
+    else:
+        odlc.alphanumeric_color = None
 
-    if 'autonomous' in data:
-        if data['autonomous'] is not True and data['autonomous'] is not False:
-            raise ValueError('"autonmous" must be true or false')
+    if odlc_proto.HasField('description'):
+        odlc.description = odlc_proto.description
+    else:
+        odlc.description = ''
 
-    if 'actionable_override' in data:
-        if (data['actionable_override'] is not True and
-            data['actionable_override'] is not False): # yapf: disable
-            raise ValueError('"actionable_override" must be true or false')
-
-    return data
+    if odlc_proto.HasField('autonomous'):
+        odlc.autonomous = odlc_proto.autonomous
+    else:
+        odlc.autonomous = False
 
 
 class Odlcs(View):
@@ -132,77 +138,38 @@ class Odlcs(View):
     def get(self, request):
         # Limit serving to 100 odlcs to prevent slowdown and isolation problems.
         odlcs = Odlc.objects.filter(user=request.user).all()[:100]
-        odlcs = [t.json(is_superuser=request.user.is_superuser) for t in odlcs]
 
-        # Older versions of JS allow hijacking the Array constructor to steal
-        # JSON data. It is not a problem in recent versions.
-        return JsonResponse(odlcs, safe=False)
+        odlc_protos = [odlc_to_proto(o) for o in odlcs]
+        return HttpResponse(
+            json.dumps(odlc_protos, cls=ProtoJsonEncoder),
+            content_type="application/json")
 
     def post(self, request):
+        odlc_proto = interop_api_pb2.Odlc()
         try:
-            data = json.loads(request.body)
-        except ValueError:
-            return HttpResponseBadRequest('Request body is not valid JSON.')
-
-        # Must be a json dictionary.
-        if not isinstance(data, dict):
-            return HttpResponseBadRequest('Request body not a JSON dict.')
-
-        # Odlc type is required.
-        if 'type' not in data:
-            return HttpResponseBadRequest('Odlc type required.')
-
-        # Team id can only be specified if superuser.
-        user = request.user
-        if 'team_id' in data:
-            if request.user.is_superuser:
-                user = User.objects.get(username=data['team_id'])
-            else:
-                return HttpResponseForbidden(
-                    'Non-admin users cannot send team_id')
-
-        latitude = data.get('latitude')
-        longitude = data.get('longitude')
-
-        # Require zero or both of latitude and longitude.
-        if (latitude is not None and longitude is None) or \
-            (latitude is None and longitude is not None):
+            json_format.Parse(request.body, odlc_proto)
+        except Exception as e:
             return HttpResponseBadRequest(
-                'Either none or both of latitude and longitude required.')
-
-        # Cannot submit JSON with actionable_override if not superuser.
-        if 'actionable_override' in data and not request.user.is_superuser:
-            return HttpResponseForbidden(
-                'Non-admin users cannot submit actionable override.')
-
+                'Failed to parse request. Error: %s' % str(e))
+        # Validate ODLC proto fields.
         try:
-            data = normalize_data(data)
+            validate_odlc_proto(odlc_proto)
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
+        # Cannot set ODLC ID on a post.
+        if odlc_proto.HasField('id'):
+            return HttpResponseBadRequest(
+                'Cannot specify ID for POST request.')
 
-        l = None
-        if latitude is not None and longitude is not None:
-            l = GpsPosition(
-                latitude=data['latitude'], longitude=data['longitude'])
-            l.save()
+        # Build the ODLC object from the request.
+        odlc = Odlc()
+        odlc.user = request.user
+        update_odlc_from_proto(odlc, odlc_proto)
+        odlc.save()
 
-        # Use the dictionary get() method to default non-existent values to None.
-        t = Odlc(
-            user=user,
-            odlc_type=data['type'],
-            location=l,
-            orientation=data.get('orientation'),
-            shape=data.get('shape'),
-            background_color=data.get('background_color'),
-            alphanumeric=data.get('alphanumeric', ''),
-            alphanumeric_color=data.get('alphanumeric_color'),
-            description=data.get('description', ''),
-            autonomous=data.get('autonomous', False),
-            actionable_override=data.get('actionable_override', False))
-        t.save()
-
-        return JsonResponse(
-            t.json(is_superuser=request.user.is_superuser), status=201)
+        return HttpResponse(
+            json_format.MessageToJson(odlc_to_proto(odlc)),
+            content_type="application/json")
 
 
 def find_odlc(request, pk):
@@ -242,7 +209,9 @@ class OdlcsId(View):
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
-        return JsonResponse(odlc.json(is_superuser=request.user.is_superuser))
+        return HttpResponse(
+            json_format.MessageToJson(odlc_to_proto(odlc)),
+            content_type="application/json")
 
     def put(self, request, pk):
         try:
@@ -252,101 +221,29 @@ class OdlcsId(View):
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
+        odlc_proto = interop_api_pb2.Odlc()
         try:
-            data = json.loads(request.body)
-        except ValueError:
-            return HttpResponseBadRequest('Request body is not valid JSON.')
-
-        # Must be a json dictionary.
-        if not isinstance(data, dict):
-            return HttpResponseBadRequest('Request body not a JSON dict.')
-
-        # Cannot submit JSON with actionable_override if not superuser.
-        if 'actionable_override' in data and not request.user.is_superuser:
-            return HttpResponseForbidden(
-                'Non-admin users cannot submit actionable override.')
-
+            json_format.Parse(request.body, odlc_proto)
+        except Exception as e:
+            return HttpResponseBadRequest(
+                'Failed to parse request. Error: %s' % str(e))
+        # Validate ODLC proto fields.
         try:
-            data = normalize_data(data)
+            validate_odlc_proto(odlc_proto)
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
+        # ID provided in proto must match object.
+        if odlc_proto.HasField('id') and odlc_proto.id != odlc.pk:
+            return HttpResponseBadRequest('ID in request does not match URL.')
 
-        # We update any of the included values, except id and user
-        if 'type' in data:
-            odlc.odlc_type = data['type']
-        if 'orientation' in data:
-            odlc.orientation = data['orientation']
-        if 'shape' in data:
-            odlc.shape = data['shape']
-        if 'background_color' in data:
-            odlc.background_color = data['background_color']
-        if 'alphanumeric' in data:
-            odlc.alphanumeric = data['alphanumeric']
-        if 'alphanumeric_color' in data:
-            odlc.alphanumeric_color = data['alphanumeric_color']
-        if 'description' in data:
-            odlc.description = data['description']
-        if 'autonomous' in data:
-            odlc.autonomous = data['autonomous']
-        if 'actionable_override' in data:
-            odlc.actionable_override = data['actionable_override']
-
-        # Location is special because it is in a GpsPosition model
-
-        # If lat/lon exist and are None, the user wants to clear them.
-        # If they exist and are not None, the user wants to update/add them.
-        # If they don't exist, the user wants to leave them alone.
-        clear_lat = False
-        clear_lon = False
-        update_lat = False
-        update_lon = False
-
-        if 'latitude' in data:
-            if data['latitude'] is None:
-                clear_lat = True
-            else:
-                update_lat = True
-
-        if 'longitude' in data:
-            if data['longitude'] is None:
-                clear_lon = True
-            else:
-                update_lon = True
-
-        if (clear_lat and not clear_lon) or (not clear_lat and clear_lon):
-            # Location must be cleared entirely, we can't clear just lat or
-            # just lon.
-            return HttpResponseBadRequest(
-                'Only none or both of latitude and longitude can be cleared.')
-
-        if clear_lat and clear_lon:
-            odlc.location = None
-        elif update_lat or update_lon:
-            if odlc.location is not None:
-                # We can directly update individual components
-                if update_lat:
-                    odlc.location.latitude = data['latitude']
-                if update_lon:
-                    odlc.location.longitude = data['longitude']
-                odlc.location.save()
-            else:
-                # We need a new GpsPosition, this requires both lat and lon
-                if not update_lat or not update_lon:
-                    return HttpResponseBadRequest(
-                        'Either none or both of latitude and longitude required.'
-                    )
-
-                l = GpsPosition(
-                    latitude=data['latitude'], longitude=data['longitude'])
-                l.save()
-                odlc.location = l
-
-        odlc.description_approved = None
-        if not request.user.is_superuser:
-            odlc.update_last_modified()
+        # Update the ODLC object from the request.
+        update_odlc_from_proto(odlc, odlc_proto)
+        odlc.update_last_modified()
         odlc.save()
 
-        return JsonResponse(odlc.json(is_superuser=request.user.is_superuser))
+        return HttpResponse(
+            json_format.MessageToJson(odlc_to_proto(odlc)),
+            content_type="application/json")
 
     def delete(self, request, pk):
         try:
@@ -417,14 +314,17 @@ class OdlcsIdImage(View):
         # Clear thumbnail review state.
         if odlc.thumbnail_approved is not None:
             odlc.thumbnail_approved = None
-            odlc.save()
 
+        # Save the thumbnail, note old path.
         old_path = odlc.thumbnail.path if odlc.thumbnail else None
         odlc.thumbnail.save('%d.%s' % (odlc.pk, i.format), ImageFile(f))
 
+        # ODLC has been modified.
+        odlc.update_last_modified()
+        odlc.save()
+
+        # Check whether old thumbnail should be deleted. Ignore errors.
         if old_path and odlc.thumbnail.path != old_path:
-            # We didn't overwrite the old thumbnail, we should delete it,
-            # but ignore deletion errors.
             try:
                 os.remove(old_path)
             except OSError as e:
@@ -465,6 +365,30 @@ class OdlcsIdImage(View):
         return HttpResponse("Image deleted.")
 
 
+def odlc_to_review_proto(odlc):
+    """Converts an ODLC into a review proto."""
+    review_proto = interop_admin_api_pb2.OdlcReview()
+    review_proto.odlc.CopyFrom(odlc_to_proto(odlc))
+    review_proto.last_modified_timestamp = odlc.last_modified_time.isoformat()
+    if odlc.thumbnail_approved is not None:
+        review_proto.thumbnail_approved = odlc.thumbnail_approved
+    if odlc.description_approved is not None:
+        review_proto.description_approved = odlc.description_approved
+    return review_proto
+
+
+def update_odlc_from_review_proto(odlc, review_proto):
+    """Sets fields of the ODLC from the review."""
+    if review_proto.HasField('thumbnail_approved'):
+        odlc.thumbnail_approved = review_proto.thumbnail_approved
+    else:
+        odlc.thumbnail_approved = False
+    if review_proto.HasField('description_approved'):
+        odlc.description_approved = review_proto.description_approved
+    else:
+        odlc.description_approved = False
+
+
 class OdlcsAdminReview(View):
     """Get or update review status for odlcs."""
 
@@ -474,31 +398,30 @@ class OdlcsAdminReview(View):
 
     def get(self, request):
         """Gets all of the odlcs ready for review."""
+        # Get all odlcs which have a thumbnail to review.
         odlcs = []
         for user in User.objects.all():
-            # Get odlcs which have thumbnail.
             odlcs.extend([
                 t for t in Odlc.objects.filter(user=user).all() if t.thumbnail
             ])
-        # Sort odlcs by last edit time, convert to json.
-        odlcs = [
-            t.json(is_superuser=request.user.is_superuser)
-            for t in sorted(odlcs, key=lambda t: t.last_modified_time)
-        ]
-        return JsonResponse(odlcs, safe=False)
+
+        # Sort odlcs by last edit time.
+        odlcs.sort(key=lambda t: t.last_modified_time)
+
+        # Convert to review protos.
+        odlc_review_protos = [odlc_to_review_proto(odlc) for odlc in odlcs]
+
+        return HttpResponse(
+            json.dumps(odlc_review_protos, cls=ProtoJsonEncoder),
+            content_type="application/json")
 
     def put(self, request, pk):
         """Updates the review status of a odlc."""
+        review_proto = interop_admin_api_pb2.OdlcReview()
         try:
-            data = json.loads(request.body)
-            thumbnail_approved = bool(data['thumbnail_approved'])
-            description_approved = bool(data['description_approved'])
-        except TypeError:
-            return HttpResponseBadRequest('JSON not a dict.')
-        except KeyError:
-            return HttpResponseBadRequest('Failed to get required field.')
-        except ValueError:
-            return HttpResponseBadRequest('Field had incorrect type.')
+            json_format.Parse(request.body, review_proto)
+        except Exception as e:
+            return HttpResponseBadRequest('Failed to parse review proto.')
 
         try:
             odlc = find_odlc(request, int(pk))
@@ -506,7 +429,10 @@ class OdlcsAdminReview(View):
             return HttpResponseNotFound('Odlc %s not found' % pk)
         except ValueError as e:
             return HttpResponseForbidden(str(e))
-        odlc.thumbnail_approved = thumbnail_approved
-        odlc.description_approved = description_approved
+
+        update_odlc_from_review_proto(odlc, review_proto)
         odlc.save()
-        return JsonResponse(odlc.json(is_superuser=request.user.is_superuser))
+
+        return HttpResponse(
+            json_format.MessageToJson(odlc_to_review_proto(odlc)),
+            content_type="application/json")

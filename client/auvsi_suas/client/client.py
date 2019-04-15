@@ -9,11 +9,7 @@ features. A simpler Client is also given as a base implementation.
 import json
 import requests
 from auvsi_suas.client.exceptions import InteropError
-from auvsi_suas.client.types import Mission
-from auvsi_suas.client.types import Mission
-from auvsi_suas.client.types import Odlc
-from auvsi_suas.client.types import StationaryObstacle
-from auvsi_suas.proto.interop_api_pb2 import LoginRequest
+from auvsi_suas.proto import interop_api_pb2
 from concurrent.futures import ThreadPoolExecutor
 from google.protobuf import json_format
 
@@ -58,10 +54,10 @@ class Client(object):
                                max_retries=max_retries))
 
         # All endpoints require authentication, so always login.
-        login_request = LoginRequest()
-        login_request.username = username
-        login_request.password = password
-        self.post('/api/login', data=json_format.MessageToJson(login_request))
+        creds = interop_api_pb2.Credentials()
+        creds.username = username
+        creds.password = password
+        self.post('/api/login', data=json_format.MessageToJson(creds))
 
     def get(self, uri, **kwargs):
         """GET request to server.
@@ -133,7 +129,12 @@ class Client(object):
             ValueError or AttributeError: Malformed response from server.
         """
         r = self.get('/api/missions')
-        return [Mission.deserialize(m) for m in r.json()]
+        missions = []
+        for mission_dict in r.json():
+            mission_proto = interop_api_pb2.Mission()
+            json_format.Parse(json.dumps(mission_dict), mission_proto)
+            missions.append(mission_proto)
+        return missions
 
     def post_telemetry(self, telem):
         """POST new telemetry.
@@ -144,26 +145,22 @@ class Client(object):
             InteropError: Error from server.
             requests.Timeout: Request timeout.
         """
-        self.post('/api/telemetry', data=telem.serialize())
+        self.post('/api/telemetry', data=json_format.MessageToJson(telem))
 
     def get_obstacles(self):
         """GET obstacles.
 
         Returns:
-            List of StationaryObstacles.
+            ObstacleSet.List of StationaryObstacles.
         Raises:
             InteropError: Error from server.
             requests.Timeout: Request timeout.
             ValueError or AttributeError: Malformed response from server.
         """
         r = self.get('/api/obstacles')
-        d = r.json()
-
-        stationary = []
-        for o in d['stationary_obstacles']:
-            stationary.append(StationaryObstacle.deserialize(o))
-
-        return stationary
+        obstacle_set = interop_api_pb2.ObstacleSet()
+        json_format.Parse(r.text, obstacle_set)
+        return obstacle_set
 
     def get_odlcs(self):
         """GET odlcs.
@@ -176,7 +173,12 @@ class Client(object):
             ValueError or AttributeError: Malformed response from server.
         """
         r = self.get('/api/odlcs')
-        return [Odlc.deserialize(t) for t in r.json()]
+        odlcs = []
+        for odlc_dict in r.json():
+            odlc_proto = interop_api_pb2.Odlc()
+            json_format.Parse(json.dumps(odlc_dict), odlc_proto)
+            odlcs.append(odlc_proto)
+        return odlcs
 
     def get_odlc(self, odlc_id):
         """GET odlc.
@@ -191,7 +193,9 @@ class Client(object):
             ValueError or AttributeError: Malformed response from server.
         """
         r = self.get('/api/odlcs/%d' % odlc_id)
-        return Odlc.deserialize(r.json())
+        odlc = interop_api_pb2.Odlc()
+        json_format.Parse(r.text, odlc)
+        return odlc
 
     def post_odlc(self, odlc):
         """POST odlc.
@@ -205,8 +209,10 @@ class Client(object):
             requests.Timeout: Request timeout.
             ValueError or AttributeError: Malformed response from server.
         """
-        r = self.post('/api/odlcs', data=json.dumps(odlc.serialize()))
-        return Odlc.deserialize(r.json())
+        r = self.post('/api/odlcs', data=json_format.MessageToJson(odlc))
+        odlc = interop_api_pb2.Odlc()
+        json_format.Parse(r.text, odlc)
+        return odlc
 
     def put_odlc(self, odlc_id, odlc):
         """PUT odlc.
@@ -222,8 +228,10 @@ class Client(object):
             ValueError or AttributeError: Malformed response from server.
         """
         r = self.put(
-            '/api/odlcs/%d' % odlc_id, data=json.dumps(odlc.serialize()))
-        return Odlc.deserialize(r.json())
+            '/api/odlcs/%d' % odlc_id, data=json_format.MessageToJson(odlc))
+        odlc = interop_api_pb2.Odlc()
+        json_format.Parse(r.text, odlc)
+        return odlc
 
     def delete_odlc(self, odlc_id):
         """DELETE odlc.

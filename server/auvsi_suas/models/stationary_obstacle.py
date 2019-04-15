@@ -52,23 +52,6 @@ class StationaryObstacle(models.Model):
                 return True
         return False
 
-    def json(self):
-        """Obtain a JSON style representation of object."""
-        if self.gps_position is None:
-            latitude = 0
-            longitude = 0
-        else:
-            latitude = self.gps_position.latitude
-            longitude = self.gps_position.longitude
-
-        data = {
-            'latitude': latitude,
-            'longitude': longitude,
-            'cylinder_radius': self.cylinder_radius,
-            'cylinder_height': self.cylinder_height
-        }
-        return data
-
 
 @admin.register(StationaryObstacle)
 class StationaryObstacleModelAdmin(admin.ModelAdmin):

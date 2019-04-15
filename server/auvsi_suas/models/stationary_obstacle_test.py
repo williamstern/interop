@@ -145,27 +145,3 @@ class TestStationaryObstacleModel(TestCase):
             (45.4338393, -71.8523446, 769.881926415),
         ])
         self.assertFalse(obst.evaluate_collision_with_uas(logs))
-
-    def test_json(self):
-        """Tests the JSON serialization method."""
-        TEST_LAT = 100.10
-        TEST_LONG = 200.20
-        TEST_RADIUS = 150.50
-        TEST_HEIGHT = 75.30
-
-        gpos = GpsPosition(latitude=TEST_LAT, longitude=TEST_LONG)
-        gpos.save()
-        obstacle = StationaryObstacle(
-            gps_position=gpos,
-            cylinder_radius=TEST_RADIUS,
-            cylinder_height=TEST_HEIGHT)
-        json_data = obstacle.json()
-
-        self.assertTrue('latitude' in json_data)
-        self.assertEqual(json_data['latitude'], TEST_LAT)
-        self.assertTrue('longitude' in json_data)
-        self.assertEqual(json_data['longitude'], TEST_LONG)
-        self.assertTrue('cylinder_radius' in json_data)
-        self.assertEqual(json_data['cylinder_radius'], TEST_RADIUS)
-        self.assertTrue('cylinder_height' in json_data)
-        self.assertEqual(json_data['cylinder_height'], TEST_HEIGHT)

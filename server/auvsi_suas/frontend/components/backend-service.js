@@ -30,7 +30,7 @@ Backend = function($resource) {
      */
     this.odlcReviewResource = $resource(
             '/api/odlcs/review/:id',
-            {id: '@id'},
+            {id: '@odlc.id'},
             {'put': {method: 'PUT'}});
 };
 

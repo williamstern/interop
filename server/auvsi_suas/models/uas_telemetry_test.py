@@ -157,26 +157,6 @@ class TestUasTelemetry(TestUasTelemetryBase):
         self.assertTrue(self.log.duplicate(self.log))
         self.assertTrue(self.log.duplicate(log1))
 
-    def test_json(self):
-        """Tests JSON-style output."""
-        data = self.log.json()
-
-        self.assertIn('id', data)
-        self.assertIn('user', data)
-        self.assertIn('timestamp', data)
-        self.assertIn('latitude', data)
-        self.assertIn('longitude', data)
-        self.assertIn('altitude_msl', data)
-        self.assertIn('heading', data)
-
-        # Timestamp is valid ISO 8601, with timezone
-        iso8601.parse_date(data['timestamp'])
-
-        self.assertEqual(10, data['latitude'])
-        self.assertEqual(100, data['longitude'])
-        self.assertEqual(200, data['altitude_msl'])
-        self.assertEqual(90, data['heading'])
-
 
 class TestUasTelemetryFilter(TestUasTelemetryBase):
     def setUp(self):

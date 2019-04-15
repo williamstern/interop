@@ -194,67 +194,6 @@ class Odlc(models.Model):
         if not self.creation_time:
             self.creation_time = self.last_modified_time
 
-    def json(self, is_superuser=False):
-        """Odlc as dict, for JSON."""
-        odlc_type = None
-        if self.odlc_type is not None:
-            odlc_type = OdlcType(self.odlc_type).name
-
-        latitude = None
-        longitude = None
-        if self.location is not None:
-            latitude = self.location.latitude
-            longitude = self.location.longitude
-
-        orientation = None
-        if self.orientation is not None:
-            orientation = Orientation(self.orientation).name
-
-        shape = None
-        if self.shape is not None:
-            shape = Shape(self.shape).name
-
-        background_color = None
-        if self.background_color is not None:
-            background_color = Color(self.background_color).name
-
-        alphanumeric = None
-        if self.alphanumeric != '':
-            alphanumeric = self.alphanumeric
-
-        alphanumeric_color = None
-        if self.alphanumeric_color is not None:
-            alphanumeric_color = Color(self.alphanumeric_color).name
-
-        description = None
-        if self.description != '':
-            description = self.description
-
-        d = {
-            'id': self.pk,
-            'user': self.user.pk,
-            'type': odlc_type,
-            'latitude': latitude,
-            'longitude': longitude,
-            'orientation': orientation,
-            'shape': shape,
-            'background_color': background_color,
-            'alphanumeric': alphanumeric,
-            'alphanumeric_color': alphanumeric_color,
-            'description': description,
-            'autonomous': self.autonomous,
-        }
-
-        if is_superuser:
-            d['description_approved'] = self.description_approved
-            d['thumbnail'] = self.thumbnail.name if self.thumbnail else None
-            d['thumbnail_approved'] = self.thumbnail_approved
-            d['creation_time'] = self.creation_time
-            d['last_modified_time'] = self.last_modified_time
-            d['actionable_override'] = self.actionable_override
-
-        return d
-
     def similar_orientation(self, other):
         """Compares the orientations for equality.
 
