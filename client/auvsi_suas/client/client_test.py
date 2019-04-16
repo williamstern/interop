@@ -59,17 +59,14 @@ class TestClient(unittest.TestCase):
         self.client = Client(server, username, password)
         self.async_client = AsyncClient(server, username, password)
 
-    def test_get_missions(self):
-        """Test getting missions."""
-        missions = self.client.get_missions()
-        async_missions = self.async_client.get_missions().result()
+    def test_get_mission(self):
+        """Test getting a mission."""
+        mission = self.client.get_mission(1)
+        async_mission = self.async_client.get_mission(1).result()
 
-        # Check one mission returned.
-        self.assertEqual(1, len(missions))
-        self.assertEqual(1, len(async_missions))
-        # Check a few fields.
-        self.assertEqual(1, missions[0].id)
-        self.assertEqual(1, async_missions[0].id)
+        # Check basic field info.
+        self.assertEqual(1, mission.id)
+        self.assertEqual(1, async_mission.id)
 
     def test_post_telemetry(self):
         """Test sending some telemetry."""

@@ -39,8 +39,15 @@ class TestMissionsViewCommon(TestCase):
                                              'normalpass')
         self.user.save()
 
+        self.admin_user = User.objects.create_superuser(
+            'testuser2', 'testemail@x.com', 'testpass')
+        self.admin_user.save()
+
     def Login(self):
         self.client.force_login(self.user)
+
+    def LoginSuperuser(self):
+        self.client.force_login(self.admin_user)
 
 
 class TestMissionsViewBasic(TestMissionsViewCommon):
@@ -48,13 +55,13 @@ class TestMissionsViewBasic(TestMissionsViewCommon):
 
     def test_post(self):
         """POST not allowed"""
-        self.Login()
+        self.LoginSuperuser()
         response = self.client.post(missions_url)
         self.assertEqual(405, response.status_code)
 
     def test_no_missions(self):
         """No missions results in empty list."""
-        self.Login()
+        self.LoginSuperuser()
         response = self.client.get(missions_url)
         self.assertEqual(200, response.status_code)
         self.assertEqual([], json.loads(response.content))
@@ -118,23 +125,15 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertEqual(38.0, data['airDropPos']['latitude'])
         self.assertEqual(-79.0, data['airDropPos']['longitude'])
 
-    def assert_data_array(self, data):
-        self.assertEqual(1, len(data))
-        self.assert_data(data[0])
-
     def test_get(self):
         """Response JSON is properly formatted."""
         self.Login()
-        response = self.client.get(missions_url)
+        response = self.client.get(missions_id_url(args=[3]))
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
 
-        self.assert_data_array(data)
-        self.assertNotIn('stationary_obstacles', data[0])
-
-        response = self.client.get(missions_url)
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(data, json.loads(response.content))
+        self.assert_data(data)
+        self.assertNotIn('stationary_obstacles', data)
 
 
 class TestGenerateKMLCommon(TestCase):

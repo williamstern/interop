@@ -18,10 +18,9 @@ from upload_odlcs import upload_odlcs
 logger = logging.getLogger(__name__)
 
 
-def missions(args, client):
-    missions = client.get_missions().result()
-    for m in missions:
-        print(json_format.MessageToJson(m))
+def mission(args, client):
+    mission = client.get_mission(args.mission_id).result()
+    print(json_format.MessageToJson(mission))
 
 
 def obstacles(args, client):
@@ -83,8 +82,13 @@ def main():
 
     subparsers = parser.add_subparsers(help='Sub-command help.')
 
-    subparser = subparsers.add_parser('missions', help='Get missions.')
-    subparser.set_defaults(func=missions)
+    subparser = subparsers.add_parser('mission', help='Get mission details.')
+    subparser.set_defaults(func=mission)
+    subparser.add_argument(
+        '--mission_id',
+        type=int,
+        required=True,
+        help='ID of the mission to get.')
 
     subparser = subparsers.add_parser('obstacles', help='Get obstaclesj.')
     subparser.set_defaults(func=obstacles)

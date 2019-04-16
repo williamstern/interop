@@ -25,9 +25,9 @@ class InteropCliTestBase(unittest.TestCase):
 class TestMissions(InteropCliTestBase):
     """Test able to request mission details."""
 
-    def test_get_missions(self):
+    def test_get_mission(self):
         """Test getting mission details."""
-        self.assertCliOk(self.cli_base_args + ['missions'])
+        self.assertCliOk(self.cli_base_args + ['mission', '--mission_id', '1'])
 
 
 class TestObstacles(InteropCliTestBase):
