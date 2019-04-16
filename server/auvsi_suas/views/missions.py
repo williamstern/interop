@@ -120,9 +120,9 @@ def mission_proto(mission):
 
 
 class Missions(View):
-    """Handles requests for all missions."""
+    """Handles requests for all missions for admins."""
 
-    @method_decorator(require_login)
+    @method_decorator(require_superuser)
     def dispatch(self, *args, **kwargs):
         return super(Missions, self).dispatch(*args, **kwargs)
 

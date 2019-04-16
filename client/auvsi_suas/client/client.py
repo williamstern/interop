@@ -118,23 +118,20 @@ class Client(object):
             raise InteropError(r)
         return r
 
-    def get_missions(self):
-        """GET missions.
+    def get_mission(self, mission_id):
+        """GET a mission by ID.
 
         Returns:
-            List of Mission.
+            Mission.
         Raises:
             InteropError: Error from server.
             requests.Timeout: Request timeout.
             ValueError or AttributeError: Malformed response from server.
         """
-        r = self.get('/api/missions')
-        missions = []
-        for mission_dict in r.json():
-            mission_proto = interop_api_pb2.Mission()
-            json_format.Parse(json.dumps(mission_dict), mission_proto)
-            missions.append(mission_proto)
-        return missions
+        r = self.get('/api/missions/%d' % mission_id)
+        mission = interop_api_pb2.Mission()
+        json_format.Parse(r.text, mission)
+        return mission
 
     def post_telemetry(self, telem):
         """POST new telemetry.
@@ -329,14 +326,14 @@ class AsyncClient(object):
                              max_retries)
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent)
 
-    def get_missions(self):
-        """GET missions.
+    def get_mission(self, mission_id):
+        """GET a mission by ID.
 
         Returns:
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.executor.submit(self.client.get_missions)
+        return self.executor.submit(self.client.get_mission, mission_id)
 
     def post_telemetry(self, telem):
         """POST new telemetry.
