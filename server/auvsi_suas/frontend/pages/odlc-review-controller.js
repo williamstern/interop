@@ -115,7 +115,7 @@ OdlcReviewCtrl.prototype.setReviewOdlc = function(odlcReview) {
             {'key': 'Alpha',
              'value': this.odlcReview_.odlc.alphanumeric},
             {'key': 'Shape Color',
-             'value': this.odlcReview_.odlc.backgroundColor},
+             'value': this.odlcReview_.odlc.shapeColor},
             {'key': 'Shape',
              'value': this.odlcReview_.odlc.shape}
         ]);
