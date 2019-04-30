@@ -103,6 +103,7 @@ class TestTeamsView(TestCase):
         self.assertEqual(2, len(data))
 
         for user in data:
+            self.assertIn('id', user)
             self.assertIn('team', user)
             self.assertIn('inAir', user)
             if 'telemetry' in user:

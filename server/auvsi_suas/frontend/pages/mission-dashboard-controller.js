@@ -5,16 +5,16 @@
 
 /**
  * Controller for the Mission Dashboard page.
- * @param {!angular.Scope} $rootScope The root scope to listen for events.
  * @param {!angular.$routeParams} $routeParams The route parameter service.
  * @param {!angular.$interval} $interval The interval service.
+ * @param {!angular.Scope} $scope The scope of the controller to listen for events.
  * @param {!Object} Backend The backend service.
  * @final
  * @constructor
  * @struct
  * @ngInject
  */
-MissionDashboardCtrl = function($rootScope, $routeParams, $interval, Backend) {
+MissionDashboardCtrl = function($routeParams, $interval, $scope, Backend) {
     /**
      * @export {?Object} The teams data.
      */
@@ -26,6 +26,11 @@ MissionDashboardCtrl = function($rootScope, $routeParams, $interval, Backend) {
     this.routeParams_ = $routeParams;
 
     /**
+     * @private {!angular.$interval} $interval The interval service.
+     */
+    this.interval_ = $interval;
+
+    /**
      * @private @const {!Object} The backend service.
      */
     this.backend_ = Backend;
@@ -33,8 +38,12 @@ MissionDashboardCtrl = function($rootScope, $routeParams, $interval, Backend) {
     /**
      * @private @const {!Object} Data sync every 1s.
      */
-    this.updateInterval_ = $interval(
+    this.updateInterval_ = this.interval_(
             angular.bind(this, this.update_), 1000);
+    $scope.$on("$destroy", angular.bind(this, function() {
+        this.interval_.cancel(this.updateInterval_);
+        this.updateInterval_ = null;
+    }));
 };
 
 /**
@@ -59,9 +68,9 @@ MissionDashboardCtrl.prototype.setTeams_ = function(teams) {
 
 // Register controller with app.
 angular.module('auvsiSuasApp').controller('MissionDashboardCtrl', [
-    '$rootScope',
     '$routeParams',
     '$interval',
+    '$scope',
     'Backend',
     MissionDashboardCtrl
 ]);
