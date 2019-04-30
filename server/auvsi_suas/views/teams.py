@@ -7,7 +7,6 @@ from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.proto import interop_admin_api_pb2
 from auvsi_suas.views.decorators import require_superuser
 from auvsi_suas.views.json import ProtoJsonEncoder
-from auvsi_suas.views.missions import active_mission
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest

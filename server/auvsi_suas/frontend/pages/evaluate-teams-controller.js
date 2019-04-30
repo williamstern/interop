@@ -12,7 +12,7 @@
  * @struct
  * @ngInject
  */
-EvaluateTeamsCtrl = function($window, Backend) {
+EvaluateTeamsCtrl = function($window, $routeParams, Backend) {
     /**
      * @export {?Array<Object>} The teams for evaluation.
      */
@@ -27,6 +27,11 @@ EvaluateTeamsCtrl = function($window, Backend) {
      * @private @const {!angular.$window} The window service.
      */
     this.window_ = $window;
+
+    /**
+     * @private @const {integer} The mission ID for evaluation.
+     */
+    this.missionId_ = $routeParams['missionId'];
 
     // Get the teams to display.
     Backend.teamsResource.query({}).$promise.then(
@@ -47,7 +52,8 @@ EvaluateTeamsCtrl.prototype.evaluate = function() {
     }
 
     // Open evaluation in new tab.
-    this.window_.open('/api/missions/evaluate.zip'+ query, '_blank');
+    this.window_.open('/api/missions/' + this.missionId_ + '/evaluate.zip'+ query,
+                      '_blank');
 };
 
 
@@ -64,6 +70,7 @@ EvaluateTeamsCtrl.prototype.setTeams_ = function(teams) {
 // Register controller with app.
 angular.module('auvsiSuasApp').controller('EvaluateTeamsCtrl', [
     '$window',
+    '$routeParams',
     'Backend',
     EvaluateTeamsCtrl
 ]);
