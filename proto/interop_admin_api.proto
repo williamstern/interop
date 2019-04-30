@@ -6,17 +6,20 @@ import "auvsi_suas/proto/interop_api.proto";
 
 // Status of a team.
 message TeamStatus {
+    // ID of the team.
+    optional int32 id = 1;
+
     // The team this status describes.
-    optional string team = 1;
+    optional string team = 2;
 
     // Whether the team is marked in air by admin.
-    optional bool in_air = 2;
+    optional bool in_air = 3;
 
     // Most recent telemetry position, if it exists.
-    optional Telemetry telemetry = 3;
+    optional Telemetry telemetry = 4;
 
     // Timestamp of the telemetry position as ISO string.
-    optional string telemetry_timestamp = 4;
+    optional string telemetry_timestamp = 5;
 }
 
 // Review details for an ODLC.

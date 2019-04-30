@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 def team_proto(user):
     """Generate TeamStatus proto for team."""
     team_status_proto = interop_admin_api_pb2.TeamStatus()
+    team_status_proto.id = user.pk
     team_status_proto.team = user.username
     team_status_proto.in_air = TakeoffOrLandingEvent.user_in_air(user)
 
