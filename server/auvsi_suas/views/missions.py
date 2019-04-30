@@ -50,35 +50,6 @@ def active_mission():
     return (missions[0], None)
 
 
-def mission_for_request(request_params):
-    """Gets the mission for the request.
-
-    Args:
-        request_params: The request parameter dict. If this has a 'mission'
-            parameter, it will get the corresponding mission.
-    Returns:
-        Returns (MissionConfig, HttpResponse). The MissionConfig is
-        the one corresponding to the request parameter, or the single active
-        MissionConfig if one exists. The HttpResponse is the appropriate error
-        if a MissionConfig could not be obtained.
-    """
-    # If specific mission requested, get it.
-    if 'mission' in request_params:
-        try:
-            mission_id_str = request_params['mission']
-            mission_id = int(mission_id_str)
-            mission = MissionConfig.objects.get(pk=mission_id).select_related()
-            return (mission, None)
-        except ValueError:
-            return (None,
-                    HttpResponseBadRequest('Mission ID is not an integer.'))
-        except MissionConfig.DoesNotExist:
-            return (None, HttpResponseBadRequest('Mission not found.'))
-
-    # Mission not specified, get the single active mission.
-    return active_mission()
-
-
 def mission_proto(mission):
     """Converts a mission to protobuf format."""
     mission_proto = interop_api_pb2.Mission()
@@ -197,11 +168,7 @@ class LiveKml(View):
     def get(self, request):
         kml = Kml(name='AUVSI SUAS LIVE Flight Data')
         kml_mission = kml.newfolder(name='Missions')
-
-        (mission, err) = active_mission()
-        if err:
-            return err
-        MissionConfig.kml_all(kml_mission, kml.document, [mission])
+        MissionConfig.kml_all(kml_mission, kml.document)
 
         parameters = '?sessionid={}'.format(request.COOKIES['sessionid'])
         uri = request.build_absolute_uri(
@@ -313,11 +280,11 @@ class Evaluate(View):
 
         return csv_output
 
-    def get(self, request):
-        # Get the mission to evaluate a team for.
-        mission, error = mission_for_request(request.GET)
-        if error:
-            return error
+    def get(self, request, pk):
+        try:
+            mission = MissionConfig.objects.select_related().get(pk=pk)
+        except MissionConfig.DoesNotExist:
+            return HttpResponseBadRequest('Mission not found.')
 
         # Get the optional team to eval.
         users = None

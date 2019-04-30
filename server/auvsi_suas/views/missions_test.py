@@ -18,7 +18,7 @@ missions_id_url = functools.partial(reverse, 'auvsi_suas:missions_id')
 export_url = reverse('auvsi_suas:export_kml')
 live_url = reverse('auvsi_suas:live_kml')
 update_url = update_url = reverse('auvsi_suas:update_kml')
-evaluate_url = reverse('auvsi_suas:evaluate')
+evaluate_url = functools.partial(reverse, 'auvsi_suas:evaluate')
 
 
 class TestMissionsViewLoggedOut(TestCase):
@@ -355,13 +355,13 @@ class TestEvaluateTeams(TestCase):
     def test_evaluate_teams_nonadmin(self):
         """Tests that you can only access data as admin."""
         self.client.force_login(self.nonadmin_user)
-        response = self.client.get(evaluate_url)
+        response = self.client.get(evaluate_url(args=[1]))
         self.assertEqual(403, response.status_code)
 
     def test_invalid_mission(self):
         """Tests that an invalid mission ID results in error."""
         self.client.force_login(self.nonadmin_user)
-        response = self.client.get(evaluate_url, {'mission': 100000})
+        response = self.client.get(evaluate_url(args=[1000]))
         self.assertGreaterEqual(response.status_code, 400)
 
     def load_json(self, response):
@@ -379,7 +379,7 @@ class TestEvaluateTeams(TestCase):
     def test_evaluate_teams(self):
         """Tests the eval Json method."""
         self.client.force_login(self.admin_user)
-        response = self.client.get(evaluate_url)
+        response = self.client.get(evaluate_url(args=[3]))
         self.assertEqual(response.status_code, 200)
         data = self.load_json(response)
         self.assertIn('teams', data)
@@ -392,7 +392,7 @@ class TestEvaluateTeams(TestCase):
     def test_evaluate_teams_specific_team(self):
         """Tests the eval Json method on a specific team."""
         self.client.force_login(self.admin_user)
-        response = self.client.get(evaluate_url, {'team': 53})
+        response = self.client.get(evaluate_url(args=[3]), {'team': 53})
         self.assertEqual(response.status_code, 200)
         data = self.load_json(response)
         self.assertIn('teams', data)
@@ -403,7 +403,7 @@ class TestEvaluateTeams(TestCase):
     def test_evaluate_teams_csv(self):
         """Tests the CSV method."""
         self.client.force_login(self.admin_user)
-        response = self.client.get(evaluate_url)
+        response = self.client.get(evaluate_url(args=[3]))
         self.assertEqual(response.status_code, 200)
         csv_data = self.load_csv(response)
         self.assertEqual(len(csv_data.split('\n')), 5)
