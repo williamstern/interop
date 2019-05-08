@@ -7,9 +7,6 @@ from auvsi_suas.models import units
 from auvsi_suas.models.access_log import AccessLog
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
-from auvsi_suas.patches.simplekml_patch import AltitudeMode
-from auvsi_suas.patches.simplekml_patch import Color
 from auvsi_suas.proto import interop_admin_api_pb2
 from collections import defaultdict
 from django.contrib import admin
@@ -31,11 +28,6 @@ TELEMETRY_INTERPOLATION_MAX_GAP = datetime.timedelta(seconds=5.0)
 # significant more violations than a human observer.
 # The max distance for a waypoint to be considered satisfied.
 SATISFIED_WAYPOINT_DIST_MAX_FT = 100
-
-# Plane icon for KML for better styling.
-KML_PLANE_ICON = 'http://maps.google.com/mapfiles/kml/shapes/airports.png'
-# KML Compliant Datetime Formatter
-KML_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
 class UasTelemetry(AccessLog):
@@ -128,88 +120,6 @@ class UasTelemetry(AccessLog):
                        abs(pos.longitude)) > BAD_TELEMETRY_THRESHOLD_DEGREES
 
         return filter(lambda log: _is_good(log), logs)
-
-    @classmethod
-    def kml(cls, user, logs, kml, kml_doc):
-        """
-        Appends kml nodes describing the given user's flight as described
-        by the log array given.
-
-        Args:
-            user: A Django User to get username from
-            logs: A list of UasTelemetry elements
-            kml: A simpleKML Container to which the flight data will be added
-            kml_doc: The simpleKML Document to which schemas will be added
-        Returns:
-            None
-        """
-        kml_folder = kml.newfolder(name=user.username)
-
-        flights = TakeoffOrLandingEvent.flights(user)
-        if len(flights) == 0:
-            return
-
-        logs = UasTelemetry.dedupe(UasTelemetry.filter_bad(logs))
-        for i, flight in enumerate(flights):
-            name = '%s Flight %d' % (user.username, i + 1)
-            flight_logs = filter(lambda x: flight.within(x.timestamp), logs)
-
-            coords = []
-            angles = []
-            when = []
-            for entry in logs:
-                pos = entry.uas_position.gps_position
-                # Spatial Coordinates
-                coord = (pos.longitude, pos.latitude,
-                         units.feet_to_meters(entry.uas_position.altitude_msl))
-                coords.append(coord)
-
-                # Time Elements
-                time = entry.timestamp.strftime(KML_DATETIME_FORMAT)
-                when.append(time)
-
-                # Degrees heading, tilt, and roll
-                angle = (entry.uas_heading, 0.0, 0.0)
-                angles.append(angle)
-
-            # Create a new track in the folder
-            trk = kml_folder.newgxtrack(name=name)
-            trk.altitudemode = AltitudeMode.absolute
-
-            # Append flight data
-            trk.newwhen(when)
-            trk.newgxcoord(coords)
-            trk.newgxangle(angles)
-
-            # Set styling
-            trk.extrude = 1  # Extend path to ground
-            trk.style.linestyle.width = 2
-            trk.style.linestyle.color = Color.blue
-            trk.iconstyle.icon.href = KML_PLANE_ICON
-
-    @classmethod
-    def live_kml(cls, kml, timespan):
-        users = User.objects.all().order_by('username')
-        for user in users:
-            try:
-                log = UasTelemetry.by_user(user).latest('timestamp')
-            except UasTelemetry.DoesNotExist:
-                continue
-
-            if log.timestamp < timezone.now() - timespan:
-                continue
-
-            apos = log.uas_position
-            gpos = apos.gps_position
-
-            point = kml.newpoint(
-                name=user.username,
-                coords=[(gpos.longitude, gpos.latitude,
-                         units.feet_to_meters(apos.altitude_msl))])
-            point.iconstyle.icon.href = KML_PLANE_ICON
-            point.iconstyle.heading = log.uas_heading
-            point.extrude = 1  # Extend path to ground
-            point.altitudemode = AltitudeMode.absolute
 
     @classmethod
     def interpolate(cls,

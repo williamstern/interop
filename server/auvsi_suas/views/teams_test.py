@@ -5,8 +5,10 @@ import functools
 import json
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
+from auvsi_suas.models.waypoint import Waypoint
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
@@ -42,14 +44,40 @@ class TestTeamsView(TestCase):
                                               'testpass')
         self.user2.save()
 
+        # Mission
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 100
+        pos.save()
+        apos = AerialPosition()
+        apos.altitude_msl = 1000
+        apos.gps_position = pos
+        apos.save()
+        wpt = Waypoint()
+        wpt.position = apos
+        wpt.order = 10
+        wpt.save()
+        self.mission = MissionConfig()
+        self.mission.home_pos = pos
+        self.mission.emergent_last_known_pos = pos
+        self.mission.off_axis_odlc_pos = pos
+        self.mission.air_drop_pos = pos
+        self.mission.save()
+        self.mission.mission_waypoints.add(wpt)
+        self.mission.search_grid_points.add(wpt)
+        self.mission.save()
+
         # user1 is flying
-        event = TakeoffOrLandingEvent(user=self.user1, uas_in_air=True)
+        event = TakeoffOrLandingEvent(
+            user=self.user1, mission=self.mission, uas_in_air=True)
         event.save()
 
         # user2 has landed
-        event = TakeoffOrLandingEvent(user=self.user2, uas_in_air=True)
+        event = TakeoffOrLandingEvent(
+            user=self.user2, mission=self.mission, uas_in_air=True)
         event.save()
-        event = TakeoffOrLandingEvent(user=self.user2, uas_in_air=False)
+        event = TakeoffOrLandingEvent(
+            user=self.user2, mission=self.mission, uas_in_air=False)
         event.save()
 
         # user2 is active

@@ -5,7 +5,6 @@ import logging
 import networkx as nx
 import operator
 from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.proto import interop_admin_api_pb2
 from django.conf import settings
 from django.contrib import admin
@@ -265,7 +264,7 @@ class Odlc(models.Model):
 
         return float(similar_fields) / total_fields
 
-    def actionable_submission(self, flights=None):
+    def actionable_submission(self, flights):
         """Checks if Odlc meets Actionable Intelligence submission criteria.
 
         A object is "actionable" if one of the following conditions is met:
@@ -275,15 +274,11 @@ class Odlc(models.Model):
                 actionable_override flag was set by an admin.
 
         Args:
-            flights: Optional memoized flights for this object's user. If
-                     omitted, the flights will be looked up.
+            flights: Flights for the ODLC's user.
 
         Returns:
             True if object may be considered an "actionable" submission.
         """
-        if flights is None:
-            flights = TakeoffOrLandingEvent.flights(self.user)
-
         actionable = False
         if len(flights) > 0:
             flight = flights[0]
@@ -297,19 +292,21 @@ class Odlc(models.Model):
 class OdlcEvaluator(object):
     """Evaluates submitted objects against real judge-made objects."""
 
-    def __init__(self, submitted_objects, real_objects):
+    def __init__(self, submitted_objects, real_objects, flights):
         """Creates an evaluation of submitted objects against real objects.
 
         Args:
             submitted_objects: List of submitted Odlc objects, all from
                                the same user.
             real_objects: List of real objects made by judges.
+            flights: Flights for the ODLC's user.
 
         Raises:
             AssertionError: not all submitted objects are from the same user.
         """
         self.submitted_objects = submitted_objects
         self.real_objects = real_objects
+        self.flights = flights
 
         if self.submitted_objects:
             self.user = self.submitted_objects[0].user
@@ -317,8 +314,6 @@ class OdlcEvaluator(object):
                 if t.user != self.user:
                     raise AssertionError(
                         "All submitted objects must be from the same user")
-
-            self.flights = TakeoffOrLandingEvent.flights(self.user)
 
         self.matches = self.match_odlcs(submitted_objects, real_objects)
         self.unmatched = self.find_unmatched(submitted_objects, real_objects,

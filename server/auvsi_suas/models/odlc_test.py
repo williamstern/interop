@@ -1,14 +1,17 @@
 """Tests for the odlc module."""
 
 import os.path
+from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
+from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.odlc import Color
 from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.odlc import OdlcEvaluator
 from auvsi_suas.models.odlc import OdlcType
-from auvsi_suas.models.odlc import Shape
 from auvsi_suas.models.odlc import Orientation
+from auvsi_suas.models.odlc import Shape
+from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
+from auvsi_suas.models.waypoint import Waypoint
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -23,6 +26,29 @@ class TestOdlc(TestCase):
         super(TestOdlc, self).setUp()
         self.user = User.objects.create_user('user', 'email@example.com',
                                              'pass')
+
+        # Mission
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 100
+        pos.save()
+        apos = AerialPosition()
+        apos.altitude_msl = 1000
+        apos.gps_position = pos
+        apos.save()
+        wpt = Waypoint()
+        wpt.position = apos
+        wpt.order = 10
+        wpt.save()
+        self.mission = MissionConfig()
+        self.mission.home_pos = pos
+        self.mission.emergent_last_known_pos = pos
+        self.mission.off_axis_odlc_pos = pos
+        self.mission.air_drop_pos = pos
+        self.mission.save()
+        self.mission.mission_waypoints.add(wpt)
+        self.mission.search_grid_points.add(wpt)
+        self.mission.save()
 
     def test_valid(self):
         """Test creating a valid odlc."""
@@ -220,7 +246,8 @@ class TestOdlc(TestCase):
         t2 = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t2.save()
 
-        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=True)
+        event = TakeoffOrLandingEvent(
+            user=self.user, mission=self.mission, uas_in_air=True)
         event.save()
 
         t2.alphanumeric = 'A'
@@ -238,7 +265,8 @@ class TestOdlc(TestCase):
         t4 = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t4.save()
 
-        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
+        event = TakeoffOrLandingEvent(
+            user=self.user, mission=self.mission, uas_in_air=False)
         event.save()
 
         t4.alphanumeric = 'A'
@@ -253,20 +281,24 @@ class TestOdlc(TestCase):
         t5.save()
 
         # t6 created and updated in second flight.
-        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=True)
+        event = TakeoffOrLandingEvent(
+            user=self.user, mission=self.mission, uas_in_air=True)
         event.save()
         t6 = Odlc(user=self.user, odlc_type=OdlcType.standard)
         t6.save()
         t6.alphanumeric = 'A'
         t6.update_last_modified()
         t6.save()
-        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
+        event = TakeoffOrLandingEvent(
+            user=self.user, mission=self.mission, uas_in_air=False)
         event.save()
 
         # t7 with actionable_override set.
-        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=True)
+        event = TakeoffOrLandingEvent(
+            user=self.user, mission=self.mission, uas_in_air=True)
         event.save()
-        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
+        event = TakeoffOrLandingEvent(
+            user=self.user, mission=self.mission, uas_in_air=False)
         event.save()
         t7 = Odlc(
             user=self.user,
@@ -274,13 +306,15 @@ class TestOdlc(TestCase):
             actionable_override=True)
         t7.save()
 
-        self.assertFalse(t1.actionable_submission())
-        self.assertFalse(t2.actionable_submission())
-        self.assertTrue(t3.actionable_submission())
-        self.assertFalse(t4.actionable_submission())
-        self.assertFalse(t5.actionable_submission())
-        self.assertFalse(t6.actionable_submission())
-        self.assertTrue(t7.actionable_submission())
+        flights = TakeoffOrLandingEvent.flights(self.mission, self.user)
+
+        self.assertFalse(t1.actionable_submission(flights))
+        self.assertFalse(t2.actionable_submission(flights))
+        self.assertTrue(t3.actionable_submission(flights))
+        self.assertFalse(t4.actionable_submission(flights))
+        self.assertFalse(t5.actionable_submission(flights))
+        self.assertFalse(t6.actionable_submission(flights))
+        self.assertTrue(t7.actionable_submission(flights))
 
 
 class TestOdlcEvaluator(TestCase):
@@ -302,7 +336,31 @@ class TestOdlcEvaluator(TestCase):
         l4 = GpsPosition(latitude=0, longitude=0)
         l4.save()
 
-        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=True)
+        # Mission
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 100
+        pos.save()
+        apos = AerialPosition()
+        apos.altitude_msl = 1000
+        apos.gps_position = pos
+        apos.save()
+        wpt = Waypoint()
+        wpt.position = apos
+        wpt.order = 10
+        wpt.save()
+        self.mission = MissionConfig()
+        self.mission.home_pos = pos
+        self.mission.emergent_last_known_pos = pos
+        self.mission.off_axis_odlc_pos = pos
+        self.mission.air_drop_pos = pos
+        self.mission.save()
+        self.mission.mission_waypoints.add(wpt)
+        self.mission.search_grid_points.add(wpt)
+        self.mission.save()
+
+        event = TakeoffOrLandingEvent(
+            user=self.user, mission=self.mission, uas_in_air=True)
         event.save()
 
         # A odlc worth full points.
@@ -443,7 +501,8 @@ class TestOdlcEvaluator(TestCase):
             description_approved=True)
         self.real6.save()
 
-        event = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
+        event = TakeoffOrLandingEvent(
+            user=self.user, mission=self.mission, uas_in_air=False)
         event.save()
 
         # submit2 updated after landing.
@@ -474,9 +533,11 @@ class TestOdlcEvaluator(TestCase):
             self.real6
         ]
 
+        self.flights = TakeoffOrLandingEvent.flights(self.mission, self.user)
+
     def test_match_value(self):
         """Tests the match value for two odlcs."""
-        e = OdlcEvaluator(self.submitted_odlcs, self.real_odlcs)
+        e = OdlcEvaluator(self.submitted_odlcs, self.real_odlcs, self.flights)
         self.assertAlmostEqual(
             1.0,
             e.evaluate_match(self.submit1, self.real1).score_ratio,
@@ -517,7 +578,7 @@ class TestOdlcEvaluator(TestCase):
 
     def test_match_odlcs(self):
         """Tests that matching odlcs produce maximal matches."""
-        e = OdlcEvaluator(self.submitted_odlcs, self.real_odlcs)
+        e = OdlcEvaluator(self.submitted_odlcs, self.real_odlcs, self.flights)
         self.assertDictEqual({
             self.submit1: self.real1,
             self.submit2: self.real2,
@@ -531,7 +592,7 @@ class TestOdlcEvaluator(TestCase):
 
     def test_evaluate(self):
         """Tests that the evaluation is generated correctly."""
-        e = OdlcEvaluator(self.submitted_odlcs, self.real_odlcs)
+        e = OdlcEvaluator(self.submitted_odlcs, self.real_odlcs, self.flights)
         d = e.evaluate()
         td = {t.real_odlc: t for t in d.odlcs}
 
@@ -564,7 +625,7 @@ class TestOdlcEvaluator(TestCase):
 
     def test_evaluate_no_submitted_odlcs(self):
         """Tests that evaluation works with no submitted odlcs."""
-        e = OdlcEvaluator([], self.real_odlcs)
+        e = OdlcEvaluator([], self.real_odlcs, self.flights)
         d = e.evaluate()
 
         self.assertEqual(0, d.matched_score_ratio)
@@ -573,7 +634,7 @@ class TestOdlcEvaluator(TestCase):
 
     def test_evaluate_no_real_odlcs(self):
         """Tests that evaluation works with no real odlcs."""
-        e = OdlcEvaluator(self.submitted_odlcs, [])
+        e = OdlcEvaluator(self.submitted_odlcs, [], self.flights)
         d = e.evaluate()
 
         self.assertEqual(0, d.matched_score_ratio)
