@@ -23,11 +23,6 @@ def mission(args, client):
     print(json_format.MessageToJson(mission))
 
 
-def obstacles(args, client):
-    obstacles = client.get_obstacles().result()
-    print(json_format.MessageToJson(obstacles))
-
-
 def odlcs(args, client):
     if args.odlc_dir:
         upload_odlcs(client, args.odlc_dir)
@@ -89,9 +84,6 @@ def main():
         type=int,
         required=True,
         help='ID of the mission to get.')
-
-    subparser = subparsers.add_parser('obstacles', help='Get obstaclesj.')
-    subparser.set_defaults(func=obstacles)
 
     subparser = subparsers.add_parser(
         'odlcs',

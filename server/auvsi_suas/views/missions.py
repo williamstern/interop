@@ -87,6 +87,15 @@ def mission_proto(mission):
     mission_proto.air_drop_pos.latitude = mission.air_drop_pos.latitude
     mission_proto.air_drop_pos.longitude = mission.air_drop_pos.longitude
 
+    stationary_obstacles = mission.stationary_obstacles.select_related().all(
+    ).order_by('pk')
+    for obst in stationary_obstacles:
+        obst_proto = mission_proto.stationary_obstacles.add()
+        obst_proto.latitude = obst.gps_position.latitude
+        obst_proto.longitude = obst.gps_position.longitude
+        obst_proto.radius = obst.cylinder_radius
+        obst_proto.height = obst.cylinder_height
+
     return mission_proto
 
 

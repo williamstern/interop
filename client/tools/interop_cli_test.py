@@ -30,14 +30,6 @@ class TestMissions(InteropCliTestBase):
         self.assertCliOk(self.cli_base_args + ['mission', '--mission_id', '1'])
 
 
-class TestObstacles(InteropCliTestBase):
-    """Test able to request mission details."""
-
-    def test_get_obstacles(self):
-        """Test getting obstacle details."""
-        self.assertCliOk(self.cli_base_args + ['obstacles'])
-
-
 class TestOdlcs(InteropCliTestBase):
     """Test able to upload odlcs."""
 

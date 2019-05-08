@@ -37,6 +37,9 @@ message Mission {
     // Position of the air drop location.
     // Required.
     optional Position air_drop_pos = 7;
+    // Stationary obstacles.
+    // Required.
+    repeated StationaryObstacle stationary_obstacles = 8;
 }
 
 // Valid area to fly. Defined by a polygon and two altitude bounds. A position
@@ -82,12 +85,6 @@ message Telemetry {
     // Heading relative to true north in degrees.
     // Required. [0, 360]
     optional double heading = 4;
-}
-
-// Set of obstacles returned for a given mission.
-message ObstacleSet {
-    // Stationary obstacles.
-    repeated StationaryObstacle stationary_obstacles = 1;
 }
 
 // Stationary obstacle modeled as a cylinder.
