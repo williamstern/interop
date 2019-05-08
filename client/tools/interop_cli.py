@@ -41,7 +41,7 @@ def probe(args, client):
         telemetry.longitude = 0
         telemetry.altitude = 0
         telemetry.heading = 0
-        telemetry_resp = client.post_telemetry(telemetry).result()
+        client.post_telemetry(telemetry).result()
 
         end_time = datetime.datetime.now()
         elapsed_time = (end_time - start_time).total_seconds()

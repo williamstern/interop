@@ -3,16 +3,13 @@
 import datetime
 import itertools
 import logging
-from auvsi_suas.models import units
 from auvsi_suas.models.access_log import AccessLog
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.proto import interop_admin_api_pb2
 from collections import defaultdict
 from django.contrib import admin
-from django.contrib.auth.models import User
 from django.db import models
-from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 

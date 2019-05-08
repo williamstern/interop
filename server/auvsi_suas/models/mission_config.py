@@ -1,17 +1,12 @@
 """Mission configuration model."""
 
 import logging
-import math
-import numpy as np
-from auvsi_suas.models import distance
-from auvsi_suas.models import units
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.stationary_obstacle import StationaryObstacle
 from auvsi_suas.models.waypoint import Waypoint
 from django.contrib import admin
-from django.contrib.auth.models import User
 from django.db import models
 
 logger = logging.getLogger(__name__)

@@ -31,7 +31,6 @@ class TimePeriod(object):
             periods.append(TimePeriod(None, events[0].timestamp))
         # Detect transitions from start->end and end->start.
         start_time = None
-        end_time = None
         started = False
         for event in events:
             if not started and is_start_func(event):
