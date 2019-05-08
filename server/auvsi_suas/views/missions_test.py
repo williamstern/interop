@@ -267,7 +267,7 @@ class TestGenerateLiveKMLCommon(TestCase):
 
 class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
     def setUp(self):
-        """Setup a single active mission to test live kml with."""
+        """Setup a single mission to test live kml with."""
         super(TestGenerateLiveKMLNoFixture, self).setUp()
 
         pos = GpsPosition()
@@ -276,7 +276,6 @@ class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
         pos.save()
 
         config = MissionConfig()
-        config.is_active = True
         config.home_pos = pos
         config.emergent_last_known_pos = pos
         config.off_axis_odlc_pos = pos

@@ -30,8 +30,6 @@ class MissionConfig(models.Model):
     """The details for the mission.
 
     Attributes:
-        is_active: Whether the mission is active. Only one mission can be
-            active at a time.
         home_pos: The home position for use as a reference point. Should be the
             tents.
         fly_zones: Valid areas for the UAS to fly.
@@ -43,7 +41,6 @@ class MissionConfig(models.Model):
         air_drop_pos: The air drop position.
         stationary_obstacles: The stationary obstacles.
     """
-    is_active = models.BooleanField(default=False)
     home_pos = models.ForeignKey(
         GpsPosition,
         related_name="missionconfig_home_pos",
@@ -194,4 +191,4 @@ class MissionConfigModelAdmin(admin.ModelAdmin):
                      "off_axis_odlc_pos", "air_drop_pos")
     filter_horizontal = ("fly_zones", "mission_waypoints",
                          "search_grid_points", "odlcs", "stationary_obstacles")
-    list_display = ('is_active', 'home_pos')
+    list_display = ('home_pos', )
