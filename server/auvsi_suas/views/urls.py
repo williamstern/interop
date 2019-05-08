@@ -6,7 +6,6 @@ from auvsi_suas.views.missions import LiveKml
 from auvsi_suas.views.missions import LiveKmlUpdate
 from auvsi_suas.views.missions import Missions
 from auvsi_suas.views.missions import MissionsId
-from auvsi_suas.views.obstacles import Obstacles
 from auvsi_suas.views.odlcs import Odlcs
 from auvsi_suas.views.odlcs import OdlcsAdminReview
 from auvsi_suas.views.odlcs import OdlcsId
@@ -30,7 +29,6 @@ urlpatterns = [
     url(r'^api/missions/export\.kml$', ExportKml.as_view(), name='export_kml'),
     url(r'^api/missions/live\.kml$', LiveKml.as_view(), name='live_kml'),
     url(r'^api/missions/update\.kml$', LiveKmlUpdate.as_view(), name='update_kml'),
-    url(r'^api/obstacles$', Obstacles.as_view(), name='obstacles'),
     url(r'^api/odlcs$', Odlcs.as_view(), name='odlcs'),
     url(r'^api/odlcs/(?P<pk>\d+)$', OdlcsId.as_view(), name='odlcs_id'),
     url(r'^api/odlcs/(?P<pk>\d+)/image$', OdlcsIdImage.as_view(), name='odlcs_id_image'),

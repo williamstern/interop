@@ -98,11 +98,10 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertEqual(60.0, data['waypoints'][1]['altitude'])
 
         self.assertIn('searchGridPoints', data)
+        self.assertEqual(1, len(data['searchGridPoints']))
         for point in data['searchGridPoints']:
             self.assertIn('latitude', point)
             self.assertIn('longitude', point)
-
-        self.assertEqual(1, len(data['searchGridPoints']))
 
         self.assertEqual(38.0, data['searchGridPoints'][0]['latitude'])
         self.assertEqual(-79.0, data['searchGridPoints'][0]['longitude'])
@@ -125,15 +124,26 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertEqual(38.0, data['airDropPos']['latitude'])
         self.assertEqual(-79.0, data['airDropPos']['longitude'])
 
+        self.assertIn('stationaryObstacles', data)
+        self.assertEqual(2, len(data['stationaryObstacles']))
+        for obst in data['stationaryObstacles']:
+            self.assertIn('latitude', obst)
+            self.assertIn('longitude', obst)
+            self.assertIn('radius', obst)
+            self.assertIn('height', obst)
+
+        self.assertEqual(38, data['stationaryObstacles'][0]['latitude'])
+        self.assertEqual(-76, data['stationaryObstacles'][0]['longitude'])
+        self.assertEqual(10, data['stationaryObstacles'][0]['height'])
+        self.assertEqual(10, data['stationaryObstacles'][0]['radius'])
+
     def test_get(self):
         """Response JSON is properly formatted."""
         self.Login()
         response = self.client.get(missions_id_url(args=[3]))
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
-
         self.assert_data(data)
-        self.assertNotIn('stationary_obstacles', data)
 
 
 class TestGenerateKMLCommon(TestCase):

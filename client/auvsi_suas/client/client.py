@@ -144,21 +144,6 @@ class Client(object):
         """
         self.post('/api/telemetry', data=json_format.MessageToJson(telem))
 
-    def get_obstacles(self):
-        """GET obstacles.
-
-        Returns:
-            ObstacleSet.List of StationaryObstacles.
-        Raises:
-            InteropError: Error from server.
-            requests.Timeout: Request timeout.
-            ValueError or AttributeError: Malformed response from server.
-        """
-        r = self.get('/api/obstacles')
-        obstacle_set = interop_api_pb2.ObstacleSet()
-        json_format.Parse(r.text, obstacle_set)
-        return obstacle_set
-
     def get_odlcs(self):
         """GET odlcs.
 
@@ -345,15 +330,6 @@ class AsyncClient(object):
             underlying Client.
         """
         return self.executor.submit(self.client.post_telemetry, telem)
-
-    def get_obstacles(self):
-        """GET obstacles.
-
-        Returns:
-            Future object which contains the return value or error from the
-            underlying Client.
-        """
-        return self.executor.submit(self.client.get_obstacles)
 
     def get_odlcs(self):
         """GET odlcs.
