@@ -1,17 +1,11 @@
 """Tests for the telemetry module."""
 
-import datetime
-import iso8601
-import json
 import time
-from auvsi_suas.models.aerial_position import AerialPosition
-from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.proto.interop_api_pb2 import Telemetry
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from django.utils import timezone
 from google.protobuf import json_format
 
 telemetry_url = reverse('auvsi_suas:telemetry')

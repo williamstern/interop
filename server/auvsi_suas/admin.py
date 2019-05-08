@@ -1,10 +1,10 @@
-import auvsi_suas.models.aerial_position
-import auvsi_suas.models.fly_zone
-import auvsi_suas.models.gps_position
-import auvsi_suas.models.mission_config
-import auvsi_suas.models.mission_judge_feedback
-import auvsi_suas.models.odlc
-import auvsi_suas.models.stationary_obstacle
-import auvsi_suas.models.takeoff_or_landing_event
-import auvsi_suas.models.uas_telemetry
-import auvsi_suas.models.waypoint
+import auvsi_suas.models.aerial_position  # noqa
+import auvsi_suas.models.fly_zone  # noqa
+import auvsi_suas.models.gps_position  # noqa
+import auvsi_suas.models.mission_config  # noqa
+import auvsi_suas.models.mission_judge_feedback  # noqa
+import auvsi_suas.models.odlc  # noqa
+import auvsi_suas.models.stationary_obstacle  # noqa
+import auvsi_suas.models.takeoff_or_landing_event  # noqa
+import auvsi_suas.models.uas_telemetry  # noqa
+import auvsi_suas.models.waypoint  # noqa

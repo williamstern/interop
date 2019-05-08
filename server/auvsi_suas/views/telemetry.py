@@ -1,13 +1,11 @@
 """Telemetry view."""
 
-import iso8601
 import logging
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.proto import interop_api_pb2
 from auvsi_suas.views.decorators import require_login
-from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.utils.decorators import method_decorator

@@ -1,11 +1,8 @@
 # Module to load odlcs from file and upload via interoperability.
 
-import csv
-import json
 import logging
 import os
 import pprint
-import re
 from auvsi_suas.proto import interop_api_pb2
 from google.protobuf import json_format
 

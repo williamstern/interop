@@ -3,7 +3,6 @@
 import datetime
 import logging
 import numpy as np
-from auvsi_suas.models import units
 from auvsi_suas.models.waypoint import Waypoint
 from django.contrib import admin
 from django.db import models

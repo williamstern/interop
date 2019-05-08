@@ -6,11 +6,7 @@ import logging
 import os
 import os.path
 from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.odlc import Color
 from auvsi_suas.models.odlc import Odlc
-from auvsi_suas.models.odlc import OdlcType
-from auvsi_suas.models.odlc import Orientation
-from auvsi_suas.models.odlc import Shape
 from auvsi_suas.proto import interop_admin_api_pb2
 from auvsi_suas.proto import interop_api_pb2
 from auvsi_suas.views.decorators import require_login
@@ -420,7 +416,7 @@ class OdlcsAdminReview(View):
         review_proto = interop_admin_api_pb2.OdlcReview()
         try:
             json_format.Parse(request.body, review_proto)
-        except Exception as e:
+        except Exception:
             return HttpResponseBadRequest('Failed to parse review proto.')
 
         try:

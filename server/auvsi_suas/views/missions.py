@@ -11,7 +11,6 @@ import zipfile
 from auvsi_suas.models import distance
 from auvsi_suas.models import mission_evaluation
 from auvsi_suas.models import units
-from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
@@ -391,7 +390,7 @@ class LiveKml(View):
         kml = Kml(name='AUVSI SUAS LIVE Flight Data')
         kml_missions = kml.newfolder(name='Missions')
         for mission in MissionConfig.objects.all():
-            kml_mission = mission_kml(mission, kml_missions, kml.document)
+            mission_kml(mission, kml_missions, kml.document)
 
         parameters = '?sessionid={}'.format(request.COOKIES['sessionid'])
         uri = request.build_absolute_uri(
