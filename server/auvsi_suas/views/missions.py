@@ -32,24 +32,6 @@ from google.protobuf import json_format
 logger = logging.getLogger(__name__)
 
 
-def active_mission():
-    """Gets the single active mission.
-
-    Returns:
-        (MissionConfig, HttpResponse). The MissionConfig is the single active
-        mission, or None if there is an error. HttpResponse is None if a config
-        could be obtained, or the error message if not.
-    """
-    missions = MissionConfig.objects.filter(is_active=True).select_related()
-    if len(missions) != 1:
-        logger.warning('Invalid number of active missions. Missions: %s.',
-                       str(missions))
-        return (None,
-                HttpResponseServerError('Invalid number of active missions.'))
-
-    return (missions[0], None)
-
-
 def mission_proto(mission):
     """Converts a mission to protobuf format."""
     mission_proto = interop_api_pb2.Mission()

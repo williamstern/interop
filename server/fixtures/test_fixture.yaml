@@ -90,7 +90,6 @@
     emergent_last_known_pos: 2
     fly_zones: [1]
     home_pos: 1
-    is_active: true
     mission_waypoints: [1]
     off_axis_odlc_pos: 3
     search_grid_points: [1]
