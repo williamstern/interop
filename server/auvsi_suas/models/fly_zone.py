@@ -5,7 +5,6 @@ import logging
 import numpy as np
 from auvsi_suas.models import units
 from auvsi_suas.models.waypoint import Waypoint
-from auvsi_suas.patches.simplekml_patch import Color
 from django.contrib import admin
 from django.db import models
 from matplotlib import path as mplpath
@@ -155,28 +154,6 @@ class FlyZone(models.Model):
                 out_of_bounds_time += time_diff
 
         return (violations, out_of_bounds_time)
-
-    def kml(self, kml):
-        """
-        Appends kml nodes describing this flyzone.
-
-        Args:
-            kml: A simpleKML Container to which the fly zone will be added
-        """
-
-        zone_name = 'Fly Zone {}'.format(self.pk)
-        pol = kml.newpolygon(name=zone_name)
-        fly_zone = []
-        for point in self.boundary_pts.order_by('order'):
-            gps = point.position.gps_position
-            coord = (gps.longitude, gps.latitude,
-                     units.feet_to_meters(point.position.altitude_msl))
-            fly_zone.append(coord)
-        fly_zone.append(fly_zone[0])
-        pol.outerboundaryis = fly_zone
-        pol.style.linestyle.color = Color.red
-        pol.style.linestyle.width = 3
-        pol.style.polystyle.color = Color.changealphaint(50, Color.green)
 
 
 @admin.register(FlyZone)

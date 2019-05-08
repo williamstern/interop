@@ -2,6 +2,7 @@
 
 import logging
 from auvsi_suas.models.access_log import AccessLog
+from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.time_period import TimePeriod
 from django.contrib import admin
 from django.db import models
@@ -13,21 +14,24 @@ class TakeoffOrLandingEvent(AccessLog):
     """Marker for a UAS takeoff/landing. UAS must interop during that time.
 
     Attributes:
+        mission: The mission for which this is an event.
         uas_in_air: Whether the UAS is now in the air.
     """
+    mission = models.ForeignKey(MissionConfig, on_delete=models.CASCADE)
     uas_in_air = models.BooleanField()
 
     @classmethod
-    def flights(cls, user):
+    def flights(cls, mission, user):
         """Gets the time periods for which the given user was in flight.
 
         Args:
+            mission: The mission for which to get flights.
             user: The user for which to get flight periods for.
         Returns:
             A list of TimePeriod objects corresponding to individual flights.
         """
         return TimePeriod.from_events(
-            TakeoffOrLandingEvent.by_user(user),
+            TakeoffOrLandingEvent.by_user(user).filter(mission_id=mission.pk),
             is_start_func=lambda x: x.uas_in_air,
             is_end_func=lambda x: not x.uas_in_air)
 
@@ -50,4 +54,4 @@ class TakeoffOrLandingEvent(AccessLog):
 @admin.register(TakeoffOrLandingEvent)
 class TakeoffOrLandingEventModelAdmin(admin.ModelAdmin):
     show_full_result_count = False
-    list_display = ('timestamp', 'user', 'uas_in_air')
+    list_display = ('timestamp', 'user', 'mission', 'uas_in_air')

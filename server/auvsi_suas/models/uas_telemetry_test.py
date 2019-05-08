@@ -5,6 +5,7 @@ import iso8601
 from auvsi_suas.models import units
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.waypoint import Waypoint
@@ -12,7 +13,6 @@ from auvsi_suas.proto.interop_admin_api_pb2 import WaypointEvaluation
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
-from simplekml import Kml
 
 
 class TestUasTelemetryBase(TestCase):
@@ -22,6 +22,30 @@ class TestUasTelemetryBase(TestCase):
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
         self.user.save()
+
+        # Mission
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 100
+        pos.save()
+        apos = AerialPosition()
+        apos.altitude_msl = 1000
+        apos.gps_position = pos
+        apos.save()
+        wpt = Waypoint()
+        wpt.position = apos
+        wpt.order = 10
+        wpt.save()
+        self.mission = MissionConfig()
+        self.mission.home_pos = pos
+        self.mission.emergent_last_known_pos = pos
+        self.mission.off_axis_odlc_pos = pos
+        self.mission.air_drop_pos = pos
+        self.mission.save()
+        self.mission.mission_waypoints.add(wpt)
+        self.mission.search_grid_points.add(wpt)
+        self.mission.save()
+
         self.now = timezone.now()
 
     def create_log_element(self, timestamp, lat, lon, alt, heading, user=None):
@@ -530,94 +554,3 @@ class TestUasTelemetryWaypoints(TestUasTelemetryBase):
         self.assertSatisfiedWaypoints(expect,
                                       UasTelemetry.satisfied_waypoints(
                                           gpos, waypoints, logs))
-
-
-class TestUasTelemetryKml(TestUasTelemetryBase):
-    # String formatter for KML format that expects lon, lat, alt arguments
-    coord_format = '<gx:coord>{} {} {}</gx:coord>'
-
-    def test_kml_simple(self):
-        coordinates = [
-            (0, -76.0, 38.0, 0.0, 0),
-            (1, -76.0, 38.0, 10.0, 0),
-            (2, -76.0, 38.0, 20.0, 0),
-            (3, -76.0, 38.0, 30.0, 0),
-            (4, -76.0, 38.0, 100.0, 0),
-            (5, -76.0, 38.0, 30.0, 0),
-            (6, -76.0, 38.0, 60.0, 0),
-        ]
-        # Create Coordinates
-        start = TakeoffOrLandingEvent(user=self.user, uas_in_air=True)
-        start.save()
-        start.timestamp = self.now
-        start.save()
-        for coord in coordinates:
-            self.create_log_element(*coord)
-        end = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
-        end.save()
-        end.timestamp = self.now + datetime.timedelta(seconds=7)
-        end.save()
-
-        kml = Kml()
-        UasTelemetry.kml(
-            user=self.user,
-            logs=UasTelemetry.by_user(self.user),
-            kml=kml,
-            kml_doc=kml.document)
-        for coord in coordinates:
-            tag = self.coord_format.format(coord[2], coord[1],
-                                           units.feet_to_meters(coord[3]))
-            self.assertTrue(tag in kml.kml())
-
-    def test_kml_empty(self):
-        kml = Kml()
-        UasTelemetry.kml(
-            user=self.user,
-            logs=UasTelemetry.by_user(self.user),
-            kml=kml,
-            kml_doc=kml.document)
-
-    def test_kml_filter(self):
-        coordinates = [
-            (0, -76.0, 38.0, 0.0, 0),
-            (1, -76.0, 38.0, 10.0, 0),
-            (2, -76.0, 38.0, 20.0, 0),
-            (3, -76.0, 38.0, 30.0, 0),
-            (4, -76.0, 38.0, 100.0, 0),
-            (5, -76.0, 38.0, 30.0, 0),
-            (6, -76.0, 38.0, 60.0, 0),
-        ]
-        filtered_out = [
-            (7, 0.1, 0.001, 100, 0),
-            (8, 0.0, 0.0, 0, 0),
-        ]
-        # Create Coordinates
-        start = TakeoffOrLandingEvent(user=self.user, uas_in_air=True)
-        start.save()
-        start.timestamp = self.now
-        start.save()
-        for coord in coordinates:
-            self.create_log_element(*coord)
-        for coord in filtered_out:
-            self.create_log_element(*coord)
-        end = TakeoffOrLandingEvent(user=self.user, uas_in_air=False)
-        end.save()
-        end.timestamp = self.now + datetime.timedelta(seconds=6.5)
-        end.save()
-
-        kml = Kml()
-        UasTelemetry.kml(
-            user=self.user,
-            logs=UasTelemetry.by_user(self.user),
-            kml=kml,
-            kml_doc=kml)
-
-        for filtered in filtered_out:
-            tag = self.coord_format.format(filtered[2], filtered[1],
-                                           units.feet_to_meters(filtered[3]))
-            self.assertTrue(tag not in kml.kml())
-
-        for coord in coordinates:
-            tag = self.coord_format.format(coord[2], coord[1],
-                                           units.feet_to_meters(coord[3]))
-            self.assertTrue(tag in kml.kml())

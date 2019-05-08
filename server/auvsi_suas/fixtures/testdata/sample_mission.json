@@ -772,6 +772,7 @@
 },
 {
     "fields": {
+        "mission": 3,
         "uas_in_air": true,
         "timestamp": "1970-01-01T00:00:00Z",
         "user": 53
@@ -781,6 +782,7 @@
 },
 {
     "fields": {
+        "mission": 3,
         "uas_in_air": false,
         "timestamp": "1970-01-01T00:00:01Z",
         "user": 53
@@ -790,6 +792,7 @@
 },
 {
     "fields": {
+        "mission": 3,
         "uas_in_air": true,
         "timestamp": "1970-01-01T00:00:01Z",
         "user": 54
@@ -799,6 +802,7 @@
 },
 {
     "fields": {
+        "mission": 3,
         "uas_in_air": false,
         "timestamp": "1970-01-01T00:00:03Z",
         "user": 54
@@ -808,6 +812,7 @@
 },
 {
     "fields": {
+        "mission": 3,
         "uas_in_air": true,
         "timestamp": "1970-01-01T00:00:09Z",
         "user": 54
@@ -817,6 +822,7 @@
 },
 {
     "fields": {
+        "mission": 3,
         "uas_in_air": false,
         "timestamp": "1970-01-01T00:00:11Z",
         "user": 54

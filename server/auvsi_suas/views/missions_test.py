@@ -173,7 +173,7 @@ class TestGenerateKMLCommon(TestCase):
 
         for user in users:
             tag = '<name>{}</name>'.format(user)
-            self.assertTrue(tag in kml_data)
+            self.assertIn(tag, kml_data)
 
         for coord in coordinates:
             coord_str = self.coord_format.format(coord[0], coord[1], coord[2])
@@ -185,8 +185,8 @@ class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
 
     def __init__(self, *args, **kwargs):
         super(TestGenerateKMLNoFixture, self).__init__(*args, **kwargs)
-        self.folders = ['Teams', 'Missions']
-        self.users = ['testuser']
+        self.folders = ['Missions']
+        self.users = []
         self.coordinates = []
 
     def test_generateKML_not_logged_in(self):
@@ -215,8 +215,8 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
 
     def __init__(self, *args, **kwargs):
         super(TestGenerateKMLWithFixture, self).__init__(*args, **kwargs)
-        self.folders = ['Teams', 'Missions']
-        self.users = ['testuser', 'user0', 'user1']
+        self.folders = ['Flights', 'Missions']
+        self.users = ['user0', 'user1']
         self.coordinates = [(lat, lon, units.feet_to_meters(alt))
                             for lat, lon, alt in [
                                 (-76.0, 38.0, 0.0),
@@ -339,7 +339,11 @@ class TestGenerateLiveKMLWithFixture(TestGenerateLiveKMLCommon):
     def test_generate_live_kml(self):
         """Tests the generate KML method."""
         self.client.force_login(self.admin_user)
+
         response = self.client.get(live_url)
+        self.assertEqual(200, response.status_code)
+
+        response = self.client.get(update_url)
         self.assertEqual(200, response.status_code)
 
 
@@ -393,9 +397,9 @@ class TestEvaluateTeams(TestCase):
         data = self.load_json(response)
         self.assertIn('teams', data)
         teams = data['teams']
-        self.assertEqual(len(teams), 3)
-        self.assertEqual('user0', teams[1]['team'])
-        self.assertEqual('user1', teams[2]['team'])
+        self.assertEqual(len(teams), 2)
+        self.assertEqual('user0', teams[0]['team'])
+        self.assertEqual('user1', teams[1]['team'])
         self.assertIn('waypoints', teams[0]['feedback'])
 
     def test_evaluate_teams_specific_team(self):
@@ -415,7 +419,7 @@ class TestEvaluateTeams(TestCase):
         response = self.client.get(evaluate_url(args=[3]))
         self.assertEqual(response.status_code, 200)
         csv_data = self.load_csv(response)
-        self.assertEqual(len(csv_data.split('\n')), 5)
+        self.assertEqual(len(csv_data.split('\n')), 4)
         self.assertIn('team', csv_data)
         self.assertIn('waypoints', csv_data)
         self.assertIn('user0', csv_data)

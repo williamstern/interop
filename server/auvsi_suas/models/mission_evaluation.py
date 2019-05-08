@@ -69,7 +69,7 @@ def generate_feedback(mission_config, user, team_eval):
     feedback = team_eval.feedback
 
     # Find the user's flights.
-    flight_periods = TakeoffOrLandingEvent.flights(user)
+    flight_periods = TakeoffOrLandingEvent.flights(mission_config, user)
     for period in flight_periods:
         if period.duration() is None:
             team_eval.warnings.append('Infinite flight period.')
@@ -97,7 +97,8 @@ def generate_feedback(mission_config, user, team_eval):
 
     # Evaluate the object detections.
     user_odlcs = Odlc.objects.filter(user=user).all()
-    evaluator = OdlcEvaluator(user_odlcs, mission_config.odlcs.all())
+    evaluator = OdlcEvaluator(user_odlcs,
+                              mission_config.odlcs.all(), flight_periods)
     feedback.odlc.CopyFrom(evaluator.evaluate())
 
     # Determine collisions with stationary.
@@ -257,6 +258,11 @@ def evaluate_teams(mission_config, users=None):
     for user in sorted(users, key=lambda u: u.username):
         # Ignore admins.
         if user.is_superuser:
+            continue
+
+        # Ignore users with no flights for mission.
+        if not TakeoffOrLandingEvent.flights(mission_config, user):
+            logger.info('Skipping user with no flights: %s' % user.username)
             continue
 
         # Start the evaluation data structure.

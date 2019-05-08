@@ -5,11 +5,18 @@ import csv
 import io
 import json
 import logging
+import math
+import numpy as np
 import zipfile
+from auvsi_suas.models import distance
 from auvsi_suas.models import mission_evaluation
+from auvsi_suas.models import units
 from auvsi_suas.models.fly_zone import FlyZone
 from auvsi_suas.models.mission_config import MissionConfig
+from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
+from auvsi_suas.patches.simplekml_patch import AltitudeMode
+from auvsi_suas.patches.simplekml_patch import Color
 from auvsi_suas.patches.simplekml_patch import Kml
 from auvsi_suas.patches.simplekml_patch import RefreshMode
 from auvsi_suas.proto import interop_api_pb2
@@ -25,11 +32,20 @@ from django.http import HttpResponseBadRequest
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseNotFound
 from django.http import HttpResponseServerError
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 from google.protobuf import json_format
 
 logger = logging.getLogger(__name__)
+
+KML_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+KML_DROP_ICON = 'http://maps.google.com/mapfiles/kml/shapes/target.png'
+KML_HOME_ICON = 'http://maps.google.com/mapfiles/kml/paddle/grn-circle.png'
+KML_OBST_NUM_POINTS = 20
+KML_ODLC_ICON = 'http://maps.google.com/mapfiles/kml/shapes/donut.png'
+KML_PLANE_ICON = 'http://maps.google.com/mapfiles/kml/shapes/airports.png'
+KML_WAYPOINT_ICON = 'http://maps.google.com/mapfiles/kml/paddle/blu-circle.png'
 
 
 def mission_proto(mission):
@@ -117,6 +133,217 @@ class MissionsId(View):
             content_type="application/json")
 
 
+def fly_zone_kml(fly_zone, kml):
+    """
+    Appends kml nodes describing the flyzone.
+
+    Args:
+        fly_zone: The FlyZone for which to add KML
+        kml: A simpleKML Container to which the fly zone will be added
+    """
+
+    zone_name = 'Fly Zone {}'.format(fly_zone.pk)
+    pol = kml.newpolygon(name=zone_name)
+    fly_zone_points = []
+    for point in fly_zone.boundary_pts.order_by('order'):
+        gps = point.position.gps_position
+        coord = (gps.longitude, gps.latitude,
+                 units.feet_to_meters(point.position.altitude_msl))
+        fly_zone_points.append(coord)
+    fly_zone_points.append(fly_zone_points[0])
+    pol.outerboundaryis = fly_zone_points
+    pol.style.linestyle.color = Color.red
+    pol.style.linestyle.width = 3
+    pol.style.polystyle.color = Color.changealphaint(50, Color.green)
+
+
+def mission_kml(mission, kml, kml_doc):
+    """
+    Appends kml nodes describing the mission.
+
+    Args:
+        mission: The mission to add to the KML.
+        kml: A simpleKML Container to which the mission data will be added
+        kml_doc: The simpleKML Document to which schemas will be added
+
+    Returns:
+        The KML folder for the mission data.
+    """
+    mission_name = 'Mission {}'.format(mission.pk)
+    kml_folder = kml.newfolder(name=mission_name)
+
+    # Flight boundaries.
+    fly_zone_folder = kml_folder.newfolder(name='Fly Zones')
+    for flyzone in mission.fly_zones.all():
+        fly_zone_kml(flyzone, fly_zone_folder)
+
+    # Static points.
+    locations = [
+        ('Home', mission.home_pos, KML_HOME_ICON),
+        ('Emergent LKP', mission.emergent_last_known_pos, KML_ODLC_ICON),
+        ('Off Axis', mission.off_axis_odlc_pos, KML_ODLC_ICON),
+        ('Air Drop', mission.air_drop_pos, KML_DROP_ICON),
+    ]
+    for key, point, icon in locations:
+        gps = (point.longitude, point.latitude)
+        p = kml_folder.newpoint(name=key, coords=[gps])
+        p.iconstyle.icon.href = icon
+        p.description = str(point)
+
+    # ODLCs.
+    oldc_folder = kml_folder.newfolder(name='ODLCs')
+    for odlc in mission.odlcs.all():
+        name = 'ODLC %d' % odlc.pk
+        gps = (odlc.location.longitude, odlc.location.latitude)
+        p = oldc_folder.newpoint(name=name, coords=[gps])
+        p.iconstyle.icon.href = KML_ODLC_ICON
+        p.description = name
+
+    # Waypoints
+    waypoints_folder = kml_folder.newfolder(name='Waypoints')
+    linestring = waypoints_folder.newlinestring(name='Waypoints')
+    waypoints = []
+    for i, waypoint in enumerate(mission.mission_waypoints.order_by('order')):
+        gps = waypoint.position.gps_position
+        coord = (gps.longitude, gps.latitude,
+                 units.feet_to_meters(waypoint.position.altitude_msl))
+        waypoints.append(coord)
+
+        # Add waypoint marker
+        p = waypoints_folder.newpoint(
+            name='Waypoint %d' % (i + 1), coords=[coord])
+        p.iconstyle.icon.href = KML_WAYPOINT_ICON
+        p.description = str(waypoint)
+        p.altitudemode = AltitudeMode.absolute
+        p.extrude = 1
+    linestring.coords = waypoints
+    linestring.altitudemode = AltitudeMode.absolute
+    linestring.extrude = 1
+    linestring.style.linestyle.color = Color.green
+    linestring.style.polystyle.color = Color.changealphaint(100, Color.green)
+
+    # Search Area
+    search_area = []
+    for point in mission.search_grid_points.order_by('order'):
+        gps = point.position.gps_position
+        coord = (gps.longitude, gps.latitude,
+                 units.feet_to_meters(point.position.altitude_msl))
+        search_area.append(coord)
+    if search_area:
+        search_area.append(search_area[0])
+        pol = kml_folder.newpolygon(name='Search Area')
+        pol.outerboundaryis = search_area
+        pol.style.linestyle.color = Color.blue
+        pol.style.linestyle.width = 2
+        pol.style.polystyle.color = Color.changealphaint(50, Color.blue)
+
+    # Stationary Obstacles.
+    stationary_obstacles_folder = kml_folder.newfolder(
+        name='Stationary Obstacles')
+    for obst in mission.stationary_obstacles.all():
+        gpos = obst.gps_position
+        zone, north = distance.utm_zone(gpos.latitude, gpos.longitude)
+        proj = distance.proj_utm(zone, north)
+        cx, cy = proj(gpos.longitude, gpos.latitude)
+        rm = units.feet_to_meters(obst.cylinder_radius)
+        hm = units.feet_to_meters(obst.cylinder_height)
+        obst_points = []
+        for angle in np.linspace(0, 2 * math.pi, num=KML_OBST_NUM_POINTS):
+            px = cx + rm * math.cos(angle)
+            py = cy + rm * math.sin(angle)
+            lon, lat = proj(px, py, inverse=True)
+            obst_points.append((lon, lat, hm))
+        pol = stationary_obstacles_folder.newpolygon(
+            name='Obstacle %d' % obst.pk)
+        pol.outerboundaryis = obst_points
+        pol.altitudemode = AltitudeMode.absolute
+        pol.extrude = 1
+        pol.style.linestyle.color = Color.yellow
+        pol.style.linestyle.width = 2
+        pol.style.polystyle.color = Color.changealphaint(50, Color.yellow)
+
+    return kml_folder
+
+
+def uas_telemetry_kml(user, flights, logs, kml, kml_doc):
+    """
+    Appends kml nodes describing the given user's flight as described
+    by the log array given.
+
+    Args:
+        user: A Django User to get username from
+        flights: List of flight periods
+        logs: A list of UasTelemetry elements
+        kml: A simpleKML Container to which the flight data will be added
+        kml_doc: The simpleKML Document to which schemas will be added
+    Returns:
+        None
+    """
+    kml_folder = kml.newfolder(name=user.username)
+
+    logs = UasTelemetry.dedupe(UasTelemetry.filter_bad(logs))
+    for i, flight in enumerate(flights):
+        name = '%s Flight %d' % (user.username, i + 1)
+        flight_logs = filter(lambda x: flight.within(x.timestamp), logs)
+
+        coords = []
+        angles = []
+        when = []
+        for entry in logs:
+            pos = entry.uas_position.gps_position
+            # Spatial Coordinates
+            coord = (pos.longitude, pos.latitude,
+                     units.feet_to_meters(entry.uas_position.altitude_msl))
+            coords.append(coord)
+
+            # Time Elements
+            time = entry.timestamp.strftime(KML_DATETIME_FORMAT)
+            when.append(time)
+
+            # Degrees heading, tilt, and roll
+            angle = (entry.uas_heading, 0.0, 0.0)
+            angles.append(angle)
+
+        # Create a new track in the folder
+        trk = kml_folder.newgxtrack(name=name)
+        trk.altitudemode = AltitudeMode.absolute
+
+        # Append flight data
+        trk.newwhen(when)
+        trk.newgxcoord(coords)
+        trk.newgxangle(angles)
+
+        # Set styling
+        trk.extrude = 1  # Extend path to ground
+        trk.style.linestyle.width = 2
+        trk.style.linestyle.color = Color.blue
+        trk.iconstyle.icon.href = KML_PLANE_ICON
+
+
+def uas_telemetry_live_kml(kml, timespan):
+    users = User.objects.all().order_by('username')
+    for user in users:
+        try:
+            log = UasTelemetry.by_user(user).latest('timestamp')
+        except UasTelemetry.DoesNotExist:
+            continue
+
+        if log.timestamp < timezone.now() - timespan:
+            continue
+
+        apos = log.uas_position
+        gpos = apos.gps_position
+
+        point = kml.newpoint(
+            name=user.username,
+            coords=[(gpos.longitude, gpos.latitude,
+                     units.feet_to_meters(apos.altitude_msl))])
+        point.iconstyle.icon.href = KML_PLANE_ICON
+        point.iconstyle.heading = log.uas_heading
+        point.extrude = 1  # Extend path to ground
+        point.altitudemode = AltitudeMode.absolute
+
+
 class ExportKml(View):
     """ Generates a KML file HttpResponse"""
 
@@ -126,19 +353,23 @@ class ExportKml(View):
 
     def get(self, request):
         kml = Kml(name='AUVSI SUAS Flight Data')
-        kml_teams = kml.newfolder(name='Teams')
-        kml_mission = kml.newfolder(name='Missions')
+        kml_missions = kml.newfolder(name='Missions')
         users = User.objects.all()
-        for user in users:
-            # Ignore admins
-            if user.is_superuser:
-                continue
-            UasTelemetry.kml(
-                user=user,
-                logs=UasTelemetry.by_user(user),
-                kml=kml_teams,
-                kml_doc=kml.document)
-        MissionConfig.kml_all(kml_mission, kml.document)
+        for mission in MissionConfig.objects.all():
+            kml_mission = mission_kml(mission, kml_missions, kml.document)
+            kml_flights = kml_mission.newfolder(name='Flights')
+            for user in users:
+                if user.is_superuser:
+                    continue
+                flights = TakeoffOrLandingEvent.flights(mission, user)
+                if not flights:
+                    continue
+                uas_telemetry_kml(
+                    user=user,
+                    flights=flights,
+                    logs=UasTelemetry.by_user(user),
+                    kml=kml_flights,
+                    kml_doc=kml.document)
 
         response = HttpResponse(kml.kml())
         response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
@@ -158,8 +389,9 @@ class LiveKml(View):
 
     def get(self, request):
         kml = Kml(name='AUVSI SUAS LIVE Flight Data')
-        kml_mission = kml.newfolder(name='Missions')
-        MissionConfig.kml_all(kml_mission, kml.document)
+        kml_missions = kml.newfolder(name='Missions')
+        for mission in MissionConfig.objects.all():
+            kml_mission = mission_kml(mission, kml_missions, kml.document)
 
         parameters = '?sessionid={}'.format(request.COOKIES['sessionid'])
         uri = request.build_absolute_uri(
@@ -179,12 +411,12 @@ class LiveKml(View):
 
 def set_request_session_from_cookie(func):
     def wrapper(request):
-        # Check if a sessionid has been provided
         if 'sessionid' not in request.GET:
-            return HttpResponseForbidden()
+            # No session ID, attempt to use cookies.
+            return func(request)
 
         try:
-            # pack the params back into the cookie
+            # Pack the params back into the cookie
             request.COOKIES['sessionid'] = request.GET['sessionid']
 
             # Update the user associated with the cookie
@@ -209,7 +441,7 @@ class LiveKmlUpdate(View):
 
     def get(self, request):
         kml = Kml(name='LIVE Data')
-        UasTelemetry.live_kml(kml, timedelta(seconds=5))
+        uas_telemetry_live_kml(kml, timedelta(seconds=5))
 
         response = HttpResponse(kml.kml())
         response['Content-Type'] = 'application/vnd.google-earth.kml+xml'
