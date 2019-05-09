@@ -152,11 +152,7 @@ def score_team(team_eval):
 
     # Score autonomous flight.
     flight = score.autonomous_flight
-    if feedback.judge.min_auto_flight_time:
-        takeovers = feedback.judge.safety_pilot_takeovers
-        flight.flight = max(0, 1 - (takeovers * AUTONOMOUS_FLIGHT_TAKEOVER))
-    else:
-        flight.flight = 0
+    flight.flight = 1 if feedback.judge.min_auto_flight_time else 0
     flight.telemetry_prerequisite = telem_prereq
     flight.waypoint_capture = (
         float(feedback.judge.waypoints_captured) / len(feedback.waypoints))
@@ -165,6 +161,7 @@ def score_team(team_eval):
         flight.waypoint_accuracy = sum(wpt_scores) / len(feedback.waypoints)
     else:
         flight.waypoint_accuracy = 0
+    flight.safety_pilot_takeover_penalty = AUTONOMOUS_FLIGHT_TAKEOVER * feedback.judge.safety_pilot_takeovers
     flight.out_of_bounds_penalty = (
         feedback.judge.out_of_bounds * BOUND_PENALTY +
         feedback.judge.unsafe_out_of_bounds * SAFETY_BOUND_PENALTY)
@@ -180,8 +177,8 @@ def score_team(team_eval):
         AUTONOMOUS_FLIGHT_FLIGHT_WEIGHT * flight.flight +
         WAYPOINT_CAPTURE_WEIGHT * flight.waypoint_capture +
         WAYPOINT_ACCURACY_WEIGHT * flight.waypoint_accuracy -
-        flight.out_of_bounds_penalty - flight.things_fell_off_penalty -
-        flight.crashed_penalty)
+        flight.safety_pilot_takeover_penalty - flight.out_of_bounds_penalty -
+        flight.things_fell_off_penalty - flight.crashed_penalty)
 
     # Score obstacle avoidance.
     avoid = score.obstacle_avoidance

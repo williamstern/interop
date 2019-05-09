@@ -207,9 +207,10 @@ message AutonomousFlightScore {
     optional double flight = 3;
     optional double waypoint_capture = 4;
     optional double waypoint_accuracy = 5;
-    optional double out_of_bounds_penalty = 6;
-    optional double things_fell_off_penalty = 7;
-    optional double crashed_penalty = 8;
+    optional double safety_pilot_takeover_penalty = 6;
+    optional double out_of_bounds_penalty = 7;
+    optional double things_fell_off_penalty = 8;
+    optional double crashed_penalty = 9;
 }
 
 // Scoring data for obstacle avoidance.
