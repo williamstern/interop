@@ -223,7 +223,7 @@ class TestMissionScoring(TestCase):
     def test_total(self):
         """Test the total scoring."""
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(0.1308333333333334, self.eval.score.score_ratio)
+        self.assertAlmostEqual(0.27, self.eval.score.score_ratio)
 
     def test_non_negative(self):
         """Test that total score doesn't go negative."""
@@ -331,7 +331,7 @@ class TestMissionEvaluation(TestCase):
 
         self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
 
-        self.assertAlmostEqual(0.2606963788304003, score.score_ratio)
+        self.assertAlmostEqual(0.4056963788304003, score.score_ratio)
 
         # user1 data
         user_eval = mission_eval.teams[1]
@@ -384,7 +384,7 @@ class TestMissionEvaluation(TestCase):
 
         self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
 
-        self.assertAlmostEqual(0.5283111111111112, score.score_ratio)
+        self.assertAlmostEqual(0.5966444444444445, score.score_ratio)
 
     def test_evaluate_teams_specific_users(self):
         """Tests the evaluation of teams method with specific users."""
