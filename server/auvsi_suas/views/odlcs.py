@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import os.path
+import re
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.odlc import Odlc
@@ -25,6 +26,8 @@ from google.protobuf import json_format
 from sendfile import sendfile
 
 logger = logging.getLogger(__name__)
+
+ALPHANUMERIC_RE = re.compile(r"^[A-Z0-9]$")
 
 
 def odlc_to_proto(odlc):
@@ -77,6 +80,10 @@ def validate_odlc_proto(odlc_proto):
                                              odlc_proto.longitude > 180):
         raise ValueError('Invalid longitude "%s", must be -180 <= lat <= 180' %
                          odlc_proto.longitude)
+
+    if (odlc_proto.HasField('alphanumeric') and
+            ALPHANUMERIC_RE.fullmatch(odlc_proto.alphanumeric) is None):
+        raise ValueError('Alphanumeric is invalid.')
 
 
 def update_odlc_from_proto(odlc, odlc_proto):
