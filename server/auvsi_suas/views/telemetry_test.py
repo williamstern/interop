@@ -89,7 +89,7 @@ class TestTelemetryPost(TestCase):
 
     def test_loadtest(self):
         """Tests the max load the view can handle."""
-        total_ops = 1000
+        total_ops = 100
         start_t = time.clock()
         for _ in range(total_ops):
             response = self.telemetry_request(lat=10, lon=20, alt=30, head=40)
