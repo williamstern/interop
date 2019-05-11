@@ -10,15 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 class StationaryObstacle(models.Model):
-    """A stationary obstacle that teams must avoid.
+    """A stationary obstacle that teams must avoid."""
 
-    Attributes:
-        gps_position: The position of the obstacle center.
-        cylinder_radius: The radius of the cylinder in feet.
-        cylinder_height: The height of the cylinder in feet.
-    """
+    # The position of the obstacle center.
     gps_position = models.ForeignKey(GpsPosition, on_delete=models.CASCADE)
+    # The radius of the cylinder in feet.
     cylinder_radius = models.FloatField()
+    # The height of the cylinder in feet.
     cylinder_height = models.FloatField()
 
     def contains_pos(self, aerial_pos):

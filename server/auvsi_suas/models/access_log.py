@@ -10,14 +10,11 @@ logger = logging.getLogger(__name__)
 
 
 class AccessLog(models.Model):
-    """Base class which logs access of information.
-
-    Attributes:
-        user: The user which accessed the data.
-        timestamp: Timestamp of the access.
-    """
+    """Base class which logs access of information."""
+    # The user which accessed the data.
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, db_index=True, on_delete=models.CASCADE)
+    # Timestamp of the access.
     timestamp = models.DateTimeField(db_index=True)
 
     class Meta:

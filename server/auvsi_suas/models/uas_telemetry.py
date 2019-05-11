@@ -28,13 +28,11 @@ SATISFIED_WAYPOINT_DIST_MAX_FT = 100
 
 
 class UasTelemetry(AccessLog):
-    """UAS telemetry reported by teams.
+    """UAS telemetry reported by teams."""
 
-    Attributes:
-        uas_position: The position of the UAS.
-        uas_heading: The (true north) heading of the UAS in degrees.
-    """
+    # The position of the UAS.
     uas_position = models.ForeignKey(AerialPosition, on_delete=models.CASCADE)
+    # The (true north) heading of the UAS in degrees.
     uas_heading = models.FloatField()
 
     def duplicate(self, other):

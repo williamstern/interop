@@ -10,13 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 class AerialPosition(models.Model):
-    """Aerial position which consists of a GPS position and an altitude.
-
-    Attributes:
-        gps_position: GPS position.
-        altitude_msl: Altitude (MSL) in feet.
-    """
+    """Aerial position which consists of a GPS position and an altitude."""
+    # GPS position.
     gps_position = models.ForeignKey(GpsPosition, on_delete=models.CASCADE)
+    # Altitude (MSL) in feet.
     altitude_msl = models.FloatField()
 
     def distance_to(self, other):

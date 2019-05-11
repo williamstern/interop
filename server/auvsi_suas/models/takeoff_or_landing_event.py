@@ -11,13 +11,11 @@ logger = logging.getLogger(__name__)
 
 
 class TakeoffOrLandingEvent(AccessLog):
-    """Marker for a UAS takeoff/landing. UAS must interop during that time.
+    """Marker for a UAS takeoff/landing. UAS must interop during that time."""
 
-    Attributes:
-        mission: The mission for which this is an event.
-        uas_in_air: Whether the UAS is now in the air.
-    """
+    # The mission for which this is an event.
     mission = models.ForeignKey(MissionConfig, on_delete=models.CASCADE)
+    # Whether the UAS is now in the air.
     uas_in_air = models.BooleanField()
 
     @classmethod

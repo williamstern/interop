@@ -17,15 +17,13 @@ OUT_OF_BOUNDS_DEBOUNCE_SEC = 10.0
 
 
 class FlyZone(models.Model):
-    """An approved area for UAS flight. UAS shall be in at least one zone.
+    """An approved area for UAS flight. UAS shall be in at least one zone."""
 
-    Attributes:
-        boundary_pts: The polygon defining the boundary of the zone.
-        altitude_msl_min: The minimum altitude of the zone (MSL) in feet.
-        altitude_msl_max: The maximum altitude of the zone (MSL) in feet.
-    """
+    # The polygon defining the boundary of the zone.
     boundary_pts = models.ManyToManyField(Waypoint)
+    # The minimum altitude of the zone (MSL) in feet.
     altitude_msl_min = models.FloatField()
+    # The maximum altitude of the zone (MSL) in feet.
     altitude_msl_max = models.FloatField()
 
     def contains_pos(self, aerial_pos):

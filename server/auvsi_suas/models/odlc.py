@@ -141,47 +141,46 @@ class Color(Choices):
 
 
 class Odlc(models.Model):
-    """Object detection submission for a team.
+    """Object detection submission for a team."""
 
-    Attributes:
-        mission: The mission this is an ODLC for.
-        user: The user which submitted and owns this object detection.
-        odlc_type: Object type.
-        location: Object location.
-        orientation: Object orientation.
-        shape: Object shape.
-        background_color: Object background color.
-        alphanumeric: Object alphanumeric.
-        alphanumeric_color: Object alphanumeric color.
-        description: Free-form object description.
-        description_approved: Whether judge considers description valid.
-        autonomous: Object is an ADLC submission.
-        thumbnail: Uploaded object image thumbnail.
-        thumbnail_approved: Whether judge considers thumbnail valid for object.
-        creation_time: Time that this object was first created.
-        last_modified_time: Time that this object was last modified.
-    """
+    # The mission this is an ODLC for.
     mission = models.ForeignKey('MissionConfig', on_delete=models.CASCADE)
+    # The user which submitted and owns this object detection.
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, db_index=True, on_delete=models.CASCADE)
+    # Object type.
     odlc_type = models.IntegerField(choices=OdlcType.choices())
+    # Object location.
     location = models.ForeignKey(
         GpsPosition, null=True, blank=True, on_delete=models.CASCADE)
+    # Object orientation.
     orientation = models.IntegerField(
         choices=Orientation.choices(), null=True, blank=True)
+    # Object shape.
     shape = models.IntegerField(choices=Shape.choices(), null=True, blank=True)
+    # Object background color.
     background_color = models.IntegerField(
         choices=Color.choices(), null=True, blank=True)
+    # Object alphanumeric.
     alphanumeric = models.TextField(default='', blank=True)
+    # Object alphanumeric color.
     alphanumeric_color = models.IntegerField(
         choices=Color.choices(), null=True, blank=True)
+    # Free-form object description.
     description = models.TextField(default='', blank=True)
+    # Whether judge considers description valid.
     description_approved = models.NullBooleanField()
+    # Object is an ADLC submission.
     autonomous = models.BooleanField(default=False)
+    # Uploaded object image thumbnail.
     thumbnail = models.ImageField(upload_to='objects', blank=True)
+    # Whether judge considers thumbnail valid for object.
     thumbnail_approved = models.NullBooleanField()
+    # Time that this object was first created.
     creation_time = models.DateTimeField()
+    # Time that this object was last modified.
     last_modified_time = models.DateTimeField()
+    # Judge defined override that forces this ODLC to be considered actionable.
     actionable_override = models.BooleanField(default=False)
 
     def __init__(self, *args, **kwargs):
