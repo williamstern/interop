@@ -34,7 +34,7 @@ FLIGHT_TO_PROCESS_TIME_WEIGHT = 5.0
 AUTONOMOUS_FLIGHT_TAKEOVER = 0.10
 # Ratio of points lost per out of bounds.
 BOUND_PENALTY = 0.1
-SAFETY_BOUND_PENALTY = 0.1
+SAFETY_BOUND_PENALTY = 1.0
 # Ratio of points lost for TFOA and crash.
 TFOA_PENALTY = 0.25
 CRASH_PENALTY = 0.35
@@ -146,7 +146,8 @@ def score_team(team_eval):
                                       feedback.judge.post_process_time_sec)
     max_time_points = points_for_time_sec(FLIGHT_TIME_MAX_SEC,
                                           PROCESS_TIME_MAX_SEC)
-    timeline.mission_time = max(0, (max_time_points - time_points) / max_time_points)
+    timeline.mission_time = max(
+        0, (max_time_points - time_points) / max_time_points)
     timeline.mission_penalty = MISSION_TIME_PENALTY_FROM_SEC * (
         max(0, feedback.judge.flight_time_sec - FLIGHT_TIME_MAX_SEC) + max(
             0, feedback.judge.post_process_time_sec - PROCESS_TIME_MAX_SEC))

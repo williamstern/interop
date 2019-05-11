@@ -114,10 +114,10 @@ class TestMissionScoring(TestCase):
         self.assertAlmostEqual(1, flight.waypoint_capture)
         self.assertAlmostEqual(0.35, flight.waypoint_accuracy)
         self.assertAlmostEqual(0.2, flight.safety_pilot_takeover_penalty)
-        self.assertAlmostEqual(0.3, flight.out_of_bounds_penalty)
+        self.assertAlmostEqual(1.2, flight.out_of_bounds_penalty)
         self.assertEqual(0, flight.things_fell_off_penalty)
         self.assertEqual(0, flight.crashed_penalty)
-        self.assertAlmostEqual(0.175, flight.score_ratio)
+        self.assertAlmostEqual(-0.725, flight.score_ratio)
 
         feedback.waypoints[1].score_ratio = 1
         judge.waypoints_captured = 1
@@ -223,7 +223,7 @@ class TestMissionScoring(TestCase):
     def test_total(self):
         """Test the total scoring."""
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(0.4008333333333334, self.eval.score.score_ratio)
+        self.assertAlmostEqual(0.1308333333333334, self.eval.score.score_ratio)
 
     def test_non_negative(self):
         """Test that total score doesn't go negative."""
@@ -312,12 +312,12 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(1, score.autonomous_flight.flight)
         self.assertAlmostEqual(1, score.autonomous_flight.waypoint_capture)
         self.assertAlmostEqual(0.5, score.autonomous_flight.waypoint_accuracy)
-        self.assertAlmostEqual(0.3,
+        self.assertAlmostEqual(1.2,
                                score.autonomous_flight.out_of_bounds_penalty)
         self.assertAlmostEqual(0,
                                score.autonomous_flight.things_fell_off_penalty)
         self.assertAlmostEqual(0, score.autonomous_flight.crashed_penalty)
-        self.assertAlmostEqual(0.45, score.autonomous_flight.score_ratio)
+        self.assertAlmostEqual(-0.45, score.autonomous_flight.score_ratio)
 
         self.assertAlmostEqual(0.8, score.object.characteristics)
         self.assertAlmostEqual(0.423458165692, score.object.geolocation)
@@ -331,7 +331,7 @@ class TestMissionEvaluation(TestCase):
 
         self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
 
-        self.assertAlmostEqual(0.5306963788304002, score.score_ratio)
+        self.assertAlmostEqual(0.2606963788304003, score.score_ratio)
 
         # user1 data
         user_eval = mission_eval.teams[1]
