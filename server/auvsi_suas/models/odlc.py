@@ -4,8 +4,10 @@ import enum
 import logging
 import networkx as nx
 import operator
+from auvsi_suas.models import pb_utils
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.proto import interop_admin_api_pb2
+from auvsi_suas.proto import interop_api_pb2
 from django.conf import settings
 from django.contrib import admin
 from django.db import models
@@ -27,119 +29,6 @@ ACTIONABLE_WEIGHT = 0.3
 AUTONOMY_WEIGHT = 0.2
 
 
-class Choices(enum.IntEnum):
-    """Base class for enums used to limit Django field choices,
-    plus other helper methods.
-
-    Item names should be lowercase to work properly with lookup().
-    """
-
-    @classmethod
-    def choices(cls):
-        """Provide choices for Django's IntField.choices.
-
-        Returns:
-            Enum values in an iterator to be passed to IntField.choices.
-            The enum value is used as the field key, and the name as the
-            description.
-        """
-        return [(int(v), k) for k, v in cls.__members__.items()]
-
-    @classmethod
-    def lookup(cls, s):
-        """Lookup value from name.
-
-        Args:
-            s: name to lookup; case insensitive
-
-        Returns:
-            Value associated with name
-
-        Raises:
-            KeyError: name not valid
-        """
-        return cls.__members__[str(s).lower()]
-
-    @classmethod
-    def names(cls):
-        """Names of choices
-
-        Returns:
-            List of names of values
-        """
-        return cls.__members__.keys()
-
-
-@enum.unique
-class OdlcType(Choices):
-    """Valid object types.
-
-    Warning: DO NOT change/reuse values, or compatibility will be lost with
-    old data sets. Only add new values to the end. Next value is 5.
-    """
-    standard = 1
-    off_axis = 3
-    emergent = 4
-
-
-@enum.unique
-class Orientation(Choices):
-    """Valid object orientations.
-
-    Warning: DO NOT change/reuse values, or compatibility will be lost with
-    old data sets. Only add new values to the end.
-    """
-    n = 1
-    ne = 2
-    e = 3
-    se = 4
-    s = 5
-    sw = 6
-    w = 7
-    nw = 8
-
-
-@enum.unique
-class Shape(Choices):
-    """Valid object shapes.
-
-    Warning: DO NOT change/reuse values, or compatibility will be lost with
-    old data sets. Only add new values to the end. Next value is 14.
-    """
-    circle = 1
-    semicircle = 2
-    quarter_circle = 3
-    triangle = 4
-    square = 5
-    rectangle = 6
-    trapezoid = 7
-    pentagon = 8
-    hexagon = 9
-    heptagon = 10
-    octagon = 11
-    star = 12
-    cross = 13
-
-
-@enum.unique
-class Color(Choices):
-    """Valid object colors.
-
-    Warning: DO NOT change/reuse values, or compatibility will be lost with
-    old data sets. Only add new values to the end. Next value is 11.
-    """
-    white = 1
-    black = 2
-    gray = 3
-    red = 4
-    blue = 5
-    green = 6
-    yellow = 7
-    purple = 8
-    brown = 9
-    orange = 10
-
-
 class Odlc(models.Model):
     """Object detection submission for a team."""
 
@@ -149,23 +38,34 @@ class Odlc(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, db_index=True, on_delete=models.CASCADE)
     # Object type.
-    odlc_type = models.IntegerField(choices=OdlcType.choices())
+    odlc_type = models.IntegerField(
+        choices=pb_utils.FieldChoicesFromEnum(interop_api_pb2.Odlc.Type))
     # Object location.
     location = models.ForeignKey(
         GpsPosition, null=True, blank=True, on_delete=models.CASCADE)
     # Object orientation.
     orientation = models.IntegerField(
-        choices=Orientation.choices(), null=True, blank=True)
+        choices=pb_utils.FieldChoicesFromEnum(
+            interop_api_pb2.Odlc.Orientation),
+        null=True,
+        blank=True)
     # Object shape.
-    shape = models.IntegerField(choices=Shape.choices(), null=True, blank=True)
+    shape = models.IntegerField(
+        choices=pb_utils.FieldChoicesFromEnum(interop_api_pb2.Odlc.Shape),
+        null=True,
+        blank=True)
     # Object background color.
     background_color = models.IntegerField(
-        choices=Color.choices(), null=True, blank=True)
+        choices=pb_utils.FieldChoicesFromEnum(interop_api_pb2.Odlc.Color),
+        null=True,
+        blank=True)
     # Object alphanumeric.
     alphanumeric = models.TextField(default='', blank=True)
     # Object alphanumeric color.
     alphanumeric_color = models.IntegerField(
-        choices=Color.choices(), null=True, blank=True)
+        choices=pb_utils.FieldChoicesFromEnum(interop_api_pb2.Odlc.Color),
+        null=True,
+        blank=True)
     # Free-form object description.
     description = models.TextField(default='', blank=True)
     # Whether judge considers description valid.
@@ -215,14 +115,14 @@ class Odlc(models.Model):
             'H', 'I', 'N', 'o', 'O', 's', 'S', 'x', 'X', 'z', 'Z', '0', '8'
         ]
         rotated = {
-            Orientation.n: Orientation.s,
-            Orientation.ne: Orientation.sw,
-            Orientation.e: Orientation.w,
-            Orientation.se: Orientation.nw,
-            Orientation.s: Orientation.n,
-            Orientation.sw: Orientation.ne,
-            Orientation.w: Orientation.e,
-            Orientation.nw: Orientation.se,
+            interop_api_pb2.Odlc.N: interop_api_pb2.Odlc.S,
+            interop_api_pb2.Odlc.NE: interop_api_pb2.Odlc.SW,
+            interop_api_pb2.Odlc.E: interop_api_pb2.Odlc.W,
+            interop_api_pb2.Odlc.SE: interop_api_pb2.Odlc.NW,
+            interop_api_pb2.Odlc.S: interop_api_pb2.Odlc.N,
+            interop_api_pb2.Odlc.SW: interop_api_pb2.Odlc.NE,
+            interop_api_pb2.Odlc.W: interop_api_pb2.Odlc.E,
+            interop_api_pb2.Odlc.NW: interop_api_pb2.Odlc.SE,
         }
         if (self.alphanumeric in accepts_rotation and
                 rotated[self.orientation] == other.orientation):
@@ -243,7 +143,7 @@ class Odlc(models.Model):
             return 0
 
         # Emergent only compares descriptions.
-        if self.odlc_type == OdlcType.emergent:
+        if self.odlc_type == interop_api_pb2.Odlc.EMERGENT:
             if self.description_approved == other.description_approved:
                 return 1
             return 0
@@ -366,7 +266,7 @@ class OdlcEvaluator(object):
         # Compute values which influence score and are provided as feedback.
         if submitted.thumbnail_approved is not None:
             object_eval.image_approved = submitted.thumbnail_approved
-        if (submitted.odlc_type == OdlcType.emergent and
+        if (submitted.odlc_type == interop_api_pb2.Odlc.EMERGENT and
                 submitted.description_approved is not None):
             object_eval.description_approved = submitted.description_approved
         object_eval.classifications_ratio = real.similar_classifications_ratio(

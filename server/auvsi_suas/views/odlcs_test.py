@@ -7,12 +7,9 @@ from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_config import MissionConfig
-from auvsi_suas.models.odlc import Color
 from auvsi_suas.models.odlc import Odlc
-from auvsi_suas.models.odlc import OdlcType
-from auvsi_suas.models.odlc import Orientation
-from auvsi_suas.models.odlc import Shape
 from auvsi_suas.models.waypoint import Waypoint
+from auvsi_suas.proto import interop_api_pb2
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.images import ImageFile
@@ -103,19 +100,27 @@ class TestGetOdlc(TestOdlcsCommon):
     def test_get_odlcs(self):
         """We get back the odlcs we own."""
         t1 = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t1.save()
 
         t2 = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.off_axis)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.OFF_AXIS)
         t2.save()
 
         t3 = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.emergent)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.EMERGENT)
         t3.save()
 
         t4 = Odlc(
-            mission=self.mission2, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission2,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t4.save()
 
         response = self.client.get(odlcs_url)
@@ -165,10 +170,14 @@ class TestGetOdlc(TestOdlcsCommon):
                                          'testpass')
 
         mine = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         mine.save()
         theirs = Odlc(
-            mission=self.mission, user=user2, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=user2,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         theirs.save()
 
         response = self.client.get(odlcs_url)
@@ -500,7 +509,10 @@ class TestOdlcId(TestOdlcsCommon):
         """Test GETting a odlc owned by a different user."""
         user2 = User.objects.create_user('testuser2', 'testemail@x.com',
                                          'testpass')
-        t = Odlc(mission=self.mission, user=user2, odlc_type=OdlcType.standard)
+        t = Odlc(
+            mission=self.mission,
+            user=user2,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t.save()
 
         response = self.client.get(odlcs_id_url(args=[t.pk]))
@@ -509,7 +521,9 @@ class TestOdlcId(TestOdlcsCommon):
     def test_get_own(self):
         """Test GETting a odlc owned by the correct user."""
         t = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t.save()
 
         response = self.client.get(odlcs_id_url(args=[t.pk]))
@@ -525,7 +539,9 @@ class TestOdlcId(TestOdlcsCommon):
     def test_put_append(self):
         """PUT sets a new field that wasn't set before."""
         t = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t.save()
 
         data = {
@@ -544,7 +560,9 @@ class TestOdlcId(TestOdlcsCommon):
     def test_put_changes_last_modified(self):
         """PUT sets a new field that wasn't set before."""
         t = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t.save()
         orig_last_modified = t.last_modified_time
 
@@ -569,13 +587,13 @@ class TestOdlcId(TestOdlcsCommon):
         t = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
+            orientation=interop_api_pb2.Odlc.S,
+            shape=interop_api_pb2.Odlc.SQUARE,
+            background_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
-            alphanumeric_color=Color.black,
+            alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test odlc')
         t.save()
 
@@ -600,14 +618,14 @@ class TestOdlcId(TestOdlcsCommon):
         t.refresh_from_db()
         t.location.refresh_from_db()
         self.assertEqual(self.user, t.user)
-        self.assertEqual(OdlcType.off_axis, t.odlc_type)
+        self.assertEqual(interop_api_pb2.Odlc.OFF_AXIS, t.odlc_type)
         self.assertEqual(39, t.location.latitude)
         self.assertEqual(-77, t.location.longitude)
-        self.assertEqual(Orientation.n, t.orientation)
-        self.assertEqual(Shape.circle, t.shape)
-        self.assertEqual(Color.black, t.background_color)
+        self.assertEqual(interop_api_pb2.Odlc.N, t.orientation)
+        self.assertEqual(interop_api_pb2.Odlc.CIRCLE, t.shape)
+        self.assertEqual(interop_api_pb2.Odlc.BLACK, t.background_color)
         self.assertEqual('A', t.alphanumeric)
-        self.assertEqual(Color.green, t.alphanumeric_color)
+        self.assertEqual(interop_api_pb2.Odlc.GREEN, t.alphanumeric_color)
         self.assertEqual('Best odlc', t.description)
 
     def test_put_clear_shape(self):
@@ -618,13 +636,13 @@ class TestOdlcId(TestOdlcsCommon):
         t = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
+            orientation=interop_api_pb2.Odlc.S,
+            shape=interop_api_pb2.Odlc.SQUARE,
+            background_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
-            alphanumeric_color=Color.black,
+            alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test odlc')
         t.save()
 
@@ -639,7 +657,7 @@ class TestOdlcId(TestOdlcsCommon):
 
         t.refresh_from_db()
         self.assertEqual(self.user, t.user)
-        self.assertEqual(OdlcType.standard, t.odlc_type)
+        self.assertEqual(interop_api_pb2.Odlc.STANDARD, t.odlc_type)
         self.assertIsNone(t.location)
         self.assertIsNone(t.orientation)
         self.assertIsNone(t.shape)
@@ -651,7 +669,9 @@ class TestOdlcId(TestOdlcsCommon):
     def test_delete_own(self):
         """Test DELETEing a odlc owned by the correct user."""
         t = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t.save()
 
         pk = t.pk
@@ -668,7 +688,10 @@ class TestOdlcId(TestOdlcsCommon):
         """Test DELETEing a odlc owned by another user."""
         user2 = User.objects.create_user('testuser2', 'testemail@x.com',
                                          'testpass')
-        t = Odlc(mission=self.mission, user=user2, odlc_type=OdlcType.standard)
+        t = Odlc(
+            mission=self.mission,
+            user=user2,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t.save()
 
         response = self.client.delete(odlcs_id_url(args=[t.pk]))
@@ -677,7 +700,9 @@ class TestOdlcId(TestOdlcsCommon):
     def test_get_after_delete_own(self):
         """Test GETting a odlc after DELETE."""
         t = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t.save()
 
         pk = t.pk
@@ -691,7 +716,9 @@ class TestOdlcId(TestOdlcsCommon):
     def test_delete_thumb(self):
         """Test DELETEing a odlc with thumbnail."""
         t = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t.save()
 
         pk = t.pk
@@ -756,7 +783,10 @@ class TestOdlcIdImage(TestOdlcsCommon):
         """Test GETting a thumbnail owned by a different user."""
         user2 = User.objects.create_user('testuser2', 'testemail@x.com',
                                          'testpass')
-        t = Odlc(mission=self.mission, user=user2, odlc_type=OdlcType.standard)
+        t = Odlc(
+            mission=self.mission,
+            user=user2,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t.save()
 
         response = self.client.get(odlcs_id_image_url(args=[t.pk]))
@@ -946,7 +976,9 @@ class TestOdlcsAdminReview(TestOdlcsCommon):
     def test_get_without_thumbnail(self):
         """Test GET when there are odlcs without thumbnail."""
         odlc = Odlc(
-            mission=self.mission, user=self.team, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.team,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         odlc.save()
 
         response = self.client.get(odlcs_review_url)
@@ -957,7 +989,9 @@ class TestOdlcsAdminReview(TestOdlcsCommon):
     def test_get(self):
         """Test GET when there are odlcs."""
         odlc = Odlc(
-            mission=self.mission, user=self.team, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.team,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         odlc.save()
 
         with open(test_image('A.jpg'), 'rb') as f:
@@ -975,7 +1009,9 @@ class TestOdlcsAdminReview(TestOdlcsCommon):
     def test_put_review_no_approved(self):
         """Test PUT review with no approved field."""
         odlc = Odlc(
-            mission=self.mission, user=self.team, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.team,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         odlc.save()
 
         response = self.client.put(odlcs_review_id_url(args=[odlc.pk]))
@@ -994,7 +1030,9 @@ class TestOdlcsAdminReview(TestOdlcsCommon):
     def test_put_review(self):
         """Test PUT review is saved."""
         odlc = Odlc(
-            mission=self.mission, user=self.team, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.team,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         odlc.save()
 
         response = self.client.put(

@@ -4,14 +4,11 @@ import os.path
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_config import MissionConfig
-from auvsi_suas.models.odlc import Color
 from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.odlc import OdlcEvaluator
-from auvsi_suas.models.odlc import OdlcType
-from auvsi_suas.models.odlc import Orientation
-from auvsi_suas.models.odlc import Shape
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.waypoint import Waypoint
+from auvsi_suas.proto import interop_api_pb2
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -63,13 +60,13 @@ class TestOdlc(TestCase):
         t = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
+            orientation=interop_api_pb2.Odlc.S,
+            shape=interop_api_pb2.Odlc.SQUARE,
+            background_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
-            alphanumeric_color=Color.black,
+            alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test odlc',
             thumbnail=thumb)
         t.save()
@@ -77,13 +74,17 @@ class TestOdlc(TestCase):
     def test_null_fields(self):
         """Only user and odlc type."""
         t = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t.save()
 
     def test_creation_time(self):
         """Creation time is set on creation and doesn't change on update."""
         t = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t.save()
 
         orig = t.creation_time
@@ -97,7 +98,9 @@ class TestOdlc(TestCase):
     def test_last_modified_time(self):
         """Last modified time is set on creation and changes every update."""
         t = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t.save()
 
         orig = t.last_modified_time
@@ -116,13 +119,13 @@ class TestOdlc(TestCase):
         t1 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
+            orientation=interop_api_pb2.Odlc.S,
+            shape=interop_api_pb2.Odlc.SQUARE,
+            background_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
-            alphanumeric_color=Color.black,
+            alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test odlc',
             description_approved=True,
             autonomous=True)
@@ -130,13 +133,13 @@ class TestOdlc(TestCase):
         t2 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
+            orientation=interop_api_pb2.Odlc.S,
+            shape=interop_api_pb2.Odlc.SQUARE,
+            background_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
-            alphanumeric_color=Color.black,
+            alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test other odlc',
             description_approved=False,
             autonomous=True)
@@ -145,34 +148,34 @@ class TestOdlc(TestCase):
         # Requires exact same orientation.
         for alpha in ['A', 'a']:
             t1.alphanumeric = alpha
-            t1.orientation = Orientation.s
-            t2.orientation = Orientation.s
+            t1.orientation = interop_api_pb2.Odlc.S
+            t2.orientation = interop_api_pb2.Odlc.S
             self.assertTrue(t1.similar_orientation(t2))
-            t2.orientation = Orientation.n
+            t2.orientation = interop_api_pb2.Odlc.N
             self.assertFalse(t1.similar_orientation(t2))
-            t2.orientation = Orientation.e
+            t2.orientation = interop_api_pb2.Odlc.E
             self.assertFalse(t1.similar_orientation(t2))
 
         # Accepts rotation.
         for alpha in ['I', 'H', '8']:
             t1.alphanumeric = alpha
-            t1.orientation = Orientation.s
-            t2.orientation = Orientation.s
+            t1.orientation = interop_api_pb2.Odlc.S
+            t2.orientation = interop_api_pb2.Odlc.S
             self.assertTrue(t1.similar_orientation(t2))
-            t2.orientation = Orientation.n
+            t2.orientation = interop_api_pb2.Odlc.N
             self.assertTrue(t1.similar_orientation(t2))
-            t2.orientation = Orientation.e
+            t2.orientation = interop_api_pb2.Odlc.E
             self.assertFalse(t1.similar_orientation(t2))
 
         # Accepts any.
         for alpha in ['O', 'o', '0']:
             t1.alphanumeric = alpha
-            t1.orientation = Orientation.s
-            t2.orientation = Orientation.s
+            t1.orientation = interop_api_pb2.Odlc.S
+            t2.orientation = interop_api_pb2.Odlc.S
             self.assertTrue(t1.similar_orientation(t2))
-            t2.orientation = Orientation.n
+            t2.orientation = interop_api_pb2.Odlc.N
             self.assertTrue(t1.similar_orientation(t2))
-            t2.orientation = Orientation.e
+            t2.orientation = interop_api_pb2.Odlc.E
             self.assertTrue(t1.similar_orientation(t2))
 
     def test_similar_classifications_ratio(self):
@@ -183,13 +186,13 @@ class TestOdlc(TestCase):
         t1 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
+            orientation=interop_api_pb2.Odlc.S,
+            shape=interop_api_pb2.Odlc.SQUARE,
+            background_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
-            alphanumeric_color=Color.black,
+            alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test odlc',
             description_approved=True,
             autonomous=True)
@@ -197,13 +200,13 @@ class TestOdlc(TestCase):
         t2 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
+            orientation=interop_api_pb2.Odlc.S,
+            shape=interop_api_pb2.Odlc.SQUARE,
+            background_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
-            alphanumeric_color=Color.black,
+            alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test other odlc',
             description_approved=False,
             autonomous=True)
@@ -212,29 +215,29 @@ class TestOdlc(TestCase):
 
         # Test unequal standard odlcs.
         t1.alphanumeric = 'DEF'
-        t1.alphanumeric_color = Color.blue
+        t1.alphanumeric_color = interop_api_pb2.Odlc.BLUE
         t1.save()
         self.assertAlmostEqual(3.0 / 5.0, t1.similar_classifications_ratio(t2))
-        t1.shape = Shape.circle
-        t1.background_color = Color.orange
+        t1.shape = interop_api_pb2.Odlc.CIRCLE
+        t1.background_color = interop_api_pb2.Odlc.ORANGE
         t1.save()
         self.assertAlmostEqual(1.0 / 5.0, t1.similar_classifications_ratio(t2))
 
         # Test different types.
-        t1.odlc_type = OdlcType.off_axis
+        t1.odlc_type = interop_api_pb2.Odlc.OFF_AXIS
         t1.save()
         self.assertAlmostEqual(0, t1.similar_classifications_ratio(t2))
 
         # Test off_axis is same as standard.
-        t2.odlc_type = OdlcType.off_axis
+        t2.odlc_type = interop_api_pb2.Odlc.OFF_AXIS
         t2.alphanumeric = 'DEF'
         t2.save()
         self.assertAlmostEqual(2.0 / 5.0, t1.similar_classifications_ratio(t2))
 
         # Test emergent type based on description approval.
-        t1.odlc_type = OdlcType.emergent
+        t1.odlc_type = interop_api_pb2.Odlc.EMERGENT
         t1.save()
-        t2.odlc_type = OdlcType.emergent
+        t2.odlc_type = interop_api_pb2.Odlc.EMERGENT
         t2.save()
         self.assertAlmostEqual(0.0, t1.similar_classifications_ratio(t2))
         t2.description_approved = True
@@ -245,7 +248,9 @@ class TestOdlc(TestCase):
         """Tests actionable_submission correctly filters submissions."""
         # t1 created and updated before take off.
         t1 = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t1.save()
         t1.alphanumeric = 'A'
         t1.update_last_modified()
@@ -253,7 +258,9 @@ class TestOdlc(TestCase):
 
         # t2 created before take off and updated in flight.
         t2 = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t2.save()
 
         event = TakeoffOrLandingEvent(
@@ -266,7 +273,9 @@ class TestOdlc(TestCase):
 
         # t3 created and updated in flight.
         t3 = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t3.save()
         t3.alphanumeric = 'A'
         t3.update_last_modified()
@@ -274,7 +283,9 @@ class TestOdlc(TestCase):
 
         # t4 created in flight and updated after landing.
         t4 = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t4.save()
 
         event = TakeoffOrLandingEvent(
@@ -287,7 +298,9 @@ class TestOdlc(TestCase):
 
         # t5 created and updated after landing.
         t5 = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t5.save()
         t5.alphanumeric = 'A'
         t5.update_last_modified()
@@ -298,7 +311,9 @@ class TestOdlc(TestCase):
             user=self.user, mission=self.mission, uas_in_air=True)
         event.save()
         t6 = Odlc(
-            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
+            mission=self.mission,
+            user=self.user,
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t6.save()
         t6.alphanumeric = 'A'
         t6.update_last_modified()
@@ -317,7 +332,7 @@ class TestOdlc(TestCase):
         t7 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             actionable_override=True)
         t7.save()
 
@@ -382,13 +397,13 @@ class TestOdlcEvaluator(TestCase):
         self.submit1 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l1,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
+            orientation=interop_api_pb2.Odlc.S,
+            shape=interop_api_pb2.Odlc.SQUARE,
+            background_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
-            alphanumeric_color=Color.black,
+            alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Submit test odlc 1',
             description_approved=True,
             autonomous=True,
@@ -397,13 +412,13 @@ class TestOdlcEvaluator(TestCase):
         self.real1 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l1,
-            orientation=Orientation.s,
-            shape=Shape.square,
-            background_color=Color.white,
+            orientation=interop_api_pb2.Odlc.S,
+            shape=interop_api_pb2.Odlc.SQUARE,
+            background_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
-            alphanumeric_color=Color.black,
+            alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Real odlc 1')
         self.real1.save()
 
@@ -411,13 +426,13 @@ class TestOdlcEvaluator(TestCase):
         self.submit2 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l1,
-            orientation=Orientation.n,
-            shape=Shape.circle,
-            background_color=Color.white,
+            orientation=interop_api_pb2.Odlc.N,
+            shape=interop_api_pb2.Odlc.CIRCLE,
+            background_color=interop_api_pb2.Odlc.WHITE,
             # alphanumeric set below
-            alphanumeric_color=Color.black,
+            alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Submit test odlc 2',
             autonomous=False,
             thumbnail_approved=True)
@@ -425,13 +440,13 @@ class TestOdlcEvaluator(TestCase):
         self.real2 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l2,
-            orientation=Orientation.s,
-            shape=Shape.triangle,
-            background_color=Color.white,
+            orientation=interop_api_pb2.Odlc.S,
+            shape=interop_api_pb2.Odlc.TRIANGLE,
+            background_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
-            alphanumeric_color=Color.black,
+            alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Real test odlc 2')
         self.real2.save()
 
@@ -439,13 +454,13 @@ class TestOdlcEvaluator(TestCase):
         self.submit3 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l4,
-            orientation=Orientation.nw,
-            shape=Shape.pentagon,
-            background_color=Color.gray,
+            orientation=interop_api_pb2.Odlc.NW,
+            shape=interop_api_pb2.Odlc.PENTAGON,
+            background_color=interop_api_pb2.Odlc.GRAY,
             alphanumeric='XYZ',
-            alphanumeric_color=Color.orange,
+            alphanumeric_color=interop_api_pb2.Odlc.ORANGE,
             description='Incorrect description',
             autonomous=False,
             thumbnail_approved=True)
@@ -453,10 +468,10 @@ class TestOdlcEvaluator(TestCase):
         self.real3 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
-            orientation=Orientation.e,
-            shape=Shape.semicircle,
-            background_color=Color.yellow,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
+            orientation=interop_api_pb2.Odlc.E,
+            shape=interop_api_pb2.Odlc.SEMICIRCLE,
+            background_color=interop_api_pb2.Odlc.YELLOW,
             alphanumeric='LMN',
             # alphanumeric_color set below
             location=l3,
@@ -467,7 +482,7 @@ class TestOdlcEvaluator(TestCase):
         self.submit4 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.emergent,
+            odlc_type=interop_api_pb2.Odlc.EMERGENT,
             location=l1,
             description='Test odlc 4',
             autonomous=False,
@@ -476,7 +491,7 @@ class TestOdlcEvaluator(TestCase):
         self.real4 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.emergent,
+            odlc_type=interop_api_pb2.Odlc.EMERGENT,
             location=l1,
             description='Test odlc 4')
         self.real4.save()
@@ -485,12 +500,12 @@ class TestOdlcEvaluator(TestCase):
         self.submit5 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
-            orientation=Orientation.n,
-            shape=Shape.trapezoid,
-            background_color=Color.purple,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
+            orientation=interop_api_pb2.Odlc.N,
+            shape=interop_api_pb2.Odlc.TRAPEZOID,
+            background_color=interop_api_pb2.Odlc.PURPLE,
             alphanumeric='PQR',
-            alphanumeric_color=Color.blue,
+            alphanumeric_color=interop_api_pb2.Odlc.BLUE,
             description='Test odlc 5',
             autonomous=False,
             thumbnail_approved=True)
@@ -498,13 +513,13 @@ class TestOdlcEvaluator(TestCase):
         self.real5 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l1,
-            orientation=Orientation.n,
-            shape=Shape.trapezoid,
-            background_color=Color.purple,
+            orientation=interop_api_pb2.Odlc.N,
+            shape=interop_api_pb2.Odlc.TRAPEZOID,
+            background_color=interop_api_pb2.Odlc.PURPLE,
             alphanumeric='PQR',
-            alphanumeric_color=Color.blue,
+            alphanumeric_color=interop_api_pb2.Odlc.BLUE,
             description='Test odlc 5')
         self.real5.save()
 
@@ -512,7 +527,7 @@ class TestOdlcEvaluator(TestCase):
         self.submit6 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.emergent,
+            odlc_type=interop_api_pb2.Odlc.EMERGENT,
             location=l1,
             description='Submit test odlc 6',
             description_approved=True,
@@ -522,7 +537,7 @@ class TestOdlcEvaluator(TestCase):
         self.real6 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.emergent,
+            odlc_type=interop_api_pb2.Odlc.EMERGENT,
             location=l1,
             description='Real odlc 1',
             description_approved=True)
@@ -537,16 +552,16 @@ class TestOdlcEvaluator(TestCase):
         self.submit2.update_last_modified()
         self.submit2.save()
         self.submit2.update_last_modified()
-        self.submit3.alphanumeric_color = Color.yellow
+        self.submit3.alphanumeric_color = interop_api_pb2.Odlc.YELLOW
         self.submit3.update_last_modified()
         self.submit3.save()
         # Unused but not unmatched odlc.
         self.submit7 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=OdlcType.standard,
+            odlc_type=interop_api_pb2.Odlc.STANDARD,
             location=l4,
-            alphanumeric_color=Color.black,
+            alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Submit unused test odlc 1',
             autonomous=False,
             thumbnail_approved=True)
