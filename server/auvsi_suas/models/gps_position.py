@@ -9,13 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 class GpsPosition(models.Model):
-    """GPS position consisting of a latitude and longitude degree value.
+    """GPS position consisting of a latitude and longitude degree value."""
 
-    Attributes:
-        latitude: Latitude in degrees.
-        longitude: Longitude in degrees.
-    """
+    # Latitude in degrees.
     latitude = models.FloatField()
+    # Longitude in degrees.
     longitude = models.FloatField()
 
     def distance_to(self, other):

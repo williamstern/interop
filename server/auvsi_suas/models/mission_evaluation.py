@@ -19,17 +19,16 @@ INTEROP_TELEM_THRESHOLD_TIME_SEC = 1.0
 MISSION_TIME_WEIGHT = 0.8
 # Weight of timeline points for not taking a timeout.
 TIMEOUT_WEIGHT = 0.2
-# Max mission time.
-MISSION_MAX_TIME_SEC = 45.0 * 60.0
-# Points for flight time in mission time score.
-FLIGHT_TIME_SEC_TO_POINTS = 5.0 / 60.0
-# Points for post-processing time in mission time score.
-PROCESS_TIME_SEC_TO_POINTS = 1.0 / 60.0
-# Total points possible for mission time.
-MISSION_TIME_TOTAL_POINTS = MISSION_MAX_TIME_SEC * max(
-    FLIGHT_TIME_SEC_TO_POINTS, PROCESS_TIME_SEC_TO_POINTS)
-# Mission time points lost due for every second over time.
+# Minimum amount of flight time without losing points.
+FLIGHT_TIME_MIN_SEC = 20 * 60
+# Maximum amount of flight time allowed.
+FLIGHT_TIME_MAX_SEC = 30 * 60
+# Maximum amount of post process time allowed.
+PROCESS_TIME_MAX_SEC = 10 * 60
+# Mission time points lost due for every second over max time.
 MISSION_TIME_PENALTY_FROM_SEC = 0.03
+# Weighting of flight time relative to post process time.
+FLIGHT_TO_PROCESS_TIME_WEIGHT = 5.0
 
 # Ratio of points lost per takeover.
 AUTONOMOUS_FLIGHT_TAKEOVER = 0.10
@@ -136,16 +135,21 @@ def score_team(team_eval):
     if (feedback.HasField('uas_telemetry_time_avg_sec') and
             feedback.uas_telemetry_time_avg_sec > 0):
         telem_prereq = feedback.uas_telemetry_time_avg_sec <= INTEROP_TELEM_THRESHOLD_TIME_SEC
+
+    def points_for_time_sec(flight_sec, process_sec):
+        return FLIGHT_TO_PROCESS_TIME_WEIGHT * max(
+            0, flight_sec - FLIGHT_TIME_MIN_SEC) + process_sec
+
     # Score timeline.
     timeline = score.timeline
-    flight_points = feedback.judge.flight_time_sec * FLIGHT_TIME_SEC_TO_POINTS
-    process_points = feedback.judge.post_process_time_sec * PROCESS_TIME_SEC_TO_POINTS
-    total_time_points = max(
-        0, MISSION_TIME_TOTAL_POINTS - flight_points - process_points)
-    timeline.mission_time = total_time_points / MISSION_TIME_TOTAL_POINTS
-    total_time = feedback.judge.flight_time_sec + feedback.judge.post_process_time_sec
-    over_time = max(0, total_time - MISSION_MAX_TIME_SEC)
-    timeline.mission_penalty = over_time * MISSION_TIME_PENALTY_FROM_SEC
+    time_points = points_for_time_sec(feedback.judge.flight_time_sec,
+                                      feedback.judge.post_process_time_sec)
+    max_time_points = points_for_time_sec(FLIGHT_TIME_MAX_SEC,
+                                          PROCESS_TIME_MAX_SEC)
+    timeline.mission_time = max(0, (max_time_points - time_points) / max_time_points)
+    timeline.mission_penalty = MISSION_TIME_PENALTY_FROM_SEC * (
+        max(0, feedback.judge.flight_time_sec - FLIGHT_TIME_MAX_SEC) + max(
+            0, feedback.judge.post_process_time_sec - PROCESS_TIME_MAX_SEC))
     timeline.timeout = 0 if feedback.judge.used_timeout else 1
     timeline.score_ratio = (
         (MISSION_TIME_WEIGHT * timeline.mission_time) +

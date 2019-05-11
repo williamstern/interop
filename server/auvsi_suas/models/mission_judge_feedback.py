@@ -11,42 +11,39 @@ logger = logging.getLogger(__name__)
 
 
 class MissionJudgeFeedback(models.Model):
-    """Stores feedback from judges on a team's mission performance.
+    """Stores feedback from judges on a team's mission performance."""
 
-    Attributes:
-        mission: The mission for which this is feedback.
-        user: The user for which this is feedback.
-        flight_time: Time spent occupying runway and airspace.
-        post_process_time: Time spent handling data on mission clock.
-        used_timeout: Whether the team used their single timeout.
-        min_auto_flight_time: Whether the team had the min auto flight time.
-        safety_pilot_takeovers: The number of times the pilot took over.
-        waypoints_captured: Number of waypoints that were captured.
-        out_of_bounds: Number of times the UAS went out of bounds.
-        unsafe_out_of_bounds: Number of times out of bounds compromised safety.
-        things_fell_off_uas: Whether something fell off UAS during flight.
-        crashed: Whether the UAS crashed.
-        air_delivery_accuracy_ft: Accuracy of delivery in feet.
-        operational_excellence_percent: Grade of team performance [0, 100].
-
-    """
+    # The mission for which this is feedback.
     mission = models.ForeignKey(MissionConfig, on_delete=models.CASCADE)
+    # The user for which this is feedback.
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
+    # Time spent occupying runway and airspace.
     flight_time = models.DurationField()
+    # Time spent handling data on mission clock.
     post_process_time = models.DurationField()
+    # Whether the team used their single timeout.
     used_timeout = models.BooleanField()
 
+    # Whether the team had the min auto flight time.
     min_auto_flight_time = models.BooleanField()
+    # The number of times the pilot took over.
     safety_pilot_takeovers = models.IntegerField()
+    # Number of waypoints that were captured.
     waypoints_captured = models.IntegerField()
+    # Number of times the UAS went out of bounds.
     out_of_bounds = models.IntegerField()
+    # Number of times out of bounds compromised safety.
     unsafe_out_of_bounds = models.IntegerField()
+    # Whether something fell off UAS during flight.
     things_fell_off_uas = models.BooleanField()
+    # Whether the UAS crashed.
     crashed = models.BooleanField()
 
+    # Accuracy of delivery in feet.
     air_delivery_accuracy_ft = models.FloatField(null=True)
 
+    # Grade of team performance [0, 100].
     operational_excellence_percent = models.FloatField()
 
     class Meta:

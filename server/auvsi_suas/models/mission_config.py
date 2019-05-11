@@ -13,42 +13,39 @@ logger = logging.getLogger(__name__)
 
 
 class MissionConfig(models.Model):
-    """The details for the mission.
+    """The details for the mission."""
 
-    Attributes:
-        home_pos: The home position for use as a reference point. Should be the
-            tents.
-        fly_zones: Valid areas for the UAS to fly.
-        mission_waypoints: The waypoints that define the mission waypoint path
-        search_grid_points: The polygon that defines the search grid.
-        odlcs: The judge created objects for detection.
-        emergent_last_known_pos: The last known position of the emergent object.
-        off_axis_odlc_pos: Off-axis object position.
-        air_drop_pos: The air drop position.
-        stationary_obstacles: The stationary obstacles.
-    """
+    # The home position for use as a reference point. Should be the tents.
     home_pos = models.ForeignKey(
         GpsPosition,
         related_name="missionconfig_home_pos",
         on_delete=models.CASCADE)
+    # Valid areas for the UAS to fly.
     fly_zones = models.ManyToManyField(FlyZone)
+    # The waypoints that define the mission waypoint path
     mission_waypoints = models.ManyToManyField(
         Waypoint, related_name='missionconfig_mission_waypoints')
+    # The polygon that defines the search grid.
     search_grid_points = models.ManyToManyField(
         Waypoint, related_name='missionconfig_search_grid_points')
+    # The judge created objects for detection.
     odlcs = models.ManyToManyField(Odlc, related_name='missionconfig_odlc')
+    # The last known position of the emergent object.
     emergent_last_known_pos = models.ForeignKey(
         GpsPosition,
         related_name='missionconfig_emergent_last_known_pos',
         on_delete=models.CASCADE)
+    # Off-axis object position.
     off_axis_odlc_pos = models.ForeignKey(
         GpsPosition,
         related_name='missionconfig_off_axis_odlc_pos',
         on_delete=models.CASCADE)
+    # The air drop position.
     air_drop_pos = models.ForeignKey(
         GpsPosition,
         related_name='missionconfig_air_drop_pos',
         on_delete=models.CASCADE)
+    # The stationary obstacles.
     stationary_obstacles = models.ManyToManyField(StationaryObstacle)
 
     def __str__(self):

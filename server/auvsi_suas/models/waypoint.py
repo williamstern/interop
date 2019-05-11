@@ -9,14 +9,11 @@ logger = logging.getLogger(__name__)
 
 
 class Waypoint(models.Model):
-    """A waypoint consists of an aerial position and its order in a set.
+    """A waypoint consists of an aerial position and its order in a set."""
 
-    Attributes:
-        position: Aerial position.
-        order: Waypoint relative order number. Should be unique per waypoint
-            set.
-    """
+    # Aerial position.
     position = models.ForeignKey(AerialPosition, on_delete=models.CASCADE)
+    # Waypoint relative order number. Should be unique per waypoint set.
     order = models.IntegerField(db_index=True)
 
     def distance_to(self, other):
