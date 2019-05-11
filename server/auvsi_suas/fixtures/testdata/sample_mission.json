@@ -490,6 +490,31 @@
 {
     "fields": {
         "stationary_obstacles": [
+            25
+        ],
+        "fly_zones": [
+            22
+        ],
+        "off_axis_odlc_pos": 324,
+        "mission_waypoints": [
+            155
+        ],
+        "emergent_last_known_pos": 324,
+        "search_grid_points": [
+            150
+        ],
+        "odlcs": [
+            1
+        ],
+        "home_pos": 324,
+        "air_drop_pos": 324
+    },
+    "model": "auvsi_suas.missionconfig",
+    "pk": 4
+},
+{
+    "fields": {
+        "stationary_obstacles": [
             25,
             26
         ],
@@ -665,7 +690,8 @@
         "autonomous": false,
         "background_color": 2,
         "thumbnail": "",
-        "user": 55
+        "user": 55,
+        "mission": 3
     },
     "model": "auvsi_suas.odlc",
     "pk": 1
@@ -685,7 +711,8 @@
         "autonomous": false,
         "background_color": 1,
         "thumbnail": "",
-        "user": 55
+        "user": 55,
+        "mission": 3
     },
     "model": "auvsi_suas.odlc",
     "pk": 2
@@ -705,7 +732,8 @@
         "autonomous": false,
         "background_color": null,
         "thumbnail": "",
-        "user": 55
+        "user": 55,
+        "mission": 3
     },
     "model": "auvsi_suas.odlc",
     "pk": 3
@@ -725,7 +753,8 @@
         "autonomous": true,
         "background_color": 2,
         "thumbnail": "",
-        "user": 53
+        "user": 53,
+        "mission": 3
     },
     "model": "auvsi_suas.odlc",
     "pk": 4
@@ -745,7 +774,8 @@
         "autonomous": false,
         "background_color": 1,
         "thumbnail": "",
-        "user": 53
+        "user": 53,
+        "mission": 3
     },
     "model": "auvsi_suas.odlc",
     "pk": 5
@@ -765,10 +795,32 @@
         "autonomous": false,
         "background_color": null,
         "thumbnail": "",
-        "user": 53
+        "user": 53,
+        "mission": 3
     },
     "model": "auvsi_suas.odlc",
     "pk": 6
+},
+{
+    "fields": {
+        "orientation": null,
+        "alphanumeric_color": null,
+        "thumbnail_approved": true,
+        "description": "Different mission",
+        "creation_time": "1970-01-01T00:00:00.100Z",
+        "odlc_type": 3,
+        "alphanumeric": "",
+        "shape": null,
+        "location": 337,
+        "last_modified_time": "1970-01-01T00:00:05.000Z",
+        "autonomous": false,
+        "background_color": null,
+        "thumbnail": "",
+        "user": 53,
+        "mission": 4
+    },
+    "model": "auvsi_suas.odlc",
+    "pk": 7
 },
 {
     "fields": {

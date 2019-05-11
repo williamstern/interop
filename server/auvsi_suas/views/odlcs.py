@@ -30,6 +30,7 @@ def odlc_to_proto(odlc):
     """Converts an ODLC into protobuf format."""
     odlc_proto = interop_api_pb2.Odlc()
     odlc_proto.id = odlc.pk
+    odlc_proto.mission = odlc.mission.pk
     odlc_proto.type = odlc.odlc_type
     if odlc.location is not None:
         odlc_proto.latitude = odlc.location.latitude
@@ -52,6 +53,9 @@ def odlc_to_proto(odlc):
 
 def validate_odlc_proto(odlc_proto):
     """Validates ODLC proto, raising ValueError if invalid."""
+    if not odlc_proto.HasField('mission'):
+        raise ValueError('ODLC mission is required.')
+
     if not odlc_proto.HasField('type'):
         raise ValueError('ODLC type is required.')
 
@@ -71,6 +75,7 @@ def validate_odlc_proto(odlc_proto):
 
 def update_odlc_from_proto(odlc, odlc_proto):
     """Sets fields of the ODLC from the proto format."""
+    odlc.mission_id = odlc_proto.mission
     odlc.odlc_type = odlc_proto.type
 
     if odlc_proto.HasField('latitude') and odlc_proto.HasField('longitude'):
@@ -132,8 +137,17 @@ class Odlcs(View):
         return super(Odlcs, self).dispatch(*args, **kwargs)
 
     def get(self, request):
+        # Restrict ODLCs to those for user, and optionally a mission.
+        odlcs = Odlc.objects.filter(user=request.user)
+        if 'mission' in request.GET:
+            try:
+                mission_id = int(request.GET['mission'])
+            except:
+                return HttpResponseBadRequest('Provided invalid mission ID.')
+            odlcs = odlcs.filter(mission=mission_id)
+
         # Limit serving to 100 odlcs to prevent slowdown and isolation problems.
-        odlcs = Odlc.objects.filter(user=request.user).all()[:100]
+        odlcs = odlcs.all()[:100]
 
         odlc_protos = [odlc_to_proto(o) for o in odlcs]
         return HttpResponse(

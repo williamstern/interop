@@ -38,6 +38,11 @@ class TestOdlcs(InteropCliTestBase):
         super(TestOdlcs, self).setUp()
         self.odlc_dir = os.path.join(os.path.dirname(__file__), "testdata")
 
+    def test_get_odlcs(self):
+        """Test getting odlcs."""
+        self.assertCliOk(self.cli_base_args + ['odlcs'])
+        self.assertCliOk(self.cli_base_args + ['odlcs', '--mission_id', '1'])
+
     def test_upload_odlcs(self):
         """Test uploading odlcs with Object File Format."""
         self.assertCliOk(self.cli_base_args +

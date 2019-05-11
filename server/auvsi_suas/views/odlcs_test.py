@@ -3,12 +3,16 @@
 import functools
 import json
 import os.path
+from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.odlc import Color
-from auvsi_suas.models.odlc import Orientation
-from auvsi_suas.models.odlc import Shape
 from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.odlc import OdlcType
+from auvsi_suas.models.odlc import Orientation
+from auvsi_suas.models.odlc import Shape
+from auvsi_suas.models.waypoint import Waypoint
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.images import ImageFile
@@ -22,12 +26,51 @@ odlcs_review_url = reverse('auvsi_suas:odlcs_review')
 odlcs_review_id_url = functools.partial(reverse, 'auvsi_suas:odlcs_review_id')
 
 
-class TestOdlcsLoggedOut(TestCase):
+class TestOdlcsCommon(TestCase):
+    """Common functionality for ODLC tests."""
+
+    def setUp(self):
+        # Mission
+        pos = GpsPosition()
+        pos.latitude = 10
+        pos.longitude = 100
+        pos.save()
+        apos = AerialPosition()
+        apos.altitude_msl = 1000
+        apos.gps_position = pos
+        apos.save()
+        wpt = Waypoint()
+        wpt.position = apos
+        wpt.order = 10
+        wpt.save()
+        self.mission = MissionConfig()
+        self.mission.home_pos = pos
+        self.mission.emergent_last_known_pos = pos
+        self.mission.off_axis_odlc_pos = pos
+        self.mission.air_drop_pos = pos
+        self.mission.save()
+        self.mission.mission_waypoints.add(wpt)
+        self.mission.search_grid_points.add(wpt)
+        self.mission.save()
+        # Mission 2
+        self.mission2 = MissionConfig()
+        self.mission2.home_pos = pos
+        self.mission2.emergent_last_known_pos = pos
+        self.mission2.off_axis_odlc_pos = pos
+        self.mission2.air_drop_pos = pos
+        self.mission2.save()
+        self.mission2.mission_waypoints.add(wpt)
+        self.mission2.search_grid_points.add(wpt)
+        self.mission2.save()
+
+
+class TestOdlcsLoggedOut(TestOdlcsCommon):
     """Tests logged out odlcs."""
 
     def test_not_authenticated(self):
         """Unauthenticated requests should fail."""
         odlc = {
+            'mission': self.mission.pk,
             'type': 'STANDARD',
             'latitude': 38,
             'longitude': -76,
@@ -41,11 +84,12 @@ class TestOdlcsLoggedOut(TestCase):
         self.assertEqual(403, response.status_code)
 
 
-class TestGetOdlc(TestCase):
+class TestGetOdlc(TestOdlcsCommon):
     """Tests GETing the odlcs view."""
 
     def setUp(self):
         """Creates user and logs in."""
+        super(TestGetOdlc, self).setUp()
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
         self.client.force_login(self.user)
@@ -58,30 +102,58 @@ class TestGetOdlc(TestCase):
 
     def test_get_odlcs(self):
         """We get back the odlcs we own."""
-        t1 = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t1 = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t1.save()
 
-        t2 = Odlc(user=self.user, odlc_type=OdlcType.off_axis)
+        t2 = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.off_axis)
         t2.save()
 
-        t3 = Odlc(user=self.user, odlc_type=OdlcType.emergent)
+        t3 = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.emergent)
         t3.save()
+
+        t4 = Odlc(
+            mission=self.mission2, user=self.user, odlc_type=OdlcType.standard)
+        t4.save()
 
         response = self.client.get(odlcs_url)
         self.assertEqual(200, response.status_code)
         self.assertEqual([
             {
+                'id': t4.pk,
+                'mission': self.mission2.pk,
+                'type': 'STANDARD',
+                'autonomous': False,
+            },
+            {
                 'id': t3.pk,
+                'mission': self.mission.pk,
                 'type': 'EMERGENT',
                 'autonomous': False,
             },
             {
                 'id': t2.pk,
+                'mission': self.mission.pk,
                 'type': 'OFF_AXIS',
                 'autonomous': False,
             },
             {
                 'id': t1.pk,
+                'mission': self.mission.pk,
+                'type': 'STANDARD',
+                'autonomous': False,
+            },
+        ], json.loads(response.content))
+
+        response = self.client.get(odlcs_url +
+                                   '?mission=%d' % self.mission2.pk)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual([
+            {
+                'id': t4.pk,
+                'mission': self.mission2.pk,
                 'type': 'STANDARD',
                 'autonomous': False,
             },
@@ -92,9 +164,11 @@ class TestGetOdlc(TestCase):
         user2 = User.objects.create_user('testuser2', 'testemail@x.com',
                                          'testpass')
 
-        mine = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        mine = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         mine.save()
-        theirs = Odlc(user=user2, odlc_type=OdlcType.standard)
+        theirs = Odlc(
+            mission=self.mission, user=user2, odlc_type=OdlcType.standard)
         theirs.save()
 
         response = self.client.get(odlcs_url)
@@ -102,17 +176,19 @@ class TestGetOdlc(TestCase):
         self.assertEqual([
             {
                 'id': mine.pk,
+                'mission': self.mission.pk,
                 'type': 'STANDARD',
                 'autonomous': False,
             },
         ], json.loads(response.content))
 
 
-class TestPostOdlc(TestCase):
+class TestPostOdlc(TestOdlcsCommon):
     """Tests POSTing the odlcs view."""
 
     def setUp(self):
         """Creates user and logs in."""
+        super(TestPostOdlc, self).setUp()
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
         self.user.save()
@@ -121,6 +197,7 @@ class TestPostOdlc(TestCase):
     def test_complete(self):
         """Send complete odlc with all fields."""
         odlc = {
+            'mission': self.mission.pk,
             'type': 'STANDARD',
             'latitude': 38,
             'longitude': -76,
@@ -141,6 +218,8 @@ class TestPostOdlc(TestCase):
         created = json.loads(response.content)
 
         self.assertIn('id', created)
+        self.assertIn('mission', created)
+        self.assertEqual(self.mission.pk, created['mission'])
         self.assertEqual(odlc['type'], created['type'])
         self.assertEqual(odlc['latitude'], created['latitude'])
         self.assertEqual(odlc['longitude'], created['longitude'])
@@ -155,7 +234,10 @@ class TestPostOdlc(TestCase):
 
     def test_minimal(self):
         """Send odlc minimal fields."""
-        odlc = {'type': 'STANDARD'}
+        odlc = {
+            'mission': self.mission.pk,
+            'type': 'STANDARD',
+        }
 
         response = self.client.post(
             odlcs_url, data=json.dumps(odlc), content_type='application/json')
@@ -179,6 +261,7 @@ class TestPostOdlc(TestCase):
     def test_missing_type(self):
         """Odlc type required."""
         odlc = {
+            'mission': self.mission.pk,
             'latitude': 38,
             'longitude': -76,
             'orientation': 'N',
@@ -203,7 +286,11 @@ class TestPostOdlc(TestCase):
 
     def test_missing_latitude(self):
         """Odlc latitude required if longitude specified."""
-        odlc = {'type': 'STANDARD', 'longitude': -76}
+        odlc = {
+            'mission': self.mission.pk,
+            'type': 'STANDARD',
+            'longitude': -76
+        }
 
         response = self.client.post(
             odlcs_url, data=json.dumps(odlc), content_type='application/json')
@@ -222,7 +309,12 @@ class TestPostOdlc(TestCase):
         bad = ['foo', 'STANDARD nonsense', 42]
 
         for b in bad:
-            odlc = {'type': b, 'latitude': 38, 'longitude': -76}
+            odlc = {
+                'mission': self.mission.pk,
+                'type': b,
+                'latitude': 38,
+                'longitude': -76
+            }
 
             response = self.client.post(
                 odlcs_url,
@@ -235,7 +327,12 @@ class TestPostOdlc(TestCase):
         bad = ['string', 120, -120]
 
         for b in bad:
-            odlc = {'type': 'STANDARD', 'latitude': b, 'longitude': -76}
+            odlc = {
+                'mission': self.mission.pk,
+                'type': 'STANDARD',
+                'latitude': b,
+                'longitude': -76
+            }
 
             response = self.client.post(
                 odlcs_url,
@@ -248,7 +345,12 @@ class TestPostOdlc(TestCase):
         bad = ['string', 200, -200]
 
         for b in bad:
-            odlc = {'type': 'STANDARD', 'latitude': 38, 'longitude': b}
+            odlc = {
+                'mission': self.mission.pk,
+                'type': 'STANDARD',
+                'latitude': 38,
+                'longitude': b
+            }
 
             response = self.client.post(
                 odlcs_url,
@@ -262,6 +364,7 @@ class TestPostOdlc(TestCase):
 
         for b in bad:
             odlc = {
+                'mission': self.mission.pk,
                 'type': 'STANDARD',
                 'shape': b,
             }
@@ -278,6 +381,7 @@ class TestPostOdlc(TestCase):
 
         for b in bad:
             odlc = {
+                'mission': self.mission.pk,
                 'type': 'STANDARD',
                 'shapeColor': b,
             }
@@ -294,6 +398,7 @@ class TestPostOdlc(TestCase):
 
         for b in bad:
             odlc = {
+                'mission': self.mission.pk,
                 'type': 'STANDARD',
                 'alphanumericColor': b,
             }
@@ -310,6 +415,7 @@ class TestPostOdlc(TestCase):
 
         for b in bad:
             odlc = {
+                'mission': self.mission.pk,
                 'type': 'STANDARD',
                 'orientation': b,
             }
@@ -326,6 +432,7 @@ class TestPostOdlc(TestCase):
 
         for b in bad:
             odlc = {
+                'mission': self.mission.pk,
                 'type': 'STANDARD',
                 'autonomous': b,
             }
@@ -337,7 +444,7 @@ class TestPostOdlc(TestCase):
             self.assertEqual(400, response.status_code)
 
 
-class TestOdlcsIdLoggedOut(TestCase):
+class TestOdlcsIdLoggedOut(TestOdlcsCommon):
     """Tests logged out odlcs_id."""
 
     def test_not_authenticated(self):
@@ -346,11 +453,12 @@ class TestOdlcsIdLoggedOut(TestCase):
         self.assertEqual(403, response.status_code)
 
 
-class TestOdlcId(TestCase):
+class TestOdlcId(TestOdlcsCommon):
     """Tests GET/PUT/DELETE specific odlcs."""
 
     def setUp(self):
         """Creates user and logs in."""
+        super(TestOdlcId, self).setUp()
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
         self.client.force_login(self.user)
@@ -364,7 +472,7 @@ class TestOdlcId(TestCase):
         """Test GETting a odlc owned by a different user."""
         user2 = User.objects.create_user('testuser2', 'testemail@x.com',
                                          'testpass')
-        t = Odlc(user=user2, odlc_type=OdlcType.standard)
+        t = Odlc(mission=self.mission, user=user2, odlc_type=OdlcType.standard)
         t.save()
 
         response = self.client.get(odlcs_id_url(args=[t.pk]))
@@ -372,13 +480,15 @@ class TestOdlcId(TestCase):
 
     def test_get_own(self):
         """Test GETting a odlc owned by the correct user."""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         response = self.client.get(odlcs_id_url(args=[t.pk]))
         self.assertEqual(200, response.status_code)
 
         self.assertEqual({
+            'mission': self.mission.pk,
             'id': t.pk,
             'type': 'STANDARD',
             'autonomous': False,
@@ -386,10 +496,15 @@ class TestOdlcId(TestCase):
 
     def test_put_append(self):
         """PUT sets a new field that wasn't set before."""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
-        data = {'type': 'STANDARD', 'description': 'Hello'}
+        data = {
+            'mission': self.mission.pk,
+            'type': 'STANDARD',
+            'description': 'Hello'
+        }
 
         response = self.client.put(
             odlcs_id_url(args=[t.pk]), data=json.dumps(data))
@@ -400,11 +515,16 @@ class TestOdlcId(TestCase):
 
     def test_put_changes_last_modified(self):
         """PUT sets a new field that wasn't set before."""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t.save()
         orig_last_modified = t.last_modified_time
 
-        data = {'type': 'STANDARD', 'description': 'Hello'}
+        data = {
+            'mission': self.mission.pk,
+            'type': 'STANDARD',
+            'description': 'Hello'
+        }
 
         response = self.client.put(
             odlcs_id_url(args=[t.pk]), data=json.dumps(data))
@@ -419,6 +539,7 @@ class TestOdlcId(TestCase):
         l.save()
 
         t = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l,
@@ -431,6 +552,7 @@ class TestOdlcId(TestCase):
         t.save()
 
         updated = {
+            'mission': self.mission.pk,
             'type': 'OFF_AXIS',
             'latitude': 39,
             'longitude': -77,
@@ -466,6 +588,7 @@ class TestOdlcId(TestCase):
         l.save()
 
         t = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l,
@@ -478,6 +601,7 @@ class TestOdlcId(TestCase):
         t.save()
 
         updated = {
+            'mission': self.mission.pk,
             'type': 'STANDARD',
         }
 
@@ -498,7 +622,8 @@ class TestOdlcId(TestCase):
 
     def test_delete_own(self):
         """Test DELETEing a odlc owned by the correct user."""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         pk = t.pk
@@ -515,7 +640,7 @@ class TestOdlcId(TestCase):
         """Test DELETEing a odlc owned by another user."""
         user2 = User.objects.create_user('testuser2', 'testemail@x.com',
                                          'testpass')
-        t = Odlc(user=user2, odlc_type=OdlcType.standard)
+        t = Odlc(mission=self.mission, user=user2, odlc_type=OdlcType.standard)
         t.save()
 
         response = self.client.delete(odlcs_id_url(args=[t.pk]))
@@ -523,7 +648,8 @@ class TestOdlcId(TestCase):
 
     def test_get_after_delete_own(self):
         """Test GETting a odlc after DELETE."""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         pk = t.pk
@@ -536,7 +662,8 @@ class TestOdlcId(TestCase):
 
     def test_delete_thumb(self):
         """Test DELETEing a odlc with thumbnail."""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         pk = t.pk
@@ -564,11 +691,12 @@ def test_image(name):
                         name)
 
 
-class TestOdlcIdImage(TestCase):
+class TestOdlcIdImage(TestOdlcsCommon):
     """Tests GET/PUT/DELETE odlc image."""
 
     def setUp(self):
         """Creates user and logs in."""
+        super(TestOdlcIdImage, self).setUp()
         self.user = User.objects.create_user('testuser', 'testemail@x.com',
                                              'testpass')
         self.client.force_login(self.user)
@@ -577,6 +705,7 @@ class TestOdlcIdImage(TestCase):
         response = self.client.post(
             odlcs_url,
             data=json.dumps({
+                'mission': self.mission.pk,
                 'type': 'STANDARD'
             }),
             content_type='application/json')
@@ -599,7 +728,7 @@ class TestOdlcIdImage(TestCase):
         """Test GETting a thumbnail owned by a different user."""
         user2 = User.objects.create_user('testuser2', 'testemail@x.com',
                                          'testpass')
-        t = Odlc(user=user2, odlc_type=OdlcType.standard)
+        t = Odlc(mission=self.mission, user=user2, odlc_type=OdlcType.standard)
         t.save()
 
         response = self.client.get(odlcs_id_image_url(args=[t.pk]))
@@ -744,7 +873,7 @@ class TestOdlcIdImage(TestCase):
         self.assertEqual(404, response.status_code)
 
 
-class TestOdlcsAdminReviewNotAdmin(TestCase):
+class TestOdlcsAdminReviewNotAdmin(TestOdlcsCommon):
     """Tests admin review when not logged in as admin."""
 
     def test_not_authenticated(self):
@@ -768,11 +897,12 @@ class TestOdlcsAdminReviewNotAdmin(TestCase):
         self.assertEqual(403, response.status_code)
 
 
-class TestOdlcsAdminReview(TestCase):
+class TestOdlcsAdminReview(TestOdlcsCommon):
     """Tests GET/PUT admin review of odlcs."""
 
     def setUp(self):
         """Creates user and logs in."""
+        super(TestOdlcsAdminReview, self).setUp()
         self.user = User.objects.create_superuser(
             'testuser', 'testemail@x.com', 'testpass')
         self.team = User.objects.create_user('testuser2', 'testemail@x.com',
@@ -787,7 +917,8 @@ class TestOdlcsAdminReview(TestCase):
 
     def test_get_without_thumbnail(self):
         """Test GET when there are odlcs without thumbnail."""
-        odlc = Odlc(user=self.team, odlc_type=OdlcType.standard)
+        odlc = Odlc(
+            mission=self.mission, user=self.team, odlc_type=OdlcType.standard)
         odlc.save()
 
         response = self.client.get(odlcs_review_url)
@@ -797,7 +928,8 @@ class TestOdlcsAdminReview(TestCase):
 
     def test_get(self):
         """Test GET when there are odlcs."""
-        odlc = Odlc(user=self.team, odlc_type=OdlcType.standard)
+        odlc = Odlc(
+            mission=self.mission, user=self.team, odlc_type=OdlcType.standard)
         odlc.save()
 
         with open(test_image('A.jpg'), 'rb') as f:
@@ -814,7 +946,8 @@ class TestOdlcsAdminReview(TestCase):
 
     def test_put_review_no_approved(self):
         """Test PUT review with no approved field."""
-        odlc = Odlc(user=self.team, odlc_type=OdlcType.standard)
+        odlc = Odlc(
+            mission=self.mission, user=self.team, odlc_type=OdlcType.standard)
         odlc.save()
 
         response = self.client.put(odlcs_review_id_url(args=[odlc.pk]))
@@ -832,7 +965,8 @@ class TestOdlcsAdminReview(TestCase):
 
     def test_put_review(self):
         """Test PUT review is saved."""
-        odlc = Odlc(user=self.team, odlc_type=OdlcType.standard)
+        odlc = Odlc(
+            mission=self.mission, user=self.team, odlc_type=OdlcType.standard)
         odlc.save()
 
         response = self.client.put(

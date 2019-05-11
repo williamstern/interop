@@ -27,7 +27,7 @@ def odlcs(args, client):
     if args.odlc_dir:
         upload_odlcs(client, args.odlc_dir)
     else:
-        odlcs = client.get_odlcs().result()
+        odlcs = client.get_odlcs(args.mission_id).result()
         for odlc in odlcs:
             print(json_format.MessageToJson(odlc))
 
@@ -104,6 +104,11 @@ There is no deduplication logic. Odlcs will be uploaded multiple times, as
 unique odlcs, if the tool is run multiple times.''',
         formatter_class=argparse.RawDescriptionHelpFormatter)
     subparser.set_defaults(func=odlcs)
+    subparser.add_argument(
+        '--mission_id',
+        type=int,
+        help='Mission ID to restrict ODLCs retrieved.',
+        default=None)
     subparser.add_argument(
         '--odlc_dir',
         help='Enables odlc upload. Directory containing odlc data.')

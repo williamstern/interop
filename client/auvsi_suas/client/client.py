@@ -144,9 +144,11 @@ class Client(object):
         """
         self.post('/api/telemetry', data=json_format.MessageToJson(telem))
 
-    def get_odlcs(self):
+    def get_odlcs(self, mission=None):
         """GET odlcs.
 
+        Args:
+            mission: Optional. ID of a mission to restrict by.
         Returns:
             List of Odlc objects which are viewable by user.
         Raises:
@@ -154,7 +156,10 @@ class Client(object):
             requests.Timeout: Request timeout.
             ValueError or AttributeError: Malformed response from server.
         """
-        r = self.get('/api/odlcs')
+        url = '/api/odlcs'
+        if mission:
+            url += '?mission=%d' % mission
+        r = self.get(url)
         odlcs = []
         for odlc_dict in r.json():
             odlc_proto = interop_api_pb2.Odlc()
@@ -331,14 +336,16 @@ class AsyncClient(object):
         """
         return self.executor.submit(self.client.post_telemetry, telem)
 
-    def get_odlcs(self):
+    def get_odlcs(self, mission=None):
         """GET odlcs.
 
+        Args:
+            mission: Optional. ID of a mission to restrict by.
         Returns:
             Future object which contains the return value or error from the
             underlying Client.
         """
-        return self.executor.submit(self.client.get_odlcs)
+        return self.executor.submit(self.client.get_odlcs, mission)
 
     def get_odlc(self, odlc_id):
         """GET odlc.

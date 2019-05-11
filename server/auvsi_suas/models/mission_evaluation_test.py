@@ -247,7 +247,7 @@ class TestMissionEvaluation(TestCase):
         """Tests the evaluation of teams method."""
         user0 = User.objects.get(username='user0')
         user1 = User.objects.get(username='user1')
-        config = mission_config.MissionConfig.objects.get()
+        config = mission_config.MissionConfig.objects.get(pk=3)
 
         mission_eval = mission_evaluation.evaluate_teams(config)
 
@@ -362,7 +362,7 @@ class TestMissionEvaluation(TestCase):
         """Tests the evaluation of teams method with specific users."""
         user0 = User.objects.get(username='user0')
         user1 = User.objects.get(username='user1')
-        config = mission_config.MissionConfig.objects.get()
+        config = mission_config.MissionConfig.objects.get(pk=3)
 
         mission_eval = mission_evaluation.evaluate_teams(config, [user0])
 
