@@ -403,6 +403,23 @@ class TestPostOdlc(TestOdlcsCommon):
                 content_type='application/json')
             self.assertEqual(400, response.status_code)
 
+    def test_invalid_alphanumeric(self):
+        """Send bad alphanumerics."""
+        bad = ['a', '10', 'AA']
+
+        for b in bad:
+            odlc = {
+                'mission': self.mission.pk,
+                'type': 'STANDARD',
+                'alphanumeric': b,
+            }
+
+            response = self.client.post(
+                odlcs_url,
+                data=json.dumps(odlc),
+                content_type='application/json')
+            self.assertEqual(400, response.status_code)
+
     def test_invalid_alphanumeric_color(self):
         """Send bad odlc alphanumeric color."""
         bad = ['white black', 'mahogany', 42]
