@@ -6,6 +6,7 @@ import logging
 import os
 import os.path
 from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.proto import interop_admin_api_pb2
 from auvsi_suas.proto import interop_api_pb2
@@ -55,6 +56,11 @@ def validate_odlc_proto(odlc_proto):
     """Validates ODLC proto, raising ValueError if invalid."""
     if not odlc_proto.HasField('mission'):
         raise ValueError('ODLC mission is required.')
+
+    try:
+        MissionConfig.objects.get(pk=odlc_proto.mission)
+    except MissionConfig.DoesNotExist:
+        raise ValueError('Mission for ODLC does not exist.')
 
     if not odlc_proto.HasField('type'):
         raise ValueError('ODLC type is required.')
