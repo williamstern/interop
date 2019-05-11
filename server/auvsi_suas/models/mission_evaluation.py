@@ -45,15 +45,24 @@ WAYPOINT_CAPTURE_WEIGHT = 0.1
 # Weight of accuracy points to all autonomous flight.
 WAYPOINT_ACCURACY_WEIGHT = 0.5
 
-# Air delivery accuracy threshold.
-AIR_DELIVERY_THRESHOLD_FT = 150.0
+# Weight of air drop points for accuracy.
+AIR_DROP_ACCURACY_WEIGHT = 0.5
+# Weight of air drop points for UGV driving to location.
+AIR_DROP_DRIVE_WEIGHT = 0.5
+# Air drop to point ratio.
+AIR_DROP_DISTANCE_POINT_RATIO = {
+    interop_admin_api_pb2.MissionJudgeFeedback.INSUFFICIENT_ACCURACY: 0,
+    interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_05_FT: 1,
+    interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_25_FT: 0.5,
+    interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_75_FT: 0.25,
+}
 
 # Scoring weights.
 TIMELINE_WEIGHT = 0.1
 AUTONOMOUS_WEIGHT = 0.2
 OBSTACLE_WEIGHT = 0.2
 OBJECT_WEIGHT = 0.2
-AIR_DELIVERY_WEIGHT = 0.2
+AIR_DROP_WEIGHT = 0.2
 OPERATIONAL_WEIGHT = 0.1
 
 
@@ -215,12 +224,13 @@ def score_team(team_eval):
     objects.extra_object_penalty = object_eval.extra_object_penalty_ratio
     objects.score_ratio = object_eval.score_ratio
 
-    # Score air delivery.
-    air = score.air_delivery
-    air.delivery_accuracy = feedback.judge.air_delivery_accuracy_ft
-    air.score_ratio = max(0,
-                          (AIR_DELIVERY_THRESHOLD_FT - air.delivery_accuracy) /
-                          AIR_DELIVERY_THRESHOLD_FT)
+    # Score air drop.
+    air = score.air_drop
+    air.drop_accuracy = AIR_DROP_DISTANCE_POINT_RATIO[
+        feedback.judge.air_drop_accuracy]
+    air.drive_to_location = 1 if feedback.judge.ugv_drove_to_location else 0
+    air.score_ratio = (AIR_DROP_ACCURACY_WEIGHT * air.drop_accuracy +
+                       AIR_DROP_DRIVE_WEIGHT * air.drive_to_location)
 
     # Score operational excellence.
     score.operational_excellence.score_ratio = (
@@ -233,7 +243,7 @@ def score_team(team_eval):
             AUTONOMOUS_WEIGHT * score.autonomous_flight.score_ratio +
             OBSTACLE_WEIGHT * score.obstacle_avoidance.score_ratio +
             OBJECT_WEIGHT * score.object.score_ratio +
-            AIR_DELIVERY_WEIGHT * score.air_delivery.score_ratio +
+            AIR_DROP_WEIGHT * score.air_drop.score_ratio +
             OPERATIONAL_WEIGHT * score.operational_excellence.score_ratio)
     else:
         team_eval.warnings.append(
