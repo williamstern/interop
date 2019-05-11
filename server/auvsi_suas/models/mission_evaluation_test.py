@@ -61,18 +61,46 @@ class TestMissionScoring(TestCase):
         timeline = self.eval.score.timeline
 
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(0.84888889, timeline.mission_time)
+        self.assertAlmostEqual(0.93333333, timeline.mission_time)
         self.assertAlmostEqual(0, timeline.mission_penalty)
         self.assertAlmostEqual(0, timeline.timeout)
-        self.assertAlmostEqual(0.67911111, timeline.score_ratio)
+        self.assertAlmostEqual(0.74666666666, timeline.score_ratio)
 
-        judge.flight_time_sec = 60 * 50
+        judge.flight_time_sec = 60 * 20
+        judge.post_process_time_sec = 0
         judge.used_timeout = False
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(0.0, timeline.mission_time)
-        self.assertAlmostEqual(16.2, timeline.mission_penalty)
+        self.assertAlmostEqual(1, timeline.mission_time)
+        self.assertAlmostEqual(0, timeline.mission_penalty)
         self.assertAlmostEqual(1, timeline.timeout)
-        self.assertAlmostEqual(-16, timeline.score_ratio)
+        self.assertAlmostEqual(1, timeline.score_ratio)
+
+        judge.flight_time_sec = 60 * 25
+        judge.post_process_time_sec = 60 * 5
+        judge.used_timeout = True
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(0.5, timeline.mission_time)
+        self.assertAlmostEqual(0, timeline.mission_penalty)
+        self.assertAlmostEqual(0, timeline.timeout)
+        self.assertAlmostEqual(0.4, timeline.score_ratio)
+
+        judge.flight_time_sec = 60 * 30
+        judge.post_process_time_sec = 60 * 10
+        judge.used_timeout = True
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(0, timeline.mission_time)
+        self.assertAlmostEqual(0, timeline.mission_penalty)
+        self.assertAlmostEqual(0, timeline.timeout)
+        self.assertAlmostEqual(0, timeline.score_ratio)
+
+        judge.flight_time_sec = 60 * 35
+        judge.post_process_time_sec = 60 * 20
+        judge.used_timeout = True
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(0, timeline.mission_time)
+        self.assertAlmostEqual(27, timeline.mission_penalty)
+        self.assertAlmostEqual(0, timeline.timeout)
+        self.assertAlmostEqual(-27, timeline.score_ratio)
 
     def test_autonomous_flight(self):
         """Test the autonomous flight scoring."""
@@ -195,7 +223,7 @@ class TestMissionScoring(TestCase):
     def test_total(self):
         """Test the total scoring."""
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(0.3940777777777778, self.eval.score.score_ratio)
+        self.assertAlmostEqual(0.4008333333333334, self.eval.score.score_ratio)
 
     def test_non_negative(self):
         """Test that total score doesn't go negative."""
@@ -277,10 +305,10 @@ class TestMissionEvaluation(TestCase):
 
         self.assertEqual(1, feedback.judge.flight_time_sec)
 
-        self.assertAlmostEqual(0.99948148, score.timeline.mission_time)
+        self.assertAlmostEqual(0.99944444, score.timeline.mission_time)
         self.assertAlmostEqual(0, score.timeline.mission_penalty)
         self.assertAlmostEqual(1, score.timeline.timeout)
-        self.assertAlmostEqual(0.99958519, score.timeline.score_ratio)
+        self.assertAlmostEqual(0.99955555, score.timeline.score_ratio)
         self.assertAlmostEqual(1, score.autonomous_flight.flight)
         self.assertAlmostEqual(1, score.autonomous_flight.waypoint_capture)
         self.assertAlmostEqual(0.5, score.autonomous_flight.waypoint_accuracy)
@@ -303,7 +331,7 @@ class TestMissionEvaluation(TestCase):
 
         self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
 
-        self.assertAlmostEqual(0.5306993417933632, score.score_ratio)
+        self.assertAlmostEqual(0.5306963788304002, score.score_ratio)
 
         # user1 data
         user_eval = mission_eval.teams[1]
@@ -328,10 +356,10 @@ class TestMissionEvaluation(TestCase):
 
         self.assertEqual(2, feedback.judge.flight_time_sec)
 
-        self.assertAlmostEqual(0.99918519, score.timeline.mission_time)
+        self.assertAlmostEqual(0.9997222222222222, score.timeline.mission_time)
         self.assertAlmostEqual(0, score.timeline.mission_penalty)
         self.assertAlmostEqual(0, score.timeline.timeout)
-        self.assertAlmostEqual(0.79934815, score.timeline.score_ratio)
+        self.assertAlmostEqual(0.7997777777777778, score.timeline.score_ratio)
         self.assertAlmostEqual(1, score.autonomous_flight.flight)
         self.assertAlmostEqual(0.5, score.autonomous_flight.waypoint_capture)
         self.assertAlmostEqual(1, score.autonomous_flight.waypoint_accuracy)
@@ -356,7 +384,7 @@ class TestMissionEvaluation(TestCase):
 
         self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
 
-        self.assertAlmostEqual(0.5282681481481482, score.score_ratio)
+        self.assertAlmostEqual(0.5283111111111112, score.score_ratio)
 
     def test_evaluate_teams_specific_users(self):
         """Tests the evaluation of teams method with specific users."""
