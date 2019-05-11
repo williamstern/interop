@@ -52,7 +52,8 @@ class TestMissionScoring(TestCase):
         judge.unsafe_out_of_bounds = 1
         judge.things_fell_off_uas = False
         judge.crashed = False
-        judge.air_delivery_accuracy_ft = 50
+        judge.air_drop_accuracy = interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_75_FT
+        judge.ugv_drove_to_location = False
         judge.operational_excellence_percent = 90
 
     def test_timeline(self):
@@ -195,23 +196,29 @@ class TestMissionScoring(TestCase):
         self.assertAlmostEqual(0, objects.extra_object_penalty)
         self.assertAlmostEqual(0, objects.score_ratio)
 
-    def test_air_delivery(self):
-        """Test the air delivery scoring."""
+    def test_air_drop(self):
+        """Test the air drop scoring."""
         judge = self.eval.feedback.judge
-        air = self.eval.score.air_delivery
+        air = self.eval.score.air_drop
 
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(50, air.delivery_accuracy)
-        self.assertAlmostEqual(0.6666667, air.score_ratio)
+        self.assertAlmostEqual(0.25, air.drop_accuracy)
+        self.assertAlmostEqual(0, air.drive_to_location)
+        self.assertAlmostEqual(0.125, air.score_ratio)
 
-        judge.air_delivery_accuracy_ft = 200
+        judge.air_drop_accuracy = interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_05_FT
+        judge.ugv_drove_to_location = True
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(200, air.delivery_accuracy)
-        self.assertAlmostEqual(0, air.score_ratio)
-
-        judge.air_delivery_accuracy_ft = 0
-        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(1, air.drop_accuracy)
+        self.assertAlmostEqual(1, air.drive_to_location)
         self.assertAlmostEqual(1, air.score_ratio)
+
+        judge.air_drop_accuracy = interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_25_FT
+        judge.ugv_drove_to_location = True
+        mission_evaluation.score_team(self.eval)
+        self.assertAlmostEqual(0.5, air.drop_accuracy)
+        self.assertAlmostEqual(1, air.drive_to_location)
+        self.assertAlmostEqual(0.75, air.score_ratio)
 
     def test_operational(self):
         """Test the operational excellence scoring."""
@@ -223,7 +230,7 @@ class TestMissionScoring(TestCase):
     def test_total(self):
         """Test the total scoring."""
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(0.27, self.eval.score.score_ratio)
+        self.assertAlmostEqual(0.1616666666666667, self.eval.score.score_ratio)
 
     def test_non_negative(self):
         """Test that total score doesn't go negative."""
@@ -260,7 +267,8 @@ class TestMissionScoring(TestCase):
         judge.unsafe_out_of_bounds = 5
         judge.things_fell_off_uas = True
         judge.crashed = False
-        judge.air_delivery_accuracy_ft = 100
+        judge.air_drop_accuracy = interop_admin_api_pb2.MissionJudgeFeedback.INSUFFICIENT_ACCURACY
+        judge.ugv_drove_to_location = False
         judge.operational_excellence_percent = 0
 
         mission_evaluation.score_team(self.eval)
@@ -326,12 +334,13 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0, score.object.extra_object_penalty)
         self.assertAlmostEqual(0.4537041163742234, score.object.score_ratio)
 
-        self.assertAlmostEqual(0, score.air_delivery.delivery_accuracy)
-        self.assertAlmostEqual(1, score.air_delivery.score_ratio)
+        self.assertAlmostEqual(0, score.air_drop.drop_accuracy)
+        self.assertAlmostEqual(0, score.air_drop.drive_to_location)
+        self.assertAlmostEqual(0, score.air_drop.score_ratio)
 
         self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
 
-        self.assertAlmostEqual(0.4056963788304003, score.score_ratio)
+        self.assertAlmostEqual(0.20569637883040026, score.score_ratio)
 
         # user1 data
         user_eval = mission_eval.teams[1]
@@ -379,12 +388,13 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0, score.object.extra_object_penalty)
         self.assertAlmostEqual(0, score.object.score_ratio)
 
-        self.assertAlmostEqual(10, score.air_delivery.delivery_accuracy)
-        self.assertAlmostEqual(0.933333333333, score.air_delivery.score_ratio)
+        self.assertAlmostEqual(1, score.air_drop.drop_accuracy)
+        self.assertAlmostEqual(0, score.air_drop.drive_to_location)
+        self.assertAlmostEqual(0.5, score.air_drop.score_ratio)
 
         self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
 
-        self.assertAlmostEqual(0.5966444444444445, score.score_ratio)
+        self.assertAlmostEqual(0.5099777777777779, score.score_ratio)
 
     def test_evaluate_teams_specific_users(self):
         """Tests the evaluation of teams method with specific users."""

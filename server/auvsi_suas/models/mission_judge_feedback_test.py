@@ -1,6 +1,7 @@
 """Tests for the mission_judge_feedback module."""
 
 import datetime
+from auvsi_suas.proto import interop_admin_api_pb2
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_config import MissionConfig
@@ -49,7 +50,9 @@ class TestMissionJudgeFeedback(TestCase):
             unsafe_out_of_bounds=7,
             things_fell_off_uas=False,
             crashed=False,
-            air_delivery_accuracy_ft=8,
+            air_drop_accuracy=interop_admin_api_pb2.MissionJudgeFeedback.
+            WITHIN_05_FT,
+            ugv_drove_to_location=False,
             operational_excellence_percent=9)
         self.feedback.save()
 
@@ -67,10 +70,8 @@ class TestMissionJudgeFeedback(TestCase):
         self.assertEqual(7, pb.unsafe_out_of_bounds)
         self.assertFalse(pb.things_fell_off_uas)
         self.assertFalse(pb.crashed)
-        self.assertAlmostEqual(8, pb.air_delivery_accuracy_ft)
+        self.assertAlmostEqual(
+            interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_05_FT,
+            pb.air_drop_accuracy)
+        self.assertFalse(pb.ugv_drove_to_location)
         self.assertAlmostEqual(9, pb.operational_excellence_percent)
-
-        self.feedback.air_delivery_accuracy_ft = None
-        pb = self.feedback.proto()
-
-        self.assertFalse(pb.HasField('air_delivery_accuracy_ft'))

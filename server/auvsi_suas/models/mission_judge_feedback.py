@@ -1,6 +1,7 @@
 """Feedback from judges on mission performance."""
 
 import logging
+from auvsi_suas.models import pb_utils
 from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.proto import interop_admin_api_pb2
 from django.conf import settings
@@ -40,8 +41,12 @@ class MissionJudgeFeedback(models.Model):
     # Whether the UAS crashed.
     crashed = models.BooleanField()
 
-    # Accuracy of delivery in feet.
-    air_delivery_accuracy_ft = models.FloatField(null=True)
+    # Accuracy of drop in feet.
+    air_drop_accuracy = models.IntegerField(
+        choices=pb_utils.FieldChoicesFromEnum(
+            interop_admin_api_pb2.MissionJudgeFeedback.AirDropAccuracy))
+    # Whether the UGV drove to the specified location.
+    ugv_drove_to_location = models.BooleanField()
 
     # Grade of team performance [0, 100].
     operational_excellence_percent = models.FloatField()
@@ -65,8 +70,8 @@ class MissionJudgeFeedback(models.Model):
         feedback.things_fell_off_uas = self.things_fell_off_uas
         feedback.crashed = self.crashed
 
-        if self.air_delivery_accuracy_ft:
-            feedback.air_delivery_accuracy_ft = self.air_delivery_accuracy_ft
+        feedback.air_drop_accuracy = self.air_drop_accuracy
+        feedback.ugv_drove_to_location = self.ugv_drove_to_location
 
         feedback.operational_excellence_percent = self.operational_excellence_percent
 
@@ -80,6 +85,5 @@ class MissionJudgeFeedbackModelAdmin(admin.ModelAdmin):
                     'used_timeout', 'min_auto_flight_time',
                     'safety_pilot_takeovers', 'waypoints_captured',
                     'out_of_bounds', 'unsafe_out_of_bounds',
-                    'things_fell_off_uas', 'crashed',
-                    'air_delivery_accuracy_ft',
-                    'operational_excellence_percent')
+                    'things_fell_off_uas', 'crashed', 'air_drop_accuracy',
+                    'ugv_drove_to_location', 'operational_excellence_percent')

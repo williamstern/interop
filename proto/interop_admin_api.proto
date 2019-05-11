@@ -151,11 +151,19 @@ message MissionJudgeFeedback {
     // Whether the UAS crashed.
     optional bool crashed = 10;
 
-    // Air delivery accuracy.
-    optional double air_delivery_accuracy_ft = 11;
+    // Air drop accuracy.
+    enum AirDropAccuracy {
+        INSUFFICIENT_ACCURACY = 0;
+        WITHIN_05_FT = 1;
+        WITHIN_25_FT = 2;
+        WITHIN_75_FT = 3;
+    }
+    optional AirDropAccuracy air_drop_accuracy = 11;
+    // Whether the UGV drove to the specified location.
+    optional bool ugv_drove_to_location = 12;
 
     // Operational excellence score.
-    optional double operational_excellence_percent = 12;
+    optional double operational_excellence_percent = 13;
 }
 
 // Evaluation data for waypoints.
@@ -188,7 +196,7 @@ message MissionScore {
     optional AutonomousFlightScore autonomous_flight = 3;
     optional ObstacleAvoidanceScore obstacle_avoidance = 4;
     optional ObjectScore object = 5;
-    optional AirDeliveryScore air_delivery = 6;
+    optional AirDropScore air_drop = 6;
     optional OperationalExcellenceScore operational_excellence = 7;
 }
 
@@ -230,10 +238,11 @@ message ObjectScore {
     optional double extra_object_penalty = 7;
 }
 
-// Scoring data for air delivery.
-message AirDeliveryScore {
+// Scoring data for air drop.
+message AirDropScore {
     optional double score_ratio = 1;
-    optional double delivery_accuracy = 2;
+    optional double drop_accuracy = 2;
+    optional double drive_to_location = 3;
 }
 
 // Scoring data for operational excellence.

@@ -461,7 +461,8 @@
         "unsafe_out_of_bounds": 1,
         "things_fell_off_uas": false,
         "crashed": false,
-        "air_delivery_accuracy_ft": null,
+        "air_drop_accuracy": 0,
+        "ugv_drove_to_location": false,
         "operational_excellence_percent": 80
     },
     "model": "auvsi_suas.missionjudgefeedback",
@@ -481,7 +482,8 @@
         "unsafe_out_of_bounds": 0,
         "things_fell_off_uas": true,
         "crashed": true,
-        "air_delivery_accuracy_ft": 10,
+        "air_drop_accuracy": 1,
+        "ugv_drove_to_location": false,
         "operational_excellence_percent": 80
     },
     "model": "auvsi_suas.missionjudgefeedback",
