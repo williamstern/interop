@@ -144,6 +144,7 @@ class Odlc(models.Model):
     """Object detection submission for a team.
 
     Attributes:
+        mission: The mission this is an ODLC for.
         user: The user which submitted and owns this object detection.
         odlc_type: Object type.
         location: Object location.
@@ -160,6 +161,7 @@ class Odlc(models.Model):
         creation_time: Time that this object was first created.
         last_modified_time: Time that this object was last modified.
     """
+    mission = models.ForeignKey('MissionConfig', on_delete=models.CASCADE)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, db_index=True, on_delete=models.CASCADE)
     odlc_type = models.IntegerField(choices=OdlcType.choices())

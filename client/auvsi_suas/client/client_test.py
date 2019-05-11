@@ -96,27 +96,40 @@ class TestClient(unittest.TestCase):
         """Test odlc workflow."""
         # Post a odlc gets an updated odlc.
         odlc = interop_api_pb2.Odlc()
+        odlc.mission = 1
         odlc.type = interop_api_pb2.Odlc.STANDARD
         post_odlc = self.client.post_odlc(odlc)
-        async_post_odlc = self.client.post_odlc(odlc)
+        async_post_odlc = self.async_client.post_odlc(odlc).result()
 
         self.assertIsNotNone(post_odlc.id)
         self.assertIsNotNone(async_post_odlc.id)
+        self.assertEqual(1, post_odlc.mission)
+        self.assertEqual(1, async_post_odlc.mission)
         self.assertEqual(interop_api_pb2.Odlc.STANDARD, post_odlc.type)
         self.assertEqual(interop_api_pb2.Odlc.STANDARD, async_post_odlc.type)
         self.assertNotEqual(post_odlc.id, async_post_odlc.id)
 
-        # Get odlcs.
+        # Get odlc.
         get_odlc = self.client.get_odlc(post_odlc.id)
         async_get_odlc = self.async_client.get_odlc(
             async_post_odlc.id).result()
         get_odlcs = self.client.get_odlcs()
         async_get_odlcs = self.async_client.get_odlcs().result()
+        get_odlcs_mission = self.client.get_odlcs(mission=1)
+        async_get_odlcs_mission = self.async_client.get_odlcs(
+            mission=1).result()
+        get_odlcs_bad_mission = self.client.get_odlcs(mission=2)
+        async_get_odlcs_bad_mission = self.async_client.get_odlcs(
+            mission=2).result()
 
         self.assertEquals(post_odlc, get_odlc)
         self.assertEquals(async_post_odlc, async_get_odlc)
         self.assertIn(post_odlc, get_odlcs)
         self.assertIn(async_post_odlc, async_get_odlcs)
+        self.assertIn(post_odlc, get_odlcs_mission)
+        self.assertIn(async_post_odlc, async_get_odlcs_mission)
+        self.assertNotIn(post_odlc, get_odlcs_bad_mission)
+        self.assertNotIn(async_post_odlc, async_get_odlcs_bad_mission)
 
         # Update odlc.
         post_odlc.shape = interop_api_pb2.Odlc.CIRCLE

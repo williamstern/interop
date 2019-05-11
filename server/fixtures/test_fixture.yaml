@@ -44,6 +44,7 @@
       odlc_type: 4
       thumbnail_approved: True
       user: 2
+      mission: 1
 - model: auvsi_suas.flyzone
   pk: 1
   fields:

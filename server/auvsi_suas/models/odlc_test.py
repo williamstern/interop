@@ -61,6 +61,7 @@ class TestOdlc(TestCase):
         l.save()
 
         t = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l,
@@ -75,12 +76,14 @@ class TestOdlc(TestCase):
 
     def test_null_fields(self):
         """Only user and odlc type."""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
     def test_creation_time(self):
         """Creation time is set on creation and doesn't change on update."""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         orig = t.creation_time
@@ -93,7 +96,8 @@ class TestOdlc(TestCase):
 
     def test_last_modified_time(self):
         """Last modified time is set on creation and changes every update."""
-        t = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t.save()
 
         orig = t.last_modified_time
@@ -110,6 +114,7 @@ class TestOdlc(TestCase):
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
         t1 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l,
@@ -123,6 +128,7 @@ class TestOdlc(TestCase):
             autonomous=True)
         t1.save()
         t2 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l,
@@ -175,6 +181,7 @@ class TestOdlc(TestCase):
         l = GpsPosition(latitude=38, longitude=-76)
         l.save()
         t1 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l,
@@ -188,6 +195,7 @@ class TestOdlc(TestCase):
             autonomous=True)
         t1.save()
         t2 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l,
@@ -236,14 +244,16 @@ class TestOdlc(TestCase):
     def test_actionable_submission(self):
         """Tests actionable_submission correctly filters submissions."""
         # t1 created and updated before take off.
-        t1 = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t1 = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t1.save()
         t1.alphanumeric = 'A'
         t1.update_last_modified()
         t1.save()
 
         # t2 created before take off and updated in flight.
-        t2 = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t2 = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t2.save()
 
         event = TakeoffOrLandingEvent(
@@ -255,14 +265,16 @@ class TestOdlc(TestCase):
         t2.save()
 
         # t3 created and updated in flight.
-        t3 = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t3 = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t3.save()
         t3.alphanumeric = 'A'
         t3.update_last_modified()
         t3.save()
 
         # t4 created in flight and updated after landing.
-        t4 = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t4 = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t4.save()
 
         event = TakeoffOrLandingEvent(
@@ -274,7 +286,8 @@ class TestOdlc(TestCase):
         t4.save()
 
         # t5 created and updated after landing.
-        t5 = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t5 = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t5.save()
         t5.alphanumeric = 'A'
         t5.update_last_modified()
@@ -284,7 +297,8 @@ class TestOdlc(TestCase):
         event = TakeoffOrLandingEvent(
             user=self.user, mission=self.mission, uas_in_air=True)
         event.save()
-        t6 = Odlc(user=self.user, odlc_type=OdlcType.standard)
+        t6 = Odlc(
+            mission=self.mission, user=self.user, odlc_type=OdlcType.standard)
         t6.save()
         t6.alphanumeric = 'A'
         t6.update_last_modified()
@@ -301,6 +315,7 @@ class TestOdlc(TestCase):
             user=self.user, mission=self.mission, uas_in_air=False)
         event.save()
         t7 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             actionable_override=True)
@@ -365,6 +380,7 @@ class TestOdlcEvaluator(TestCase):
 
         # A odlc worth full points.
         self.submit1 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l1,
@@ -379,6 +395,7 @@ class TestOdlcEvaluator(TestCase):
             thumbnail_approved=True)
         self.submit1.save()
         self.real1 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l1,
@@ -392,6 +409,7 @@ class TestOdlcEvaluator(TestCase):
 
         # A odlc worth less than full points.
         self.submit2 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l1,
@@ -405,6 +423,7 @@ class TestOdlcEvaluator(TestCase):
             thumbnail_approved=True)
         self.submit2.save()
         self.real2 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l2,
@@ -418,6 +437,7 @@ class TestOdlcEvaluator(TestCase):
 
         # A odlc worth no points, so unmatched.
         self.submit3 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l4,
@@ -431,6 +451,7 @@ class TestOdlcEvaluator(TestCase):
             thumbnail_approved=True)
         self.submit3.save()
         self.real3 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             orientation=Orientation.e,
@@ -444,6 +465,7 @@ class TestOdlcEvaluator(TestCase):
 
         # Odlcs without approved image has no match value.
         self.submit4 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.emergent,
             location=l1,
@@ -452,6 +474,7 @@ class TestOdlcEvaluator(TestCase):
             thumbnail_approved=False)
         self.submit4.save()
         self.real4 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.emergent,
             location=l1,
@@ -460,6 +483,7 @@ class TestOdlcEvaluator(TestCase):
 
         # A odlc without location worth fewer points.
         self.submit5 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             orientation=Orientation.n,
@@ -472,6 +496,7 @@ class TestOdlcEvaluator(TestCase):
             thumbnail_approved=True)
         self.submit5.save()
         self.real5 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l1,
@@ -485,6 +510,7 @@ class TestOdlcEvaluator(TestCase):
 
         # Emergent odlc with correct description.
         self.submit6 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.emergent,
             location=l1,
@@ -494,6 +520,7 @@ class TestOdlcEvaluator(TestCase):
             thumbnail_approved=True)
         self.submit6.save()
         self.real6 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.emergent,
             location=l1,
@@ -515,6 +542,7 @@ class TestOdlcEvaluator(TestCase):
         self.submit3.save()
         # Unused but not unmatched odlc.
         self.submit7 = Odlc(
+            mission=self.mission,
             user=self.user,
             odlc_type=OdlcType.standard,
             location=l4,

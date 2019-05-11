@@ -110,6 +110,10 @@ message Odlc {
     // Set by the server on responses. Use to update ODLC after upload.
     optional int32 id = 1;
 
+    // Mission the ODLC submitted for.
+    // Required.
+    optional int32 mission = 2;
+
     // Type of the ODLC.
     // Required.
     enum Type {
@@ -122,14 +126,14 @@ message Odlc {
         // autonomously.
         EMERGENT = 4;
     }
-    optional Type type = 2;
+    optional Type type = 3;
 
     // Latitude of GPS position in degrees.
     // Optional. [-90, 90]
-    optional double latitude = 3;
+    optional double latitude = 4;
     // Longitude of GPS position in degrees.
     // Optional. [-180, 180]
-    optional double longitude = 4;
+    optional double longitude = 5;
 
     // Orientation of the ODLC, for normal and off axis.
     // Optional.
@@ -143,7 +147,7 @@ message Odlc {
         W = 7;
         NW = 8;
     }
-    optional Orientation orientation = 5;
+    optional Orientation orientation = 6;
 
     // Shape of the ODLC, for normal and off axis.
     // Optional.
@@ -162,11 +166,11 @@ message Odlc {
         STAR = 12;
         CROSS = 13;
     }
-    optional Shape shape = 6;
+    optional Shape shape = 7;
 
     // Alphanumeric of the ODLC, for normal and off axis.
     // Optional. [A-Z, 0-9]
-    optional string alphanumeric = 7;
+    optional string alphanumeric = 8;
 
     // Colors of the ODLC, for normal and off axis.
     // Optional.
@@ -182,14 +186,14 @@ message Odlc {
         BROWN = 9;
         ORANGE = 10;
     }
-    optional Color shape_color = 8;
-    optional Color alphanumeric_color = 9;
+    optional Color shape_color = 9;
+    optional Color alphanumeric_color = 10;
 
     // Description for emergent ODLCs.
     // Optional.
-    optional string description = 10;
+    optional string description = 11;
 
     // Whether the ODLC was detected, localized, and classified autonomously.
     // Optional. Defaults to false.
-    optional bool autonomous = 11;
+    optional bool autonomous = 12;
 }

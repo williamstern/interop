@@ -96,7 +96,8 @@ def generate_feedback(mission_config, user, team_eval):
             mission_config.mission_waypoints.order_by('order'), uas_logs))
 
     # Evaluate the object detections.
-    user_odlcs = Odlc.objects.filter(user=user).all()
+    user_odlcs = Odlc.objects.filter(user=user).filter(
+        mission=mission_config.pk).all()
     evaluator = OdlcEvaluator(user_odlcs,
                               mission_config.odlcs.all(), flight_periods)
     feedback.odlc.CopyFrom(evaluator.evaluate())
