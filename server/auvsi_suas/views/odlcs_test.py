@@ -284,6 +284,17 @@ class TestPostOdlc(TestOdlcsCommon):
             content_type='multipart/form-data')
         self.assertEqual(400, response.status_code)
 
+    def test_invalid_mission(self):
+        """Mission ID must correspond to an actual mission."""
+        odlc = {
+            'mission': self.mission2.pk + 1,
+            'type': 'STANDARD',
+        }
+
+        response = self.client.post(
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
+        self.assertEqual(400, response.status_code)
+
     def test_missing_latitude(self):
         """Odlc latitude required if longitude specified."""
         odlc = {
