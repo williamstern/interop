@@ -52,4 +52,4 @@ class TakeoffOrLandingEvent(AccessLog):
 @admin.register(TakeoffOrLandingEvent)
 class TakeoffOrLandingEventModelAdmin(admin.ModelAdmin):
     show_full_result_count = False
-    list_display = ('timestamp', 'user', 'mission', 'uas_in_air')
+    list_display = ('pk', 'timestamp', 'user', 'mission', 'uas_in_air')

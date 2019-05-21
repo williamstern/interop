@@ -30,4 +30,4 @@ class Waypoint(models.Model):
 class WaypointModelAdmin(admin.ModelAdmin):
     show_full_result_count = False
     raw_id_fields = ("position", )
-    list_display = ('position', 'order')
+    list_display = ('pk', 'position', 'order')

@@ -50,6 +50,14 @@ class TestStationaryObstacleModel(TestCase):
 
         return ret
 
+    def test_clean(self):
+        """Tests model validation."""
+        pos = GpsPosition(latitude=0, longitude=0)
+        pos.save()
+        obst = StationaryObstacle(
+            gps_position=pos, cylinder_radius=30, cylinder_height=10)
+        obst.full_clean()
+
     def test_contains_pos(self):
         """Tests the inside obstacle method."""
         # (lat, lon, rad, height)

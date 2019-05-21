@@ -7,6 +7,7 @@ from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.stationary_obstacle import StationaryObstacle
 from auvsi_suas.models.waypoint import Waypoint
 from django.contrib import admin
+from django.core import validators
 from django.db import models
 
 logger = logging.getLogger(__name__)
@@ -58,4 +59,4 @@ class MissionConfigModelAdmin(admin.ModelAdmin):
                      "off_axis_odlc_pos", "air_drop_pos")
     filter_horizontal = ("fly_zones", "mission_waypoints",
                          "search_grid_points", "odlcs", "stationary_obstacles")
-    list_display = ('home_pos', )
+    list_display = ('pk', 'home_pos', )
