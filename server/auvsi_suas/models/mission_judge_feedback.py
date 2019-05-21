@@ -6,6 +6,7 @@ from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.proto import interop_admin_api_pb2
 from django.conf import settings
 from django.contrib import admin
+from django.core import validators
 from django.db import models
 
 logger = logging.getLogger(__name__)
@@ -29,13 +30,21 @@ class MissionJudgeFeedback(models.Model):
     # Whether the team had the min auto flight time.
     min_auto_flight_time = models.BooleanField()
     # The number of times the pilot took over.
-    safety_pilot_takeovers = models.IntegerField()
+    safety_pilot_takeovers = models.IntegerField(validators=[
+        validators.MinValueValidator(0),
+    ])
     # Number of waypoints that were captured.
-    waypoints_captured = models.IntegerField()
+    waypoints_captured = models.IntegerField(validators=[
+        validators.MinValueValidator(0),
+    ])
     # Number of times the UAS went out of bounds.
-    out_of_bounds = models.IntegerField()
+    out_of_bounds = models.IntegerField(validators=[
+        validators.MinValueValidator(0),
+    ])
     # Number of times out of bounds compromised safety.
-    unsafe_out_of_bounds = models.IntegerField()
+    unsafe_out_of_bounds = models.IntegerField(validators=[
+        validators.MinValueValidator(0),
+    ])
     # Whether something fell off UAS during flight.
     things_fell_off_uas = models.BooleanField()
     # Whether the UAS crashed.
@@ -49,7 +58,10 @@ class MissionJudgeFeedback(models.Model):
     ugv_drove_to_location = models.BooleanField()
 
     # Grade of team performance [0, 100].
-    operational_excellence_percent = models.FloatField()
+    operational_excellence_percent = models.FloatField(validators=[
+        validators.MinValueValidator(0),
+        validators.MaxValueValidator(100),
+    ])
 
     class Meta:
         unique_together = (('mission', 'user'), )
@@ -81,9 +93,10 @@ class MissionJudgeFeedback(models.Model):
 @admin.register(MissionJudgeFeedback)
 class MissionJudgeFeedbackModelAdmin(admin.ModelAdmin):
     show_full_result_count = False
-    list_display = ('mission', 'user', 'flight_time', 'post_process_time',
-                    'used_timeout', 'min_auto_flight_time',
-                    'safety_pilot_takeovers', 'waypoints_captured',
-                    'out_of_bounds', 'unsafe_out_of_bounds',
-                    'things_fell_off_uas', 'crashed', 'air_drop_accuracy',
-                    'ugv_drove_to_location', 'operational_excellence_percent')
+    list_display = ('pk', 'mission', 'user', 'flight_time',
+                    'post_process_time', 'used_timeout',
+                    'min_auto_flight_time', 'safety_pilot_takeovers',
+                    'waypoints_captured', 'out_of_bounds',
+                    'unsafe_out_of_bounds', 'things_fell_off_uas', 'crashed',
+                    'air_drop_accuracy', 'ugv_drove_to_location',
+                    'operational_excellence_percent')

@@ -204,6 +204,11 @@ class TestFlyZone(TestCase):
             # Store
             self.testdata_containspos.append((zone, test_pos))
 
+    def test_clean(self):
+        """Tests model validation."""
+        for (zone, _) in self.testdata_containspos:
+            zone.full_clean()
+
     def test_contains_pos(self):
         """Tests the contains_pos method."""
         for (zone, test_pos) in self.testdata_containspos:

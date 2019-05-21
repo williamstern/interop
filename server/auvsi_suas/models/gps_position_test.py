@@ -23,6 +23,11 @@ class TestGpsPositionModel(TestCase):
 
             self.assert_distance_equal(gps1, gps2, dist_actual)
 
+    def test_clean(self):
+        """Tests model validation."""
+        gps = GpsPosition(latitude=0, longitude=0)
+        gps.full_clean()
+
     def test_distance_zero(self):
         """Tests distance calc for same position."""
         self.evaluate_distance_inputs([

@@ -4,9 +4,13 @@ import logging
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from django.contrib import admin
+from django.core import validators
 from django.db import models
 
 logger = logging.getLogger(__name__)
+
+STATIONARY_OBSTACLE_RADIUS_FT_MIN = 30
+STATIONARY_OBSTACLE_RAIDUS_FT_MAX = 300
 
 
 class StationaryObstacle(models.Model):
@@ -15,7 +19,10 @@ class StationaryObstacle(models.Model):
     # The position of the obstacle center.
     gps_position = models.ForeignKey(GpsPosition, on_delete=models.CASCADE)
     # The radius of the cylinder in feet.
-    cylinder_radius = models.FloatField()
+    cylinder_radius = models.FloatField(validators=[
+        validators.MinValueValidator(STATIONARY_OBSTACLE_RADIUS_FT_MIN),
+        validators.MaxValueValidator(STATIONARY_OBSTACLE_RAIDUS_FT_MAX),
+    ])
     # The height of the cylinder in feet.
     cylinder_height = models.FloatField()
 
@@ -54,4 +61,4 @@ class StationaryObstacle(models.Model):
 @admin.register(StationaryObstacle)
 class StationaryObstacleModelAdmin(admin.ModelAdmin):
     raw_id_fields = ("gps_position", )
-    list_display = ('gps_position', 'cylinder_radius', 'cylinder_height')
+    list_display = ('pk', 'gps_position', 'cylinder_radius', 'cylinder_height')

@@ -402,7 +402,7 @@ class OdlcEvaluator(object):
 class OdlcModelAdmin(admin.ModelAdmin):
     show_full_result_count = False
     raw_id_fields = ("location", )
-    list_display = ('user', 'odlc_type', 'location', 'orientation', 'shape',
-                    'background_color', 'alphanumeric', 'alphanumeric_color',
-                    'autonomous', 'thumbnail_approved', 'creation_time',
-                    'last_modified_time')
+    list_display = ('pk', 'user', 'odlc_type', 'location', 'orientation',
+                    'shape', 'background_color', 'alphanumeric',
+                    'alphanumeric_color', 'autonomous', 'thumbnail_approved',
+                    'creation_time', 'last_modified_time')

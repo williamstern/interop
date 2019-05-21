@@ -9,6 +9,7 @@ from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.proto import interop_admin_api_pb2
 from collections import defaultdict
 from django.contrib import admin
+from django.core import validators
 from django.db import models
 
 logger = logging.getLogger(__name__)
@@ -33,7 +34,10 @@ class UasTelemetry(AccessLog):
     # The position of the UAS.
     uas_position = models.ForeignKey(AerialPosition, on_delete=models.CASCADE)
     # The (true north) heading of the UAS in degrees.
-    uas_heading = models.FloatField()
+    uas_heading = models.FloatField(validators=[
+        validators.MinValueValidator(0),
+        validators.MaxValueValidator(360),
+    ])
 
     def duplicate(self, other):
         """Determines whether this UasTelemetry is equivalent to another.
@@ -263,4 +267,4 @@ class UasTelemetry(AccessLog):
 class UasTelemetryModelAdmin(admin.ModelAdmin):
     show_full_result_count = False
     raw_id_fields = ("uas_position", )
-    list_display = ('user', 'timestamp', 'uas_position', 'uas_heading')
+    list_display = ('pk', 'user', 'timestamp', 'uas_position', 'uas_heading')

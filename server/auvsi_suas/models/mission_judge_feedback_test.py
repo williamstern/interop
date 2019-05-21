@@ -56,6 +56,10 @@ class TestMissionJudgeFeedback(TestCase):
             operational_excellence_percent=9)
         self.feedback.save()
 
+    def test_clean(self):
+        """Test model validation."""
+        self.feedback.full_clean()
+
     def test_proto(self):
         """Tests proto()."""
         pb = self.feedback.proto()

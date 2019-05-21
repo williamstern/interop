@@ -3,8 +3,11 @@
 import datetime
 import logging
 import numpy as np
+from auvsi_suas.models import aerial_position
 from auvsi_suas.models.waypoint import Waypoint
 from django.contrib import admin
+from django.core import exceptions
+from django.core import validators
 from django.db import models
 from matplotlib import path as mplpath
 
@@ -21,10 +24,21 @@ class FlyZone(models.Model):
 
     # The polygon defining the boundary of the zone.
     boundary_pts = models.ManyToManyField(Waypoint)
+
     # The minimum altitude of the zone (MSL) in feet.
-    altitude_msl_min = models.FloatField()
+    altitude_msl_min = models.FloatField(
+        validators=aerial_position.ALTITUDE_VALIDATORS)
+
     # The maximum altitude of the zone (MSL) in feet.
-    altitude_msl_max = models.FloatField()
+    altitude_msl_max = models.FloatField(
+        validators=aerial_position.ALTITUDE_VALIDATORS)
+
+    def clean(self):
+        """Validates the model."""
+        super(FlyZone, self).clean()
+        if self.altitude_msl_min > self.altitude_msl_max:
+            raise exceptions.ValidationError(
+                'Altitude min must be less than altitude max.')
 
     def contains_pos(self, aerial_pos):
         """Whether the given pos is inside the zone.
@@ -156,4 +170,4 @@ class FlyZone(models.Model):
 @admin.register(FlyZone)
 class FlyZoneModelAdmin(admin.ModelAdmin):
     filter_horizontal = ("boundary_pts", )
-    list_display = ('altitude_msl_min', 'altitude_msl_max')
+    list_display = ('pk', 'altitude_msl_min', 'altitude_msl_max')

@@ -157,6 +157,10 @@ class TestUasTelemetry(TestUasTelemetryBase):
         self.log = self.create_log_element(
             timestamp=0, lat=10, lon=100, alt=200, heading=90)
 
+    def test_clean(self):
+        """Tests model validation."""
+        self.log.full_clean()
+
     def test_duplicate_unequal(self):
         """Tests duplicate function with unequal telemetry."""
         log1 = self.create_log_element(

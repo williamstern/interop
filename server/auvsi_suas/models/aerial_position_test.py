@@ -27,6 +27,13 @@ class TestAerialPositionModel(TestCase):
 
             self.assertDistanceEqual(pos1, pos2, dist_actual)
 
+    def test_clean(self):
+        """Tests validation."""
+        gps = GpsPosition(latitude=0, longitude=0)
+        gps.save()
+        pos = AerialPosition(gps_position=gps, altitude_msl=0)
+        pos.full_clean()
+
     def test_distance_zero(self):
         """Tests distance calc for same position."""
         self.evaluate_distance_inputs([

@@ -11,3 +11,8 @@ class TestMissionConfigModelSampleMission(TestCase):
     def test_str(self):
         for mission in MissionConfig.objects.all():
             self.assertNotEqual(str(mission), '')
+
+    def test_clean(self):
+        """Test model validation."""
+        for mission in MissionConfig.objects.all():
+            mission.full_clean()
