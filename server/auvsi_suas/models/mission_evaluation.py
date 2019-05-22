@@ -8,6 +8,7 @@ from auvsi_suas.models.odlc import OdlcEvaluator
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.proto import interop_admin_api_pb2
+from auvsi_suas.proto import interop_api_pb2
 from django.contrib.auth.models import User
 
 logger = logging.getLogger(__name__)
@@ -80,7 +81,10 @@ def generate_feedback(mission_config, user, team_eval):
     flight_periods = TakeoffOrLandingEvent.flights(mission_config, user)
     for period in flight_periods:
         if period.duration() is None:
-            team_eval.warnings.append('Infinite flight period.')
+            team_eval.warnings.append(
+                'Infinite flight period, may be missing TakeoffOrLandingEvent.'
+            )
+            break
     uas_period_logs = [
         UasTelemetry.dedupe(logs)
         for logs in UasTelemetry.by_time_period(user, flight_periods)
@@ -106,6 +110,11 @@ def generate_feedback(mission_config, user, team_eval):
     # Evaluate the object detections.
     user_odlcs = Odlc.objects.filter(user=user).filter(
         mission=mission_config.pk).all()
+    for odlc in user_odlcs:
+        if odlc.thumbnail_approved is None:
+            team_eval.warnings.append(
+                'Odlc thumbnail review not set, may need to review ODLCs.')
+            break
     evaluator = OdlcEvaluator(user_odlcs,
                               mission_config.odlcs.all(), flight_periods)
     feedback.odlc.CopyFrom(evaluator.evaluate())
@@ -121,6 +130,10 @@ def generate_feedback(mission_config, user, team_eval):
         judge_feedback = MissionJudgeFeedback.objects.get(
             mission=mission_config.pk, user=user.pk)
         feedback.judge.CopyFrom(judge_feedback.proto())
+        if feedback.judge.min_auto_flight_time and not flight_periods:
+            team_eval.warnings.append(
+                'Min flight time achieved by no flight periods, may be missing TakeoffOrLandingEvent.'
+            )
     except MissionJudgeFeedback.DoesNotExist:
         team_eval.warnings.append('No MissionJudgeFeedback for team.')
 
@@ -136,7 +149,7 @@ def score_team(team_eval):
 
     # Can't score without judge feedback.
     if not feedback.HasField('judge'):
-        team_eval.warnings.append('Cant score due to no judge feedback.')
+        team_eval.warnings.append('No judge feedback, skipping scoring.')
         return
 
     # Determine telemetry prerequisite.
@@ -273,9 +286,12 @@ def evaluate_teams(mission_config, users=None):
         if user.is_superuser:
             continue
 
-        # Ignore users with no flights for mission.
-        if not TakeoffOrLandingEvent.flights(mission_config, user):
-            logger.info('Skipping user with no flights: %s' % user.username)
+        # Ignore users with no judge feedback for mission.
+        try:
+            MissionJudgeFeedback.objects.get(
+                mission=mission_config.pk, user=user.pk)
+        except MissionJudgeFeedback.DoesNotExist:
+            logger.info('Skipping user with no feedback: %s' % user.username)
             continue
 
         # Start the evaluation data structure.
