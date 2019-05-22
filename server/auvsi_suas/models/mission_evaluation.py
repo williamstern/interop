@@ -90,8 +90,6 @@ def generate_feedback(mission_config, user, team_eval):
         for logs in UasTelemetry.by_time_period(user, flight_periods)
     ]
     uas_logs = list(itertools.chain.from_iterable(uas_period_logs))
-    if not uas_logs:
-        team_eval.warnings.append('No UAS telemetry logs.')
 
     # Determine interop telemetry rates.
     telem_max, telem_avg = UasTelemetry.rates(
