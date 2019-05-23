@@ -23,6 +23,25 @@ Repository Contents:
 * `/LICENSE`: The license for this repository.
 * `/CONTRIBUTING.md`: Information for those who contribute to the repo.
 
+Table of Contents:
+
+* [Getting Started](#getting-started)
+  + [Prerequisites](#prerequisites)
+  + [Computers and Networking](#computers-and-networking)
+  + [Docker Images](#docker-images)
+  + [Mission Configuration](#mission-configuration)
+  + [Interop Integration](#interop-integration)
+  + [Performance Evaluation](#performance-evaluation)
+* [API Specification](#api-specification)
+  + [Hostname & Port](#hostname---port)
+  + [Relative URLs vs Full Resource URL](#relative-urls-vs-full-resource-url)
+  + [Status Codes](#status-codes)
+  + [Endpoints](#endpoints)
+* [Automation](#automation)
+  + [Configure Django](#configure-django)
+  + [Import SUAS Code](#import-suas-code)
+  + [Read & Write Objects](#read---write-objects)
+
 ## Getting Started
 
 This section describes how to go from setting up the Interoperability Server to
