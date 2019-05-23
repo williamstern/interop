@@ -133,6 +133,7 @@ class TestTeamsView(TestCase):
         for user in data:
             self.assertIn('id', user)
             self.assertIn('team', user)
+            self.assertIn('username', user['team'])
             self.assertIn('inAir', user)
             if 'telemetry' in user:
                 self.assertIn('telemetryTimestamp', user)
@@ -146,7 +147,7 @@ class TestTeamsView(TestCase):
 
         data = json.loads(response.content)
 
-        names = [d['team'] for d in data]
+        names = [d['team']['username'] for d in data]
         self.assertIn('user1', names)
         self.assertIn('user2', names)
 
@@ -198,7 +199,8 @@ class TestTeamView(TestCase):
 
         data = json.loads(response.content)
         self.assertIn('team', data)
-        self.assertEqual('user1', data['team'])
+        self.assertIn('username', data['team'])
+        self.assertEqual('user1', data['team']['username'])
         self.assertIn('inAir', data)
         self.assertEqual(False, data['inAir'])
         self.assertNotIn('telemetry', data)

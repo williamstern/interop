@@ -18,13 +18,13 @@
   fields:
     date_joined: 2015-07-31 05:13:16.704351+00:00
     email: ''
-    first_name: ''
+    first_name: 'Test Team'
     groups: []
     is_active: true
     is_staff: false
     is_superuser: false
     last_login: 2015-07-31 05:13:44.875561+00:00
-    last_name: ''
+    last_name: 'Test University'
     password: pbkdf2_sha256$20000$6hErQuM8Gxni$zLDQHSFgpGUiPMfQqGJjIyp9Q1VcHzIhM7Z3P81SwaY=
     user_permissions: []
     username: testuser

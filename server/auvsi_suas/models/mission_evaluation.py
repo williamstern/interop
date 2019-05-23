@@ -284,18 +284,12 @@ def evaluate_teams(mission_config, users=None):
         if user.is_superuser:
             continue
 
-        # Ignore users with no judge feedback for mission.
-        try:
-            MissionJudgeFeedback.objects.get(
-                mission=mission_config.pk, user=user.pk)
-        except MissionJudgeFeedback.DoesNotExist:
-            logger.info('Skipping user with no feedback: %s' % user.username)
-            continue
-
         # Start the evaluation data structure.
         logger.info('Evaluation starting for user: %s.' % user.username)
         team_eval = mission_eval.teams.add()
-        team_eval.team = user.username
+        team_eval.team.username = user.username
+        team_eval.team.name = user.first_name
+        team_eval.team.university = user.last_name
         # Generate feedback.
         generate_feedback(mission_config, user, team_eval)
         # Generate score from feedback.
