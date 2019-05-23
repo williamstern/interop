@@ -11,7 +11,7 @@ Competition.
 * [auvsi-suas@googlegroups.com](https://groups.google.com/forum/#!forum/auvsi-suas).
   Contact the competition directors and developers.
 * Teams should
-  [Watch the repository](https://help.github.com/articles/watching-repositories/)
+  [watch the repository](https://help.github.com/articles/watching-repositories/)
   so they receive notifications when things change.
 
 Repository Contents:
@@ -33,14 +33,14 @@ Table of Contents:
   + [Interop Integration](#interop-integration)
   + [Performance Evaluation](#performance-evaluation)
 * [API Specification](#api-specification)
-  + [Hostname & Port](#hostname---port)
+  + [Hostname & Port](#hostname--port)
   + [Relative URLs vs Full Resource URL](#relative-urls-vs-full-resource-url)
   + [Status Codes](#status-codes)
   + [Endpoints](#endpoints)
 * [Automation](#automation)
   + [Configure Django](#configure-django)
   + [Import SUAS Code](#import-suas-code)
-  + [Read & Write Objects](#read---write-objects)
+  + [Read & Write Objects](#read--write-objects)
 
 ## Getting Started
 
