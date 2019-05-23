@@ -480,6 +480,39 @@ class TestPostOdlc(TestOdlcsCommon):
                 content_type='application/json')
             self.assertEqual(400, response.status_code)
 
+    def test_too_many(self):
+        """Too many uploads."""
+        too_many = 50
+
+        # Uploaded too many for mission 1.
+        for _ in range(too_many):
+            odlc = {
+                'mission': self.mission.pk,
+                'type': 'STANDARD',
+            }
+            self.client.post(
+                odlcs_url,
+                data=json.dumps(odlc),
+                content_type='application/json')
+
+        # Upload past too many should fail.
+        odlc = {
+            'mission': self.mission.pk,
+            'type': 'STANDARD',
+        }
+        response = self.client.post(
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
+        self.assertEqual(400, response.status_code)
+
+        # An upload for mission 2 should succeed.
+        odlc = {
+            'mission': self.mission2.pk,
+            'type': 'STANDARD',
+        }
+        response = self.client.post(
+            odlcs_url, data=json.dumps(odlc), content_type='application/json')
+        self.assertEqual(200, response.status_code)
+
 
 class TestOdlcsIdLoggedOut(TestOdlcsCommon):
     """Tests logged out odlcs_id."""

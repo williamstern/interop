@@ -29,6 +29,10 @@ logger = logging.getLogger(__name__)
 
 ALPHANUMERIC_RE = re.compile(r"^[A-Z0-9]$")
 
+ODLC_MAX = 20  # Limit in the rules.
+ODLC_BUFFER = 2  # Buffer for swaps.
+ODLC_UPLOAD_LIMIT = (ODLC_MAX + ODLC_BUFFER) * 2  # Account for auto/not.
+
 
 def odlc_to_proto(odlc):
     """Converts an ODLC into protobuf format."""
@@ -183,6 +187,13 @@ class Odlcs(View):
         if odlc_proto.HasField('id'):
             return HttpResponseBadRequest(
                 'Cannot specify ID for POST request.')
+
+        # Check that there aren't too many ODLCs uploaded already.
+        odlc_count = Odlc.objects.filter(user=request.user).filter(
+            mission=odlc_proto.mission).count()
+        if odlc_count >= ODLC_UPLOAD_LIMIT:
+            return HttpResponseBadRequest(
+                'Reached upload limit for ODLCs for mission.')
 
         # Build the ODLC object from the request.
         odlc = Odlc()
