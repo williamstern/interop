@@ -1,6 +1,6 @@
 <div class="card team-status {{teamStatusCtrl.getTeamColorClasses()}} p-1" ng-show="teamStatusCtrl.shouldShow()" ng-cloak>
     <div class="card-body">
-        <h4 class="card-title">{{teamStatusCtrl.team.team}}</h4>
+        <h4 class="card-title">{{teamStatusCtrl.team.team.university}} ({{teamStatusCtrl.team.team.username}})</h4>
         <div class="row">
             <div class="team-status-icon col-1" ng-show="teamStatusCtrl.isActive()"
                   title="Sending Telemtry">

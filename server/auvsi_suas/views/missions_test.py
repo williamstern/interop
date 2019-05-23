@@ -397,9 +397,10 @@ class TestEvaluateTeams(TestCase):
         data = self.load_json(response)
         self.assertIn('teams', data)
         teams = data['teams']
-        self.assertEqual(len(teams), 2)
-        self.assertEqual('user0', teams[0]['team'])
-        self.assertEqual('user1', teams[1]['team'])
+        self.assertEqual(len(teams), 3)
+        self.assertEqual('testuser', teams[0]['team']['username'])
+        self.assertEqual('user0', teams[1]['team']['username'])
+        self.assertEqual('user1', teams[2]['team']['username'])
         self.assertIn('waypoints', teams[0]['feedback'])
 
     def test_evaluate_teams_specific_team(self):
@@ -411,7 +412,7 @@ class TestEvaluateTeams(TestCase):
         self.assertIn('teams', data)
         teams = data['teams']
         self.assertEqual(len(teams), 1)
-        self.assertEqual('user0', teams[0]['team'])
+        self.assertEqual('user0', teams[0]['team']['username'])
 
     def test_evaluate_teams_csv(self):
         """Tests the CSV method."""
@@ -419,7 +420,7 @@ class TestEvaluateTeams(TestCase):
         response = self.client.get(evaluate_url(args=[3]))
         self.assertEqual(response.status_code, 200)
         csv_data = self.load_csv(response)
-        self.assertEqual(len(csv_data.split('\n')), 4)
+        self.assertEqual(len(csv_data.split('\n')), 5)
         self.assertIn('team', csv_data)
         self.assertIn('waypoints', csv_data)
         self.assertIn('user0', csv_data)

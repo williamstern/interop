@@ -546,8 +546,8 @@
 {
     "fields": {
         "username": "user0",
-        "first_name": "",
-        "last_name": "",
+        "first_name": "Team 0",
+        "last_name": "University 0",
         "is_active": true,
         "is_superuser": false,
         "is_staff": false,
@@ -564,8 +564,8 @@
 {
     "fields": {
         "username": "user1",
-        "first_name": "",
-        "last_name": "",
+        "first_name": "Team 1",
+        "last_name": "University 1",
         "is_active": true,
         "is_superuser": false,
         "is_staff": false,

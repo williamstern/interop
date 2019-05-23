@@ -14,7 +14,7 @@ class TestMissionScoring(TestCase):
     def setUp(self):
         """Create a base evaluation to save redefining it."""
         self.eval = interop_admin_api_pb2.MissionEvaluation()
-        self.eval.team = 'team'
+        self.eval.team.username = 'team'
         feedback = self.eval.feedback
         feedback.uas_telemetry_time_max_sec = 1.0
         feedback.uas_telemetry_time_avg_sec = 1.0
@@ -235,7 +235,7 @@ class TestMissionScoring(TestCase):
     def test_non_negative(self):
         """Test that total score doesn't go negative."""
         self.eval = interop_admin_api_pb2.MissionEvaluation()
-        self.eval.team = 'team'
+        self.eval.team.username = 'team'
         feedback = self.eval.feedback
         feedback.uas_telemetry_time_max_sec = 100.0
         feedback.uas_telemetry_time_avg_sec = 100.0
@@ -292,7 +292,9 @@ class TestMissionEvaluation(TestCase):
 
         # user0 data
         user_eval = mission_eval.teams[0]
-        self.assertEqual(user0.username, user_eval.team)
+        self.assertEqual(user0.username, user_eval.team.username)
+        self.assertEqual(user0.first_name, user_eval.team.name)
+        self.assertEqual(user0.last_name, user_eval.team.university)
         feedback = user_eval.feedback
         score = user_eval.score
         self.assertEqual(0.0,
@@ -344,7 +346,9 @@ class TestMissionEvaluation(TestCase):
 
         # user1 data
         user_eval = mission_eval.teams[1]
-        self.assertEqual(user1.username, user_eval.team)
+        self.assertEqual(user1.username, user_eval.team.username)
+        self.assertEqual(user1.first_name, user_eval.team.name)
+        self.assertEqual(user1.last_name, user_eval.team.university)
         feedback = user_eval.feedback
         score = user_eval.score
         self.assertEqual(0.0,
@@ -405,4 +409,4 @@ class TestMissionEvaluation(TestCase):
         mission_eval = mission_evaluation.evaluate_teams(config, [user0])
 
         self.assertEqual(1, len(mission_eval.teams))
-        self.assertEqual(user0.username, mission_eval.teams[0].team)
+        self.assertEqual(user0.username, mission_eval.teams[0].team.username)
