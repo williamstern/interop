@@ -33,6 +33,7 @@ from django.http import HttpResponseNotFound
 from django.http import HttpResponseServerError
 from django.utils import timezone
 from django.utils.decorators import method_decorator
+from django.views.generic import TemplateView
 from django.views.generic import View
 from google.protobuf import json_format
 
@@ -449,6 +450,11 @@ class LiveKmlUpdate(View):
         return response
 
 
+def pretty_json(json_str):
+    """Generates a pretty-print json from any json."""
+    return json.dumps(json.loads(json_str), indent=4)
+
+
 class Evaluate(View):
     """Evaluates the teams and returns a zip file with CSV & JSON data.
 
@@ -459,10 +465,6 @@ class Evaluate(View):
     @method_decorator(require_superuser)
     def dispatch(self, *args, **kwargs):
         return super(Evaluate, self).dispatch(*args, **kwargs)
-
-    def pretty_json(self, json_str):
-        """Generates a pretty-print json from any json."""
-        return json.dumps(json.loads(json_str), indent=4)
 
     def csv_from_json(self, json_list):
         """Generates a CSV string from a list of rows as JSON strings."""
@@ -530,11 +532,10 @@ class Evaluate(View):
         with zipfile.ZipFile(zip_io, 'w') as zip_file:
             zip_file.writestr(
                 '/evaluate_teams/all.json',
-                self.pretty_json(json_format.MessageToJson(mission_eval)))
+                pretty_json(json_format.MessageToJson(mission_eval)))
             team_jsons = []
             for team_eval in mission_eval.teams:
-                team_json = self.pretty_json(
-                    json_format.MessageToJson(team_eval))
+                team_json = pretty_json(json_format.MessageToJson(team_eval))
                 zip_file.writestr(
                     '/evaluate_teams/teams/%s.json' % team_eval.team,
                     team_json)
@@ -546,3 +547,21 @@ class Evaluate(View):
         zip_io.close()
 
         return HttpResponse(zip_output, content_type='application/zip')
+
+
+class MissionDetails(TemplateView):
+    """Renders the mission details as a printable webpage."""
+
+    template_name = 'mission.html'
+
+    @method_decorator(require_superuser)
+    def dispatch(self, *args, **kwargs):
+        return super(MissionDetails, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(MissionDetails, self).get_context_data(**kwargs)
+        pk = int(kwargs['pk'])
+        proto = mission_proto(MissionConfig.objects.get(pk=pk))
+        context['mission'] = proto
+        context['mission_str'] = pretty_json(json_format.MessageToJson(proto))
+        return context

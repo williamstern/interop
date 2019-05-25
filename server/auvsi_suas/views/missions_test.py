@@ -19,16 +19,7 @@ export_url = reverse('auvsi_suas:export_kml')
 live_url = reverse('auvsi_suas:live_kml')
 update_url = update_url = reverse('auvsi_suas:update_kml')
 evaluate_url = functools.partial(reverse, 'auvsi_suas:evaluate')
-
-
-class TestMissionsViewLoggedOut(TestCase):
-    def test_not_authenticated(self):
-        """Tests requests that have not yet been authenticated."""
-        response = self.client.get(missions_url)
-        self.assertEqual(403, response.status_code)
-
-        response = self.client.get(missions_id_url(args=[1]))
-        self.assertEqual(403, response.status_code)
+details_url = functools.partial(reverse, 'auvsi_suas:details')
 
 
 class TestMissionsViewCommon(TestCase):
@@ -48,6 +39,35 @@ class TestMissionsViewCommon(TestCase):
 
     def LoginSuperuser(self):
         self.client.force_login(self.admin_user)
+
+
+class TestMissionsViewInvalidLogin(TestMissionsViewCommon):
+    def test_not_authenticated(self):
+        """Tests requests for insufficient authentication or authorization."""
+        urls = [
+            missions_url,
+            missions_id_url(args=[1]),
+            export_url,
+            live_url,
+            evaluate_url(args=[1]),
+            details_url(args=[1]),
+        ]
+        for url in urls:
+            response = self.client.get(url)
+            self.assertEqual(403, response.status_code)
+
+    def test_not_superuser(self):
+        self.Login()
+        urls = [
+            missions_url,
+            export_url,
+            live_url,
+            evaluate_url(args=[1]),
+            details_url(args=[1]),
+        ]
+        for url in urls:
+            response = self.client.get(url)
+            self.assertEqual(403, response.status_code)
 
 
 class TestMissionsViewBasic(TestMissionsViewCommon):
@@ -146,23 +166,11 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assert_data(data)
 
 
-class TestGenerateKMLCommon(TestCase):
+class TestGenerateKMLCommon(TestMissionsViewCommon):
     """Tests the generateKML view."""
 
     # String formatter for KML format that expects lon, lat, alt arguments
     coord_format = '<gx:coord>{} {} {}</gx:coord>'
-
-    def setUp(self):
-        """Sets up the tests."""
-        # Create nonadmin user
-        self.nonadmin_user = User.objects.create_user(
-            'testuser', 'testemail@x.com', 'testpass')
-        self.nonadmin_user.save()
-
-        # Create admin user
-        self.admin_user = User.objects.create_superuser(
-            'testuser2', 'testemail@x.com', 'testpass')
-        self.admin_user.save()
 
     def validate_kml(self, kml_data, folders, users, coordinates):
         kml_data = kml_data.decode('utf-8')
@@ -196,13 +204,13 @@ class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
 
     def test_generateKML_nonadmin(self):
         """Tests the generate KML method."""
-        self.client.force_login(self.nonadmin_user)
+        self.Login()
         response = self.client.get(export_url)
         self.assertEqual(403, response.status_code)
 
     def test_generateKML(self):
         """Tests the generate KML method."""
-        self.client.force_login(self.admin_user)
+        self.LoginSuperuser()
         response = self.client.get(export_url)
         self.assertEqual(200, response.status_code)
         kml_data = response.content
@@ -235,13 +243,13 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
 
     def test_generateKML_nonadmin(self):
         """Tests the generate KML method."""
-        self.client.force_login(self.nonadmin_user)
+        self.Login()
         response = self.client.get(export_url)
         self.assertEqual(403, response.status_code)
 
     def test_generateKML(self):
         """Tests the generate KML method."""
-        self.client.force_login(self.admin_user)
+        self.LoginSuperuser()
         response = self.client.get(export_url)
         self.assertEqual(200, response.status_code)
 
@@ -249,23 +257,7 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
         self.validate_kml(kml_data, self.folders, self.users, self.coordinates)
 
 
-class TestGenerateLiveKMLCommon(TestCase):
-    """Tests the generateKML view."""
-
-    def setUp(self):
-        """Sets up the tests."""
-        # Create nonadmin user
-        self.nonadmin_user = User.objects.create_user(
-            'testuser', 'testemail@x.com', 'testpass')
-        self.nonadmin_user.save()
-
-        # Create admin user
-        self.admin_user = User.objects.create_superuser(
-            'testuser2', 'testemail@x.com', 'testpass')
-        self.admin_user.save()
-
-
-class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
+class TestGenerateLiveKMLNoFixture(TestMissionsViewCommon):
     def setUp(self):
         """Setup a single mission to test live kml with."""
         super(TestGenerateLiveKMLNoFixture, self).setUp()
@@ -290,13 +282,13 @@ class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
 
     def test_generate_live_kml(self):
         """Tests the generate KML method."""
-        self.client.force_login(self.admin_user)
+        self.LoginSuperuser()
         response = self.client.get(live_url)
         self.assertEqual(200, response.status_code)
 
     def test_generate_live_kml_nonadmin(self):
         """Tests the generate KML method."""
-        self.client.force_login(self.nonadmin_user)
+        self.Login()
         response = self.client.get(live_url)
         self.assertEqual(403, response.status_code)
 
@@ -313,14 +305,14 @@ class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
 
     def test_generate_live_kml_update_nonadmin(self):
         """Tests the generate KML method."""
-        self.client.force_login(self.nonadmin_user)
+        self.Login()
         response = self.client.get(update_url,
                                    {'sessionid': self.get_session_id()})
         self.assertEqual(403, response.status_code)
 
     def test_generate_live_kml_update(self):
         """Tests the generate KML method."""
-        self.client.force_login(self.admin_user)
+        self.LoginSuperuser()
         response = self.client.get(update_url,
                                    {'sessionid': self.get_session_id()})
         self.assertEqual(200, response.status_code)
@@ -332,14 +324,13 @@ class TestGenerateLiveKMLNoFixture(TestGenerateLiveKMLCommon):
                 return morsel.value
 
 
-class TestGenerateLiveKMLWithFixture(TestGenerateLiveKMLCommon):
+class TestGenerateLiveKMLWithFixture(TestMissionsViewCommon):
     """Tests the generateKML view."""
     fixtures = ['testdata/sample_mission.json']
 
     def test_generate_live_kml(self):
         """Tests the generate KML method."""
-        self.client.force_login(self.admin_user)
-
+        self.LoginSuperuser()
         response = self.client.get(live_url)
         self.assertEqual(200, response.status_code)
 
@@ -347,33 +338,20 @@ class TestGenerateLiveKMLWithFixture(TestGenerateLiveKMLCommon):
         self.assertEqual(200, response.status_code)
 
 
-class TestEvaluateTeams(TestCase):
+class TestEvaluateTeams(TestMissionsViewCommon):
     """Tests the evaluate_teams view."""
 
     fixtures = ['testdata/sample_mission.json']
 
-    def setUp(self):
-        """Sets up the tests."""
-        # Create nonadmin user
-        self.nonadmin_user = User.objects.create_user(
-            'testuser', 'testemail@x.com', 'testpass')
-        self.nonadmin_user.save()
-        self.nonadmin_client = Client()
-        # Create admin user
-        self.admin_user = User.objects.create_superuser(
-            'testuser2', 'testemail@x.com', 'testpass')
-        self.admin_user.save()
-        self.admin_client = Client()
-
     def test_evaluate_teams_nonadmin(self):
         """Tests that you can only access data as admin."""
-        self.client.force_login(self.nonadmin_user)
+        self.Login()
         response = self.client.get(evaluate_url(args=[1]))
         self.assertEqual(403, response.status_code)
 
     def test_invalid_mission(self):
         """Tests that an invalid mission ID results in error."""
-        self.client.force_login(self.nonadmin_user)
+        self.Login()
         response = self.client.get(evaluate_url(args=[1000]))
         self.assertGreaterEqual(response.status_code, 400)
 
@@ -391,21 +369,21 @@ class TestEvaluateTeams(TestCase):
 
     def test_evaluate_teams(self):
         """Tests the eval Json method."""
-        self.client.force_login(self.admin_user)
+        self.LoginSuperuser()
         response = self.client.get(evaluate_url(args=[3]))
         self.assertEqual(response.status_code, 200)
         data = self.load_json(response)
         self.assertIn('teams', data)
         teams = data['teams']
         self.assertEqual(len(teams), 3)
-        self.assertEqual('testuser', teams[0]['team']['username'])
+        self.assertEqual('user', teams[0]['team']['username'])
         self.assertEqual('user0', teams[1]['team']['username'])
         self.assertEqual('user1', teams[2]['team']['username'])
         self.assertIn('waypoints', teams[0]['feedback'])
 
     def test_evaluate_teams_specific_team(self):
         """Tests the eval Json method on a specific team."""
-        self.client.force_login(self.admin_user)
+        self.LoginSuperuser()
         response = self.client.get(evaluate_url(args=[3]), {'team': 53})
         self.assertEqual(response.status_code, 200)
         data = self.load_json(response)
@@ -416,7 +394,7 @@ class TestEvaluateTeams(TestCase):
 
     def test_evaluate_teams_csv(self):
         """Tests the CSV method."""
-        self.client.force_login(self.admin_user)
+        self.LoginSuperuser()
         response = self.client.get(evaluate_url(args=[3]))
         self.assertEqual(response.status_code, 200)
         csv_data = self.load_csv(response)
@@ -425,3 +403,19 @@ class TestEvaluateTeams(TestCase):
         self.assertIn('waypoints', csv_data)
         self.assertIn('user0', csv_data)
         self.assertIn('user1', csv_data)
+
+
+class TestMissionDetailsView(TestMissionsViewCommon):
+    """Tests the mission details template view."""
+
+    fixtures = ['testdata/sample_mission.json']
+
+    def test_non_superuser(self):
+        self.Login()
+        response = self.client.get(details_url(args=[3]))
+        self.assertEqual(403, response.status_code)
+
+    def test_view(self):
+        self.LoginSuperuser()
+        response = self.client.get(details_url(args=[3]))
+        self.assertEqual(200, response.status_code)

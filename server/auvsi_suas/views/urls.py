@@ -4,6 +4,7 @@ from auvsi_suas.views.missions import Evaluate
 from auvsi_suas.views.missions import ExportKml
 from auvsi_suas.views.missions import LiveKml
 from auvsi_suas.views.missions import LiveKmlUpdate
+from auvsi_suas.views.missions import MissionDetails
 from auvsi_suas.views.missions import Missions
 from auvsi_suas.views.missions import MissionsId
 from auvsi_suas.views.odlcs import Odlcs
@@ -26,6 +27,7 @@ urlpatterns = [
     url(r'^api/missions$', Missions.as_view(), name='missions'),
     url(r'^api/missions/(?P<pk>\d+)$', MissionsId.as_view(), name='missions_id'),
     url(r'^api/missions/(?P<pk>\d+)/evaluate\.zip$', Evaluate.as_view(), name='evaluate'),
+    url(r'^api/missions/(?P<pk>\d+)/mission.html$', MissionDetails.as_view(), name='details'),
     url(r'^api/missions/export\.kml$', ExportKml.as_view(), name='export_kml'),
     url(r'^api/missions/live\.kml$', LiveKml.as_view(), name='live_kml'),
     url(r'^api/missions/update\.kml$', LiveKmlUpdate.as_view(), name='update_kml'),
