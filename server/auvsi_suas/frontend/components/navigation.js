@@ -90,6 +90,11 @@ NavigationCtrl.prototype.updateMissionLinks_ = function() {
             url: "/#!/mission/" + this.mission_ + "/evaluate",
             target: "_self"
         },
+        {
+            text: "Printable Details",
+            url: "/api/missions/" + this.mission_ + "/mission.html",
+            target: "_blank",
+        },
     ];
 };
 

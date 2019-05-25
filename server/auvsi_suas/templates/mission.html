@@ -1,0 +1,31 @@
+<!-- Misison Details Page --!>
+<!DOCTYPE html>
+{% load pipeline %}
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>AUVSI SUAS Mission {{mission.id}} Details</title>
+    {% stylesheet 'styles' %}
+    {% javascript 'scripts' %}
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h2>AUVSI SUAS Mission {{mission.id}} Details</h2>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <pre style="column-count: 2;">
+{{mission_str}}
+                </pre>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
