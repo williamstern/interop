@@ -442,7 +442,7 @@ with open('path/to/image/A.jpg', 'rb') as f:
 ```
 
 For more details on the API, see the code
-[here](https://github.com/auvsi-suas/interop/tree/master/client/interop).
+[here](https://github.com/auvsi-suas/interop/tree/master/client/auvsi_suas/client).
 
 #### MAVLink (ArduPilot) Integration
 
