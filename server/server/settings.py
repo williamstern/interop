@@ -193,6 +193,7 @@ PIPELINE = {
                 'components/navigation.js',
                 'components/backend-service.js',
                 'components/team-status-controller.js',
+                'pages/gps-conversion-controller.js',
                 'pages/mission-dashboard-controller.js',
                 'pages/mission-list-controller.js',
                 'pages/odlc-review-controller.js',

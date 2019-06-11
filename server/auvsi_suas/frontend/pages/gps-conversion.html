@@ -1,0 +1,29 @@
+<div class="row p-4">
+    <div class="col-12 text-center">
+        <h4>GPS Conversion</h4>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col text-right">
+        <label>
+            Latitude
+            <input type="text" ng-model="gpsConversionCtrl.latitudeStr"
+                               ng-blur="gpsConversionCtrl.update()"
+                               placeholder="Example: N38-08-46.57">
+            </input>
+        </label></br>
+        {{gpsConversionCtrl.latitude}}
+    </div>
+    <div class="col text-left">
+        <label>
+            Longitude
+            <input type="text" ng-model="gpsConversionCtrl.longitudeStr"
+                               ng-blur="gpsConversionCtrl.update()"
+                               placeholder="Example: W076-25-41.39">
+            </input>
+        </label></br>
+        {{gpsConversionCtrl.longitude}}
+    </div>
+  </div>
+</div>

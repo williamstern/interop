@@ -36,6 +36,11 @@ auvsiSuasApp.config(['$routeProvider', function($routeProvider) {
             controller: 'EvaluateTeamsCtrl',
             controllerAs: 'evaluateTeamsCtrl'
         }).
+        when('/gps_conversion', {
+            templateUrl: '/static/pages/gps-conversion.html',
+            controller: 'GpsConversionCtrl',
+            controllerAs: 'gpsConversionCtrl'
+        }).
         otherwise({
             redirectTo: '/'
         });

@@ -14,6 +14,7 @@ from auvsi_suas.views.odlcs import OdlcsIdImage
 from auvsi_suas.views.teams import Teams
 from auvsi_suas.views.teams import Team
 from auvsi_suas.views.telemetry import Telemetry
+from auvsi_suas.views.utils import GpsConversion
 from django.conf.urls import url
 from django.conf import settings
 from django.conf.urls.static import static
@@ -39,5 +40,6 @@ urlpatterns = [
     url(r'^api/teams$', Teams.as_view(), name='teams'),
     url(r'^api/teams/(?P<username>.+)$', Team.as_view(), name='team'),
     url(r'^api/telemetry$', Telemetry.as_view(), name='telemetry'),
+    url(r'^api/utils/gps_conversion$', GpsConversion.as_view(), name='gps_conversion'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # yapf: enable
