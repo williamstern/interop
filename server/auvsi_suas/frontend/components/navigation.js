@@ -32,6 +32,11 @@ NavigationCtrl = function($routeParams) {
             target: "_blank"
         },
         {
+            text: "GPS Conversion",
+            url: "/#!/gps_conversion",
+            target: "_self"
+        },
+        {
             text: "Edit Data",
             url: "/admin",
             target: "_blank"

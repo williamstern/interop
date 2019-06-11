@@ -1,4 +1,5 @@
 Django>=1.11,<1.12
+LatLon23
 PyYAML # for loaddata
 django-pipeline
 django-sendfile

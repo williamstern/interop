@@ -261,3 +261,18 @@ message AirDropScore {
 message OperationalExcellenceScore {
     optional double score_ratio = 1;
 }
+
+// GPS conversion request.
+// Used to convert GPS positions in string format into decimal format.
+message GpsConversionRequest {
+    // Example: N38-08-46.57
+    optional string latitude = 1;
+    // Example: W076-25-41.39
+    optional string longitude = 2;
+}
+
+// GPS conversion response.
+message GpsConversionResponse {
+    optional double latitude = 1;
+    optional double longitude = 2;
+}
