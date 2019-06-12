@@ -1,0 +1,20 @@
+<div class="row p-4">
+    <div class="col-12 text-center">
+        <h4>Bulk Create Teams</h4>
+        <p>
+            CSV file must contain the column headings 'University', 'Name', 'Username'.
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col text-center">
+        <form action="/api/utils/bulk_create_teams" method="post" enctype="multipart/form-data" target="_blank">
+            <label>
+                CSV File:
+                <input type="file" name="file" id="file">
+            </label>
+            <input type="submit" value="Bulk Create Teams" name="submit">
+        </form>
+    </div>
+</div>

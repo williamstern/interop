@@ -41,6 +41,9 @@ auvsiSuasApp.config(['$routeProvider', function($routeProvider) {
             controller: 'GpsConversionCtrl',
             controllerAs: 'gpsConversionCtrl'
         }).
+        when('/bulk_create_teams', {
+            templateUrl: '/static/pages/bulk-create-teams.html',
+        }).
         otherwise({
             redirectTo: '/'
         });

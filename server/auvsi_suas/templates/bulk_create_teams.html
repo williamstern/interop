@@ -1,0 +1,42 @@
+<!-- Bulk Created Teams Page --!>
+<!DOCTYPE html>
+{% load pipeline %}
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>AUVSI SUAS Interop Credentials</title>
+    {% stylesheet 'styles' %}
+    {% javascript 'scripts' %}
+</head>
+
+<body>
+    <div class="container text-center">
+        {% for team in teams %}
+        <div class="row" style="padding:0.5in;">
+            <div class="col">
+                <h2>AUVSI SUAS Interop Credentials</h2>
+            </div>
+        </div>
+
+        <div class="row" style="padding:0.5in;">
+            <div class="col">
+                <h3>{{team.university}}, {{team.name}}</h3>
+                <h5>Username: {{team.username}}</h5>
+                <h5>Password: {{team.password}}</h5>
+                <h5>Static IP: {{team.ip}}</h5>
+            </div>
+        </div>
+
+        <div class="row" style="padding:0.5in; page-break-after: always;">
+            <div class="col">
+                <h3>Interop Server Details</h3>
+                <h5>IP: {{server.ip}}</h5>
+                <h5>Port: {{server.port}}</h5>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
