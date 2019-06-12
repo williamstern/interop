@@ -104,12 +104,13 @@ class BulkCreateTeams(View):
             })
 
         # Insert the user accounts.
+        # Trim fields due to database constraints.
         for team in context['teams']:
             get_user_model().objects.create_user(
                 username=team['username'],
                 password=team['password'],
-                first_name=team['name'],
-                last_name=team['university'])
+                first_name=team['name'][:30],
+                last_name=team['university'][:30])
 
         # Render a printable page.
         return shortcuts.render(request, 'bulk_create_teams.html', context)
