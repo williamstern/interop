@@ -37,6 +37,11 @@ NavigationCtrl = function($routeParams) {
             target: "_self"
         },
         {
+            text: "Bulk Create Teams",
+            url: "/#!/bulk_create_teams",
+            target: "_self"
+        },
+        {
             text: "Edit Data",
             url: "/admin",
             target: "_blank"
