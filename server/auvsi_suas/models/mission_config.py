@@ -30,7 +30,8 @@ class MissionConfig(models.Model):
     search_grid_points = models.ManyToManyField(
         Waypoint, related_name='missionconfig_search_grid_points')
     # The judge created objects for detection.
-    odlcs = models.ManyToManyField(Odlc, related_name='missionconfig_odlc')
+    odlcs = models.ManyToManyField(
+        Odlc, related_name='missionconfig_odlc', blank=True)
     # The last known position of the emergent object.
     emergent_last_known_pos = models.ForeignKey(
         GpsPosition,
