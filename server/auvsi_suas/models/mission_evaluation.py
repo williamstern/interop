@@ -109,7 +109,7 @@ def generate_feedback(mission_config, user, team_eval):
     user_odlcs = Odlc.objects.filter(user=user).filter(
         mission=mission_config.pk).all()
     for odlc in user_odlcs:
-        if odlc.thumbnail_approved is None:
+        if odlc.thumbnail and odlc.thumbnail_approved is None:
             team_eval.warnings.append(
                 'Odlc thumbnail review not set, may need to review ODLCs.')
             break
