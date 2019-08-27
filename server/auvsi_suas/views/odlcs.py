@@ -316,7 +316,7 @@ class OdlcsIdImage(View):
         except ValueError as e:
             return HttpResponseForbidden(str(e))
 
-        if not odlc.thumbnail.name:
+        if not odlc.thumbnail or not odlc.thumbnail.name:
             return HttpResponseNotFound('Odlc %s has no image' % pk)
 
         # Tell sendfile to serve the thumbnail.
