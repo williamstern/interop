@@ -95,6 +95,11 @@ class AccessLog(models.Model):
         if not time_periods:
             return (None, None)
 
+        # Check that all time periods are closed.
+        for time_period in time_periods:
+            if time_period.duration() is None:
+                return (None, None)
+
         # If logs were not provided, obtain.
         if not time_period_logs:
             time_period_logs = cls.by_time_period(user, time_periods)

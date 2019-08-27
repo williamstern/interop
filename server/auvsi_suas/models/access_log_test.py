@@ -66,17 +66,49 @@ class TestAccessLogBasic(TestAccessLogCommon):
     """Tests the AccessLog model basic functionality."""
 
     def test_no_data(self):
-        log = UasTelemetry.last_for_user(self.user1)
-        self.assertEqual(None, log)
+        self.assertEqual(None, UasTelemetry.last_for_user(self.user1))
+        self.assertEqual(0, len(UasTelemetry.by_user(self.user1)))
 
-        logs = UasTelemetry.by_user(self.user1)
-        self.assertEqual(len(logs), 0)
+        # Empty time priod.
+        self.assertSequenceEqual([],
+                                 UasTelemetry.by_time_period(self.user1, []))
+        self.assertTupleEqual((None, None), UasTelemetry.rates(self.user1, []))
 
-        logs = UasTelemetry.by_time_period(self.user1, [])
-        self.assertSequenceEqual([], logs)
+        start = timezone.now()
+        delta = datetime.timedelta(seconds=10)
 
-        log_rates = UasTelemetry.rates(self.user1, [])
-        self.assertTupleEqual(log_rates, (None, None))
+        # Time periods which calculate a rate.
+        time_period_sets = [
+            [TimePeriod(start, start + delta)],
+            [
+                TimePeriod(start, start + delta),
+                TimePeriod(start + delta, start + delta * 2)
+            ],
+        ]
+        for time_periods in time_period_sets:
+            for logs in UasTelemetry.by_time_period(self.user1, time_periods):
+                self.assertEqual(0, len(logs))
+            self.assertTupleEqual((delta.total_seconds(),
+                                   delta.total_seconds()),
+                                  UasTelemetry.rates(self.user1, time_periods))
+
+        # Open time periods which can't calculate a rate.
+        time_period_sets = [
+            [],
+            [TimePeriod(None, start)],
+            [TimePeriod(start + delta, None)],
+            [
+                TimePeriod(None, start),
+                TimePeriod(start, start + delta),
+                TimePeriod(start + delta, None)
+            ],
+        ]
+
+        for time_periods in time_period_sets:
+            for logs in UasTelemetry.by_time_period(self.user1, time_periods):
+                self.assertEqual(0, len(logs))
+            self.assertTupleEqual((None, None),
+                                  UasTelemetry.rates(self.user1, time_periods))
 
     def test_basic_access(self):
         start = timezone.now() - datetime.timedelta(seconds=10)
@@ -239,16 +271,14 @@ class TestAccessLogRates(TestAccessLogCommon):
 
         self.assertSequenceEqual((1, 1), rates)
 
-    def test_ignore_start_end(self):
-        """When start and end are None, only times between logs are compared."""
+    def test_infinite_period(self):
+        """Can't calculate a rate for an infinite (unbounded) period."""
         delta = datetime.timedelta(seconds=1)
-
         logs = self.create_logs(self.user1, delta=delta)
         period = TimePeriod(None, None)
 
-        rates = UasTelemetry.rates(self.user1, [period])
-
-        self.assertSequenceEqual((1, 1), rates)
+        self.assertSequenceEqual((None, None),
+                                 UasTelemetry.rates(self.user1, [period]))
 
     def test_multiple_periods(self):
         """Multiple periods are combined without introducing errors."""
