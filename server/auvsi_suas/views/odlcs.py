@@ -49,8 +49,8 @@ def odlc_to_proto(odlc):
         odlc_proto.shape = odlc.shape
     if odlc.alphanumeric:
         odlc_proto.alphanumeric = odlc.alphanumeric
-    if odlc.background_color is not None:
-        odlc_proto.shape_color = odlc.background_color
+    if odlc.shape_color is not None:
+        odlc_proto.shape_color = odlc.shape_color
     if odlc.alphanumeric_color is not None:
         odlc_proto.alphanumeric_color = odlc.alphanumeric_color
     if odlc.description:
@@ -126,9 +126,9 @@ def update_odlc_from_proto(odlc, odlc_proto):
         odlc.alphanumeric = ''
 
     if odlc_proto.HasField('shape_color'):
-        odlc.background_color = odlc_proto.shape_color
+        odlc.shape_color = odlc_proto.shape_color
     else:
-        odlc.background_color = None
+        odlc.shape_color = None
 
     if odlc_proto.HasField('alphanumeric_color'):
         odlc.alphanumeric_color = odlc_proto.alphanumeric_color

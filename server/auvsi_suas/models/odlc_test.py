@@ -64,7 +64,7 @@ class TestOdlc(TestCase):
             location=l,
             orientation=interop_api_pb2.Odlc.S,
             shape=interop_api_pb2.Odlc.SQUARE,
-            background_color=interop_api_pb2.Odlc.WHITE,
+            shape_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
             alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test odlc',
@@ -123,7 +123,7 @@ class TestOdlc(TestCase):
             location=l,
             orientation=interop_api_pb2.Odlc.S,
             shape=interop_api_pb2.Odlc.SQUARE,
-            background_color=interop_api_pb2.Odlc.WHITE,
+            shape_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
             alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test odlc',
@@ -137,7 +137,7 @@ class TestOdlc(TestCase):
             location=l,
             orientation=interop_api_pb2.Odlc.S,
             shape=interop_api_pb2.Odlc.SQUARE,
-            background_color=interop_api_pb2.Odlc.WHITE,
+            shape_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
             alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test other odlc',
@@ -190,7 +190,7 @@ class TestOdlc(TestCase):
             location=l,
             orientation=interop_api_pb2.Odlc.S,
             shape=interop_api_pb2.Odlc.SQUARE,
-            background_color=interop_api_pb2.Odlc.WHITE,
+            shape_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
             alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test odlc',
@@ -204,7 +204,7 @@ class TestOdlc(TestCase):
             location=l,
             orientation=interop_api_pb2.Odlc.S,
             shape=interop_api_pb2.Odlc.SQUARE,
-            background_color=interop_api_pb2.Odlc.WHITE,
+            shape_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
             alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test other odlc',
@@ -219,7 +219,7 @@ class TestOdlc(TestCase):
         t1.save()
         self.assertAlmostEqual(3.0 / 5.0, t1.similar_classifications_ratio(t2))
         t1.shape = interop_api_pb2.Odlc.CIRCLE
-        t1.background_color = interop_api_pb2.Odlc.ORANGE
+        t1.shape_color = interop_api_pb2.Odlc.ORANGE
         t1.save()
         self.assertAlmostEqual(1.0 / 5.0, t1.similar_classifications_ratio(t2))
 
@@ -401,7 +401,7 @@ class TestOdlcEvaluator(TestCase):
             location=l1,
             orientation=interop_api_pb2.Odlc.S,
             shape=interop_api_pb2.Odlc.SQUARE,
-            background_color=interop_api_pb2.Odlc.WHITE,
+            shape_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
             alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Submit test odlc 1',
@@ -416,7 +416,7 @@ class TestOdlcEvaluator(TestCase):
             location=l1,
             orientation=interop_api_pb2.Odlc.S,
             shape=interop_api_pb2.Odlc.SQUARE,
-            background_color=interop_api_pb2.Odlc.WHITE,
+            shape_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
             alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Real odlc 1')
@@ -430,7 +430,7 @@ class TestOdlcEvaluator(TestCase):
             location=l1,
             orientation=interop_api_pb2.Odlc.N,
             shape=interop_api_pb2.Odlc.CIRCLE,
-            background_color=interop_api_pb2.Odlc.WHITE,
+            shape_color=interop_api_pb2.Odlc.WHITE,
             # alphanumeric set below
             alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Submit test odlc 2',
@@ -444,7 +444,7 @@ class TestOdlcEvaluator(TestCase):
             location=l2,
             orientation=interop_api_pb2.Odlc.S,
             shape=interop_api_pb2.Odlc.TRIANGLE,
-            background_color=interop_api_pb2.Odlc.WHITE,
+            shape_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
             alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Real test odlc 2')
@@ -458,7 +458,7 @@ class TestOdlcEvaluator(TestCase):
             location=l4,
             orientation=interop_api_pb2.Odlc.NW,
             shape=interop_api_pb2.Odlc.PENTAGON,
-            background_color=interop_api_pb2.Odlc.GRAY,
+            shape_color=interop_api_pb2.Odlc.GRAY,
             alphanumeric='XYZ',
             alphanumeric_color=interop_api_pb2.Odlc.ORANGE,
             description='Incorrect description',
@@ -471,7 +471,7 @@ class TestOdlcEvaluator(TestCase):
             odlc_type=interop_api_pb2.Odlc.STANDARD,
             orientation=interop_api_pb2.Odlc.E,
             shape=interop_api_pb2.Odlc.SEMICIRCLE,
-            background_color=interop_api_pb2.Odlc.YELLOW,
+            shape_color=interop_api_pb2.Odlc.YELLOW,
             alphanumeric='LMN',
             # alphanumeric_color set below
             location=l3,
@@ -503,7 +503,7 @@ class TestOdlcEvaluator(TestCase):
             odlc_type=interop_api_pb2.Odlc.STANDARD,
             orientation=interop_api_pb2.Odlc.N,
             shape=interop_api_pb2.Odlc.TRAPEZOID,
-            background_color=interop_api_pb2.Odlc.PURPLE,
+            shape_color=interop_api_pb2.Odlc.PURPLE,
             alphanumeric='PQR',
             alphanumeric_color=interop_api_pb2.Odlc.BLUE,
             description='Test odlc 5',
@@ -517,7 +517,7 @@ class TestOdlcEvaluator(TestCase):
             location=l1,
             orientation=interop_api_pb2.Odlc.N,
             shape=interop_api_pb2.Odlc.TRAPEZOID,
-            background_color=interop_api_pb2.Odlc.PURPLE,
+            shape_color=interop_api_pb2.Odlc.PURPLE,
             alphanumeric='PQR',
             alphanumeric_color=interop_api_pb2.Odlc.BLUE,
             description='Test odlc 5')

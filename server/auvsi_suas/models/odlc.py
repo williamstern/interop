@@ -55,7 +55,7 @@ class Odlc(models.Model):
         null=True,
         blank=True)
     # Object background color.
-    background_color = models.IntegerField(
+    shape_color = models.IntegerField(
         choices=pb_utils.FieldChoicesFromEnum(interop_api_pb2.Odlc.Color),
         null=True,
         blank=True)
@@ -150,7 +150,7 @@ class Odlc(models.Model):
 
         # Compare the fields which require equality.
         direct_compare_fields = [
-            'shape', 'background_color', 'alphanumeric', 'alphanumeric_color'
+            'shape', 'shape_color', 'alphanumeric', 'alphanumeric_color'
         ]
         similar_fields = 0
         total_fields = len(direct_compare_fields)
@@ -402,7 +402,7 @@ class OdlcEvaluator(object):
 class OdlcModelAdmin(admin.ModelAdmin):
     show_full_result_count = False
     raw_id_fields = ("location", )
-    list_display = ('pk', 'user', 'odlc_type', 'location', 'orientation',
-                    'shape', 'background_color', 'alphanumeric',
-                    'alphanumeric_color', 'autonomous', 'thumbnail_approved',
+    list_display = ('pk', 'user', 'odlc_type', 'shape_color', 'shape',
+                    'alphanumeric_color', 'alphanumeric', 'location',
+                    'orientation', 'autonomous', 'thumbnail_approved',
                     'creation_time', 'last_modified_time')
