@@ -395,7 +395,7 @@ class TestPostOdlc(TestOdlcsCommon):
                 content_type='application/json')
             self.assertEqual(400, response.status_code)
 
-    def test_invalid_background_color(self):
+    def test_invalid_shape_color(self):
         """Send bad odlc background color."""
         bad = ['white black', 'mahogany', 42]
 
@@ -624,7 +624,7 @@ class TestOdlcId(TestOdlcsCommon):
             location=l,
             orientation=interop_api_pb2.Odlc.S,
             shape=interop_api_pb2.Odlc.SQUARE,
-            background_color=interop_api_pb2.Odlc.WHITE,
+            shape_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
             alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test odlc')
@@ -656,7 +656,7 @@ class TestOdlcId(TestOdlcsCommon):
         self.assertEqual(-77, t.location.longitude)
         self.assertEqual(interop_api_pb2.Odlc.N, t.orientation)
         self.assertEqual(interop_api_pb2.Odlc.CIRCLE, t.shape)
-        self.assertEqual(interop_api_pb2.Odlc.BLACK, t.background_color)
+        self.assertEqual(interop_api_pb2.Odlc.BLACK, t.shape_color)
         self.assertEqual('A', t.alphanumeric)
         self.assertEqual(interop_api_pb2.Odlc.GREEN, t.alphanumeric_color)
         self.assertEqual('Best odlc', t.description)
@@ -673,7 +673,7 @@ class TestOdlcId(TestOdlcsCommon):
             location=l,
             orientation=interop_api_pb2.Odlc.S,
             shape=interop_api_pb2.Odlc.SQUARE,
-            background_color=interop_api_pb2.Odlc.WHITE,
+            shape_color=interop_api_pb2.Odlc.WHITE,
             alphanumeric='ABC',
             alphanumeric_color=interop_api_pb2.Odlc.BLACK,
             description='Test odlc')
@@ -694,7 +694,7 @@ class TestOdlcId(TestOdlcsCommon):
         self.assertIsNone(t.location)
         self.assertIsNone(t.orientation)
         self.assertIsNone(t.shape)
-        self.assertIsNone(t.background_color)
+        self.assertIsNone(t.shape_color)
         self.assertEqual('', t.alphanumeric)
         self.assertIsNone(t.alphanumeric_color)
         self.assertEqual('', t.description)
