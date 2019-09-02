@@ -247,6 +247,15 @@ class TestAccessLogRates(TestAccessLogCommon):
         return TimePeriod(logs[0].timestamp - delta,
                           logs[-1].timestamp + delta)
 
+    def test_no_logs(self):
+        """Test behavior when no logs are present."""
+        delta = datetime.timedelta(seconds=10)
+        self.assertSequenceEqual(
+            (10, 10),
+            UasTelemetry.rates(
+                self.user1, [TimePeriod(self.year2000,
+                                        self.year2000 + delta)]))
+
     def test_constant_rate(self):
         """Rates computed correctly."""
         delta = datetime.timedelta(seconds=1)
@@ -258,8 +267,33 @@ class TestAccessLogRates(TestAccessLogCommon):
 
         self.assertSequenceEqual((1, 1), rates)
 
+    def test_non_constant_rate(self):
+        """Rates computed correctly when non-constant."""
+        delta = datetime.timedelta(seconds=1)
+
+        start = timezone.now()
+        self.create_logs(self.user1, num=10, start=start, delta=delta)
+        self.create_logs(
+            self.user1, num=10, start=start + 10 * delta, delta=2 * delta)
+        period = TimePeriod(start - delta,
+                            start + 10 * delta + 10 * (2 * delta))
+        rates = UasTelemetry.rates(self.user1, [period])
+
+        self.assertSequenceEqual((2, (1.0 * 11 + 2.0 * 10) / (11 + 10)), rates)
+
+    def test_delayed_start_early_end_logs(self):
+        """Rates computed consider time before and after log sequence."""
+        delta = datetime.timedelta(seconds=1)
+
+        logs = self.create_logs(self.user1, delta=delta)
+        period = self.consistent_period(logs, delta * 2)
+
+        rates = UasTelemetry.rates(self.user1, [period])
+
+        self.assertSequenceEqual((2, (1.0 * 9 + 2.0 * 2) / (9 + 2)), rates)
+
     def test_provided_logs(self):
-        """Rates computed with provided logs."""
+        """Rates computed with provided logs only."""
         delta = datetime.timedelta(seconds=1)
 
         used_logs = self.create_logs(self.user1, delta=delta)

@@ -200,18 +200,18 @@ class TestUasTelemetryFilter(TestUasTelemetryBase):
 
     def test_no_logs(self):
         """Tests empty log."""
-        self.assertEqual(UasTelemetry.dedupe([]), [])
+        self.assertSequenceEqual(list(UasTelemetry.dedupe([])), [])
 
     def test_no_duplicates(self):
         """Tests no duplicates in list."""
         orig = [self.log1, self.log2, self.log3, self.log4]
-        self.assertEqual(UasTelemetry.dedupe(orig), orig)
+        self.assertSequenceEqual(list(UasTelemetry.dedupe(orig)), orig)
 
     def test_boundary_duplicates(self):
         """Tests duplicates on the bounds of the list."""
         orig = [self.log1, self.log1, self.log2, self.log2, self.log2]
         expect = [self.log1, self.log2]
-        self.assertEqual(UasTelemetry.dedupe(orig), expect)
+        self.assertSequenceEqual(list(UasTelemetry.dedupe(orig)), expect)
 
     def test_duplicates(self):
         orig = [
@@ -219,13 +219,13 @@ class TestUasTelemetryFilter(TestUasTelemetryBase):
             self.log4
         ]
         expect = [self.log1, self.log2, self.log3, self.log4]
-        self.assertEqual(UasTelemetry.dedupe(orig), expect)
+        self.assertSequenceEqual(list(UasTelemetry.dedupe(orig)), expect)
 
     def test_filter_bad(self):
         """Tests filter_bad()."""
         orig = [self.log1, self.log5]
         expect = [self.log1]
-        self.assertEqual(list(UasTelemetry.filter_bad(orig)), expect)
+        self.assertSequenceEqual(list(UasTelemetry.filter_bad(orig)), expect)
 
 
 class TestUasTelemetryInterpolate(TestUasTelemetryBase):
