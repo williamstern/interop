@@ -303,8 +303,8 @@ class TestMissionEvaluation(TestCase):
         self.assertEqual(0.0,
                          feedback.waypoints[1].closest_for_scored_approach_ft)
 
-        self.assertAlmostEqual(0.5, feedback.uas_telemetry_time_max_sec)
-        self.assertAlmostEqual(1. / 6, feedback.uas_telemetry_time_avg_sec)
+        self.assertAlmostEqual(1.0, feedback.uas_telemetry_time_max_sec)
+        self.assertAlmostEqual(1.0, feedback.uas_telemetry_time_avg_sec)
 
         self.assertAlmostEqual(0.454, feedback.odlc.score_ratio, places=3)
 
@@ -358,7 +358,7 @@ class TestMissionEvaluation(TestCase):
                          feedback.waypoints[1].closest_for_scored_approach_ft)
 
         self.assertAlmostEqual(2.0, feedback.uas_telemetry_time_max_sec)
-        self.assertAlmostEqual(1.0, feedback.uas_telemetry_time_avg_sec)
+        self.assertAlmostEqual(2.0, feedback.uas_telemetry_time_avg_sec)
 
         self.assertAlmostEqual(0, feedback.odlc.score_ratio, places=3)
 
@@ -375,7 +375,7 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0.7997777777777778, score.timeline.score_ratio)
         self.assertAlmostEqual(1, score.autonomous_flight.flight)
         self.assertAlmostEqual(0.5, score.autonomous_flight.waypoint_capture)
-        self.assertAlmostEqual(1, score.autonomous_flight.waypoint_accuracy)
+        self.assertAlmostEqual(0, score.autonomous_flight.waypoint_accuracy)
         self.assertAlmostEqual(
             0.1, score.autonomous_flight.safety_pilot_takeover_penalty)
         self.assertAlmostEqual(0,
@@ -383,7 +383,7 @@ class TestMissionEvaluation(TestCase):
         self.assertAlmostEqual(0.25,
                                score.autonomous_flight.things_fell_off_penalty)
         self.assertAlmostEqual(0.35, score.autonomous_flight.crashed_penalty)
-        self.assertAlmostEqual(0.25, score.autonomous_flight.score_ratio)
+        self.assertAlmostEqual(-0.25, score.autonomous_flight.score_ratio)
 
         self.assertAlmostEqual(0, score.object.characteristics)
         self.assertAlmostEqual(0, score.object.geolocation)
@@ -398,7 +398,7 @@ class TestMissionEvaluation(TestCase):
 
         self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
 
-        self.assertAlmostEqual(0.5099777777777779, score.score_ratio)
+        self.assertAlmostEqual(0.20997777777777782, score.score_ratio)
 
     def test_evaluate_teams_specific_users(self):
         """Tests the evaluation of teams method with specific users."""

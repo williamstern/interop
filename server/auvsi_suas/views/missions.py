@@ -265,26 +265,26 @@ def mission_kml(mission, kml, kml_doc):
     return kml_folder
 
 
-def uas_telemetry_kml(user, flights, logs, kml, kml_doc):
+def uas_telemetry_kml(user, flight_logs, kml, kml_doc):
     """
     Appends kml nodes describing the given user's flight as described
     by the log array given.
 
     Args:
         user: A Django User to get username from
-        flights: List of flight periods
-        logs: A list of UasTelemetry elements
+        flight_logs: A sequence of UasTelemetry logs per flight period.
         kml: A simpleKML Container to which the flight data will be added
         kml_doc: The simpleKML Document to which schemas will be added
     Returns:
         None
     """
-    kml_folder = kml.newfolder(name=user.username)
+    # Lazily create folder iff there is data.
+    kml_folder = None
 
-    logs = UasTelemetry.dedupe(UasTelemetry.filter_bad(logs))
-    for i, flight in enumerate(flights):
+    for i, logs in enumerate(flight_logs):
         name = '%s Flight %d' % (user.username, i + 1)
-        flight_logs = filter(lambda x: flight.within(x.timestamp), logs)
+
+        logs = UasTelemetry.dedupe(UasTelemetry.filter_bad(logs))
 
         coords = []
         angles = []
@@ -303,6 +303,14 @@ def uas_telemetry_kml(user, flights, logs, kml, kml_doc):
             # Degrees heading, tilt, and roll
             angle = (entry.uas_heading, 0.0, 0.0)
             angles.append(angle)
+
+        # Ignore tracks with no data.
+        if not coords or not angles or not when:
+            continue
+
+        # Start folder if not done so already.
+        if not kml_folder:
+            kml_folder = kml.newfolder(name=user.username)
 
         # Create a new track in the folder
         trk = kml_folder.newgxtrack(name=name)
@@ -366,8 +374,7 @@ class ExportKml(View):
                     continue
                 uas_telemetry_kml(
                     user=user,
-                    flights=flights,
-                    logs=UasTelemetry.by_user(user),
+                    flight_logs=UasTelemetry.by_time_period(user, flights),
                     kml=kml_flights,
                     kml_doc=kml.document)
 

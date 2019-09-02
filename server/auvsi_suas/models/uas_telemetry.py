@@ -85,22 +85,19 @@ class UasTelemetry(AccessLog):
         Args:
             logs: A sorted list of UasTelemetry logs.
         Returns:
-            A list containing the non-duplicate logs in the original list.
+            A sequence containing the non-duplicate logs in the original list.
         """
         # Check that logs were provided.
         if not logs:
             return logs
 
         # For each log, compare to previous. If different, add to output.
-        filtered = []
         prev_log = None
         for log in logs:
-            if prev_log is None or not prev_log.duplicate(log):
+            if not prev_log or not prev_log.duplicate(log):
                 # New unique log.
-                filtered.append(log)
+                yield log
                 prev_log = log
-
-        return filtered
 
     @classmethod
     def filter_bad(cls, logs):

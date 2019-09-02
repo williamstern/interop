@@ -105,36 +105,16 @@ class AccessLog(models.Model):
             time_period_logs = cls.by_time_period(user, time_periods)
 
         # Calculate time between log files.
+        # Include time between period and logs in calculation.
         times_between_logs = []
-        for i, period in enumerate(time_periods):
-            # Get the logs for this period
-            # Coerce the QuerySet into a list, so we can use negative indexing.
-            logs = list(time_period_logs[i])
-
-            # Account for a time period with no logs
-            if len(logs) == 0:
-                if period.start is not None and period.end is not None:
-                    time_diff = (period.end - period.start).total_seconds()
-                    times_between_logs.append(time_diff)
-                continue
-
-            # Account for time between takeoff and first log
-            if period.start is not None:
-                first = logs[0]
-                time_diff = (first.timestamp - period.start).total_seconds()
-                times_between_logs.append(time_diff)
-
-            # Account for time between logs
-            for j, log in enumerate(logs[:-1]):
-                nextlog = logs[j + 1]
-                time_diff = (nextlog.timestamp - log.timestamp).total_seconds()
-                times_between_logs.append(time_diff)
-
-            # Account for time between last log and landing
-            if period.end is not None:
-                last_log = logs[-1]
-                time_diff = (period.end - last_log.timestamp).total_seconds()
-                times_between_logs.append(time_diff)
+        for ix, period in enumerate(time_periods):
+            logs = time_period_logs[ix]
+            prev_time = period.start
+            for log in logs:
+                times_between_logs.append(
+                    (log.timestamp - prev_time).total_seconds())
+                prev_time = log.timestamp
+            times_between_logs.append((period.end - prev_time).total_seconds())
 
         # Compute rates using the time between log files.
         times_between_logs = np.array(times_between_logs)
