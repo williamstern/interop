@@ -1,5 +1,6 @@
 """Model for an access log."""
 
+import functools
 import logging
 import numpy as np
 from django.conf import settings
@@ -83,10 +84,10 @@ class AccessLog(models.Model):
             time_periods: A list of TimePeriod objects. Note: to avoid
                 computing rates with duplicate logs, ensure that all
                 time periods are non-overlapping.
-            time_period_logs: Optional. A list of AccessLog lists, where each
-                AccessLog list contains all AccessLogs corresponding to the
-                related TimePeriod. If None, will obtain by calling
-                by_time_period().
+            time_period_logs: Optional. A sequence of AccessLog sequences,
+                where each AccessLog sequence contains all AccessLogs
+                corresponding to the related TimePeriod. If None, will obtain
+                by calling by_time_period().
         Returns:
             A (max, avg) tuple. The max is the max time between logs, and avg
             is the avg time between logs.
@@ -104,20 +105,18 @@ class AccessLog(models.Model):
         if not time_period_logs:
             time_period_logs = cls.by_time_period(user, time_periods)
 
-        # Calculate time between log files.
-        # Include time between period and logs in calculation.
-        times_between_logs = []
-        for ix, period in enumerate(time_periods):
-            logs = time_period_logs[ix]
-            prev_time = period.start
-            for log in logs:
-                times_between_logs.append(
-                    (log.timestamp - prev_time).total_seconds())
-                prev_time = log.timestamp
-            times_between_logs.append((period.end - prev_time).total_seconds())
+        # Utility generator for time durations.
+        def time_between_logs(time_periods, time_period_logs):
+            for ix, period in enumerate(time_periods):
+                prev_time = period.start
+                for log in time_period_logs[ix]:
+                    yield (log.timestamp - prev_time).total_seconds()
+                    prev_time = log.timestamp
+                yield (period.end - prev_time).total_seconds()
 
-        # Compute rates using the time between log files.
-        times_between_logs = np.array(times_between_logs)
-        times_between_max = float(np.max(times_between_logs))
-        times_between_avg = float(np.mean(times_between_logs))
-        return (times_between_max, times_between_avg)
+        # Calculate max, sum, count for time durations.
+        (m, s, c) = functools.reduce(
+            lambda r, d: (max(r[0], d), r[1] + d, r[2] + 1),
+            time_between_logs(time_periods, time_period_logs), (0.0, 0.0, 0))
+        # Convert to max and average.
+        return (m, s / c)
