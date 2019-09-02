@@ -50,7 +50,7 @@ COPY server/auvsi_suas/__init__.py auvsi_suas/__init__.py
 COPY server/auvsi_suas/models/__init__.py auvsi_suas/models/__init__.py
 COPY server/auvsi_suas/views/__init__.py auvsi_suas/views/__init__.py
 COPY server/auvsi_suas/frontend auvsi_suas/frontend
-RUN python3 manage.py collectstatic --noinput
+RUN ./manage.py collectstatic --noinput
 
 # Copy all remaining code.
 COPY server/ .
@@ -62,8 +62,8 @@ RUN protoc --python_out=. auvsi_suas/proto/*.proto
 # Load initial data.
 RUN service postgresql start && \
     ./healthcheck.py --check_postgres && \
-    python3 manage.py migrate && \
-    python3 manage.py loaddata fixtures/test_fixture.yaml
+    ./manage.py migrate && \
+    ./config/load_test_data.py
 
 # Host-mountable sections.
 VOLUME /var/log/uwsgi /var/lib/postgresql /var/www/media/objects

@@ -17,6 +17,8 @@ from django.utils.decorators import method_decorator
 from django.views.generic import View
 from google.protobuf import json_format
 
+logger = logging.getLogger(__name__)
+
 LATLON_FORMAT = 'H%d%-%m%-%S'
 
 INTEROP_SERVER_IP = '10.10.130.10'
