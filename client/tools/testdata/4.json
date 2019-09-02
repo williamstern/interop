@@ -6,5 +6,5 @@
     "mission": 1,
     "shape": "TRIANGLE",
     "shape_color": "GREEN",
-    "type": "OFF_AXIS"
+    "type": "STANDARD"
 }

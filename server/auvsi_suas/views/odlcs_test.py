@@ -108,7 +108,7 @@ class TestGetOdlc(TestOdlcsCommon):
         t2 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=interop_api_pb2.Odlc.OFF_AXIS)
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
         t2.save()
 
         t3 = Odlc(
@@ -141,7 +141,7 @@ class TestGetOdlc(TestOdlcsCommon):
             {
                 'id': t2.pk,
                 'mission': self.mission.pk,
-                'type': 'OFF_AXIS',
+                'type': 'STANDARD',
                 'autonomous': False,
             },
             {
@@ -632,7 +632,7 @@ class TestOdlcId(TestOdlcsCommon):
 
         updated = {
             'mission': self.mission.pk,
-            'type': 'OFF_AXIS',
+            'type': 'STANDARD',
             'latitude': 39,
             'longitude': -77,
             'orientation': 'N',
@@ -651,7 +651,7 @@ class TestOdlcId(TestOdlcsCommon):
         t.refresh_from_db()
         t.location.refresh_from_db()
         self.assertEqual(self.user, t.user)
-        self.assertEqual(interop_api_pb2.Odlc.OFF_AXIS, t.odlc_type)
+        self.assertEqual(interop_api_pb2.Odlc.STANDARD, t.odlc_type)
         self.assertEqual(39, t.location.latitude)
         self.assertEqual(-77, t.location.longitude)
         self.assertEqual(interop_api_pb2.Odlc.N, t.orientation)
