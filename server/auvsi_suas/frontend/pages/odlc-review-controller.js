@@ -107,8 +107,7 @@ OdlcReviewCtrl.prototype.setReviewOdlc = function(odlcReview) {
         {'key': 'Type',
          'value': this.odlcReview_.odlc.type},
     ];
-    if (this.odlcReview_.odlc.type == 'STANDARD' ||
-            this.odlcReview_.odlc.type == 'OFF_AXIS') {
+    if (this.odlcReview_.odlc.type == 'STANDARD') {
         this.odlcDetails_ = this.odlcDetails_.concat([
             {'key': 'Alpha Color',
              'value': this.odlcReview_.odlc.alphanumericColor},

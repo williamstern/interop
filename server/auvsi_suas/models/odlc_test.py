@@ -223,17 +223,6 @@ class TestOdlc(TestCase):
         t1.save()
         self.assertAlmostEqual(1.0 / 5.0, t1.similar_classifications_ratio(t2))
 
-        # Test different types.
-        t1.odlc_type = interop_api_pb2.Odlc.OFF_AXIS
-        t1.save()
-        self.assertAlmostEqual(0, t1.similar_classifications_ratio(t2))
-
-        # Test off_axis is same as standard.
-        t2.odlc_type = interop_api_pb2.Odlc.OFF_AXIS
-        t2.alphanumeric = 'DEF'
-        t2.save()
-        self.assertAlmostEqual(2.0 / 5.0, t1.similar_classifications_ratio(t2))
-
         # Test emergent type based on description approval.
         t1.odlc_type = interop_api_pb2.Odlc.EMERGENT
         t1.save()
