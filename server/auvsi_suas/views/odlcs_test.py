@@ -775,8 +775,7 @@ class TestOdlcId(TestOdlcsCommon):
 
 def test_image(name):
     """Compute path of test image"""
-    return os.path.join(settings.BASE_DIR, 'auvsi_suas/fixtures/testdata',
-                        name)
+    return os.path.join(settings.BASE_DIR, 'auvsi_suas/testdata', name)
 
 
 class TestOdlcIdImage(TestOdlcsCommon):

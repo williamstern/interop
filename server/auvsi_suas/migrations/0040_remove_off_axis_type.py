@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='odlc',
             name='odlc_type',
-            field=models.IntegerField(choices=[(1, 'STANDARD'), (4, 'EMERGENT')]),
-        ),
+            field=models.IntegerField(choices=[(1, 'STANDARD'),
+                                               (4, 'EMERGENT')]), ),
     ]

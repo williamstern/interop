@@ -4,7 +4,7 @@ import functools
 import io
 import json
 import zipfile
-from auvsi_suas.models import units
+from auvsi_suas.models import test_utils
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_config import MissionConfig
 from django.contrib.auth.models import User
@@ -26,19 +26,22 @@ class TestMissionsViewCommon(TestCase):
     """Common test setup"""
 
     def setUp(self):
-        self.user = User.objects.create_user('user', 'email@example.com',
-                                             'normalpass')
-        self.user.save()
+        self.user0 = User.objects.create_user('user0', 'email@example.com',
+                                              'testpass')
+        self.user0.save()
+        self.user1 = User.objects.create_user('user1', 'email@example.com',
+                                              'testpass')
+        self.user1.save()
 
-        self.admin_user = User.objects.create_superuser(
+        self.superuser = User.objects.create_superuser(
             'testuser2', 'testemail@x.com', 'testpass')
-        self.admin_user.save()
+        self.superuser.save()
 
     def Login(self):
-        self.client.force_login(self.user)
+        self.client.force_login(self.user0)
 
     def LoginSuperuser(self):
-        self.client.force_login(self.admin_user)
+        self.client.force_login(self.superuser)
 
 
 class TestMissionsViewInvalidLogin(TestMissionsViewCommon):
@@ -95,11 +98,15 @@ class TestMissionsViewBasic(TestMissionsViewCommon):
 class TestMissionsViewSampleMission(TestMissionsViewCommon):
     """Tests the missions view with sample mission."""
 
-    fixtures = ['testdata/sample_mission.json']
+    def setUp(self):
+        super(TestMissionsViewSampleMission, self).setUp()
+        self.mission = test_utils.create_sample_mission(self.superuser)
+        test_utils.simulate_team_mission(self, self.mission, self.superuser,
+                                         self.user0)
 
     def assert_data(self, data):
         self.assertIn('id', data)
-        self.assertEqual(3, data['id'])
+        self.assertEqual(self.mission.pk, data['id'])
 
         self.assertIn('waypoints', data)
         for waypoint in data['waypoints']:
@@ -107,60 +114,36 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
             self.assertIn('longitude', waypoint)
             self.assertIn('altitude', waypoint)
 
-        self.assertEqual(2, len(data['waypoints']))
-
-        self.assertEqual(38.0, data['waypoints'][0]['latitude'])
-        self.assertEqual(-76.0, data['waypoints'][0]['longitude'])
-        self.assertEqual(30.0, data['waypoints'][0]['altitude'])
-
-        self.assertEqual(38.0, data['waypoints'][1]['latitude'])
-        self.assertEqual(-77.0, data['waypoints'][1]['longitude'])
-        self.assertEqual(60.0, data['waypoints'][1]['altitude'])
-
         self.assertIn('searchGridPoints', data)
-        self.assertEqual(1, len(data['searchGridPoints']))
+        self.assertGreater(len(data['searchGridPoints']), 0)
         for point in data['searchGridPoints']:
             self.assertIn('latitude', point)
             self.assertIn('longitude', point)
 
-        self.assertEqual(38.0, data['searchGridPoints'][0]['latitude'])
-        self.assertEqual(-79.0, data['searchGridPoints'][0]['longitude'])
-
         self.assertIn('offAxisOdlcPos', data)
         self.assertIn('latitude', data['offAxisOdlcPos'])
         self.assertIn('longitude', data['offAxisOdlcPos'])
-        self.assertEqual(38.0, data['offAxisOdlcPos']['latitude'])
-        self.assertEqual(-79.0, data['offAxisOdlcPos']['longitude'])
 
         self.assertIn('emergentLastKnownPos', data)
         self.assertIn('latitude', data['emergentLastKnownPos'])
         self.assertIn('longitude', data['emergentLastKnownPos'])
-        self.assertEqual(38.0, data['emergentLastKnownPos']['latitude'])
-        self.assertEqual(-79.0, data['emergentLastKnownPos']['longitude'])
 
         self.assertIn('airDropPos', data)
         self.assertIn('latitude', data['airDropPos'])
         self.assertIn('longitude', data['airDropPos'])
-        self.assertEqual(38.0, data['airDropPos']['latitude'])
-        self.assertEqual(-79.0, data['airDropPos']['longitude'])
 
         self.assertIn('stationaryObstacles', data)
-        self.assertEqual(2, len(data['stationaryObstacles']))
+        self.assertGreater(len(data['stationaryObstacles']), 0)
         for obst in data['stationaryObstacles']:
             self.assertIn('latitude', obst)
             self.assertIn('longitude', obst)
             self.assertIn('radius', obst)
             self.assertIn('height', obst)
 
-        self.assertEqual(38, data['stationaryObstacles'][0]['latitude'])
-        self.assertEqual(-76, data['stationaryObstacles'][0]['longitude'])
-        self.assertEqual(10, data['stationaryObstacles'][0]['height'])
-        self.assertEqual(10, data['stationaryObstacles'][0]['radius'])
-
     def test_get(self):
         """Response JSON is properly formatted."""
         self.Login()
-        response = self.client.get(missions_id_url(args=[3]))
+        response = self.client.get(missions_id_url(args=[self.mission.pk]))
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assert_data(data)
@@ -170,9 +153,8 @@ class TestGenerateKMLCommon(TestMissionsViewCommon):
     """Tests the generateKML view."""
 
     # String formatter for KML format that expects lon, lat, alt arguments
-    coord_format = '<gx:coord>{} {} {}</gx:coord>'
 
-    def validate_kml(self, kml_data, folders, users, coordinates):
+    def validate_kml(self, kml_data, folders, users):
         kml_data = kml_data.decode('utf-8')
         ElementTree.fromstring(kml_data)
         for folder in folders:
@@ -183,19 +165,14 @@ class TestGenerateKMLCommon(TestMissionsViewCommon):
             tag = '<name>{}</name>'.format(user)
             self.assertIn(tag, kml_data)
 
-        for coord in coordinates:
-            coord_str = self.coord_format.format(coord[0], coord[1], coord[2])
-            self.assertIn(coord_str, kml_data)
 
-
-class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
+class TestGenerateKML(TestGenerateKMLCommon):
     """Tests the generateKML view."""
 
-    def __init__(self, *args, **kwargs):
-        super(TestGenerateKMLNoFixture, self).__init__(*args, **kwargs)
+    def setUp(self):
+        super(TestGenerateKML, self).setUp()
         self.folders = ['Missions']
         self.users = []
-        self.coordinates = []
 
     def test_generateKML_not_logged_in(self):
         """Tests the generate KML method."""
@@ -214,27 +191,21 @@ class TestGenerateKMLNoFixture(TestGenerateKMLCommon):
         response = self.client.get(export_url)
         self.assertEqual(200, response.status_code)
         kml_data = response.content
-        self.validate_kml(kml_data, self.folders, self.users, self.coordinates)
+        self.validate_kml(kml_data, self.folders, self.users)
 
 
-class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
+class TestGenerateKMLWithSimulation(TestGenerateKMLCommon):
     """Tests the generateKML view."""
-    fixtures = ['testdata/sample_mission.json']
 
-    def __init__(self, *args, **kwargs):
-        super(TestGenerateKMLWithFixture, self).__init__(*args, **kwargs)
+    def setUp(self):
+        super(TestGenerateKMLWithSimulation, self).setUp()
+
+        self.mission = test_utils.create_sample_mission(self.superuser)
+        test_utils.simulate_team_mission(self, self.mission, self.superuser,
+                                         self.user0)
+
         self.folders = ['Flights', 'Missions']
-        self.users = ['user0', 'user1']
-        self.coordinates = [(lat, lon, units.feet_to_meters(alt))
-                            for lat, lon, alt in [
-                                (-76.0, 38.0, 0.0),
-                                (-76.0, 38.0, 10.0),
-                                (-76.0, 38.0, 20.0),
-                                (-76.0, 38.0, 30.0),
-                                (-76.0, 38.0, 100.0),
-                                (-76.0, 38.0, 30.0),
-                                (-77.0, 38.0, 60.0),
-                            ]]
+        self.users = [self.user0.username]
 
     def test_generateKML_not_logged_in(self):
         """Tests the generate KML method."""
@@ -254,13 +225,13 @@ class TestGenerateKMLWithFixture(TestGenerateKMLCommon):
         self.assertEqual(200, response.status_code)
 
         kml_data = response.content
-        self.validate_kml(kml_data, self.folders, self.users, self.coordinates)
+        self.validate_kml(kml_data, self.folders, self.users)
 
 
-class TestGenerateLiveKMLNoFixture(TestMissionsViewCommon):
+class TestGenerateLiveKML(TestMissionsViewCommon):
     def setUp(self):
         """Setup a single mission to test live kml with."""
-        super(TestGenerateLiveKMLNoFixture, self).setUp()
+        super(TestGenerateLiveKML, self).setUp()
 
         pos = GpsPosition()
         pos.latitude = 10
@@ -324,12 +295,15 @@ class TestGenerateLiveKMLNoFixture(TestMissionsViewCommon):
                 return morsel.value
 
 
-class TestGenerateLiveKMLWithFixture(TestMissionsViewCommon):
+class TestGenerateLiveKMLWithSimulation(TestMissionsViewCommon):
     """Tests the generateKML view."""
-    fixtures = ['testdata/sample_mission.json']
 
     def test_generate_live_kml(self):
         """Tests the generate KML method."""
+        self.mission = test_utils.create_sample_mission(self.superuser)
+        test_utils.simulate_team_mission(self, self.mission, self.superuser,
+                                         self.user0)
+
         self.LoginSuperuser()
         response = self.client.get(live_url)
         self.assertEqual(200, response.status_code)
@@ -341,12 +315,16 @@ class TestGenerateLiveKMLWithFixture(TestMissionsViewCommon):
 class TestEvaluateTeams(TestMissionsViewCommon):
     """Tests the evaluate_teams view."""
 
-    fixtures = ['testdata/sample_mission.json']
+    def setUp(self):
+        super(TestEvaluateTeams, self).setUp()
+        self.mission = test_utils.create_sample_mission(self.superuser)
+        test_utils.simulate_team_mission(self, self.mission, self.superuser,
+                                         self.user0)
 
     def test_evaluate_teams_nonadmin(self):
         """Tests that you can only access data as admin."""
         self.Login()
-        response = self.client.get(evaluate_url(args=[1]))
+        response = self.client.get(evaluate_url(args=[self.mission.pk]))
         self.assertEqual(403, response.status_code)
 
     def test_invalid_mission(self):
@@ -370,21 +348,21 @@ class TestEvaluateTeams(TestMissionsViewCommon):
     def test_evaluate_teams(self):
         """Tests the eval Json method."""
         self.LoginSuperuser()
-        response = self.client.get(evaluate_url(args=[3]))
+        response = self.client.get(evaluate_url(args=[self.mission.pk]))
         self.assertEqual(response.status_code, 200)
         data = self.load_json(response)
         self.assertIn('teams', data)
         teams = data['teams']
-        self.assertEqual(len(teams), 3)
-        self.assertEqual('user', teams[0]['team']['username'])
-        self.assertEqual('user0', teams[1]['team']['username'])
-        self.assertEqual('user1', teams[2]['team']['username'])
+        self.assertEqual(len(teams), 2)
+        self.assertEqual('user0', teams[0]['team']['username'])
+        self.assertEqual('user1', teams[1]['team']['username'])
         self.assertIn('waypoints', teams[0]['feedback'])
 
     def test_evaluate_teams_specific_team(self):
         """Tests the eval Json method on a specific team."""
         self.LoginSuperuser()
-        response = self.client.get(evaluate_url(args=[3]), {'team': 53})
+        response = self.client.get(
+            evaluate_url(args=[self.mission.pk]), {'team': self.user0.pk})
         self.assertEqual(response.status_code, 200)
         data = self.load_json(response)
         self.assertIn('teams', data)
@@ -395,10 +373,10 @@ class TestEvaluateTeams(TestMissionsViewCommon):
     def test_evaluate_teams_csv(self):
         """Tests the CSV method."""
         self.LoginSuperuser()
-        response = self.client.get(evaluate_url(args=[3]))
+        response = self.client.get(evaluate_url(args=[self.mission.pk]))
         self.assertEqual(response.status_code, 200)
         csv_data = self.load_csv(response)
-        self.assertEqual(len(csv_data.split('\n')), 5)
+        self.assertEqual(len(csv_data.split('\n')), 4)
         self.assertIn('team', csv_data)
         self.assertIn('waypoints', csv_data)
         self.assertIn('user0', csv_data)
@@ -408,14 +386,16 @@ class TestEvaluateTeams(TestMissionsViewCommon):
 class TestMissionDetailsView(TestMissionsViewCommon):
     """Tests the mission details template view."""
 
-    fixtures = ['testdata/sample_mission.json']
+    def setUp(self, *args, **kwargs):
+        super(TestMissionDetailsView, self).setUp()
+        self.mission = test_utils.create_sample_mission(self.superuser)
 
     def test_non_superuser(self):
         self.Login()
-        response = self.client.get(details_url(args=[3]))
+        response = self.client.get(details_url(args=[self.mission.pk]))
         self.assertEqual(403, response.status_code)
 
     def test_view(self):
         self.LoginSuperuser()
-        response = self.client.get(details_url(args=[3]))
+        response = self.client.get(details_url(args=[self.mission.pk]))
         self.assertEqual(200, response.status_code)
