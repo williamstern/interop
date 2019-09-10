@@ -3,7 +3,6 @@
 import datetime
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.fly_zone import FlyZone
-from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.models.waypoint import Waypoint
 from django.contrib.auth.models import User
@@ -182,17 +181,11 @@ class TestFlyZone(TestCase):
             zone.save()
             for waypoint_id in range(len(test_data['waypoints'])):
                 (lat, lon) = test_data['waypoints'][waypoint_id]
-                gpos = GpsPosition()
-                gpos.latitude = lat
-                gpos.longitude = lon
-                gpos.save()
-                apos = AerialPosition()
-                apos.gps_position = gpos
-                apos.altitude_msl = 0
-                apos.save()
                 wpt = Waypoint()
                 wpt.order = waypoint_id
-                wpt.position = apos
+                wpt.latitude = lat
+                wpt.longitude = lon
+                wpt.altitude_msl = 0
                 wpt.save()
                 zone.boundary_pts.add(wpt)
             # Form test set
@@ -213,13 +206,10 @@ class TestFlyZone(TestCase):
         """Tests the contains_pos method."""
         for (zone, test_pos) in self.testdata_containspos:
             for ((lat, lon, alt), inside) in test_pos:
-                gpos = GpsPosition()
-                gpos.latitude = lat
-                gpos.longitude = lon
-                gpos.save()
                 apos = AerialPosition()
+                apos.latitude = lat
+                apos.longitude = lon
                 apos.altitude_msl = alt
-                apos.gps_position = gpos
                 self.assertEqual(zone.contains_pos(apos), inside)
 
     def test_contains_many_pos(self):
@@ -228,13 +218,10 @@ class TestFlyZone(TestCase):
             aerial_pos_list = []
             expected_results = []
             for ((lat, lon, alt), inside) in test_pos:
-                gpos = GpsPosition()
-                gpos.latitude = lat
-                gpos.longitude = lon
-                gpos.save()
                 apos = AerialPosition()
+                apos.latitude = lat
+                apos.longitude = lon
                 apos.altitude_msl = alt
-                apos.gps_position = gpos
                 aerial_pos_list.append(apos)
                 expected_results.append(inside)
             self.assertEqual(
@@ -252,17 +239,11 @@ class TestFlyZone(TestCase):
             zone.save()
             for wpt_id in range(len(wpts)):
                 (lat, lon) = wpts[wpt_id]
-                gpos = GpsPosition()
-                gpos.latitude = lat
-                gpos.longitude = lon
-                gpos.save()
-                apos = AerialPosition()
-                apos.gps_position = gpos
-                apos.altitude_msl = 0
-                apos.save()
                 wpt = Waypoint()
                 wpt.order = wpt_id
-                wpt.position = apos
+                wpt.latitude = lat
+                wpt.longitude = lon
+                wpt.altitude_msl = 0
                 wpt.save()
                 zone.boundary_pts.add(wpt)
             zone.save()
@@ -285,17 +266,11 @@ class TestFlyZone(TestCase):
             user_id += 1
             uas_logs = []
             for (lat, lon, alt, timestamp) in log_details:
-                gpos = GpsPosition()
-                gpos.latitude = lat
-                gpos.longitude = lon
-                gpos.save()
-                apos = AerialPosition()
-                apos.gps_position = gpos
-                apos.altitude_msl = alt
-                apos.save()
                 log = UasTelemetry()
                 log.user = user
-                log.uas_position = apos
+                log.latitude = lat
+                log.longitude = lon
+                log.altitude_msl = alt
                 log.uas_heading = 0
                 log.save()
                 log.timestamp = epoch + datetime.timedelta(seconds=timestamp)

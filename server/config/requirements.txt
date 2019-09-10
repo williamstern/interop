@@ -16,6 +16,7 @@ pyproj
 requests
 retrying
 simplekml==1.2.7
+tblib
 uwsgi
 
 # yapf is used for automated formatting of Python files.

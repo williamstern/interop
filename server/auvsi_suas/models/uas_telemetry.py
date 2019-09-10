@@ -3,8 +3,8 @@
 import datetime
 import itertools
 import logging
-from auvsi_suas.models.access_log import AccessLog
-from auvsi_suas.models.aerial_position import AerialPosition
+from auvsi_suas.models.access_log import AccessLogMixin
+from auvsi_suas.models.aerial_position import AerialPositionMixin
 from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.proto import interop_admin_api_pb2
 from collections import defaultdict
@@ -28,11 +28,9 @@ TELEMETRY_INTERPOLATION_MAX_GAP = datetime.timedelta(seconds=5.0)
 SATISFIED_WAYPOINT_DIST_MAX_FT = 100
 
 
-class UasTelemetry(AccessLog):
+class UasTelemetry(AccessLogMixin, AerialPositionMixin):
     """UAS telemetry reported by teams."""
 
-    # The position of the UAS.
-    uas_position = models.ForeignKey(AerialPosition, on_delete=models.CASCADE)
     # The (true north) heading of the UAS in degrees.
     uas_heading = models.FloatField(validators=[
         validators.MinValueValidator(0),
@@ -50,7 +48,7 @@ class UasTelemetry(AccessLog):
         Returns:
             True if they are equal.
         """
-        return (self.uas_position.duplicate(other.uas_position) and
+        return (super(UasTelemetry, self).duplicate(other) and
                 self.uas_heading == other.uas_heading)
 
     @classmethod
@@ -69,8 +67,7 @@ class UasTelemetry(AccessLog):
         # Almost every user of UasTelemetry.by_user wants to use
         # the related AerialPosition and GpsPosition.  To avoid excessive
         # database queries, we select these values from the database up front.
-        return super(UasTelemetry, cls).by_user(*args, **kwargs) \
-                .select_related('uas_position', 'uas_position__gps_position')
+        return super(UasTelemetry, cls).by_user(*args, **kwargs)
 
     @classmethod
     def dedupe(cls, logs):
@@ -111,9 +108,8 @@ class UasTelemetry(AccessLog):
 
         def _is_good(log):
             # Positions near (0,0) are likely GPS/autopilot noise.
-            pos = log.uas_position.gps_position
-            return max(abs(pos.latitude),
-                       abs(pos.longitude)) > BAD_TELEMETRY_THRESHOLD_DEGREES
+            return max(abs(log.latitude),
+                       abs(log.longitude)) > BAD_TELEMETRY_THRESHOLD_DEGREES
 
         return filter(lambda log: _is_good(log), logs)
 
@@ -152,17 +148,11 @@ class UasTelemetry(AccessLog):
                 telem = UasTelemetry()
                 telem.user = log.user
                 telem.timestamp = t
-                telem.uas_position = AerialPosition()
-                telem.uas_position.gps_position = GpsPosition()
-                telem.uas_position.gps_position.latitude = weighted_avg(
-                    log.uas_position.gps_position.latitude,
-                    next_log.uas_position.gps_position.latitude)
-                telem.uas_position.gps_position.longitude = weighted_avg(
-                    log.uas_position.gps_position.longitude,
-                    next_log.uas_position.gps_position.longitude)
-                telem.uas_position.altitude_msl = weighted_avg(
-                    log.uas_position.altitude_msl,
-                    next_log.uas_position.altitude_msl)
+                telem.latitude = weighted_avg(log.latitude, next_log.latitude)
+                telem.longitude = weighted_avg(log.longitude,
+                                               next_log.longitude)
+                telem.altitude_msl = weighted_avg(log.altitude_msl,
+                                                  next_log.altitude_msl)
                 telem.uas_heading = weighted_avg(log.uas_heading,
                                                  next_log.uas_heading)
                 yield telem
@@ -194,7 +184,7 @@ class UasTelemetry(AccessLog):
         hits = []
         for log in cls.interpolate(uas_telemetry_logs):
             for iw, waypoint in enumerate(waypoints):
-                dist = log.uas_position.distance_to(waypoint.position)
+                dist = log.distance_to(waypoint)
                 best[iw] = min(best.get(iw, dist), dist)
                 score = max(0,
                             float(SATISFIED_WAYPOINT_DIST_MAX_FT - dist) /
@@ -263,5 +253,5 @@ class UasTelemetry(AccessLog):
 @admin.register(UasTelemetry)
 class UasTelemetryModelAdmin(admin.ModelAdmin):
     show_full_result_count = False
-    raw_id_fields = ("uas_position", )
-    list_display = ('pk', 'user', 'timestamp', 'uas_position', 'uas_heading')
+    list_display = ('pk', 'user', 'timestamp', 'latitude', 'longitude',
+                    'altitude_msl', 'uas_heading')

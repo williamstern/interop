@@ -2,7 +2,7 @@
 
 import logging
 from auvsi_suas.models import distance
-from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.gps_position import GpsPositionMixin
 from django.contrib import admin
 from django.core import validators
 from django.db import models
@@ -17,13 +17,14 @@ ALTITUDE_VALIDATORS = [
 ]
 
 
-class AerialPosition(models.Model):
-    """Aerial position which consists of a GPS position and an altitude."""
-    # GPS position.
-    gps_position = models.ForeignKey(GpsPosition, on_delete=models.CASCADE)
+class AerialPositionMixin(GpsPositionMixin):
+    """Aerial position mixin for adding a GPS position and altitude."""
 
     # Altitude (MSL) in feet.
     altitude_msl = models.FloatField(validators=ALTITUDE_VALIDATORS)
+
+    class Meta:
+        abstract = True
 
     def distance_to(self, other):
         """Computes distance to another position.
@@ -33,10 +34,9 @@ class AerialPosition(models.Model):
         Returns:
           Distance in feet.
         """
-        return distance.distance_to(
-            self.gps_position.latitude, self.gps_position.longitude,
-            self.altitude_msl, other.gps_position.latitude,
-            other.gps_position.longitude, other.altitude_msl)
+        return distance.distance_to(self.latitude, self.longitude,
+                                    self.altitude_msl, other.latitude,
+                                    other.longitude, other.altitude_msl)
 
     def duplicate(self, other):
         """Determines whether this AerialPosition is equivalent to another.
@@ -49,12 +49,16 @@ class AerialPosition(models.Model):
         Returns:
             True if they are equal.
         """
-        return (self.gps_position.duplicate(other.gps_position) and
+        return (super(AerialPositionMixin, self).duplicate(other) and
                 self.altitude_msl == other.altitude_msl)
+
+
+class AerialPosition(AerialPositionMixin):
+    """Aerial position object."""
+    pass
 
 
 @admin.register(AerialPosition)
 class AerialPositionModelAdmin(admin.ModelAdmin):
     show_full_result_count = False
-    raw_id_fields = ("gps_position", )
-    list_display = ('pk', 'gps_position', 'altitude_msl')
+    list_display = ('pk', 'latitude', 'longitude', 'altitude_msl')

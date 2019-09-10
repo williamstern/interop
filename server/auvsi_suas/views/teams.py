@@ -28,12 +28,10 @@ def team_proto(user):
 
     telemetry = UasTelemetry.last_for_user(user)
     if telemetry is not None:
-        apos = telemetry.uas_position
-        gpos = apos.gps_position
         telemetry_proto = team_status_proto.telemetry
-        telemetry_proto.latitude = gpos.latitude
-        telemetry_proto.longitude = gpos.longitude
-        telemetry_proto.altitude = apos.altitude_msl
+        telemetry_proto.latitude = telemetry.latitude
+        telemetry_proto.longitude = telemetry.longitude
+        telemetry_proto.altitude = telemetry.altitude_msl
         telemetry_proto.heading = telemetry.uas_heading
         team_status_proto.telemetry_timestamp = telemetry.timestamp.isoformat()
 

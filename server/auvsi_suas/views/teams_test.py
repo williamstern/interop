@@ -49,13 +49,11 @@ class TestTeamsView(TestCase):
         pos.latitude = 10
         pos.longitude = 100
         pos.save()
-        apos = AerialPosition()
-        apos.altitude_msl = 1000
-        apos.gps_position = pos
-        apos.save()
         wpt = Waypoint()
-        wpt.position = apos
         wpt.order = 10
+        wpt.latitude = 10
+        wpt.longitude = 100
+        wpt.altitude_msl = 1000
         wpt.save()
         self.mission = MissionConfig()
         self.mission.home_pos = pos
@@ -83,14 +81,12 @@ class TestTeamsView(TestCase):
         # user2 is active
         self.timestamp = timezone.now()
 
-        gps = GpsPosition(latitude=38.6462, longitude=-76.2452)
-        gps.save()
-
-        pos = AerialPosition(gps_position=gps, altitude_msl=0)
-        pos.save()
-
         self.telem = UasTelemetry(
-            user=self.user2, uas_position=pos, uas_heading=90)
+            user=self.user2,
+            latitude=38.6462,
+            longitude=-76.2452,
+            altitude_msl=0,
+            uas_heading=90)
         self.telem.save()
         self.telem.timestamp = dateutil.parser.parse(
             u'2016-10-01T00:00:00.0+00:00')

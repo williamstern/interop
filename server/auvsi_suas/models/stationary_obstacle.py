@@ -1,7 +1,7 @@
 """Stationary obstacle model."""
 
 import logging
-from auvsi_suas.models.gps_position import GpsPosition
+from auvsi_suas.models.gps_position import GpsPositionMixin
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from django.contrib import admin
 from django.core import validators
@@ -13,11 +13,9 @@ STATIONARY_OBSTACLE_RADIUS_FT_MIN = 30
 STATIONARY_OBSTACLE_RAIDUS_FT_MAX = 300
 
 
-class StationaryObstacle(models.Model):
+class StationaryObstacle(GpsPositionMixin):
     """A stationary obstacle that teams must avoid."""
 
-    # The position of the obstacle center.
-    gps_position = models.ForeignKey(GpsPosition, on_delete=models.CASCADE)
     # The radius of the cylinder in feet.
     cylinder_radius = models.FloatField(validators=[
         validators.MinValueValidator(STATIONARY_OBSTACLE_RADIUS_FT_MIN),
@@ -39,7 +37,7 @@ class StationaryObstacle(models.Model):
         if aerial_alt > self.cylinder_height:
             return False
         # Check lat/lon of position
-        dist_to_center = self.gps_position.distance_to(aerial_pos.gps_position)
+        dist_to_center = self.distance_to(aerial_pos)
         return dist_to_center <= self.cylinder_radius
 
     def evaluate_collision_with_uas(self, uas_telemetry_logs):
@@ -53,12 +51,12 @@ class StationaryObstacle(models.Model):
             obstacle.
         """
         for log in UasTelemetry.interpolate(uas_telemetry_logs):
-            if self.contains_pos(log.uas_position):
+            if self.contains_pos(log):
                 return True
         return False
 
 
 @admin.register(StationaryObstacle)
 class StationaryObstacleModelAdmin(admin.ModelAdmin):
-    raw_id_fields = ("gps_position", )
-    list_display = ('pk', 'gps_position', 'cylinder_radius', 'cylinder_height')
+    list_display = ('pk', 'latitude', 'longitude', 'cylinder_radius',
+                    'cylinder_height')

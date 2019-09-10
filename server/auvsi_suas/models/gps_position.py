@@ -9,8 +9,8 @@ from django.db import models
 logger = logging.getLogger(__name__)
 
 
-class GpsPosition(models.Model):
-    """GPS position consisting of a latitude and longitude degree value."""
+class GpsPositionMixin(models.Model):
+    """GPS position mixin for adding a latitude and longitude degree value."""
 
     # Latitude in degrees.
     latitude = models.FloatField(validators=[
@@ -22,6 +22,9 @@ class GpsPosition(models.Model):
         validators.MinValueValidator(-180),
         validators.MaxValueValidator(180),
     ])
+
+    class Meta:
+        abstract = True
 
     def distance_to(self, other):
         """Computes distance to another position.
@@ -47,6 +50,11 @@ class GpsPosition(models.Model):
         """
         return (self.latitude == other.latitude and
                 self.longitude == other.longitude)
+
+
+class GpsPosition(GpsPositionMixin):
+    """GPS position object."""
+    pass
 
 
 @admin.register(GpsPosition)
