@@ -60,10 +60,7 @@ class FlyZone(models.Model):
         """
         # Get boundary points
         ordered_pts = self.boundary_pts.order_by('order')
-        path_pts = [[
-            wpt.position.gps_position.latitude,
-            wpt.position.gps_position.longitude
-        ] for wpt in ordered_pts]
+        path_pts = [[wpt.latitude, wpt.longitude] for wpt in ordered_pts]
         # First check enough points to define a polygon
         if len(path_pts) < 3:
             return [False] * len(aerial_pos_list)
@@ -88,8 +85,7 @@ class FlyZone(models.Model):
         if len(polygon_test_point_ids) == 0:
             return results
         polygon_test_points = [[
-            aerial_pos_list[cur_id].gps_position.latitude,
-            aerial_pos_list[cur_id].gps_position.longitude
+            aerial_pos_list[cur_id].latitude, aerial_pos_list[cur_id].longitude
         ] for cur_id in polygon_test_point_ids]
 
         # Test each point for inside polygon
@@ -115,9 +111,7 @@ class FlyZone(models.Model):
                 as indicated by the telemetry logs.
         """
         # Get the aerial positions for the logs
-        aerial_pos_list = [
-            cur_log.uas_position for cur_log in uas_telemetry_logs
-        ]
+        aerial_pos_list = uas_telemetry_logs
         log_ids_to_process = range(len(aerial_pos_list))
 
         # Evaluate zones against the logs, eliminating satisfied ones, until

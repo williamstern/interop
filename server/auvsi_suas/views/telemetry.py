@@ -2,7 +2,6 @@
 
 import logging
 from auvsi_suas.models.aerial_position import AerialPosition
-from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from auvsi_suas.proto import interop_api_pb2
 from auvsi_suas.views.decorators import require_login
@@ -51,16 +50,11 @@ class Telemetry(View):
                 'Heading out of range [0, 360]: %f' % telemetry_proto.heading)
 
         # Store telemetry.
-        gpos = GpsPosition(
-            latitude=telemetry_proto.latitude,
-            longitude=telemetry_proto.longitude)
-        gpos.save()
-        apos = AerialPosition(
-            gps_position=gpos, altitude_msl=telemetry_proto.altitude)
-        apos.save()
         telemetry = UasTelemetry(
             user=request.user,
-            uas_position=apos,
+            latitude=telemetry_proto.latitude,
+            longitude=telemetry_proto.longitude,
+            altitude_msl=telemetry_proto.altitude,
             uas_heading=telemetry_proto.heading)
         telemetry.save()
 

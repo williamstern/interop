@@ -76,11 +76,8 @@ def create_sample_mission(superuser):
            (38.1461305555556, -76.4266527777778)]
     # yapf: enable
     for ix, (lat, lon) in enumerate(pts):
-        gpos = GpsPosition(latitude=lat, longitude=lon)
-        gpos.save()
-        apos = AerialPosition(gps_position=gpos, altitude_msl=0)
-        apos.save()
-        wpt = Waypoint(position=apos, order=ix + 1)
+        wpt = Waypoint(
+            latitude=lat, longitude=lon, altitude_msl=0, order=ix + 1)
         wpt.save()
         bounds.boundary_pts.add(wpt)
     bounds.save()
@@ -94,10 +91,11 @@ def create_sample_mission(superuser):
            (38.144203, -76.426155, 50, 400), (38.146003, -76.430733, 225, 500)]
     # yapf: enable
     for lat, lon, radius, height in pts:
-        gpos = GpsPosition(latitude=lat, longitude=lon)
-        gpos.save()
         obst = StationaryObstacle(
-            gps_position=gpos, cylinder_radius=radius, cylinder_height=height)
+            latitude=lat,
+            longitude=lon,
+            cylinder_radius=radius,
+            cylinder_height=height)
         obst.save()
         mission.stationary_obstacles.add(obst)
 
@@ -118,11 +116,8 @@ def create_sample_mission(superuser):
            (38.1446083333333, -76.4282527777778, 200)]
     # yapf: enable
     for ix, (lat, lon, alt) in enumerate(pts):
-        gpos = GpsPosition(latitude=lat, longitude=lon)
-        gpos.save()
-        apos = AerialPosition(gps_position=gpos, altitude_msl=alt)
-        apos.save()
-        wpt = Waypoint(position=apos, order=ix + 1)
+        wpt = Waypoint(
+            latitude=lat, longitude=lon, altitude_msl=alt, order=ix + 1)
         wpt.save()
         mission.mission_waypoints.add(wpt)
 
@@ -138,11 +133,8 @@ def create_sample_mission(superuser):
            (38.1444444444444, -76.4280916666667)]
     # yapf: enable
     for ix, (lat, lon) in enumerate(pts):
-        gpos = GpsPosition(latitude=lat, longitude=lon)
-        gpos.save()
-        apos = AerialPosition(gps_position=gpos, altitude_msl=0)
-        apos.save()
-        wpt = Waypoint(position=apos, order=ix + 1)
+        wpt = Waypoint(
+            latitude=lat, longitude=lon, altitude_msl=0, order=ix + 1)
         wpt.save()
         mission.search_grid_points.add(wpt)
 
@@ -316,11 +308,9 @@ def simulate_telemetry(test, client, mission, hit_waypoint):
     t = interop_api_pb2.Telemetry()
     if hit_waypoint:
         wpt = random.choice(mission.mission_waypoints.all())
-        apos = wpt.position
-        gpos = apos.gps_position
-        t.latitude = gpos.latitude
-        t.longitude = gpos.longitude
-        t.altitude = apos.altitude_msl
+        t.latitude = wpt.latitude
+        t.longitude = wpt.longitude
+        t.altitude = wpt.altitude_msl
         t.heading = random.uniform(0, 360)
     else:
         t.latitude = random.uniform(0, 90)

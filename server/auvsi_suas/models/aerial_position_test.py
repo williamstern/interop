@@ -16,22 +16,15 @@ class TestAerialPositionModel(TestCase):
     def evaluate_distance_inputs(self, io_list):
         """Evaluates the distance_to calc with the given input list."""
         for (lon1, lat1, alt1, lon2, lat2, alt2, dist_actual) in io_list:
-            gps1 = GpsPosition(latitude=lat1, longitude=lon1)
-            gps1.save()
-
-            gps2 = GpsPosition(latitude=lat2, longitude=lon2)
-            gps2.save()
-
-            pos1 = AerialPosition(gps_position=gps1, altitude_msl=alt1)
-            pos2 = AerialPosition(gps_position=gps2, altitude_msl=alt2)
-
+            pos1 = AerialPosition(
+                latitude=lat1, longitude=lon1, altitude_msl=alt1)
+            pos2 = AerialPosition(
+                latitude=lat2, longitude=lon2, altitude_msl=alt2)
             self.assertDistanceEqual(pos1, pos2, dist_actual)
 
     def test_clean(self):
         """Tests validation."""
-        gps = GpsPosition(latitude=0, longitude=0)
-        gps.save()
-        pos = AerialPosition(gps_position=gps, altitude_msl=0)
+        pos = AerialPosition(latitude=0, longitude=0, altitude_msl=0)
         pos.full_clean()
 
     def test_distance_zero(self):
@@ -54,28 +47,14 @@ class TestAerialPositionModel(TestCase):
 
     def test_duplicate_unequal(self):
         """Tests the duplicate function with unequal positions."""
-        gps1 = GpsPosition(latitude=0, longitude=0)
-        gps1.save()
-        gps2 = GpsPosition(latitude=1, longitude=1)
-        gps2.save()
-
-        pos1 = AerialPosition(gps_position=gps1, altitude_msl=0)
-        pos2 = AerialPosition(gps_position=gps2, altitude_msl=0)
-        pos3 = AerialPosition(gps_position=gps1, altitude_msl=1)
-
+        pos1 = AerialPosition(latitude=0, longitude=0, altitude_msl=0)
+        pos2 = AerialPosition(latitude=1, longitude=1, altitude_msl=0)
+        pos3 = AerialPosition(latitude=0, longitude=0, altitude_msl=1)
         self.assertFalse(pos1.duplicate(pos2))
         self.assertFalse(pos1.duplicate(pos3))
 
     def test_duplicate_equal(self):
         """Tests the duplicate function with unequal positions."""
-        gps1 = GpsPosition(latitude=0, longitude=0)
-        gps1.save()
-        gps2 = GpsPosition(latitude=0, longitude=0)
-        gps2.save()
-
-        pos1 = AerialPosition(gps_position=gps1, altitude_msl=0)
-        pos2 = AerialPosition(gps_position=gps2, altitude_msl=0)
-        pos3 = AerialPosition(gps_position=gps1, altitude_msl=0)
-
+        pos1 = AerialPosition(latitude=0, longitude=0, altitude_msl=0)
+        pos2 = AerialPosition(latitude=0, longitude=0, altitude_msl=0)
         self.assertTrue(pos1.duplicate(pos2))
-        self.assertTrue(pos1.duplicate(pos3))

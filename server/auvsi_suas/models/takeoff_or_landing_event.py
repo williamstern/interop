@@ -1,7 +1,7 @@
 """Takeoff or landing event model."""
 
 import logging
-from auvsi_suas.models.access_log import AccessLog
+from auvsi_suas.models.access_log import AccessLogMixin
 from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.time_period import TimePeriod
 from django.contrib import admin
@@ -10,7 +10,7 @@ from django.db import models
 logger = logging.getLogger(__name__)
 
 
-class TakeoffOrLandingEvent(AccessLog):
+class TakeoffOrLandingEvent(AccessLogMixin):
     """Marker for a UAS takeoff/landing. UAS must interop during that time."""
 
     # The mission for which this is an event.

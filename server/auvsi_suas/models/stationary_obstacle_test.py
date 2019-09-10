@@ -31,17 +31,11 @@ class TestStationaryObstacleModel(TestCase):
 
         for i in range(len(entries)):
             lat, lon, alt = entries[i]
-            pos = GpsPosition()
-            pos.latitude = lat
-            pos.longitude = lon
-            pos.save()
-            apos = AerialPosition()
-            apos.altitude_msl = alt
-            apos.gps_position = pos
-            apos.save()
             log = UasTelemetry()
             log.user = user
-            log.uas_position = apos
+            log.latitude = lat
+            log.longitude = lon
+            log.altitude_msl = alt
             log.uas_heading = 0
             if i > 0:
                 log.timetamp = ret[i - 1].timestamp + timedelta(seconds=1)
@@ -52,10 +46,8 @@ class TestStationaryObstacleModel(TestCase):
 
     def test_clean(self):
         """Tests model validation."""
-        pos = GpsPosition(latitude=0, longitude=0)
-        pos.save()
         obst = StationaryObstacle(
-            gps_position=pos, cylinder_radius=30, cylinder_height=10)
+            latitude=0, longitude=0, cylinder_radius=30, cylinder_height=10)
         obst.full_clean()
 
     def test_contains_pos(self):
@@ -77,12 +69,9 @@ class TestStationaryObstacleModel(TestCase):
         ]  # yapf: disable
 
         # Form the test obstacle
-        pos = GpsPosition(
-            latitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[0],
-            longitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[1])
-        pos.save()
         obst = StationaryObstacle(
-            gps_position=pos,
+            latitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[0],
+            longitude=TESTDATA_STATOBST_CONTAINSPOS_OBJ[1],
             cylinder_radius=TESTDATA_STATOBST_CONTAINSPOS_OBJ[2],
             cylinder_height=TESTDATA_STATOBST_CONTAINSPOS_OBJ[3])
         # Run test points against obstacle
@@ -90,9 +79,8 @@ class TestStationaryObstacleModel(TestCase):
                      (TESTDATA_STATOBST_CONTAINSPOS_OUTSIDE, False)]
         for (cur_data, cur_contains) in test_data:
             for (lat, lon, alt) in cur_data:
-                pos = GpsPosition(latitude=lat, longitude=lon)
-                pos.save()
-                apos = AerialPosition(gps_position=pos, altitude_msl=alt)
+                apos = AerialPosition(
+                    latitude=lat, longitude=lon, altitude_msl=alt)
                 self.assertEqual(obst.contains_pos(apos), cur_contains)
 
     def test_evaluate_collision_with_uas(self):
@@ -117,11 +105,9 @@ class TestStationaryObstacleModel(TestCase):
          outside_pos) = TESTDATA_STATOBST_EVALCOLLISION
         (cyl_lat, cyl_lon, cyl_height, cyl_rad) = cyl_details
 
-        gpos = GpsPosition(latitude=cyl_lat, longitude=cyl_lon)
-        gpos.save()
-
         obst = StationaryObstacle(
-            gps_position=gpos,
+            latitude=cyl_lat,
+            longitude=cyl_lon,
             cylinder_radius=cyl_rad,
             cylinder_height=cyl_height)
         obst.save()
@@ -144,10 +130,11 @@ class TestStationaryObstacleModel(TestCase):
                     obst.evaluate_collision_with_uas([log]), inside)
 
         # Regression test past failed case.
-        pos = GpsPosition(latitude=45.4342114, longitude=-71.8538153)
-        pos.save()
         obst = StationaryObstacle(
-            gps_position=pos, cylinder_radius=10.0, cylinder_height=1300.0)
+            latitude=45.4342114,
+            longitude=-71.8538153,
+            cylinder_radius=10.0,
+            cylinder_height=1300.0)
         logs = self.create_uas_logs(self.user, [
             (45.433839, -71.8523434, 770.013137988),
             (45.4338393, -71.8523446, 769.881926415),

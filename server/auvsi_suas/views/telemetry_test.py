@@ -82,9 +82,9 @@ class TestTelemetryPost(TestCase):
         self.assertEqual(len(UasTelemetry.objects.all()), 1)
         obj = UasTelemetry.objects.all()[0]
         self.assertEqual(obj.user, self.user)
-        self.assertEqual(obj.uas_position.gps_position.latitude, 10)
-        self.assertEqual(obj.uas_position.gps_position.longitude, 20)
-        self.assertEqual(obj.uas_position.altitude_msl, 30)
+        self.assertEqual(obj.latitude, 10)
+        self.assertEqual(obj.longitude, 20)
+        self.assertEqual(obj.altitude_msl, 30)
         self.assertEqual(obj.uas_heading, 40)
 
     def test_loadtest(self):

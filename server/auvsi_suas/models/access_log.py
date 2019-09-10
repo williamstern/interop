@@ -10,7 +10,7 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 
-class AccessLog(models.Model):
+class AccessLogMixin(models.Model):
     """Base class which logs access of information."""
     # The user which accessed the data.
     user = models.ForeignKey(
@@ -23,7 +23,7 @@ class AccessLog(models.Model):
         index_together = (('user', 'timestamp'), )
 
     def __init__(self, *args, **kwargs):
-        super(AccessLog, self).__init__(*args, **kwargs)
+        super(AccessLogMixin, self).__init__(*args, **kwargs)
         if self.timestamp is None:
             self.timestamp = timezone.now()
 
@@ -62,7 +62,7 @@ class AccessLog(models.Model):
     def by_time_period(cls, user, time_periods):
         """Gets a list of time-sorted lists of access logs for each time period.
 
-        The method returns the full sets of AccessLogs for each TimePeriod. If
+        The method returns the full sets of AccessLogMixins for each TimePeriod. If
         overlapping TimePeriods are provided, the results may contain duplicate
         logs.
 
@@ -70,8 +70,8 @@ class AccessLog(models.Model):
             user: The user to get the access log for.
             time_periods: A list of TimePeriod objects.
         Returns:
-            A list of AccessLog lists, where each AccessLog list contains all
-            AccessLogs corresponding to the related TimePeriod.
+            A list of AccessLogMixin lists, where each AccessLogMixin list contains all
+            AccessLogMixins corresponding to the related TimePeriod.
         """
         return [cls.by_user(user, p.start, p.end) for p in time_periods]
 
@@ -84,8 +84,8 @@ class AccessLog(models.Model):
             time_periods: A list of TimePeriod objects. Note: to avoid
                 computing rates with duplicate logs, ensure that all
                 time periods are non-overlapping.
-            time_period_logs: Optional. A sequence of AccessLog sequences,
-                where each AccessLog sequence contains all AccessLogs
+            time_period_logs: Optional. A sequence of AccessLogMixin sequences,
+                where each AccessLogMixin sequence contains all AccessLogMixins
                 corresponding to the related TimePeriod. If None, will obtain
                 by calling by_time_period().
         Returns:

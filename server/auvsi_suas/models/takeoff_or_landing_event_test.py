@@ -7,10 +7,10 @@ from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.time_period import TimePeriod
 from auvsi_suas.models.waypoint import Waypoint
-from auvsi_suas.models.access_log_test import TestAccessLogCommon
+from auvsi_suas.models.access_log_test import TestAccessLogMixinCommon
 
 
-class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
+class TestTakeoffOrLandingEventModel(TestAccessLogMixinCommon):
     """Tests the TakeoffOrLandingEvent model."""
 
     def setUp(self):
@@ -22,11 +22,14 @@ class TestTakeoffOrLandingEventModel(TestAccessLogCommon):
         pos.longitude = 100
         pos.save()
         apos = AerialPosition()
+        apos.latitude = 10
+        apos.longitude = 100
         apos.altitude_msl = 1000
-        apos.gps_position = pos
         apos.save()
         wpt = Waypoint()
-        wpt.position = apos
+        wpt.latitude = 10
+        wpt.longitude = 100
+        wpt.altitude_msl = 1000
         wpt.order = 10
         wpt.save()
         self.mission = MissionConfig()

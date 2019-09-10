@@ -5,7 +5,6 @@ import json
 import os.path
 from auvsi_suas.models.aerial_position import AerialPosition
 from auvsi_suas.models.gps_position import GpsPosition
-from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.mission_config import MissionConfig
 from auvsi_suas.models.odlc import Odlc
 from auvsi_suas.models.waypoint import Waypoint
@@ -32,13 +31,11 @@ class TestOdlcsCommon(TestCase):
         pos.latitude = 10
         pos.longitude = 100
         pos.save()
-        apos = AerialPosition()
-        apos.altitude_msl = 1000
-        apos.gps_position = pos
-        apos.save()
         wpt = Waypoint()
-        wpt.position = apos
         wpt.order = 10
+        wpt.latitude = 10
+        wpt.longitude = 100
+        wpt.altitude_msl = 0
         wpt.save()
         self.mission = MissionConfig()
         self.mission.home_pos = pos

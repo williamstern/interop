@@ -1,28 +1,27 @@
 """Tests for the access_log module."""
 
 import datetime
-from auvsi_suas.models.access_log import AccessLog
+from auvsi_suas.models.access_log import AccessLogMixin
 from auvsi_suas.models.aerial_position import AerialPosition
-from auvsi_suas.models.gps_position import GpsPosition
 from auvsi_suas.models.time_period import TimePeriod
 from auvsi_suas.models.uas_telemetry import UasTelemetry
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
 
-# We use UasTelemetry as a concrete version of AccessLog, which is actually
+# We use UasTelemetry as a concrete version of AccessLogMixin, which is actually
 # testable.
 
 
 class TestSanity(TestCase):
-    """Make sure UasTelemetry is a canonical AccessLog."""
+    """Make sure UasTelemetry is a canonical AccessLogMixin."""
 
     def test_uas_telemetry_access_log(self):
-        self.assertTrue(issubclass(UasTelemetry, AccessLog))
+        self.assertTrue(issubclass(UasTelemetry, AccessLogMixin))
 
 
-class TestAccessLogCommon(TestCase):
-    """Common code for AccessLog model tests."""
+class TestAccessLogMixinCommon(TestCase):
+    """Common code for AccessLogMixin model tests."""
 
     def setUp(self):
         """Sets up the tests."""
@@ -47,13 +46,12 @@ class TestAccessLogCommon(TestCase):
         logs = []
 
         for i in range(num):
-            gps_position = GpsPosition(latitude=0, longitude=0)
-            gps_position.save()
-            uas_position = AerialPosition(
-                gps_position=gps_position, altitude_msl=0)
-            uas_position.save()
             log = UasTelemetry(
-                user=user, uas_position=uas_position, uas_heading=0.0)
+                user=user,
+                latitude=0,
+                longitude=0,
+                altitude_msl=0,
+                uas_heading=0.0)
             log.save()
             log.timestamp = start + i * delta
             log.save()
@@ -62,8 +60,8 @@ class TestAccessLogCommon(TestCase):
         return logs
 
 
-class TestAccessLogBasic(TestAccessLogCommon):
-    """Tests the AccessLog model basic functionality."""
+class TestAccessLogMixinBasic(TestAccessLogMixinCommon):
+    """Tests the AccessLogMixin model basic functionality."""
 
     def test_no_data(self):
         self.assertEqual(None, UasTelemetry.last_for_user(self.user1))
@@ -164,11 +162,11 @@ class TestAccessLogBasic(TestAccessLogCommon):
         self.assertIsNone(log)
 
 
-class TestAccessLogByTimePeriod(TestAccessLogCommon):
-    """Test AccessLog.by_time_period()"""
+class TestAccessLogMixinByTimePeriod(TestAccessLogMixinCommon):
+    """Test AccessLogMixin.by_time_period()"""
 
     def setUp(self):
-        super(TestAccessLogByTimePeriod, self).setUp()
+        super(TestAccessLogMixinByTimePeriod, self).setUp()
 
         self.year2000_logs = self.create_logs(self.user1, start=self.year2000)
         self.year2003_logs = self.create_logs(self.user1, start=self.year2003)
@@ -237,8 +235,8 @@ class TestAccessLogByTimePeriod(TestAccessLogCommon):
         self.assertSequenceEqual([self.year2003_logs], self.to_lists(results))
 
 
-class TestAccessLogRates(TestAccessLogCommon):
-    """Test AccessLog.rates()"""
+class TestAccessLogMixinRates(TestAccessLogMixinCommon):
+    """Test AccessLogMixin.rates()"""
 
     def consistent_period(self, logs, delta):
         # rates() uses time between beginning/end of the period

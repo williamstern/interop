@@ -57,24 +57,21 @@ def mission_proto(mission):
         fly_zone_proto = mission_proto.fly_zones.add()
         fly_zone_proto.altitude_min = fly_zone.altitude_msl_min
         fly_zone_proto.altitude_max = fly_zone.altitude_msl_max
-        for boundary_point in fly_zone.boundary_pts.order_by(
-                'order').select_related().all():
+        for boundary_point in fly_zone.boundary_pts.order_by('order').all():
             boundary_proto = fly_zone_proto.boundary_points.add()
-            boundary_proto.latitude = boundary_point.position.gps_position.latitude
-            boundary_proto.longitude = boundary_point.position.gps_position.longitude
+            boundary_proto.latitude = boundary_point.latitude
+            boundary_proto.longitude = boundary_point.longitude
 
-    for waypoint in mission.mission_waypoints.order_by(
-            'order').select_related().all():
+    for waypoint in mission.mission_waypoints.order_by('order').all():
         waypoint_proto = mission_proto.waypoints.add()
-        waypoint_proto.latitude = waypoint.position.gps_position.latitude
-        waypoint_proto.longitude = waypoint.position.gps_position.longitude
-        waypoint_proto.altitude = waypoint.position.altitude_msl
+        waypoint_proto.latitude = waypoint.latitude
+        waypoint_proto.longitude = waypoint.longitude
+        waypoint_proto.altitude = waypoint.altitude_msl
 
-    for search_point in mission.search_grid_points.order_by(
-            'order').select_related().all():
+    for search_point in mission.search_grid_points.order_by('order').all():
         search_point_proto = mission_proto.search_grid_points.add()
-        search_point_proto.latitude = search_point.position.gps_position.latitude
-        search_point_proto.longitude = search_point.position.gps_position.longitude
+        search_point_proto.latitude = search_point.latitude
+        search_point_proto.longitude = search_point.longitude
 
     mission_proto.off_axis_odlc_pos.latitude = mission.off_axis_odlc_pos.latitude
     mission_proto.off_axis_odlc_pos.longitude = mission.off_axis_odlc_pos.longitude
@@ -85,12 +82,11 @@ def mission_proto(mission):
     mission_proto.air_drop_pos.latitude = mission.air_drop_pos.latitude
     mission_proto.air_drop_pos.longitude = mission.air_drop_pos.longitude
 
-    stationary_obstacles = mission.stationary_obstacles.select_related().all(
-    ).order_by('pk')
+    stationary_obstacles = mission.stationary_obstacles.all().order_by('pk')
     for obst in stationary_obstacles:
         obst_proto = mission_proto.stationary_obstacles.add()
-        obst_proto.latitude = obst.gps_position.latitude
-        obst_proto.longitude = obst.gps_position.longitude
+        obst_proto.latitude = obst.latitude
+        obst_proto.longitude = obst.longitude
         obst_proto.radius = obst.cylinder_radius
         obst_proto.height = obst.cylinder_height
 
@@ -146,9 +142,8 @@ def fly_zone_kml(fly_zone, kml):
     pol = kml.newpolygon(name=zone_name)
     fly_zone_points = []
     for point in fly_zone.boundary_pts.order_by('order'):
-        gps = point.position.gps_position
-        coord = (gps.longitude, gps.latitude,
-                 units.feet_to_meters(point.position.altitude_msl))
+        coord = (point.longitude, point.latitude,
+                 units.feet_to_meters(point.altitude_msl))
         fly_zone_points.append(coord)
     fly_zone_points.append(fly_zone_points[0])
     pol.outerboundaryis = fly_zone_points
@@ -204,9 +199,8 @@ def mission_kml(mission, kml, kml_doc):
     linestring = waypoints_folder.newlinestring(name='Waypoints')
     waypoints = []
     for i, waypoint in enumerate(mission.mission_waypoints.order_by('order')):
-        gps = waypoint.position.gps_position
-        coord = (gps.longitude, gps.latitude,
-                 units.feet_to_meters(waypoint.position.altitude_msl))
+        coord = (waypoint.longitude, waypoint.latitude,
+                 units.feet_to_meters(waypoint.altitude_msl))
         waypoints.append(coord)
 
         # Add waypoint marker
@@ -225,9 +219,8 @@ def mission_kml(mission, kml, kml_doc):
     # Search Area
     search_area = []
     for point in mission.search_grid_points.order_by('order'):
-        gps = point.position.gps_position
-        coord = (gps.longitude, gps.latitude,
-                 units.feet_to_meters(point.position.altitude_msl))
+        coord = (point.longitude, point.latitude,
+                 units.feet_to_meters(point.altitude_msl))
         search_area.append(coord)
     if search_area:
         search_area.append(search_area[0])
@@ -241,10 +234,9 @@ def mission_kml(mission, kml, kml_doc):
     stationary_obstacles_folder = kml_folder.newfolder(
         name='Stationary Obstacles')
     for obst in mission.stationary_obstacles.all():
-        gpos = obst.gps_position
-        zone, north = distance.utm_zone(gpos.latitude, gpos.longitude)
+        zone, north = distance.utm_zone(obst.latitude, obst.longitude)
         proj = distance.proj_utm(zone, north)
-        cx, cy = proj(gpos.longitude, gpos.latitude)
+        cx, cy = proj(obst.longitude, obst.latitude)
         rm = units.feet_to_meters(obst.cylinder_radius)
         hm = units.feet_to_meters(obst.cylinder_height)
         obst_points = []
@@ -290,10 +282,9 @@ def uas_telemetry_kml(user, flight_logs, kml, kml_doc):
         angles = []
         when = []
         for entry in logs:
-            pos = entry.uas_position.gps_position
             # Spatial Coordinates
-            coord = (pos.longitude, pos.latitude,
-                     units.feet_to_meters(entry.uas_position.altitude_msl))
+            coord = (entry.longitude, entry.latitude,
+                     units.feet_to_meters(entry.altitude_msl))
             coords.append(coord)
 
             # Time Elements
@@ -339,13 +330,10 @@ def uas_telemetry_live_kml(kml, timespan):
         if log.timestamp < timezone.now() - timespan:
             continue
 
-        apos = log.uas_position
-        gpos = apos.gps_position
-
         point = kml.newpoint(
             name=user.username,
-            coords=[(gpos.longitude, gpos.latitude,
-                     units.feet_to_meters(apos.altitude_msl))])
+            coords=[(log.longitude, log.latitude,
+                     units.feet_to_meters(log.altitude_msl))])
         point.iconstyle.icon.href = KML_PLANE_ICON
         point.iconstyle.heading = log.uas_heading
         point.extrude = 1  # Extend path to ground
