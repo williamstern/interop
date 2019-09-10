@@ -50,8 +50,8 @@ class TestOdlc(TestCase):
     def test_valid(self):
         """Test creating a valid odlc."""
         with open(
-                os.path.join(settings.BASE_DIR,
-                             'auvsi_suas/fixtures/testdata/S.jpg'), 'rb') as f:
+                os.path.join(settings.BASE_DIR, 'auvsi_suas/testdata/S.jpg'),
+                'rb') as f:
             thumb = SimpleUploadedFile('thumb.jpg', f.read())
 
         l = GpsPosition(latitude=38, longitude=-76)

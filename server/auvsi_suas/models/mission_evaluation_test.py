@@ -3,8 +3,9 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from auvsi_suas.models import mission_evaluation
 from auvsi_suas.models import mission_config
+from auvsi_suas.models import mission_evaluation
+from auvsi_suas.models import test_utils
 from auvsi_suas.proto import interop_admin_api_pb2
 
 
@@ -277,136 +278,99 @@ class TestMissionScoring(TestCase):
 
 class TestMissionEvaluation(TestCase):
     """Tests the mission_evaluation module."""
-    fixtures = ['testdata/sample_mission.json']
+
+    def setUp(self):
+        self.superuser = User.objects.create_superuser(
+            username='superuser', password='testpass', email='test@test.com')
+        self.superuser.save()
+        self.mission = test_utils.create_sample_mission(self.superuser)
+
+        self.user0 = User.objects.create_user(
+            username='user0',
+            password='testpass',
+            email='test@test.com',
+            first_name='Foo',
+            last_name='Bar')
+        self.user0.save()
+        test_utils.simulate_team_mission(self, self.mission, self.superuser,
+                                         self.user0)
+
+        self.user1 = User.objects.create_user(
+            username='user1',
+            password='testpass',
+            email='test@test.com',
+            first_name='Bar',
+            last_name='Baz')
+        self.user1.save()
 
     def test_evaluate_teams(self):
-        """Tests the evaluation of teams method."""
-        user0 = User.objects.get(username='user0')
-        user1 = User.objects.get(username='user1')
-        config = mission_config.MissionConfig.objects.get(pk=3)
-
-        mission_eval = mission_evaluation.evaluate_teams(config)
+        """Smoke tests the evaluation of teams method."""
+        mission_eval = mission_evaluation.evaluate_teams(self.mission)
 
         # Contains user0 and user1
         self.assertEqual(2, len(mission_eval.teams))
 
-        # user0 data
         user_eval = mission_eval.teams[0]
-        self.assertEqual(user0.username, user_eval.team.username)
-        self.assertEqual(user0.first_name, user_eval.team.name)
-        self.assertEqual(user0.last_name, user_eval.team.university)
+        self.assertEqual(self.user0.username, user_eval.team.username)
+        self.assertEqual(self.user0.first_name, user_eval.team.name)
+        self.assertEqual(self.user0.last_name, user_eval.team.university)
+
         feedback = user_eval.feedback
         score = user_eval.score
-        self.assertEqual(0.0,
-                         feedback.waypoints[0].closest_for_scored_approach_ft)
-        self.assertEqual(1.0, feedback.waypoints[0].score_ratio)
-        self.assertEqual(0.0,
-                         feedback.waypoints[1].closest_for_scored_approach_ft)
 
-        self.assertAlmostEqual(1.0, feedback.uas_telemetry_time_max_sec)
-        self.assertAlmostEqual(1.0, feedback.uas_telemetry_time_avg_sec)
+        self.assertGreater(len(feedback.waypoints), 0)
+        for wpt in feedback.waypoints:
+            self.assertGreaterEqual(wpt.closest_for_scored_approach_ft, 0)
+            self.assertGreaterEqual(wpt.score_ratio, 0)
 
-        self.assertAlmostEqual(0.454, feedback.odlc.score_ratio, places=3)
+        self.assertGreater(feedback.uas_telemetry_time_max_sec, 0)
+        self.assertGreater(feedback.uas_telemetry_time_avg_sec, 0)
 
-        self.assertEqual(25, feedback.stationary_obstacles[0].id)
-        self.assertEqual(True, feedback.stationary_obstacles[0].hit)
-        self.assertEqual(26, feedback.stationary_obstacles[1].id)
-        self.assertEqual(False, feedback.stationary_obstacles[1].hit)
+        self.assertTrue(feedback.odlc.HasField('score_ratio'))
 
-        self.assertEqual(1, feedback.judge.flight_time_sec)
+        self.assertGreater(len(feedback.stationary_obstacles), 0)
+        for obst in feedback.stationary_obstacles:
+            self.assertGreaterEqual(obst.id, 0)
+            self.assertTrue(obst.HasField('hit'))
 
-        self.assertAlmostEqual(0.99944444, score.timeline.mission_time)
-        self.assertAlmostEqual(0, score.timeline.mission_penalty)
-        self.assertAlmostEqual(1, score.timeline.timeout)
-        self.assertAlmostEqual(0.99955555, score.timeline.score_ratio)
-        self.assertAlmostEqual(1, score.autonomous_flight.flight)
-        self.assertAlmostEqual(1, score.autonomous_flight.waypoint_capture)
-        self.assertAlmostEqual(0.5, score.autonomous_flight.waypoint_accuracy)
-        self.assertAlmostEqual(1.2,
-                               score.autonomous_flight.out_of_bounds_penalty)
-        self.assertAlmostEqual(0,
-                               score.autonomous_flight.things_fell_off_penalty)
-        self.assertAlmostEqual(0, score.autonomous_flight.crashed_penalty)
-        self.assertAlmostEqual(-0.45, score.autonomous_flight.score_ratio)
+        self.assertGreater(feedback.judge.flight_time_sec, 0)
 
-        self.assertAlmostEqual(0.8, score.object.characteristics)
-        self.assertAlmostEqual(0.423458165692, score.object.geolocation)
-        self.assertAlmostEqual(0.333333333333, score.object.actionable)
-        self.assertAlmostEqual(0.333333333333, score.object.autonomy)
-        self.assertAlmostEqual(0, score.object.extra_object_penalty)
-        self.assertAlmostEqual(0.4537041163742234, score.object.score_ratio)
+        timeline = score.timeline
+        self.assertGreater(timeline.mission_time, 0)
+        self.assertTrue(timeline.HasField('mission_penalty'))
+        self.assertTrue(timeline.HasField('timeout'))
+        self.assertGreater(timeline.score_ratio, 0)
 
-        self.assertAlmostEqual(0, score.air_drop.drop_accuracy)
-        self.assertAlmostEqual(0, score.air_drop.drive_to_location)
-        self.assertAlmostEqual(0, score.air_drop.score_ratio)
+        auto_flight = score.autonomous_flight
+        self.assertGreater(auto_flight.flight, 0)
+        self.assertTrue(auto_flight.HasField('waypoint_capture'))
+        self.assertTrue(auto_flight.HasField('waypoint_accuracy'))
+        self.assertTrue(auto_flight.HasField('out_of_bounds_penalty'))
+        self.assertTrue(auto_flight.HasField('things_fell_off_penalty'))
+        self.assertTrue(auto_flight.HasField('crashed_penalty'))
+        self.assertTrue(auto_flight.HasField('score_ratio'))
 
-        self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
+        odlc = score.object
+        self.assertTrue(odlc.HasField('characteristics'))
+        self.assertTrue(odlc.HasField('geolocation'))
+        self.assertTrue(odlc.HasField('actionable'))
+        self.assertTrue(odlc.HasField('autonomy'))
+        self.assertTrue(odlc.HasField('extra_object_penalty'))
+        self.assertTrue(odlc.HasField('score_ratio'))
 
-        self.assertAlmostEqual(0.20569637883040026, score.score_ratio)
+        drop = score.air_drop
+        self.assertTrue(drop.HasField('drop_accuracy'))
+        self.assertTrue(drop.HasField('drive_to_location'))
+        self.assertTrue(drop.HasField('score_ratio'))
 
-        # user1 data
-        user_eval = mission_eval.teams[1]
-        self.assertEqual(user1.username, user_eval.team.username)
-        self.assertEqual(user1.first_name, user_eval.team.name)
-        self.assertEqual(user1.last_name, user_eval.team.university)
-        feedback = user_eval.feedback
-        score = user_eval.score
-        self.assertEqual(0.0,
-                         feedback.waypoints[0].closest_for_scored_approach_ft)
-        self.assertEqual(1.0, feedback.waypoints[0].score_ratio)
-        self.assertEqual(0.0,
-                         feedback.waypoints[1].closest_for_scored_approach_ft)
+        self.assertGreater(score.operational_excellence.score_ratio, 0)
 
-        self.assertAlmostEqual(2.0, feedback.uas_telemetry_time_max_sec)
-        self.assertAlmostEqual(2.0, feedback.uas_telemetry_time_avg_sec)
-
-        self.assertAlmostEqual(0, feedback.odlc.score_ratio, places=3)
-
-        self.assertEqual(25, feedback.stationary_obstacles[0].id)
-        self.assertEqual(False, feedback.stationary_obstacles[0].hit)
-        self.assertEqual(26, feedback.stationary_obstacles[1].id)
-        self.assertEqual(False, feedback.stationary_obstacles[1].hit)
-
-        self.assertEqual(2, feedback.judge.flight_time_sec)
-
-        self.assertAlmostEqual(0.9997222222222222, score.timeline.mission_time)
-        self.assertAlmostEqual(0, score.timeline.mission_penalty)
-        self.assertAlmostEqual(0, score.timeline.timeout)
-        self.assertAlmostEqual(0.7997777777777778, score.timeline.score_ratio)
-        self.assertAlmostEqual(1, score.autonomous_flight.flight)
-        self.assertAlmostEqual(0.5, score.autonomous_flight.waypoint_capture)
-        self.assertAlmostEqual(0, score.autonomous_flight.waypoint_accuracy)
-        self.assertAlmostEqual(
-            0.1, score.autonomous_flight.safety_pilot_takeover_penalty)
-        self.assertAlmostEqual(0,
-                               score.autonomous_flight.out_of_bounds_penalty)
-        self.assertAlmostEqual(0.25,
-                               score.autonomous_flight.things_fell_off_penalty)
-        self.assertAlmostEqual(0.35, score.autonomous_flight.crashed_penalty)
-        self.assertAlmostEqual(-0.25, score.autonomous_flight.score_ratio)
-
-        self.assertAlmostEqual(0, score.object.characteristics)
-        self.assertAlmostEqual(0, score.object.geolocation)
-        self.assertAlmostEqual(0, score.object.actionable)
-        self.assertAlmostEqual(0, score.object.autonomy)
-        self.assertAlmostEqual(0, score.object.extra_object_penalty)
-        self.assertAlmostEqual(0, score.object.score_ratio)
-
-        self.assertAlmostEqual(1, score.air_drop.drop_accuracy)
-        self.assertAlmostEqual(0, score.air_drop.drive_to_location)
-        self.assertAlmostEqual(0.5, score.air_drop.score_ratio)
-
-        self.assertAlmostEqual(0.8, score.operational_excellence.score_ratio)
-
-        self.assertAlmostEqual(0.20997777777777782, score.score_ratio)
+        self.assertGreaterEqual(score.score_ratio, 0)
 
     def test_evaluate_teams_specific_users(self):
         """Tests the evaluation of teams method with specific users."""
-        user0 = User.objects.get(username='user0')
-        user1 = User.objects.get(username='user1')
-        config = mission_config.MissionConfig.objects.get(pk=3)
-
-        mission_eval = mission_evaluation.evaluate_teams(config, [user0])
-
+        mission_eval = mission_evaluation.evaluate_teams(
+            self.mission, [self.user0])
         self.assertEqual(1, len(mission_eval.teams))
-        self.assertEqual(user0.username, mission_eval.teams[0].team.username)
+        self.assertEqual(self.user0.username,
+                         mission_eval.teams[0].team.username)
