@@ -18,6 +18,10 @@ class TakeoffOrLandingEvent(AccessLogMixin):
     # Whether the UAS is now in the air.
     uas_in_air = models.BooleanField()
 
+    class Meta:
+        index_together = AccessLogMixin.Meta.index_together + (
+            ('mission', 'user', 'timestamp'), )
+
     @classmethod
     def flights(cls, mission, user):
         """Gets the time periods for which the given user was in flight.

@@ -94,14 +94,14 @@ def mission_proto(mission):
 
 
 class Missions(View):
-    """Handles requests for all missions for admins."""
+    """Handles requests for all missions."""
 
     @method_decorator(require_superuser)
     def dispatch(self, *args, **kwargs):
         return super(Missions, self).dispatch(*args, **kwargs)
 
     def get(self, request):
-        missions = MissionConfig.objects.all()
+        missions = MissionConfig.objects.select_related().all()
         out = []
         for mission in missions:
             out.append(mission_proto(mission))
@@ -120,7 +120,7 @@ class MissionsId(View):
 
     def get(self, request, pk):
         try:
-            mission = MissionConfig.objects.get(pk=pk)
+            mission = MissionConfig.objects.select_related().get(pk=pk)
         except MissionConfig.DoesNotExist:
             return HttpResponseNotFound('Mission %s not found.' % pk)
 
@@ -351,7 +351,7 @@ class ExportKml(View):
         kml = Kml(name='AUVSI SUAS Flight Data')
         kml_missions = kml.newfolder(name='Missions')
         users = User.objects.all()
-        for mission in MissionConfig.objects.all():
+        for mission in MissionConfig.objects.select_related().all():
             kml_mission = mission_kml(mission, kml_missions, kml.document)
             kml_flights = kml_mission.newfolder(name='Flights')
             for user in users:
