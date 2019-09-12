@@ -31,6 +31,7 @@ from django.http import HttpResponseBadRequest
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseNotFound
 from django.http import HttpResponseServerError
+from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView
@@ -457,6 +458,8 @@ class Evaluate(View):
     It also contains per-team JSON files for individual team feedback.
     """
 
+    feedback_template = get_template('feedback.html')
+
     @method_decorator(require_superuser)
     def dispatch(self, *args, **kwargs):
         return super(Evaluate, self).dispatch(*args, **kwargs)
@@ -535,6 +538,12 @@ class Evaluate(View):
                     '/evaluate_teams/teams/%s.json' % team_eval.team.username,
                     team_json)
                 team_jsons.append(team_json)
+
+            zip_file.writestr('/evaluate_teams/all.html',
+                              self.feedback_template.render({
+                                  'feedbacks':
+                                  team_jsons
+                              }))
 
             zip_file.writestr('/evaluate_teams/all.csv',
                               self.csv_from_json(team_jsons))
