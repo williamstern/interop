@@ -54,7 +54,7 @@ def mission_proto(mission):
     mission_proto = interop_api_pb2.Mission()
     mission_proto.id = mission.pk
 
-    for fly_zone in mission.fly_zones.select_related().all():
+    for fly_zone in mission.fly_zones.all():
         fly_zone_proto = mission_proto.fly_zones.add()
         fly_zone_proto.altitude_min = fly_zone.altitude_msl_min
         fly_zone_proto.altitude_max = fly_zone.altitude_msl_max
@@ -83,7 +83,7 @@ def mission_proto(mission):
     mission_proto.air_drop_pos.latitude = mission.air_drop_pos.latitude
     mission_proto.air_drop_pos.longitude = mission.air_drop_pos.longitude
 
-    stationary_obstacles = mission.stationary_obstacles.all().order_by('pk')
+    stationary_obstacles = mission.stationary_obstacles.order_by('pk').all()
     for obst in stationary_obstacles:
         obst_proto = mission_proto.stationary_obstacles.add()
         obst_proto.latitude = obst.latitude
@@ -188,7 +188,7 @@ def mission_kml(mission, kml, kml_doc):
 
     # ODLCs.
     oldc_folder = kml_folder.newfolder(name='ODLCs')
-    for odlc in mission.odlcs.all():
+    for odlc in mission.odlcs.select_related().all():
         name = 'ODLC %d' % odlc.pk
         gps = (odlc.location.longitude, odlc.location.latitude)
         p = oldc_folder.newpoint(name=name, coords=[gps])
@@ -321,7 +321,7 @@ def uas_telemetry_kml(user, flight_logs, kml, kml_doc):
 
 
 def uas_telemetry_live_kml(kml, timespan):
-    users = User.objects.all().order_by('username')
+    users = User.objects.order_by('username').all()
     for user in users:
         try:
             log = UasTelemetry.by_user(user).latest('timestamp')
@@ -351,7 +351,7 @@ class ExportKml(View):
     def get(self, request):
         kml = Kml(name='AUVSI SUAS Flight Data')
         kml_missions = kml.newfolder(name='Missions')
-        users = User.objects.all()
+        users = User.objects.order_by('username').all()
         for mission in MissionConfig.objects.select_related().all():
             kml_mission = mission_kml(mission, kml_missions, kml.document)
             kml_flights = kml_mission.newfolder(name='Flights')
@@ -386,7 +386,7 @@ class LiveKml(View):
     def get(self, request):
         kml = Kml(name='AUVSI SUAS LIVE Flight Data')
         kml_missions = kml.newfolder(name='Missions')
-        for mission in MissionConfig.objects.all():
+        for mission in MissionConfig.objects.select_related().all():
             mission_kml(mission, kml_missions, kml.document)
 
         parameters = '?sessionid={}'.format(request.COOKIES['sessionid'])
