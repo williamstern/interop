@@ -339,6 +339,12 @@ class TestEvaluateTeams(TestMissionsViewCommon):
         with zipfile.ZipFile(zip_io, 'r') as zip_file:
             return json.loads(zip_file.read('/evaluate_teams/all.json'))
 
+    def load_html(self, response):
+        """Gets the HTML data out of the response's zip archive."""
+        zip_io = io.BytesIO(response.content)
+        with zipfile.ZipFile(zip_io, 'r') as zip_file:
+            return zip_file.read('/evaluate_teams/all.html').decode('utf-8')
+
     def load_csv(self, response):
         """Gets the CSV data out of the response's zip archive."""
         zip_io = io.BytesIO(response.content)
@@ -369,6 +375,15 @@ class TestEvaluateTeams(TestMissionsViewCommon):
         teams = data['teams']
         self.assertEqual(len(teams), 1)
         self.assertEqual('user0', teams[0]['team']['username'])
+
+    def test_evaluate_teams_html(self):
+        """Tests the HTML method."""
+        self.LoginSuperuser()
+        response = self.client.get(evaluate_url(args=[self.mission.pk]))
+        self.assertEqual(response.status_code, 200)
+        html_data = self.load_html(response)
+        self.assertIn('user0', html_data)
+        self.assertIn('user1', html_data)
 
     def test_evaluate_teams_csv(self):
         """Tests the CSV method."""
