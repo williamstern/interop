@@ -8,15 +8,18 @@ services:
 install:
   # Setup tools.
   - sudo ./tools/setup_tools.sh
-  # Build images in parallel.
-  - echo -e "./server/build.sh\n./client/build.sh" | parallel
+  # Build the images.
+  - echo -e "./server/interop-server.sh build\n./client/interop-client.sh build" | parallel
 
 script:
   # Test server.
-  - ./server/test.sh
-  - ./server/run.sh
+  - ./server/interop-server.sh create_db
+  - ./server/interop-server.sh test
   # Test client.
-  - ./client/test.sh
+  - ./server/interop-server.sh load_test_data
+  - ./server/interop-server.sh up_d
+  - ./client/interop-client.sh test
+  - ./server/interop-server.sh down
   # Check formatting.
   - ./tools/format.sh --all
 

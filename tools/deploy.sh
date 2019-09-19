@@ -12,7 +12,7 @@ docker tag auvsisuas/interop-client:latest auvsisuas/interop-client:${DATE}
 docker tag auvsisuas/interop-server:latest auvsisuas/interop-server:${DATE}
 
 log "Logging into Docker."
-docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+echo "$DOCKER_PASSWORD" | docker login -u="$DOCKER_USERNAME" --password-stdin
 
 log "Pushing Docker images."
 docker push auvsisuas/interop-server

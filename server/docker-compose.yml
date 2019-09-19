@@ -1,0 +1,20 @@
+version: '2'
+
+services:
+  interop-db:
+    image: postgres
+    volumes:
+      - ./volumes/var/lib/postgresql/data:/var/lib/postgresql/data
+  interop-server:
+    build:
+      context: ../
+      dockerfile: server/Dockerfile
+    image: auvsisuas/interop-server
+    volumes:
+      - ./volumes/mount:/mount
+      - ./volumes/logs/uwsgi:/var/log/uwsgi
+      - ./volumes/var/www/media/objects:/var/www/media/objects
+    ports:
+      - "8000:80"
+    depends_on:
+      - interop-db

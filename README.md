@@ -120,128 +120,123 @@ server. The judges recommend that teams leverage the provided client library
 and tools, which are available in the client Docker image.  Teams may also
 integrate directly via the HTTP + JSON protocol.
 
+### Setup the Host Computer
+
+Install `docker` with the [Docker Engine
+Installation](https://docs.docker.com/engine/installation) guide.
+
+Install `docker-compose` with the [Docker Compose
+Installation](https://docs.docker.com/compose/install/) guide.
+
+Install `git` with the [Git
+Installation](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+guide.
+
+From the command line you should have access to `docker`, `docker-compose`, and
+`git`. Commands and scripts below will depend on these tools.
+
+### Interop Git Repo
+
+The interop server is developed using Git. Clone the repo to download scripts.
+
+```bash
+git clone https://github.com/auvsi-suas/interop.git
+```
+
+Now change directories into the interop folder. The following commands assume
+they are run from the interop folder.
+
+```bash
+cd interop
+```
+
 ### Docker Images
 
-The Interoperability System is released to teams as Docker images.  The images
-can be used to run the server and client tools with minimal setup.
-
-#### Setup the Host Computer
-
-Follow the [Docker Engine
-Installation](https://docs.docker.com/engine/installation) guide to setup
-Docker on the host computer.
+The Interoperability System is released to teams as Docker images and Docker
+Compose YAML configurations. These can be used to run the server and client
+tools with minimal setup.
 
 #### auvsisuas/interop-server
 
-##### Create and Start Container
+##### First Time Setup
 
-The interop server is provided as a Docker image and should be run as a Docker
-container. The repo provides a script to run the container in a standard way:
-it creates the container, runs it in the background, uses port `8000` for the
-web server, and restarts automatically (e.g. on failure or boot) unless
-explicitly stopped.
+Change into the server subdirectory of the Git repo.
 
 ```bash
-docker run -d --restart=unless-stopped --interactive --tty \
-    --publish 8000:80 \
-    --name interop-server \
-    auvsisuas/interop-server:latest
+cd interop/server
 ```
-The tag `latest` is us to specify the version of the image to pull on Docker Hub. You can find other tags here: https://hub.docker.com/r/auvsisuas/interop-server/tags
 
-##### Stop and Start
-
-Once the server is running, it can be stopped and started again. Note that the
-`run.sh` creates and starts the container- it can't be used to start an
-existing stopped container. The following can start and stop the container.
+Create the interop server's database.
 
 ```bash
-sudo docker stop interop-server
-sudo docker start interop-server
+sudo ./interop-server.sh create_db
 ```
 
-##### Container Shell
-
-To inspect state, use local server tools (e.g. Django's management tool), or do
-other container-local actions, you can start a bash shell inside of the
-container. The shell will start the user inside of the working directory
-(server source code) at `/interop/server`. The following shows how to start the
-shell.
+Load initial test data into the server. This provides access to a default admin
+account (u: `testadmin`, p: `testpass`) and a default team account (u:
+`testuser`, p: `testpass`). This will also load a sample mission into the server.
 
 ```bash
-sudo docker exec -it interop-server bash
+sudo ./interop-server.sh load_test_data
 ```
+
+##### Run the Server
+
+Run the server on port 8000, so it can be accessed in a local web browser at
+`localhost:8000`. Other machines on the same network can replace `localhost`
+with the host computer's IP address.
+
+```bash
+sudo ./interop-server.sh up
+```
+
+The server will run until stopped using `Ctrl-C`.
 
 ##### View Server Log
 
-The following shows how to view the server log file from the container shell.
+Logs are also available via volumes on the host computer under
+`volumes/var/log/uwsgi/interop.log`.
+
+##### Upgrade the Server
+
+Upgrade the Server by downloading new images, deleting the old containers, and
+starting the server again.
 
 ```bash
-cat /var/log/uwsgi/interop.log
+sudo ./interop-server.sh upgrade
 ```
 
-##### Dump Database
+Note server data is persisted due to volumes. If the existing data causes an
+issue, you can delete it (see next section).
 
-The following shows how to dump the database to a file.
+##### Delete Server Data
+
+While the server isn't running, you can delete the server data by deleting the
+volumes and containers. Note this action is permanent.
 
 ```bash
-cd /interop/server
-python manage.py dumpdata > dump.txt
+sudo ./interop-server.sh rm_data
 ```
 
-##### Debug Mode
-
-The
-[settings.py](https://github.com/auvsi-suas/interop/blob/master/server/server/settings.py)
-file contains useful settings. One such setting is `Debug`, which you can set
-to `True` to get additional debugging information. You need to restart the
-server for it to take affect.
-
-```bash
-sudo nginx -s stop
-sudo nginx
-```
-
-##### Remove Container
-
-The container will maintain database and log state between starts and stops of
-the same container. The state, which includes data like telemetry will
-automatically be deleted if the container is removed. The following can remove
-a container.
-
-```bash
-sudo docker stop interop-server
-sudo docker rm interop-server
-```
-
-##### Update Container Image
-
-To update the Docker image to a new version, you need to pull the new image,
-remove the existing container, and run a new container. Similar to removing a
-container, the state will automatically be deleted without first setting up
-volumes to persist the state.
-
-```bash
-sudo docker stop interop-server
-sudo docker rm interop-server
-
-sudo docker pull auvsisuas/interop-server:latest
-```
-The tag `latest` is us to specify the version of the image to pull on Docker Hub. You can find other tags here: https://hub.docker.com/r/auvsisuas/interop-server/tags
+After deleting the data, you will need to follow First Time Setup instructions.
 
 #### auvsisuas/interop-client
 
 ##### Create Container & Start Shell
+
+Change into the client subdirectory of the Git repo.
+
+```bash
+cd interop/client
+```
 
 The interop client library and tools are provided as a Docker image and can be
 run as a Docker container. The repo provides a script to run the container in a
 standard way: it creates the container and starts a pre-configured shell.
 
 ```bash
-docker run --net=host --interactive --tty \
-    auvsisuas/interop-client:latest
+sudo ./interop-client.sh run
 ```
-The tag `latest` is us to specify the version of the image to pull on Docker Hub. You can find other tags here: https://hub.docker.com/r/auvsisuas/interop-client/tags
 
 ##### Get Mission
 
@@ -292,9 +287,14 @@ deleted to ensure all changes are applied before competition.
 
 To use a specific version, append the version to the named Docker image:
 
-```
+```bash
 sudo docker pull auvsisuas/interop-server:2018.10
+sudo docker pull auvsisuas/interop-client:2018.10
 ```
+
+You can find the available tags here:
+* https://hub.docker.com/r/auvsisuas/interop-server/tags
+* https://hub.docker.com/r/auvsisuas/interop-client/tags
 
 ### Mission Configuration
 
