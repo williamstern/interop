@@ -77,10 +77,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'auvsi_suas_db',
-        'USER': 'postgresql_user',
-        'PASSWORD': 'postgresql_pass',
+        'USER': 'postgres',
         'CONN_MAX_AGE': None,
-        'HOST': 'localhost',
+        'HOST': 'interop-db',
         'PORT': '5432',
         'TEST': {
             'NAME': 'test_auvsi_suas_db',
