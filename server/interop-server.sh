@@ -1,7 +1,7 @@
 #!/bin/bash
 # Utility scripts.
 
-SERVER=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+SERVER=$(dirname ${BASH_SOURCE[0]})
 REPO=${SERVER}/..
 
 # Quit on any error.

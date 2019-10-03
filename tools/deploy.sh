@@ -2,7 +2,7 @@
 # Deploys Docker containers to hub.
 
 set -e
-TOOLS=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+TOOLS=$(dirname ${BASH_SOURCE[0]})
 source ${TOOLS}/common.sh
 
 

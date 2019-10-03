@@ -1,7 +1,7 @@
 #!/bin/bash
 # Utility scripts.
 
-CLIENT=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+CLIENT=$(dirname ${BASH_SOURCE[0]})
 REPO=${CLIENT}/..
 
 # Quit on any error.
@@ -9,7 +9,6 @@ set -e
 
 # Run commands from context of client directory.
 cd $CLIENT
-
 
 # Run the client container.
 if [ "$1" == "run" ]
@@ -24,7 +23,7 @@ fi
 # Builds container images.
 if [ "$1" == "build" ]
 then
-    docker build -t auvsisuas/interop-client ${REPO} -f ${CLIENT}/Dockerfile
+    docker build -t auvsisuas/interop-client ../ -f Dockerfile
 fi
 
 # Tests the images.

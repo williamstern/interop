@@ -1,7 +1,7 @@
 #!/bin/bash
 # Installs software for tools.
 
-TOOLS=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+TOOLS=$(dirname ${BASH_SOURCE[0]})
 LOG_NAME=setup_tools
 source ${TOOLS}/common.sh
 
@@ -15,7 +15,7 @@ apt-get -qq install -y \
 
 log "Building tools virtualenv."
 (cd ${TOOLS} && \
-    virtualenv -p /usr/bin/python3 ${TOOLS}/venv && \
-    source ${TOOLS}/venv/bin/activate && \
+    virtualenv -p /usr/bin/python3 venv && \
+    source venv/bin/activate && \
     pip install -U -r requirements.txt && \
     deactivate)

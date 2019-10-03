@@ -3,8 +3,8 @@
 # Quit immediately on any error.
 set -e
 
-SETUP=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
-REPO=$(readlink -f ${SETUP}/..)
+SETUP=$(dirname ${BASH_SOURCE[0]})
+REPO=${SETUP}/..
 RELEASE=$(lsb_release -a | sed -n -e 's/Codename:\t\s*\(\w\)/\1/p')
 
 # $1 = log message
