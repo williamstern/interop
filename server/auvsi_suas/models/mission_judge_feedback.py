@@ -33,10 +33,6 @@ class MissionJudgeFeedback(models.Model):
     safety_pilot_takeovers = models.IntegerField(validators=[
         validators.MinValueValidator(0),
     ])
-    # Number of waypoints that were captured.
-    waypoints_captured = models.IntegerField(validators=[
-        validators.MinValueValidator(0),
-    ])
     # Number of times the UAS went out of bounds.
     out_of_bounds = models.IntegerField(validators=[
         validators.MinValueValidator(0),
@@ -76,7 +72,6 @@ class MissionJudgeFeedback(models.Model):
 
         feedback.min_auto_flight_time = self.min_auto_flight_time
         feedback.safety_pilot_takeovers = self.safety_pilot_takeovers
-        feedback.waypoints_captured = self.waypoints_captured
         feedback.out_of_bounds = self.out_of_bounds
         feedback.unsafe_out_of_bounds = self.unsafe_out_of_bounds
         feedback.things_fell_off_uas = self.things_fell_off_uas
@@ -96,7 +91,6 @@ class MissionJudgeFeedbackModelAdmin(admin.ModelAdmin):
     list_display = ('pk', 'mission', 'user', 'flight_time',
                     'post_process_time', 'used_timeout',
                     'min_auto_flight_time', 'safety_pilot_takeovers',
-                    'waypoints_captured', 'out_of_bounds',
-                    'unsafe_out_of_bounds', 'things_fell_off_uas', 'crashed',
-                    'air_drop_accuracy', 'ugv_drove_to_location',
-                    'operational_excellence_percent')
+                    'out_of_bounds', 'unsafe_out_of_bounds',
+                    'things_fell_off_uas', 'crashed', 'air_drop_accuracy',
+                    'ugv_drove_to_location', 'operational_excellence_percent')

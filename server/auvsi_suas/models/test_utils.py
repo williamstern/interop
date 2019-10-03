@@ -401,12 +401,11 @@ def simulate_team_mission(test, mission, superuser, user):
     feedback.used_timeout = False
     feedback.min_auto_flight_time = True
     feedback.safety_pilot_takeovers = 1
-    feedback.waypoints_captured = len(mission.mission_waypoints.all()) / 2
     feedback.out_of_bounds = 1
     feedback.unsafe_out_of_bounds = 0
     feedback.things_fell_off_uas = 0
     feedback.crashed = False
-    feedback.air_drop_accuracy = interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_25_FT
+    feedback.air_drop_accuracy = interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_15_FT
     feedback.ugv_drove_to_location = True
     feedback.operational_excellence_percent = 90
     feedback.save()

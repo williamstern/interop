@@ -165,10 +165,10 @@ message MissionJudgeFeedback {
 
     // Air drop accuracy.
     enum AirDropAccuracy {
-        INSUFFICIENT_ACCURACY = 0;
+        NO_POINTS = 0;
         WITHIN_05_FT = 1;
-        WITHIN_25_FT = 2;
-        WITHIN_75_FT = 3;
+        WITHIN_15_FT = 2;
+        WITHIN_40_FT = 3;
     }
     optional AirDropAccuracy air_drop_accuracy = 11;
     // Whether the UGV drove to the specified location.
@@ -224,8 +224,6 @@ message TimelineScore {
 message AutonomousFlightScore {
     optional double score_ratio = 1;
     optional bool telemetry_prerequisite = 2;
-    optional double flight = 3;
-    optional double waypoint_capture = 4;
     optional double waypoint_accuracy = 5;
     optional double safety_pilot_takeover_penalty = 6;
     optional double out_of_bounds_penalty = 7;

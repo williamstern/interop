@@ -18,15 +18,15 @@ logger = logging.getLogger(__name__)
 # Ratio of object points to lose for every extra unmatched object submitted.
 EXTRA_OBJECT_PENALTY_RATIO = 0.05
 # The weight of classification accuracy when calculating a odlc match score.
-CHARACTERISTICS_WEIGHT = 0.2
+CHARACTERISTICS_WEIGHT = 0.4
 # The lowest allowed location accuracy (in feet)
 TARGET_LOCATION_THRESHOLD = 150
 # The weight of geolocation accuracy when calculating a odlc match score.
-GEOLOCATION_WEIGHT = 0.3
+GEOLOCATION_WEIGHT = 0.4
 # The weight of actionable intelligence when calculating a odlc match score.
-ACTIONABLE_WEIGHT = 0.3
+ACTIONABLE_WEIGHT = 0.1
 # The weight of autonomy when calculating a odlc match score.
-AUTONOMY_WEIGHT = 0.2
+AUTONOMY_WEIGHT = 0.1
 
 
 class Odlc(models.Model):
@@ -80,8 +80,6 @@ class Odlc(models.Model):
     creation_time = models.DateTimeField()
     # Time that this object was last modified.
     last_modified_time = models.DateTimeField()
-    # Judge defined override that forces this ODLC to be considered actionable.
-    actionable_override = models.BooleanField(default=False)
 
     def __init__(self, *args, **kwargs):
         super(Odlc, self).__init__(*args, **kwargs)
@@ -166,28 +164,14 @@ class Odlc(models.Model):
         return float(similar_fields) / total_fields
 
     def actionable_submission(self, flights):
-        """Checks if Odlc meets Actionable Intelligence submission criteria.
-
-        A object is "actionable" if one of the following conditions is met:
-            (a) If it was submitted over interop and last updated during the
-                aircraft's first flight.
-            (b) If the object was submitted via USB, the object's
-                actionable_override flag was set by an admin.
-
-        Args:
-            flights: Flights for the ODLC's user.
-
-        Returns:
-            True if object may be considered an "actionable" submission.
-        """
+        """Checks if Odlc meets Actionable Intelligence submission criteria."""
         actionable = False
         if len(flights) > 0:
             flight = flights[0]
             if flight.within(self.creation_time) and \
                 flight.within(self.last_modified_time):
                 actionable = True
-
-        return self.actionable_override or actionable
+        return actionable
 
 
 class OdlcEvaluator(object):

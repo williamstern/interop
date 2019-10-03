@@ -309,19 +309,17 @@ class TestOdlc(TestCase):
             user=self.user, mission=self.mission, uas_in_air=False)
         event.save()
 
-        # t7 with actionable_override set.
+        # t7 which is not actionable.
         event = TakeoffOrLandingEvent(
             user=self.user, mission=self.mission, uas_in_air=True)
-        event.save()
-        event = TakeoffOrLandingEvent(
-            user=self.user, mission=self.mission, uas_in_air=False)
         event.save()
         t7 = Odlc(
             mission=self.mission,
             user=self.user,
-            odlc_type=interop_api_pb2.Odlc.STANDARD,
-            actionable_override=True)
-        t7.save()
+            odlc_type=interop_api_pb2.Odlc.STANDARD)
+        event = TakeoffOrLandingEvent(
+            user=self.user, mission=self.mission, uas_in_air=False)
+        event.save()
 
         flights = TakeoffOrLandingEvent.flights(self.mission, self.user)
 
@@ -331,7 +329,7 @@ class TestOdlc(TestCase):
         self.assertFalse(t4.actionable_submission(flights))
         self.assertFalse(t5.actionable_submission(flights))
         self.assertFalse(t6.actionable_submission(flights))
-        self.assertTrue(t7.actionable_submission(flights))
+        self.assertFalse(t7.actionable_submission(flights))
 
 
 class TestOdlcEvaluator(TestCase):
@@ -571,7 +569,7 @@ class TestOdlcEvaluator(TestCase):
             e.evaluate_match(self.submit1, self.real1).score_ratio,
             places=3)
         self.assertAlmostEqual(
-            0.201,
+            0.3481,
             e.evaluate_match(self.submit2, self.real2).score_ratio,
             places=3)
         self.assertAlmostEqual(
@@ -591,16 +589,16 @@ class TestOdlcEvaluator(TestCase):
             e.evaluate_match(self.submit6, self.real6).score_ratio,
             places=3)
         self.assertAlmostEqual(
-            0.04,
+            0.08,
             e.evaluate_match(self.submit7, self.real1).score_ratio,
             places=3)
 
         self.assertAlmostEqual(
-            0.741,
+            0.628,
             e.evaluate_match(self.submit1, self.real2).score_ratio,
             places=3)
         self.assertAlmostEqual(
-            0.42,
+            0.64,
             e.evaluate_match(self.submit2, self.real1).score_ratio,
             places=3)
 
@@ -645,10 +643,10 @@ class TestOdlcEvaluator(TestCase):
         self.assertAlmostEqual(
             0.270, td[self.real2.pk].geolocation_score_ratio, places=3)
         self.assertEqual(0.0, td[self.real2.pk].actionable_score_ratio)
-        self.assertAlmostEqual(0.201, td[self.real2.pk].score_ratio, places=3)
+        self.assertAlmostEqual(0.3481, td[self.real2.pk].score_ratio, places=3)
 
         self.assertEqual(True, td[self.real6.pk].description_approved)
-        self.assertAlmostEqual(0.350, d.score_ratio, places=3)
+        self.assertAlmostEqual(0.375, d.score_ratio, places=3)
         self.assertEqual(2, d.unmatched_odlc_count)
 
     def test_evaluate_no_submitted_odlcs(self):

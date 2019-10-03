@@ -43,7 +43,6 @@ class TestMissionJudgeFeedback(TestCase):
             used_timeout=True,
             min_auto_flight_time=True,
             safety_pilot_takeovers=3,
-            waypoints_captured=5,
             out_of_bounds=6,
             unsafe_out_of_bounds=7,
             things_fell_off_uas=False,
@@ -67,7 +66,6 @@ class TestMissionJudgeFeedback(TestCase):
         self.assertTrue(pb.used_timeout)
         self.assertTrue(pb.min_auto_flight_time)
         self.assertEqual(3, pb.safety_pilot_takeovers)
-        self.assertEqual(5, pb.waypoints_captured)
         self.assertEqual(6, pb.out_of_bounds)
         self.assertEqual(7, pb.unsafe_out_of_bounds)
         self.assertFalse(pb.things_fell_off_uas)

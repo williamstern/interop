@@ -38,13 +38,9 @@ BOUND_PENALTY = 0.1
 SAFETY_BOUND_PENALTY = 1.0
 # Ratio of points lost for TFOA and crash.
 TFOA_PENALTY = 0.25
-CRASH_PENALTY = 0.35
-# Weight of flight points to all autonomous flight.
-AUTONOMOUS_FLIGHT_FLIGHT_WEIGHT = 0.4
-# Weight of capture points to all autonomous flight.
-WAYPOINT_CAPTURE_WEIGHT = 0.1
+CRASH_PENALTY = 0.50
 # Weight of accuracy points to all autonomous flight.
-WAYPOINT_ACCURACY_WEIGHT = 0.5
+WAYPOINT_ACCURACY_WEIGHT = 1.0
 
 # Weight of air drop points for accuracy.
 AIR_DROP_ACCURACY_WEIGHT = 0.5
@@ -52,10 +48,10 @@ AIR_DROP_ACCURACY_WEIGHT = 0.5
 AIR_DROP_DRIVE_WEIGHT = 0.5
 # Air drop to point ratio.
 AIR_DROP_DISTANCE_POINT_RATIO = {
-    interop_admin_api_pb2.MissionJudgeFeedback.INSUFFICIENT_ACCURACY: 0,
+    interop_admin_api_pb2.MissionJudgeFeedback.NO_POINTS: 0,
     interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_05_FT: 1,
-    interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_25_FT: 0.5,
-    interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_75_FT: 0.25,
+    interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_15_FT: 0.5,
+    interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_40_FT: 0.25,
 }
 
 # Scoring weights.
@@ -178,12 +174,9 @@ def score_team(team_eval):
 
     # Score autonomous flight.
     flight = score.autonomous_flight
-    flight.flight = 1 if feedback.judge.min_auto_flight_time else 0
     flight.telemetry_prerequisite = telem_prereq
-    flight.waypoint_capture = (
-        float(feedback.judge.waypoints_captured) / len(feedback.waypoints))
-    wpt_scores = [w.score_ratio for w in feedback.waypoints]
     if telem_prereq:
+        wpt_scores = [w.score_ratio for w in feedback.waypoints]
         flight.waypoint_accuracy = sum(wpt_scores) / len(feedback.waypoints)
     else:
         flight.waypoint_accuracy = 0
@@ -200,8 +193,6 @@ def score_team(team_eval):
     else:
         flight.crashed_penalty = 0
     flight.score_ratio = (
-        AUTONOMOUS_FLIGHT_FLIGHT_WEIGHT * flight.flight +
-        WAYPOINT_CAPTURE_WEIGHT * flight.waypoint_capture +
         WAYPOINT_ACCURACY_WEIGHT * flight.waypoint_accuracy -
         flight.safety_pilot_takeover_penalty - flight.out_of_bounds_penalty -
         flight.things_fell_off_penalty - flight.crashed_penalty)

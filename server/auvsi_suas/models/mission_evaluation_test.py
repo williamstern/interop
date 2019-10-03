@@ -48,12 +48,11 @@ class TestMissionScoring(TestCase):
         judge.used_timeout = True
         judge.min_auto_flight_time = True
         judge.safety_pilot_takeovers = 2
-        judge.waypoints_captured = 2
         judge.out_of_bounds = 2
         judge.unsafe_out_of_bounds = 1
         judge.things_fell_off_uas = False
         judge.crashed = False
-        judge.air_drop_accuracy = interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_75_FT
+        judge.air_drop_accuracy = interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_40_FT
         judge.ugv_drove_to_location = False
         judge.operational_excellence_percent = 90
 
@@ -112,41 +111,34 @@ class TestMissionScoring(TestCase):
 
         mission_evaluation.score_team(self.eval)
         self.assertTrue(flight.telemetry_prerequisite)
-        self.assertAlmostEqual(1, flight.flight)
-        self.assertAlmostEqual(1, flight.waypoint_capture)
         self.assertAlmostEqual(0.35, flight.waypoint_accuracy)
         self.assertAlmostEqual(0.2, flight.safety_pilot_takeover_penalty)
         self.assertAlmostEqual(1.2, flight.out_of_bounds_penalty)
         self.assertEqual(0, flight.things_fell_off_penalty)
         self.assertEqual(0, flight.crashed_penalty)
-        self.assertAlmostEqual(-0.725, flight.score_ratio)
+        self.assertAlmostEqual(-1.05, flight.score_ratio)
 
         feedback.waypoints[1].score_ratio = 1
-        judge.waypoints_captured = 1
         judge.safety_pilot_takeovers = 0
         judge.out_of_bounds = 0
         judge.unsafe_out_of_bounds = 0
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(1, flight.flight)
-        self.assertAlmostEqual(0.5, flight.waypoint_capture)
         self.assertAlmostEqual(0.75, flight.waypoint_accuracy)
         self.assertAlmostEqual(0, flight.safety_pilot_takeover_penalty)
         self.assertAlmostEqual(0, flight.out_of_bounds_penalty)
-        self.assertAlmostEqual(0.825, flight.score_ratio)
+        self.assertAlmostEqual(0.75, flight.score_ratio)
 
         judge.things_fell_off_uas = True
         judge.crashed = True
         mission_evaluation.score_team(self.eval)
         self.assertAlmostEqual(0.25, flight.things_fell_off_penalty)
-        self.assertAlmostEqual(0.35, flight.crashed_penalty)
-        self.assertAlmostEqual(0.225, flight.score_ratio)
+        self.assertAlmostEqual(0.5, flight.crashed_penalty)
+        self.assertAlmostEqual(0, flight.score_ratio)
 
         judge.min_auto_flight_time = False
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(0, flight.flight)
         judge.flight_time_sec = 0
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(0, flight.flight)
         self.assertAlmostEqual(0, self.eval.score.score_ratio)
 
         feedback.uas_telemetry_time_avg_sec = 2.0
@@ -214,7 +206,7 @@ class TestMissionScoring(TestCase):
         self.assertAlmostEqual(1, air.drive_to_location)
         self.assertAlmostEqual(1, air.score_ratio)
 
-        judge.air_drop_accuracy = interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_25_FT
+        judge.air_drop_accuracy = interop_admin_api_pb2.MissionJudgeFeedback.WITHIN_15_FT
         judge.ugv_drove_to_location = True
         mission_evaluation.score_team(self.eval)
         self.assertAlmostEqual(0.5, air.drop_accuracy)
@@ -231,7 +223,8 @@ class TestMissionScoring(TestCase):
     def test_total(self):
         """Test the total scoring."""
         mission_evaluation.score_team(self.eval)
-        self.assertAlmostEqual(0.1616666666666667, self.eval.score.score_ratio)
+        self.assertAlmostEqual(0.09666666666666665,
+                               self.eval.score.score_ratio)
 
     def test_non_negative(self):
         """Test that total score doesn't go negative."""
@@ -263,12 +256,11 @@ class TestMissionScoring(TestCase):
         judge.used_timeout = True
         judge.min_auto_flight_time = True
         judge.safety_pilot_takeovers = 10
-        judge.waypoints_captured = 0
         judge.out_of_bounds = 10
         judge.unsafe_out_of_bounds = 5
         judge.things_fell_off_uas = True
         judge.crashed = False
-        judge.air_drop_accuracy = interop_admin_api_pb2.MissionJudgeFeedback.INSUFFICIENT_ACCURACY
+        judge.air_drop_accuracy = interop_admin_api_pb2.MissionJudgeFeedback.NO_POINTS
         judge.ugv_drove_to_location = False
         judge.operational_excellence_percent = 0
 
@@ -342,8 +334,6 @@ class TestMissionEvaluation(TestCase):
         self.assertGreater(timeline.score_ratio, 0)
 
         auto_flight = score.autonomous_flight
-        self.assertGreater(auto_flight.flight, 0)
-        self.assertTrue(auto_flight.HasField('waypoint_capture'))
         self.assertTrue(auto_flight.HasField('waypoint_accuracy'))
         self.assertTrue(auto_flight.HasField('out_of_bounds_penalty'))
         self.assertTrue(auto_flight.HasField('things_fell_off_penalty'))
