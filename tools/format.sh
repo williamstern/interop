@@ -6,14 +6,17 @@
 # or unstaged (but tracked) files will be.
 
 # This directory
-tools=$(readlink -f $(dirname ${BASH_SOURCE[0]}))
+tools=$(dirname ${BASH_SOURCE[0]})
 # Base repo directory
-repo=$(readlink -f ${tools}/..)
+repo=${tools}/..
 
 orig_args="$@"
 
+set -e
+cd $repo
+
 # Source the tools virtualenv.
-source ${tools}/venv/bin/activate
+source tools/venv/bin/activate
 
 # Diff against master by default
 commitish=master
