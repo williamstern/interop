@@ -77,7 +77,7 @@ fi
 # Builds container images.
 if [ "$1" == "build" ]
 then
-    docker-compose build
+    docker-compose build --pull
 fi
 
 # Tests the system.

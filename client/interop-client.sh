@@ -24,7 +24,7 @@ fi
 if [ "$1" == "build" ]
 then
     docker build -t auvsisuas/interop-client ../ -f Dockerfile \
-        --cache-from auvsisuas/interop-client:latest
+        --cache-from auvsisuas/interop-client:latest --pull
 fi
 
 # Tests the images.
