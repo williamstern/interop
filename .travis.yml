@@ -8,6 +8,9 @@ services:
 install:
   # Setup tools.
   - sudo ./tools/setup_tools.sh
+  # Pulls previous image to use as a cache.
+  - ./server/interop-server.sh pull
+  - ./client/interop-client.sh pull
   # Build the images.
   - ./server/interop-server.sh build
   - ./client/interop-client.sh build

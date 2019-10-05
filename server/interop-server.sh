@@ -56,6 +56,12 @@ then
     docker-compose exec interop-server bash
 fi
 
+# Pulls new images.
+if [ "$1" == "pull" ]
+then
+    docker-compose pull
+fi
+
 # Upgrades the interop system.
 if [ "$1" == "upgrade" ]
 then
