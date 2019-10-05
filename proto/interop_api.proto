@@ -13,6 +13,42 @@ message Credentials {
     optional string password = 2;
 }
 
+// Identifier for a team.
+message TeamId {
+    // The ID of the team.
+    optional int32 id = 1;
+
+    // Interop username for the team.
+    optional string username = 2;
+
+    // Name of the team.
+    optional string name = 3;
+
+    // University the team represents.
+    optional string university = 4;
+}
+
+// Status of a team.
+message TeamStatus {
+    // The team this status describes.
+    optional TeamId team = 1;
+
+    // Whether the team is marked in air by admin.
+    optional bool in_air = 2;
+
+    // Most recent telemetry position, if it exists.
+    optional Telemetry telemetry = 3;
+
+    // ID of the telemetry.
+    optional int64 telemetry_id = 4;
+
+    // Age of the telemetry (time since uploaded to interop).
+    optional double telemetry_age_sec = 5;
+
+    // Timestamp of the telemetry as an ISO string.
+    optional string telemetry_timestamp = 6;
+}
+
 // Details for a mission.
 message Mission {
     // Unique identifier for the mission.

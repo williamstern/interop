@@ -4,12 +4,13 @@ import json
 import logging
 from auvsi_suas.models.takeoff_or_landing_event import TakeoffOrLandingEvent
 from auvsi_suas.models.uas_telemetry import UasTelemetry
-from auvsi_suas.proto import interop_admin_api_pb2
-from auvsi_suas.views.decorators import require_superuser
+from auvsi_suas.proto import interop_api_pb2
+from auvsi_suas.views.decorators import require_login
 from auvsi_suas.views.json import ProtoJsonEncoder
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 from google.protobuf import json_format
@@ -19,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 def team_proto(user):
     """Generate TeamStatus proto for team."""
-    team_status_proto = interop_admin_api_pb2.TeamStatus()
-    team_status_proto.id = user.pk
+    team_status_proto = interop_api_pb2.TeamStatus()
+    team_status_proto.team.id = user.pk
     team_status_proto.team.username = user.username
     team_status_proto.team.name = user.first_name
     team_status_proto.team.university = user.last_name
@@ -33,6 +34,9 @@ def team_proto(user):
         telemetry_proto.longitude = telemetry.longitude
         telemetry_proto.altitude = telemetry.altitude_msl
         telemetry_proto.heading = telemetry.uas_heading
+        team_status_proto.telemetry_id = telemetry.pk
+        team_status_proto.telemetry_age_sec = (
+            timezone.now() - telemetry.timestamp).total_seconds()
         team_status_proto.telemetry_timestamp = telemetry.timestamp.isoformat()
 
     return team_status_proto
@@ -41,7 +45,7 @@ def team_proto(user):
 class Teams(View):
     """Gets a list of all teams."""
 
-    @method_decorator(require_superuser)
+    @method_decorator(require_login)
     def dispatch(self, *args, **kwargs):
         return super(Teams, self).dispatch(*args, **kwargs)
 
@@ -60,9 +64,9 @@ class Teams(View):
 
 
 class Team(View):
-    """GET/PUT specific team."""
+    """GET a specific team."""
 
-    @method_decorator(require_superuser)
+    @method_decorator(require_login)
     def dispatch(self, *args, **kwargs):
         return super(Team, self).dispatch(*args, **kwargs)
 

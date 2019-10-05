@@ -4,36 +4,6 @@ syntax = "proto2";
 package auvsi_suas.proto;
 import "auvsi_suas/proto/interop_api.proto";
 
-// Identifier for a team.
-message TeamId {
-    // Interop username for the team.
-    optional string username = 1;
-
-    // Name of the team.
-    optional string name = 2;
-
-    // University the team represents.
-    optional string university = 3;
-}
-
-// Status of a team.
-message TeamStatus {
-    // ID of the team.
-    optional int32 id = 1;
-
-    // The team this status describes.
-    optional TeamId team = 2;
-
-    // Whether the team is marked in air by admin.
-    optional bool in_air = 3;
-
-    // Most recent telemetry position, if it exists.
-    optional Telemetry telemetry = 4;
-
-    // Timestamp of the telemetry position as ISO string.
-    optional string telemetry_timestamp = 5;
-}
-
 // Review details for an ODLC.
 message OdlcReview {
     // The ODLC being reviewed.

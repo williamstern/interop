@@ -18,6 +18,12 @@ from upload_odlcs import upload_odlcs
 logger = logging.getLogger(__name__)
 
 
+def teams(args, client):
+    teams = client.get_teams().result()
+    for team in teams:
+        print(json_format.MessageToJson(team))
+
+
 def mission(args, client):
     mission = client.get_mission(args.mission_id).result()
     print(json_format.MessageToJson(mission))
@@ -76,6 +82,9 @@ def main():
     parser.add_argument('--password', help='Password for interoperability.')
 
     subparsers = parser.add_subparsers(help='Sub-command help.')
+
+    subparser = subparsers.add_parser('teams', help='Get the status of teams.')
+    subparser.set_defaults(func=teams)
 
     subparser = subparsers.add_parser('mission', help='Get mission details.')
     subparser.set_defaults(func=mission)
