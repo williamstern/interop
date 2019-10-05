@@ -23,7 +23,8 @@ fi
 # Builds container images.
 if [ "$1" == "build" ]
 then
-    docker build -t auvsisuas/interop-client ../ -f Dockerfile
+    docker build -t auvsisuas/interop-client ../ -f Dockerfile \
+        --cache-from auvsisuas/interop-client:latest
 fi
 
 # Tests the images.
