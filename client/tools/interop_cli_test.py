@@ -22,6 +22,14 @@ class InteropCliTestBase(unittest.TestCase):
         self.assertEqual(0, subprocess.call(args))
 
 
+class TestTeams(InteropCliTestBase):
+    """Test able to request statuses of teams."""
+
+    def test_get_teams(self):
+        """Test getting statuses of teams."""
+        self.assertCliOk(self.cli_base_args + ['teams'])
+
+
 class TestMissions(InteropCliTestBase):
     """Test able to request mission details."""
 

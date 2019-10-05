@@ -59,6 +59,15 @@ class TestClient(unittest.TestCase):
         self.client = Client(server, username, password)
         self.async_client = AsyncClient(server, username, password)
 
+    def test_get_teams(self):
+        """Tests getting team status."""
+        teams = self.client.get_teams()
+        async_teams = self.async_client.get_teams().result()
+        self.assertEqual(1, len(teams))
+        self.assertEqual(1, len(async_teams))
+        self.assertEqual('testuser', teams[0].team.username)
+        self.assertEqual('testuser', async_teams[0].team.username)
+
     def test_get_mission(self):
         """Test getting a mission."""
         mission = self.client.get_mission(1)

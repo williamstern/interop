@@ -118,6 +118,24 @@ class Client(object):
             raise InteropError(r)
         return r
 
+    def get_teams(self):
+        """GET the status of teams.
+
+        Returns:
+            List of TeamStatus objects for active teams.
+        Raises:
+            InteropError: Error from server.
+            requests.Timeout: Request timeout.
+            ValueError or AttributeError: Malformed response from server.
+        """
+        r = self.get('/api/teams')
+        teams = []
+        for team_dict in r.json():
+            team_proto = interop_api_pb2.TeamStatus()
+            json_format.Parse(json.dumps(team_dict), team_proto)
+            teams.append(team_proto)
+        return teams
+
     def get_mission(self, mission_id):
         """GET a mission by ID.
 
@@ -315,6 +333,15 @@ class AsyncClient(object):
         self.client = Client(url, username, password, timeout, max_concurrent,
                              max_retries)
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent)
+
+    def get_teams(self):
+        """GET the status of teams.
+
+        Returns:
+            Future object which contains the return value or error from the
+            underlying Client.
+        """
+        return self.executor.submit(self.client.get_teams)
 
     def get_mission(self, mission_id):
         """GET a mission by ID.

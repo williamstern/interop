@@ -238,6 +238,20 @@ standard way: it creates the container and starts a pre-configured shell.
 sudo ./interop-client.sh run
 ```
 
+##### Get Teams
+
+The client image provides a script to request the status of teams from the
+interoperability server, and it can be executed from the container shell. The
+following shows how to execute it for the default testing user (`testuser`) if
+the interop server was at `10.10.130.2:8000`.
+
+```bash
+./tools/interop_cli.py \
+    --url http://10.10.130.2:8000 \
+    --username testuser \
+    teams
+```
+
 ##### Get Mission
 
 The client image provides a script to request mission details from the
@@ -402,11 +416,18 @@ client = client.Client(url='http://127.0.0.1:8000',
                        password='testpass')
 ```
 
+The following shows how to request the status of teams.
+
+```python
+teams = client.get_teams()
+print(teams)
+```
+
 The following shows how to request the mission details.
 
 ```python
 mission = client.get_mission(1)
-print mission
+print(mission)
 ```
 
 The following shows how to upload UAS telemetry.
@@ -624,6 +645,49 @@ HTTP/1.1 200 OK
 Set-Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi; expires=Mon, 17-Aug-2015 02:41:09 GMT; httponly; Max-Age=1209600; Path=/
 
 Login Successful.
+```
+
+#### Teams
+
+##### GET /api/teams
+
+This endpoint gets the status of teams. Returns a list of `TeamStatus` JSON
+formatted proto.
+
+Example Request:
+
+```http
+GET /api/teams HTTP/1.1
+Host: 192.168.1.2:8000
+Cookie: sessionid=9vepda5aorfdilwhox56zhwp8aodkxwi
+```
+
+Example Response:
+
+Note: This example reformatted for readability; actual response may be
+entirely on one line.
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+{
+  "team": {
+    "id": 2,
+    "username": "testuser",
+    "name": "Team Name",
+    "university": "Team University"
+  },
+  "inAir": false,
+  "telemetry": {
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "altitude": 0.0,
+    "heading": 0.0
+  },
+  "telemetryId": "1278",
+  "telemetryAgeSec": 1.064382,
+  "telemetryTimestamp": "2019-10-05T20:42:23.643989+00:00"
+}
 ```
 
 #### Missions
@@ -1089,7 +1153,7 @@ Tutorials](https://docs.djangoproject.com/en/1.10/intro/).
 
 ```python
 # Print all mission objects.
-print MissionConfig.objects.all()
+print(MissionConfig.objects.all())
 
 # Create and save a GPS position.
 gpos = GpsPosition(latitudel=38.145335, longitude=-76.427512)

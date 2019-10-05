@@ -94,14 +94,14 @@ class TestTeamsView(TestCase):
         self.telem.save()
 
     def test_normal_user(self):
-        """Normal users not allowed access."""
+        """Normal users allowed access."""
         user = User.objects.create_user('testuser', 'email@example.com',
                                         'testpass')
         user.save()
         self.client.force_login(user)
 
         response = self.client.get(teams_url)
-        self.assertEqual(403, response.status_code)
+        self.assertEqual(200, response.status_code)
 
     def test_no_users(self):
         """No users results in empty list, no superusers."""
@@ -127,11 +127,13 @@ class TestTeamsView(TestCase):
         self.assertEqual(2, len(data))
 
         for user in data:
-            self.assertIn('id', user)
             self.assertIn('team', user)
+            self.assertIn('id', user['team'])
             self.assertIn('username', user['team'])
             self.assertIn('inAir', user)
             if 'telemetry' in user:
+                self.assertIn('telemetryId', user)
+                self.assertIn('telemetryAgeSec', user)
                 self.assertIn('telemetryTimestamp', user)
 
     def test_users_correct(self):
@@ -159,6 +161,8 @@ class TestTeamsView(TestCase):
             u'altitude': 0.0,
             u'heading': 90.0,
         }, user2['telemetry'])
+        self.assertEqual(int(user2['telemetryId']), self.telem.pk)
+        self.assertGreater(user2['telemetryAgeSec'], 0)
         self.assertEqual(user2['telemetryTimestamp'],
                          u'2016-10-01T00:00:00+00:00')
 
