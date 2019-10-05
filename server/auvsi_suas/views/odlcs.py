@@ -433,11 +433,7 @@ class OdlcsAdminReview(View):
     def get(self, request):
         """Gets all of the odlcs ready for review."""
         # Get all odlcs which have a thumbnail to review.
-        odlcs = []
-        for user in User.objects.all():
-            odlcs.extend([
-                t for t in Odlc.objects.filter(user=user).all() if t.thumbnail
-            ])
+        odlcs = [t for t in Odlc.objects.all() if t.thumbnail]
 
         # Sort odlcs by last edit time.
         odlcs.sort(key=lambda t: t.last_modified_time)
