@@ -273,11 +273,24 @@ def evaluate_teams(mission_config, users=None):
     for user in sorted(users, key=lambda u: u.username):
         # Ignore admins.
         if user.is_superuser:
+            logger.info('Filtering superuser: %s.' % user.username)
+            continue
+
+        # Filter inactive users.
+        has_flights = TakeoffOrLandingEvent.objects.filter(user=user).filter(
+            mission=mission_config).exists()
+        has_odlcs = Odlc.objects.filter(user=user).filter(
+            mission=mission_config).exists()
+        has_feedback = MissionJudgeFeedback.objects.filter(user=user).filter(
+            mission=mission_config).exists()
+        if not has_flights and not has_odlcs and not has_feedback:
+            logger.info('Filtering inactive user: %s.' % user.username)
             continue
 
         # Start the evaluation data structure.
         logger.info('Evaluation starting for user: %s.' % user.username)
         team_eval = mission_eval.teams.add()
+        team_eval.mission = mission_config.pk
         team_eval.team.username = user.username
         team_eval.team.name = user.first_name
         team_eval.team.university = user.last_name
