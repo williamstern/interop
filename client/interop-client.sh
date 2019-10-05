@@ -16,6 +16,12 @@ then
     docker run --net=host --interactive --tty auvsisuas/interop-client
 fi
 
+# Pulls new images.
+if [ "$1" == "pull" ]
+then
+    docker pull auvsisuas/interop-client:latest
+fi
+
 
 # Interop developer only. Teams need not run these.
 
