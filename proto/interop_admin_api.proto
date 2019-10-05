@@ -56,17 +56,20 @@ message MultiUserMissionEvaluation {
 
 // Evaluation data for a mission.
 message MissionEvaluation {
+    // The mission which this evaluation describes.
+    optional int32 mission = 1;
+
     // The team which this evaluation describes.
-    optional TeamId team = 1;
+    optional TeamId team = 2;
 
     // Warnings generated during the evaluation process.
-    repeated string warnings = 2;
+    repeated string warnings = 3;
 
     // Feedback provided to the team.
-    optional MissionFeedback feedback = 3;
+    optional MissionFeedback feedback = 4;
 
     // Scoring data.
-    optional MissionScore score = 4;
+    optional MissionScore score = 5;
 }
 
 // Data which was basis for score, provided as feedback for the team.

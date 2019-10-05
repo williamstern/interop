@@ -68,7 +68,7 @@ else
     yapf_args="--diff"
 fi
 
-echo "${files}" | xargs -i yapf ${yapf_args} "${repo}/{}"
+echo "${files}" | xargs -i yapf ${yapf_args} "{}"
 exit_code=$?
 
 if [[ ${exit_code} != 0 && ${inplace} == "" ]]; then

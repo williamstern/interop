@@ -299,10 +299,11 @@ class TestMissionEvaluation(TestCase):
         """Smoke tests the evaluation of teams method."""
         mission_eval = mission_evaluation.evaluate_teams(self.mission)
 
-        # Contains user0 and user1
-        self.assertEqual(2, len(mission_eval.teams))
+        # Contains only user0 (user1 is inactive).
+        self.assertEqual(1, len(mission_eval.teams))
 
         user_eval = mission_eval.teams[0]
+        self.assertEqual(self.mission.pk, user_eval.mission)
         self.assertEqual(self.user0.username, user_eval.team.username)
         self.assertEqual(self.user0.first_name, user_eval.team.name)
         self.assertEqual(self.user0.last_name, user_eval.team.university)
