@@ -120,34 +120,38 @@ class TestGetOdlc(TestOdlcsCommon):
             odlc_type=interop_api_pb2.Odlc.STANDARD)
         t4.save()
 
+        get_id = lambda x: x['id']
         response = self.client.get(odlcs_url)
         self.assertEqual(200, response.status_code)
-        self.assertEqual([
-            {
-                'id': t4.pk,
-                'mission': self.mission2.pk,
-                'type': 'STANDARD',
-                'autonomous': False,
-            },
-            {
-                'id': t3.pk,
-                'mission': self.mission.pk,
-                'type': 'EMERGENT',
-                'autonomous': False,
-            },
-            {
-                'id': t2.pk,
-                'mission': self.mission.pk,
-                'type': 'STANDARD',
-                'autonomous': False,
-            },
-            {
-                'id': t1.pk,
-                'mission': self.mission.pk,
-                'type': 'STANDARD',
-                'autonomous': False,
-            },
-        ], json.loads(response.content))
+        self.assertEqual(
+            sorted(
+                [
+                    {
+                        'id': t4.pk,
+                        'mission': self.mission2.pk,
+                        'type': 'STANDARD',
+                        'autonomous': False,
+                    },
+                    {
+                        'id': t3.pk,
+                        'mission': self.mission.pk,
+                        'type': 'EMERGENT',
+                        'autonomous': False,
+                    },
+                    {
+                        'id': t2.pk,
+                        'mission': self.mission.pk,
+                        'type': 'STANDARD',
+                        'autonomous': False,
+                    },
+                    {
+                        'id': t1.pk,
+                        'mission': self.mission.pk,
+                        'type': 'STANDARD',
+                        'autonomous': False,
+                    },
+                ],
+                key=get_id), sorted(json.loads(response.content), key=get_id))
 
         response = self.client.get(odlcs_url +
                                    '?mission=%d' % self.mission2.pk)
