@@ -1,4 +1,4 @@
-version: '2'
+version: '3.2'
 
 services:
   interop-db:
@@ -9,6 +9,8 @@ services:
     build:
       context: ../
       dockerfile: server/Dockerfile
+      cache_from:
+        - auvsisuas/interop-server:latest
     image: auvsisuas/interop-server
     volumes:
       - ./volumes/mount:/mount
