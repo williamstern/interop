@@ -9,7 +9,8 @@ install:
   # Setup tools.
   - sudo ./tools/setup_tools.sh
   # Build the images.
-  - echo -e "./server/interop-server.sh build\n./client/interop-client.sh build" | parallel
+  - ./server/interop-server.sh build
+  - ./client/interop-client.sh build
 
 script:
   # Test server.
