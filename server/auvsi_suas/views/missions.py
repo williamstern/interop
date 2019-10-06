@@ -54,6 +54,9 @@ def mission_proto(mission):
     mission_proto = interop_api_pb2.Mission()
     mission_proto.id = mission.pk
 
+    mission_proto.lost_comms_pos.latitude = mission.lost_comms_pos.latitude
+    mission_proto.lost_comms_pos.longitude = mission.lost_comms_pos.latitude
+
     for fly_zone in mission.fly_zones.all():
         fly_zone_proto = mission_proto.fly_zones.add()
         fly_zone_proto.altitude_min = fly_zone.altitude_msl_min
@@ -80,10 +83,18 @@ def mission_proto(mission):
     mission_proto.emergent_last_known_pos.latitude = mission.emergent_last_known_pos.latitude
     mission_proto.emergent_last_known_pos.longitude = mission.emergent_last_known_pos.longitude
 
+    for pt in mission.air_drop_boundary_points.order_by('order').all():
+        proto = mission_proto.air_drop_boundary_points.add()
+        proto.latitude = pt.latitude
+        proto.longitude = pt.longitude
+
     mission_proto.air_drop_pos.latitude = mission.air_drop_pos.latitude
     mission_proto.air_drop_pos.longitude = mission.air_drop_pos.longitude
 
-    stationary_obstacles = mission.stationary_obstacles.order_by('pk').all()
+    mission_proto.ugv_drive_pos.latitude = mission.ugv_drive_pos.latitude
+    mission_proto.ugv_drive_pos.longitude = mission.ugv_drive_pos.longitude
+
+    stationary_obstacles = mission.stationary_obstacles.all()
     for obst in stationary_obstacles:
         obst_proto = mission_proto.stationary_obstacles.add()
         obst_proto.latitude = obst.latitude

@@ -25,9 +25,11 @@ class TestMissionJudgeFeedback(TestCase):
         wpt.save()
         config = MissionConfig()
         config.home_pos = pos
+        config.lost_comms_pos = pos
         config.emergent_last_known_pos = pos
         config.off_axis_odlc_pos = pos
         config.air_drop_pos = pos
+        config.ugv_drive_pos = pos
         config.save()
         config.mission_waypoints.add(wpt)
         config.search_grid_points.add(wpt)
