@@ -54,28 +54,36 @@ message Mission {
     // Unique identifier for the mission.
     // Required.
     optional int32 id = 1;
-
+    // Lost comms position for RTH/RTL and flight termination.
+    // Required.
+    optional Position lost_comms_pos = 2;
     // Valid areas to fly. A team is out of bounds if not contained within.
     // Required. At least one FlyZone must be provided.
-    repeated FlyZone fly_zones = 2;
+    repeated FlyZone fly_zones = 3;
     // Sequence of waypoints teams must fly.
     // Required. At least on Waypoint must be provided.
-    repeated Position waypoints = 3;
+    repeated Position waypoints = 4;
     // Search grid containing ODLCs. Positions define a closed polygon.
     // Required. Will form a polygon, so at least 3 points must be provided.
-    repeated Position search_grid_points = 4;
+    repeated Position search_grid_points = 5;
     // Position of the off-axis ODLC.
     // Required.
-    optional Position off_axis_odlc_pos = 5;
+    optional Position off_axis_odlc_pos = 6;
     // Last known position of the emergent ODLC.
     // Required.
-    optional Position emergent_last_known_pos = 6;
+    optional Position emergent_last_known_pos = 7;
+    // Boundary for the air drop and UGV drive.
+    // Required.
+    repeated Position air_drop_boundary_points = 8;
     // Position of the air drop location.
     // Required.
-    optional Position air_drop_pos = 7;
+    optional Position air_drop_pos = 9;
+    // Position the UGV must drive to.
+    // Required.
+    optional Position ugv_drive_pos = 10;
     // Stationary obstacles.
     // Required.
-    repeated StationaryObstacle stationary_obstacles = 8;
+    repeated StationaryObstacle stationary_obstacles = 11;
 }
 
 // Valid area to fly. Defined by a polygon and two altitude bounds. A position

@@ -43,6 +43,10 @@ def create_sample_mission(superuser):
     gpos.save()
     mission.home_pos = gpos
 
+    gpos = GpsPosition(latitude=38.144778, longitude=-76.429417)
+    gpos.save()
+    mission.lost_comms_pos = gpos
+
     gpos = GpsPosition(latitude=38.145111, longitude=-76.427861)
     gpos.save()
     mission.emergent_last_known_pos = gpos
@@ -51,9 +55,13 @@ def create_sample_mission(superuser):
     gpos.save()
     mission.off_axis_odlc_pos = gpos
 
-    gpos = GpsPosition(latitude=38.1458416666667, longitude=-76.426375)
+    gpos = GpsPosition(latitude=38.145848, longitude=-76.426374)
     gpos.save()
     mission.air_drop_pos = gpos
+
+    gpos = GpsPosition(latitude=38.146152, longitude=-76.426396)
+    gpos.save()
+    mission.ugv_drive_pos = gpos
 
     # All foreign keys must be defined before the first save.
     # All many-to-many must be defined after the first save.
@@ -84,11 +92,12 @@ def create_sample_mission(superuser):
     mission.fly_zones.add(bounds)
 
     # yapf: disable
-    pts = [(38.146689, -76.426475, 150,
-            750), (38.142914, -76.430297, 300,
-                   300), (38.149504, -76.433110, 100,
-                          750), (38.148711, -76.429061, 300, 750),
-           (38.144203, -76.426155, 50, 400), (38.146003, -76.430733, 225, 500)]
+    pts = [(38.146689, -76.426475, 150, 750),
+           (38.142914, -76.430297, 300, 300),
+           (38.149504, -76.433110, 100, 750),
+           (38.148711, -76.429061, 300, 750),
+           (38.144203, -76.426155,  50, 400),
+           (38.146003, -76.430733, 225, 500)]
     # yapf: enable
     for lat, lon, radius, height in pts:
         obst = StationaryObstacle(
@@ -137,6 +146,18 @@ def create_sample_mission(superuser):
             latitude=lat, longitude=lon, altitude_msl=0, order=ix + 1)
         wpt.save()
         mission.search_grid_points.add(wpt)
+
+    # yapf: disable
+    pts = [(38.14616666666666, -76.42666666666668),
+           (38.14636111111111, -76.42616666666667),
+           (38.14558333333334, -76.42608333333334),
+           (38.14541666666667, -76.42661111111111)]
+    # yapf: enable
+    for ix, (lat, lon) in enumerate(pts):
+        wpt = Waypoint(
+            latitude=lat, longitude=lon, altitude_msl=0, order=ix + 1)
+        wpt.save()
+        mission.air_drop_boundary_points.add(wpt)
 
     gpos = GpsPosition(latitude=38.143844, longitude=-76.426469)
     gpos.save()

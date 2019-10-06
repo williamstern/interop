@@ -34,9 +34,11 @@ class TestTakeoffOrLandingEventModel(TestAccessLogMixinCommon):
         wpt.save()
         self.mission = MissionConfig()
         self.mission.home_pos = pos
+        self.mission.lost_comms_pos = pos
         self.mission.emergent_last_known_pos = pos
         self.mission.off_axis_odlc_pos = pos
         self.mission.air_drop_pos = pos
+        self.mission.ugv_drive_pos = pos
         self.mission.save()
         self.mission.mission_waypoints.add(wpt)
         self.mission.search_grid_points.add(wpt)
@@ -45,9 +47,11 @@ class TestTakeoffOrLandingEventModel(TestAccessLogMixinCommon):
         # Mission 2
         self.mission2 = MissionConfig()
         self.mission2.home_pos = pos
+        self.mission2.lost_comms_pos = pos
         self.mission2.emergent_last_known_pos = pos
         self.mission2.off_axis_odlc_pos = pos
         self.mission2.air_drop_pos = pos
+        self.mission2.ugv_drive_pos = pos
         self.mission2.save()
         self.mission2.mission_waypoints.add(wpt)
         self.mission2.search_grid_points.add(wpt)

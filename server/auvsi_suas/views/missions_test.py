@@ -108,6 +108,10 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertIn('id', data)
         self.assertEqual(self.mission.pk, data['id'])
 
+        self.assertIn('lostCommsPos', data)
+        self.assertIn('latitude', data['lostCommsPos'])
+        self.assertIn('longitude', data['lostCommsPos'])
+
         self.assertIn('waypoints', data)
         for waypoint in data['waypoints']:
             self.assertIn('latitude', waypoint)
@@ -128,9 +132,19 @@ class TestMissionsViewSampleMission(TestMissionsViewCommon):
         self.assertIn('latitude', data['emergentLastKnownPos'])
         self.assertIn('longitude', data['emergentLastKnownPos'])
 
+        self.assertIn('airDropBoundaryPoints', data)
+        self.assertGreater(len(data['airDropBoundaryPoints']), 0)
+        for point in data['airDropBoundaryPoints']:
+            self.assertIn('latitude', point)
+            self.assertIn('longitude', point)
+
         self.assertIn('airDropPos', data)
         self.assertIn('latitude', data['airDropPos'])
         self.assertIn('longitude', data['airDropPos'])
+
+        self.assertIn('ugvDrivePos', data)
+        self.assertIn('latitude', data['ugvDrivePos'])
+        self.assertIn('longitude', data['ugvDrivePos'])
 
         self.assertIn('stationaryObstacles', data)
         self.assertGreater(len(data['stationaryObstacles']), 0)
@@ -240,9 +254,11 @@ class TestGenerateLiveKML(TestMissionsViewCommon):
 
         config = MissionConfig()
         config.home_pos = pos
+        config.lost_comms_pos = pos
         config.emergent_last_known_pos = pos
         config.off_axis_odlc_pos = pos
         config.air_drop_pos = pos
+        config.ugv_drive_pos = pos
         config.save()
         self.config = config
 
