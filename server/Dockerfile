@@ -61,4 +61,4 @@ CMD uwsgi --ini config/uwsgi.ini && \
 
 # Command to check health of container.
 HEALTHCHECK \
-  CMD ./healthcheck.py --check_server --check_homepage
+  CMD ./healthcheck.py --check_homepage
